@@ -59,6 +59,15 @@ export class AppComponent {
         if (u.admin.value) {
           result.roles.push(Roles.admin);
         }
+        if (u.usher.value) {
+          result.roles.push(Roles.usher);
+        }
+        if (u.matcher.value) {
+          result.roles.push(Roles.matcher);
+        }
+        if (u.driver.value) {
+          result.roles.push(Roles.driver);
+        }
       }
 
     if (result) {
@@ -99,7 +108,8 @@ export class AppComponent {
     this.context.openDialog(InputAreaComponent, i => i.args = {
       title: "Update Info",
       columnSettings: () => [
-        user.name
+        user.name,
+        user.mobile,//visible=Roles.driver | Roles.matcher
       ],
       ok: async () => {
         await user.save();

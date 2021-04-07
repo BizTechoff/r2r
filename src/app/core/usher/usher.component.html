@@ -1,0 +1,22 @@
+
+<div class="usher-header"></div>
+
+<div class="usher-main">
+
+    <div class="usher-drivers">
+        <h3>מתנדבים</h3>
+        <data-grid [settings]="drivers"></data-grid>
+    </div>
+
+    <div class="usher-seperator" style="margin: 10%;">
+        <button (click)="assign()">שייך</button>
+    </div>
+    
+    <div class="usher-patients">
+        <h3>חולים</h3>
+        <data-grid [settings]="patients"></data-grid>
+    </div>
+
+</div>
+
+<div class="usher-footer"></div>

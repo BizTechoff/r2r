@@ -22,8 +22,11 @@ import { HomeComponent } from './home/home.component';
 import { YesNoQuestionComponent } from './common/yes-no-question/yes-no-question.component';
 import { InputAreaComponent } from './common/input-area/input-area.component';
 import { DialogService } from './common/dialog';
-import { AdminGuard } from './users/roles';
+import { AdminGuard, DriverGuard, MatcherGuard, UsherGuard } from './users/roles';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { UsherComponent } from './core/usher/usher.component';
+import { DriverComponent } from './core/driver/driver.component';
+import { PatientComponent } from './core/patient/patient.component';
 
 @NgModule({
   declarations: [
@@ -31,7 +34,10 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     UsersComponent,
     HomeComponent,
     YesNoQuestionComponent,
-    InputAreaComponent
+    InputAreaComponent,
+    UsherComponent,
+    DriverComponent,
+    PatientComponent
   ],
   imports: [
     BrowserModule,
@@ -52,7 +58,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     RemultModule,
     BrowserAnimationsModule
   ],
-  providers: [DialogService, AdminGuard],
+  providers: [DialogService, AdminGuard, UsherGuard, MatcherGuard, DriverGuard],
   bootstrap: [AppComponent],
   entryComponents: [YesNoQuestionComponent, InputAreaComponent]
 })

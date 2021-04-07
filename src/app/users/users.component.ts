@@ -29,7 +29,10 @@ export class UsersComponent implements OnInit {
     },
     columnSettings: users => [
       users.name,
-      users.admin
+      users.admin,
+      users.usher,
+      users.matcher,
+      users.driver,
 
 
     ],

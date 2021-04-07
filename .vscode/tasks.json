@@ -33,10 +33,10 @@
 				"npm: dev-ng",
 				"npm: dev-node"
 			],
-			"detail":"runs both dev-ng and dev-node",
-			"problemMatcher": [
-			],
-			"isBackground": true
+			"detail": "runs both dev-ng and dev-node",
+			"problemMatcher": [],
+			"isBackground": true,
+			// "key": "ctrl+shift+r",
 		}
 	]
 }

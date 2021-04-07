@@ -21,6 +21,12 @@ export class Users extends IdEntity {
     createDate = new changeDate('Create Date');
 
     admin = new BoolColumn();
+    usher = new BoolColumn();
+    matcher = new BoolColumn();
+    driver = new BoolColumn();
+
+    mobile = new StringColumn();
+    
     constructor(private context: Context) {
 
         super({
