@@ -1,0 +1,19 @@
+<div >
+
+  <h3 matDialogHeader>{{args.message}}</h3>
+
+  <mat-dialog-actions>
+
+    <button mat-raised-button color="warning" (click)="close()" *ngIf="args.isAQuestion">
+      No
+    </button>
+    <button mat-raised-button color="primary" (click)="close()" *ngIf="!args.isAQuestion">
+      Ok
+    </button>
+    <button mat-raised-button color="primary"  (click)="select()" *ngIf="args.isAQuestion">
+      Yes
+    </button>
+  </mat-dialog-actions>
+
+
+</div>
