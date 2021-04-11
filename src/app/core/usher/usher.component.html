@@ -5,16 +5,17 @@
 
     <div class="usher-drivers">
         <h3>מתנדבים</h3>
-        <data-grid [settings]="drivers"></data-grid>
+        <data-grid [settings]="driversSettings"></data-grid>
     </div>
 
-    <div class="usher-seperator" style="margin: 10%;">
+    <div class="usher-seperator">
         <button (click)="assign()">שייך</button>
+        <button (click)="retrieve()">רענן</button>
     </div>
     
     <div class="usher-patients">
         <h3>חולים</h3>
-        <data-grid [settings]="patients"></data-grid>
+        <data-grid [settings]="patientsSettings"></data-grid>
     </div>
 
 </div>

@@ -27,7 +27,7 @@ export class AppComponent {
     public dialogService: DialogService,
     private session: JwtSessionService,
     public context: Context) {
-
+      session.loadUserInfo();
 
   }
 
@@ -56,16 +56,16 @@ export class AppComponent {
           roles: [],
           name: u.name.value
         };
-        if (u.admin.value) {
+        if (u.isAdmin.value) {
           result.roles.push(Roles.admin);
         }
-        if (u.usher.value) {
+        if (u.isUsher.value) {
           result.roles.push(Roles.usher);
         }
-        if (u.matcher.value) {
+        if (u.isMatcher.value) {
           result.roles.push(Roles.matcher);
         }
-        if (u.driver.value) {
+        if (u.isDriver.value) {
           result.roles.push(Roles.driver);
         }
       }
@@ -109,7 +109,7 @@ export class AppComponent {
       title: "Update Info",
       columnSettings: () => [
         user.name,
-        user.mobile,//visible=Roles.driver | Roles.matcher
+        // user.mobile,//visible=Roles.driver | Roles.matcher
       ],
       ok: async () => {
         await user.save();

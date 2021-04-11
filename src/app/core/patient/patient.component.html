@@ -1,4 +1,24 @@
 <div class="patient-details">
     <data-area [settings]="patientSettings"></data-area>
+</div>
+
+<div class="patient-prefs">
+    <h3>בקשת התאמה</h3>
+    <data-area [settings]="patientMatchesSettings"></data-area>
+</div>
+
+<div class="patient-buttons">
     <button mat-raised-button (click)="submit()" [disabled]="false">Update</button>
 </div>
+
+
+<!-- <div style="display:flex;justify-content: space-between;">
+        <data-control [column]="patient.fromAddress" style="flex-grow:1" ></data-control>
+        <div>
+            <button mat-icon-button>
+                <mat-icon>swap_horiz</mat-icon>
+            </button>
+        </div>
+        <data-control [column]="patient.toAddress" style="flex-grow:1" ></data-control>
+    </div>
+    <data-area [settings]="patientSettingsAfter"></data-area> -->

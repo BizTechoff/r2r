@@ -27,6 +27,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { UsherComponent } from './core/usher/usher.component';
 import { DriverComponent } from './core/driver/driver.component';
 import { PatientComponent } from './core/patient/patient.component';
+import { DrivingComponent } from './core/driving/driving.component';
 
 @NgModule({
   declarations: [
@@ -37,7 +38,8 @@ import { PatientComponent } from './core/patient/patient.component';
     InputAreaComponent,
     UsherComponent,
     DriverComponent,
-    PatientComponent
+    PatientComponent,
+    DrivingComponent
   ],
   imports: [
     BrowserModule,

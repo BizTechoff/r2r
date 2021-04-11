@@ -1,9 +1,8 @@
 
-import { IdEntity, IdColumn, checkForDuplicateValue, StringColumn, BoolColumn, ColumnOptions, UserInfo, ColumnSettings, ServerFunction, ServerMethod } from "@remult/core";
+import { Allowed, BoolColumn, checkForDuplicateValue, ColumnOptions, ColumnSettings, Context, EntityClass, IdColumn, IdEntity, ServerMethod, StringColumn } from "@remult/core";
+import { Driver } from "../core/driver/driver";
 import { changeDate } from '../shared/types';
-import { Context, EntityClass } from '@remult/core';
 import { Roles } from './roles';
-import { userInfo } from "os";
 
 @EntityClass
 export class Users extends IdEntity {
@@ -20,13 +19,13 @@ export class Users extends IdEntity {
     });
     createDate = new changeDate('Create Date');
 
-    admin = new BoolColumn();
-    usher = new BoolColumn();
-    matcher = new BoolColumn();
-    driver = new BoolColumn();
+    isAdmin = new BoolColumn();
+    isUsher = new BoolColumn();
+    isMatcher = new BoolColumn();
+    isDriver = new BoolColumn();
 
     mobile = new StringColumn();
-    
+
     constructor(private context: Context) {
 
         super({
@@ -34,32 +33,111 @@ export class Users extends IdEntity {
             allowApiRead: context.isSignedIn(),
             allowApiDelete: Roles.admin,
             allowApiUpdate: context.isSignedIn(),
-            allowApiInsert: false,
+            allowApiInsert: false,//block user from creating by api-call
+
             saving: async () => {
                 if (context.onServer) {
 
                     if (this.isNew()) {
                         this.createDate.value = new Date();
                         if ((await context.for(Users).count()) == 0)
-                            this.admin.value = true;// If it's the first user, make it an admin
+                            this.isAdmin.value = true;// If it's the first user, make it an admin
                     }
                     await checkForDuplicateValue(this, this.name, this.context.for(Users));
 
                 }
             },
+            saved: async () => {
+                if (context.onServer) {
+                    await this.updateEntityForUserByRole(
+                        Roles.driver, this, true,
+                    );
+                }
+            },
+            deleted: async () => {
+                if (context.onServer) {
+                    await this.deleteEntityForUserByRole(
+                        Roles.driver, this.id.value,
+                    );
+                }
+            },
             apiDataFilter: () => {
                 if (!(context.isAllowed(Roles.admin)))
                     return this.id.isEqualTo(this.context.user.id);
-            }
+            },
+
         });
     }
-    @ServerMethod({ allowed: true })
+
+    private async updateEntityForUserByRole(role: Allowed, user: Users, createIfNotExists = false) {
+        if (user && user.id.value.length > 0) {
+
+            switch (role.valueOf()) {
+
+                case Roles.driver: {
+                    let d = await this.context.for(Driver).findId(user.id.value);
+                    if (d) {
+                        // because after saved-event, check what updated.
+                        if (user.isDriver.value) {
+                            d.name.value = user.name.value;
+                            d.mobile.value = user.mobile.value;
+                            await d.save();
+                        }
+                        else {
+                            await this.deleteEntityForUserByRole(
+                                Roles.driver, this.id.value);
+                        }
+                    }
+                    else if (createIfNotExists) {
+                        await this.createEntityForUserByRole(
+                            role, this);
+                    }
+                }
+            }
+        }
+    }
+
+    private async createEntityForUserByRole(role: Allowed, user: Users) {
+        switch (role.valueOf()) {
+
+            case Roles.driver: {
+                if (user.isDriver.value) {
+                    const d = this.context.for(Driver).create();
+                    d.userId.value = user.id.value;
+                    d.name.value = user.name.value;
+                    d.mobile.value = user.mobile.value;
+                    await d.save();
+                }
+                break;
+            }
+        }
+    }
+
+    private async deleteEntityForUserByRole(role: Allowed, userId: string) {
+        if (userId && userId.length > 0) {
+
+            switch (role.valueOf()) {
+
+                case Roles.driver: {
+                    let d = await this.context.for(Driver).findFirst({where: d => d.userId.isEqualTo( userId)});
+                    if (d) {
+                        await d.delete();
+                    }
+                }
+            }
+        }
+    }
+
+    @ServerMethod({ allowed: true })//user can created only inside platform (the server)
     async create(password: string) {
         if (!this.isNew())
             throw "Invalid Operation";
         this.password.value = PasswordColumn.passwordHelper.generateHash(password);
         await this.save();
+
+        await this.createEntityForUserByRole(Roles.driver, this);
     }
+
     @ServerMethod({ allowed: context => context.isSignedIn() })
     async updatePassword(password: string) {
         if (this.isNew() || this.id.value != this.context.user.id)

@@ -1,0 +1,18 @@
+.usher-main {
+    display: flex;
+    // justify-content: space-between;
+    // text-align: center;
+    // vertical-align: middle;
+}
+
+.usher-drivers{
+    flex-grow: 1;
+}
+
+.usher-patients{
+    flex-grow: 1;
+}
+
+.usher-seperator{
+    flex-grow: 1;
+}

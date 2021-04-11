@@ -14,10 +14,10 @@ import { DriverComponent } from './core/driver/driver.component';
 
 const routes: Routes = [
   { path: 'Home', component: HomeComponent, canActivate: [NotSignedInGuard] },
-  { path: 'Usher', component: UsherComponent, canActivate: [UsherGuard] },
+  { path: 'Current State', component: UsherComponent, canActivate: [UsherGuard] },
   { path: 'New Patient', component: PatientComponent, canActivate: [MatcherGuard] },
-  // { path: 'Personal Info', component: DriverComponent, canActivate: [DriverGuard] },
-  { path: 'Preferences', component: DriverComponent, canActivate: [DriverGuard] },
+  { path: 'Personal Info', component: DriverComponent, canActivate: [DriverGuard] },
+  // { path: 'Preferences', component: DriverComponent, canActivate: [DriverGuard] },
   { path: 'Transportation Requests', component: DriverComponent, canActivate: [DriverGuard] },
   { path: 'User Accounts', component: UsersComponent, canActivate: [AdminGuard] },
   { path: '', redirectTo: '/Home', pathMatch: 'full' },

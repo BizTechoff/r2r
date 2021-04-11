@@ -14,11 +14,17 @@ export class UsherComponent implements OnInit {
   patients: Patient[] = [];
 
   constructor(private context: Context) { 
-    
+    this.retrieve();
   }
 
+  driversSettings = this.context.for(Driver).gridSettings({
+
+  });
+  patientsSettings = this.context.for(Patient).gridSettings({
+    
+  });
+
   ngOnInit() {
-    this.retrieve();
   }
 
   async retrieve(fromDb = true) {
@@ -28,9 +34,11 @@ export class UsherComponent implements OnInit {
     }
   }
 
-  async assign(notify = false) {
-    let driver = this.getSelectedDriver();
-    let patient = this.getSelectedPatient();
+  async assignSelected(){
+    
+  }
+
+  async assign(patient: Patient, driver: Driver, notify = false) {
 
     patient.driverId.value = driver.id.value;
     patient.assignChanged.value = new Date();
@@ -46,12 +54,12 @@ export class UsherComponent implements OnInit {
     this.retrieve();
   }
 
-  getSelectedDriver(): Driver {
-    return new Driver();
+  getSelectedDrivers(): Driver[] {
+    return new Driver[0];
   }
 
-  getSelectedPatient(): Patient {
-    return new Patient(this.context);
+  getSelectedPatients(): Patient[] {
+    return new Patient[0];
   }
 
   async SendSms(mobile: string, message: string) {

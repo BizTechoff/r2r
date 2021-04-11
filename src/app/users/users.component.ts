@@ -22,17 +22,17 @@ export class UsersComponent implements OnInit {
     allowDelete: true,
     allowInsert: true,
     allowUpdate: true,
-    numOfColumnsInGrid: 2,
+    numOfColumnsInGrid: 5,// this.users.settings.columnSettings.length,
     get: {
       orderBy: h => [h.name],
       limit: 100
     },
     columnSettings: users => [
       users.name,
-      users.admin,
-      users.usher,
-      users.matcher,
-      users.driver,
+      users.isAdmin,
+      users.isUsher,
+      users.isMatcher,
+      users.isDriver,
 
 
     ],
