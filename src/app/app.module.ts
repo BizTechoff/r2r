@@ -30,6 +30,8 @@ import { PatientComponent } from './core/patient/patient.component';
 import { DrivingComponent } from './core/driving/driving.component';
 import { DemoOneComponent } from './demo/demo-one/demo-one.component';
 import { DemoEnumComponent } from './demo/demo-enum/demo-enum.component';
+import { DemoIdColumnComponent } from './demo/demo-id-column/demo-id-column.component';
+import { SelectDriverComponent } from './demo/select-driver/select-driver.component';
 
 @NgModule({
   declarations: [
@@ -43,7 +45,9 @@ import { DemoEnumComponent } from './demo/demo-enum/demo-enum.component';
     PatientComponent,
     DrivingComponent,
     DemoOneComponent,
-    DemoEnumComponent
+    DemoEnumComponent,
+    DemoIdColumnComponent,
+    SelectDriverComponent
   ],
   imports: [
     BrowserModule,
@@ -66,6 +70,6 @@ import { DemoEnumComponent } from './demo/demo-enum/demo-enum.component';
   ],
   providers: [DialogService, AdminGuard, UsherGuard, MatcherGuard, DriverGuard],
   bootstrap: [AppComponent],
-  entryComponents: [YesNoQuestionComponent, InputAreaComponent]
+  entryComponents: [YesNoQuestionComponent, InputAreaComponent,SelectDriverComponent]
 })
 export class AppModule { }
