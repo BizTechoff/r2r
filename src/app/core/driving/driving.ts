@@ -1,4 +1,4 @@
-import { Context, EntityClass, IdEntity, NumberColumn, StringColumn } from "@remult/core";
+import { BoolColumn, Context, DateTimeColumn, EntityClass, IdEntity, NumberColumn, StringColumn } from "@remult/core";
 import { Driver } from "../driver/driver";
 import { Patient } from "../patient/patient";
 import { DrivingStatusTypes } from "./drivingStatusTypes";
@@ -6,13 +6,22 @@ import { DrivingStatusTypes } from "./drivingStatusTypes";
 @EntityClass  
 export class Driving extends IdEntity {
 
-    driverId = new StringColumn({});
-    patientId = new StringColumn({});
+    driverId = new StringColumn({});//DriverColumn
+    patientId = new StringColumn({});//PatientColumn
     status = DrivingStatusTypes.WaitingForMatch;
 
+    from_ = new StringColumn({});//AddressColumn
+    to_ = new StringColumn({});
+    date = new DateTimeColumn({});
+    dayPeriod = new NumberColumn({});//DayPeriodColumn DayPeriodTypes.Morning;
+    isNeedAlsoReturnDriving = new BoolColumn({});
+    isNeedWheelchair = new BoolColumn({});
+    isHasEscort = new BoolColumn({});
+    escortsCount = new NumberColumn({});
+
     //dbCursors
-    driver: Driver;
-    patient: Patient;
+    driver: Driver;//DriverColumn
+    patient: Patient;//PatientColumn
 
     constructor(private context: Context) {
         super({
@@ -35,4 +44,9 @@ export class Driving extends IdEntity {
         }
     }
 
+}
+
+export enum DayPeriodTypes{
+    Morning = 1,// מהגבול לביח / הלוך
+    Afternoon,// מביח לגבול/ חזור
 }

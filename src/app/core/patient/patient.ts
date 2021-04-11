@@ -7,18 +7,11 @@ import { DrivingMatcher } from "../driving/drivingMatcher";
 @EntityClass
 export class Patient extends IdEntity {
 
-    driverId = new StringColumn({});
-    assignChanged = new DateTimeColumn({});
     name = new StringColumn({});
     mobile = new StringColumn({});
     idNumber = new StringColumn({});
-    fromAddress = new StringColumn({});//{ caption: "From" });
-    toAddress = new StringColumn({});//{ caption: "To" });
-    fromHour = new DateTimeColumn({});
-    toHour = new DateTimeColumn({});
-    isNeedWheelchair = new BoolColumn({});
-    isHasEscort = new BoolColumn({});
-    escortsCount = new NumberColumn({});
+    defaultBorderCrossing = new StringColumn({});
+    defaultHospital = new StringColumn({});
     
     constructor(private context: Context) {
         super({

@@ -40,8 +40,8 @@ export class UsherComponent implements OnInit {
 
   async assign(patient: Patient, driver: Driver, notify = false) {
 
-    patient.driverId.value = driver.id.value;
-    patient.assignChanged.value = new Date();
+    // patient.driverId.value = driver.id.value;
+    // patient.assignChanged.value = new Date();
     await patient.save();
 
     if (notify) {

@@ -13,6 +13,7 @@ import { DriverComponent } from './core/driver/driver.component';
 import { DemoOneComponent } from './demo/demo-one/demo-one.component';
 import { DemoEnumComponent } from './demo/demo-enum/demo-enum.component';
 import { DemoIdColumnComponent } from './demo/demo-id-column/demo-id-column.component';
+import { PatientListComponent } from './core/patient/patient-list/patient-list.component';
 
 
 const routes: Routes = [
@@ -21,7 +22,7 @@ const routes: Routes = [
   { path: 'demo-id-column', component: DemoIdColumnComponent },
   { path: 'Home', component: HomeComponent, canActivate: [NotSignedInGuard] },
   { path: 'Current State', component: UsherComponent, canActivate: [UsherGuard] },
-  { path: 'New Patient', component: PatientComponent, canActivate: [MatcherGuard] },
+  { path: 'Patient List', component: PatientListComponent },
   { path: 'Personal Info', component: DriverComponent, canActivate: [DriverGuard] },
   // { path: 'Preferences', component: DriverComponent, canActivate: [DriverGuard] },
   { path: 'Transportation Requests', component: DriverComponent, canActivate: [DriverGuard] },

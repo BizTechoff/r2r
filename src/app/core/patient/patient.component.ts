@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Column, Context, DataAreaSettings } from '@remult/core';
+import { Driving } from '../driving/driving';
 import { DrivingMatcher } from '../driving/drivingMatcher';
 import { Patient } from './patient';
 
@@ -11,41 +12,55 @@ import { Patient } from './patient';
 export class PatientComponent implements OnInit {
 
   patient = this.context.for(Patient).create();
-  patientSettings = new DataAreaSettings({
-    columnSettings: () => [
-      this.patient.name,
-      this.patient.idNumber,
-      this.patient.mobile,
-      [this.patient.fromAddress,
-      this.patient.toAddress],
-      [this.patient.fromHour, this.patient.toHour],
-      this.patient.isNeedWheelchair,
-      [this.patient.isHasEscort, this.patient.escortsCount],
-    ]
-  });
+  // patientSettings = new DataAreaSettings({
+  //   columnSettings: () => [
+  //     this.patient.name,//todo: readonly
+  //     // this.patient.idNumber,
+  //     // this.patient.mobile,
+  //     // [this.patient.defaultBorderCrossing,
+  //     // this.patient.defaultHospital],
+  //     // [this.patient.fromHour, this.patient.toHour],
+  //     // this.patient.isNeedWheelchair,
+  //     // [this.patient.isHasEscort, this.patient.escortsCount],
+  //   ]
+  // });
 
-  patientMatches = this.context.for(DrivingMatcher).create();
+  driving = this.context.for(Driving).create();
   patientMatchesSettings = new DataAreaSettings({
     columnSettings: () => [
-    // this.patientMatches.hospital,
-   //   this.patientMatches.borderCrossing,
-      this.patientMatches.fromday,
-      this.patientMatches.today,
-      this.patientMatches.fromHour,
-      this.patientMatches.toHour,
+      // this.patientMatches.hospital,
+      //   this.patientMatches.borderCrossing,
+      this.driving.from_,
+      this.driving.to_,
+      this.driving.isNeedAlsoReturnDriving,
+      this.driving.date,
+      this.driving.dayPeriod,
+      this.driving.isNeedWheelchair,
+      this.driving.isHasEscort,
+      this.driving.escortsCount,
     ],
   });
 
+
   constructor(private context: Context) { }
 
+  args: {
+    patient: Patient,
+  };
+
   ngOnInit() {
+    this.patient = this.args.patient;
+    this.driving.patientId.value =
+      this.patient.id.value;
+    this.driving.from_.value =
+      this.patient.defaultBorderCrossing.value;
+    this.driving.to_.value =
+      this.patient.defaultHospital.value;
   }
 
   async submit() {
-    await this.patient.save();
-    this.patientMatches.patientId.value = 
-      this.patient.id.value;
-    await this.patientMatches.save();
+    // await this.patient.save();
+    await this.driving.save();
   }
 
   async swapAddresses() {

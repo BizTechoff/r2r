@@ -21,7 +21,7 @@ export class DrivingMatcher extends IdEntity {
 
     constructor(private context: Context) {
         super({
-            name: "drivings",
+            name: "drivingsMatchers",
             allowApiCRUD: c => c.isSignedIn(),
             allowApiRead: c => c.isSignedIn(),
 
