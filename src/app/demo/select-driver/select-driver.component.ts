@@ -1,8 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
+import { DialogConfig } from '@remult/angular';
 import { Context } from '@remult/core';
 import { Driver } from '../../core/driver/driver';
 
+@DialogConfig({
+  minWidth:'95%'
+})
 @Component({
   selector: 'app-select-driver',
   templateUrl: './select-driver.component.html',
