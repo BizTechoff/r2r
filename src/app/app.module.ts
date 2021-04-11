@@ -29,6 +29,7 @@ import { DriverComponent } from './core/driver/driver.component';
 import { PatientComponent } from './core/patient/patient.component';
 import { DrivingComponent } from './core/driving/driving.component';
 import { DemoOneComponent } from './demo/demo-one/demo-one.component';
+import { DemoEnumComponent } from './demo/demo-enum/demo-enum.component';
 
 @NgModule({
   declarations: [
@@ -41,7 +42,8 @@ import { DemoOneComponent } from './demo/demo-one/demo-one.component';
     DriverComponent,
     PatientComponent,
     DrivingComponent,
-    DemoOneComponent
+    DemoOneComponent,
+    DemoEnumComponent
   ],
   imports: [
     BrowserModule,

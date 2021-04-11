@@ -11,10 +11,12 @@ import { UsherComponent } from './core/usher/usher.component';
 import { PatientComponent } from './core/patient/patient.component';
 import { DriverComponent } from './core/driver/driver.component';
 import { DemoOneComponent } from './demo/demo-one/demo-one.component';
+import { DemoEnumComponent } from './demo/demo-enum/demo-enum.component';
 
 
 const routes: Routes = [
   { path: 'demo', component: DemoOneComponent },
+  { path: 'demoenum', component: DemoEnumComponent },
   { path: 'Home', component: HomeComponent, canActivate: [NotSignedInGuard] },
   { path: 'Current State', component: UsherComponent, canActivate: [UsherGuard] },
   { path: 'New Patient', component: PatientComponent, canActivate: [MatcherGuard] },
