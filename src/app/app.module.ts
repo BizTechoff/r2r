@@ -28,6 +28,7 @@ import { UsherComponent } from './core/usher/usher.component';
 import { DriverComponent } from './core/driver/driver.component';
 import { PatientComponent } from './core/patient/patient.component';
 import { DrivingComponent } from './core/driving/driving.component';
+import { DemoOneComponent } from './demo/demo-one/demo-one.component';
 
 @NgModule({
   declarations: [
@@ -39,7 +40,8 @@ import { DrivingComponent } from './core/driving/driving.component';
     UsherComponent,
     DriverComponent,
     PatientComponent,
-    DrivingComponent
+    DrivingComponent,
+    DemoOneComponent
   ],
   imports: [
     BrowserModule,
