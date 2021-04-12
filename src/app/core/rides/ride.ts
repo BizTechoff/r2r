@@ -1,67 +1,61 @@
-import { BoolColumn, Context, DateColumn, DateTimeColumn, EntityClass, IdEntity, NumberColumn, StringColumn } from "@remult/core";
-import { Driver } from "../drivers/driver";
+import { BoolColumn, Context, DateColumn, EntityClass, IdEntity, NumberColumn, ValueListColumn } from "@remult/core";
+import { DriverIdColumn } from "../drivers/driver";
 import { DayPeriodColumn } from "../drivers/DriverPrefSchedule";
 import { LocationIdColumn } from "../locations/location";
-import { Patient } from "../patients/patient";
-import { RideStatusTypes } from "./rideStatusTypes";
+import { PatientIdColumn } from "../patients/patient";
 
-@EntityClass  
+@EntityClass
 export class Ride extends IdEntity {
 
-    driverId = new StringColumn({});//DriverColumn
-    patientId = new StringColumn({});//PatientColumn
-    status = RideStatusTypes.WaitingForMatch;
+    driverId = new DriverIdColumn(this.context, "Driver", "driverId");
+    patientId = new PatientIdColumn(this.context, "Patient", "patientId");
+    status = new RideStatusColumn();
 
-    from = new LocationIdColumn(this.context, "From", 'from_');//LocationColumn
+    from = new LocationIdColumn(this.context, "From", 'from_');
     to = new LocationIdColumn(this.context, "To", 'to_');
     date = new DateColumn({});
-    dayPeriod = new DayPeriodColumn();//DayPeriodColumn DayPeriodTypes.Morning;
-    
-    isNeedWheelchair = new BoolColumn({caption:'Need Wheel Chair'});
-    isHasEscort = new BoolColumn({caption:'Has Escort'});
-    escortsCount = new NumberColumn({});
+    dayPeriod = new DayPeriodColumn();
 
-    //dbCursors
-    driver: Driver;//DriverColumn
-    patient: Patient;//PatientColumn
+    isNeedWheelchair = new BoolColumn({ caption: 'Need Wheel Chair' });
+    isHasEscort = new BoolColumn({ caption: 'Has Escort' });
+    escortsCount = new NumberColumn({});
 
     constructor(private context: Context) {
         super({
             name: "rides",
             allowApiCRUD: c => c.isSignedIn(),
             allowApiRead: c => c.isSignedIn(),
-
-            
         });
     }
 
-    async fulfill() {
-        if (this.driverId && this.driverId.value && this.driverId.value.length > 0) {
-            this.driver = await this.context.for(Driver).findId(
-                this.driverId.value);
-        }
-        if (this.patientId && this.patientId.value && this.patientId.value.length > 0) {
-            this.patient = await this.context.for(Patient).findId(
-                this.patientId.value);
-        }
-    }
-
-    copyTo(target: Ride){
+    copyTo(target: Ride) {
         target.from.value = this.from.value;
         target.to.value = this.to.value;
-        target.dayPeriod.value =  this.dayPeriod.value;
+        target.dayPeriod.value = this.dayPeriod.value;
         target.date.value = this.date.value;
         target.isNeedWheelchair.value = this.isNeedWheelchair.value;
         target.isHasEscort.value = this.isHasEscort.value;
         target.escortsCount.value = this.escortsCount.value;
         target.patientId.value = this.patientId.value;
-        target.driverId.value  = this.driverId.value;
+        target.driverId.value = this.driverId.value;
         target.status = this.status;
     }
 
 }
 
-export enum DayPeriodTypes{
-    Morning = 1,// מהגבול לביח / הלוך
-    Afternoon,// מביח לגבול/ חזור
+export class RideStatus {
+    static waitingForMatch = new RideStatus(1, 'waitingForMatch',);
+    static waitingForStart = new RideStatus(2, 'waitingForStart',);
+    static waitingForPickup = new RideStatus(3, 'waitingForPickup',);
+    static waitingForArrived = new RideStatus(4, 'waitingForArrived',);
+    static succeeded = new RideStatus(10, 'succeeded',);
+    static failed = new RideStatus(11, 'failed',);
+    static rejected = new RideStatus(12, 'rejected',);
+    constructor(public id: number, public caption: string, public color = 'green') { }
+}
+
+export class RideStatusColumn extends ValueListColumn<RideStatus>{
+    constructor() {
+        super(RideStatus);
+    }
 }

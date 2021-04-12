@@ -11,11 +11,8 @@ export class RidesComponent implements OnInit {
 
   ridesSettings = this.context.for(Ride).gridSettings({
     allowCRUD: true,
-    // columnSettings: ()=>[
-
-    // ],
   });
-  
+
   constructor(private context: Context) { }
 
   ngOnInit() {

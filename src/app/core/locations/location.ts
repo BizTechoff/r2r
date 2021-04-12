@@ -1,4 +1,4 @@
-import { Context, DataAreaSettings, EntityClass, IdEntity, NumberColumn, StringColumn, ValueListColumn } from "@remult/core";
+import { Context, EntityClass, IdEntity, StringColumn, ValueListColumn } from "@remult/core";
 import { DynamicServerSideSearchDialogComponent } from "../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component";
 
 @EntityClass
@@ -51,4 +51,3 @@ export class LocationIdColumn extends StringColumn {
     });
   }
 }
-

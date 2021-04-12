@@ -1,4 +1,5 @@
 import { Context, EntityClass, IdEntity, StringColumn } from "@remult/core";
+import { DynamicServerSideSearchDialogComponent } from "../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component";
 import { Roles } from "../../users/roles";
 
 @EntityClass
@@ -28,5 +29,28 @@ export class Driver extends IdEntity {
             // },
             // deleting:async()=>{}
         })
+    }
+}
+
+
+export class DriverIdColumn extends StringColumn {
+
+    constructor(private context: Context, caption: string, dbName: string) {
+        super({
+            caption: caption,
+            dbName: dbName,
+            dataControlSettings: () => ({
+                getValue: () => this.context.for(Driver).lookup(this).name.value,
+                hideDataOnInput: true,
+                clickIcon: 'search',
+                click: () => {
+                    this.context.openDialog(DynamicServerSideSearchDialogComponent,
+                        x => x.args(Driver, {
+                            onSelect: l => this.value = l.id.value,
+                            searchColumn: l => l.name
+                        }));
+                }
+            })
+        });
     }
 }

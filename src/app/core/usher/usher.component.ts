@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { Context } from '@remult/core';
 import { Driver } from '../drivers/driver';
+import { Location } from '../locations/location';
 import { Patient } from '../patients/patient';
+import { Ride, RideStatus } from '../rides/ride';
 
 @Component({
   selector: 'app-usher',
@@ -13,15 +15,15 @@ export class UsherComponent implements OnInit {
   drivers: Driver[] = [];
   patients: Patient[] = [];
 
-  constructor(private context: Context) { 
+  constructor(private context: Context) {
     this.retrieve();
   }
 
   driversSettings = this.context.for(Driver).gridSettings({
 
   });
-  patientsSettings = this.context.for(Patient).gridSettings({
-    
+  ridesSettings = this.context.for(Patient).gridSettings({
+
   });
 
   ngOnInit() {
@@ -34,19 +36,29 @@ export class UsherComponent implements OnInit {
     }
   }
 
-  async assignSelected(){
-    
+  async assignSelected() {
+
   }
 
-  async assign(patient: Patient, driver: Driver, notify = false) {
+  async assign(ride: Ride, driver: Driver, notify = false) {
 
-    // patient.driverId.value = driver.id.value;
-    // patient.assignChanged.value = new Date();
-    await patient.save();
+    ride.driverId.value = driver.id.value;
+    ride.status.value = RideStatus.waitingForStart;
+    await ride.save();
 
     if (notify) {
       let mobile = driver.mobile.value;
-      let message = `${(patient.name)}-${(patient.mobile)}`;
+      let patientName = this.context.for(Patient).findId(ride.patientId.value);
+      let fromName = this.context.for(Location).findId(ride.from.value);
+      let toName = this.context.for(Location).findId(ride.to.value);
+
+      let message = `Hi, please 
+        Collect-'${(patientName)}' 
+        From-${(fromName)} 
+        To-${(toName)} 
+        At-${(ride.date)} ${(ride.dayPeriod)} 
+        , Thanks
+        for more details click ${("https://riding/" + ride.id.value)}`;
 
       this.SendSms(mobile, message);
     }
@@ -65,6 +77,5 @@ export class UsherComponent implements OnInit {
   async SendSms(mobile: string, message: string) {
     await console.info(`Sms '${(message)}' sent to '${(mobile)}'`)
   }
-
 
 }

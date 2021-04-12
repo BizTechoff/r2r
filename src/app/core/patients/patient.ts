@@ -1,8 +1,6 @@
-import { async } from "@angular/core/testing";
-import { BoolColumn, Context, DateTimeColumn, EntityClass, IdEntity, NumberColumn, StringColumn } from "@remult/core";
-import { Roles } from "../../users/roles";
+import { Context, EntityClass, IdEntity, StringColumn } from "@remult/core";
+import { DynamicServerSideSearchDialogComponent } from "../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component";
 import { LocationIdColumn } from "../locations/location";
-import { RideMatcher } from "../rides/rideMatches";
 
 
 @EntityClass
@@ -13,12 +11,34 @@ export class Patient extends IdEntity {
     idNumber = new StringColumn({});
     defaultBorderCrossing = new LocationIdColumn(this.context, "Default Border Crossing", "defaultBorderCrossing");
     defaultHospital = new LocationIdColumn(this.context, "Default Hospital", "defaultHospital");
-    
+
     constructor(private context: Context) {
         super({
             name: "patients",
             allowApiCRUD: c => c.isSignedIn(), //[Roles.matcher],
             allowApiRead: c => c.isSignedIn(),
+        });
+    }
+}
+
+export class PatientIdColumn extends StringColumn {
+
+    constructor(private context: Context, caption: string, dbName: string) {
+        super({
+            caption: caption,
+            dbName: dbName,
+            dataControlSettings: () => ({
+                getValue: () => this.context.for(Patient).lookup(this).name.value,
+                hideDataOnInput: true,
+                clickIcon: 'search',
+                click: () => {
+                    this.context.openDialog(DynamicServerSideSearchDialogComponent,
+                        x => x.args(Patient, {
+                            onSelect: l => this.value = l.id.value,
+                            searchColumn: l => l.name
+                        }));
+                }
+            })
         });
     }
 }

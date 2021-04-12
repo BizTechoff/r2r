@@ -6,7 +6,6 @@ export class DriverPrefsSchedule extends IdEntity {
     driverPrefsId = new StringColumn({});//fk
     dayOfWeek = new DayOfWeekColumn();
     dayPeriod = new DayPeriodColumn();
-    isEveryWeek = new BoolColumn({});
 
     constructor(private context: Context) {
         super({

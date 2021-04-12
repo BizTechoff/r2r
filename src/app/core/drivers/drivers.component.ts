@@ -20,6 +20,7 @@ export class DriversComponent implements OnInit {
       click: async (d) => await this.openPreferencesDialog(d),
       icon: "settings_suggest",
       visible: (d) => !d.isNew(),
+      showInLine: true,
     },],
   });
 
@@ -43,7 +44,6 @@ export class DriversComponent implements OnInit {
         columnSettings: s => [
           s.dayOfWeek,
           s.dayPeriod,
-          s.isEveryWeek,
         ]
       })
     });
@@ -67,6 +67,7 @@ export class DriversComponent implements OnInit {
             click: (d) => {
               this.openSchedulePrefsDialog(d)
             },
+            showInLine: true,
           },
         ],
       })
