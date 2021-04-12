@@ -1,6 +1,6 @@
 import { BoolColumn, Context, DateColumn, EntityClass, IdEntity, NumberColumn, ValueListColumn } from "@remult/core";
 import { DriverIdColumn } from "../drivers/driver";
-import { DayPeriodColumn } from "../drivers/DriverPrefSchedule";
+import { DayPeriodColumn } from "../drivers/driverPrefSchedule";
 import { LocationIdColumn } from "../locations/location";
 import { PatientIdColumn } from "../patients/patient";
 
