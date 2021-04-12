@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-import { Context, StringColumn } from '@remult/core';
+import { Context } from '@remult/core';
 import { GridDialogComponent } from '../../common/grid-dialog/grid-dialog.component';
+import { Location } from './../locations/location';
 import { Driver } from './driver';
 import { DriverPrefs } from './driverPrefs';
-import { DriverPrefsSchedule } from './DriverPrefSchedule';
-import { Location } from './../locations/location'
+import { DriverPrefsSchedule } from './driverPrefSchedule';
 
 @Component({
   selector: 'app-drivers',

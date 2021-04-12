@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { BoolColumn, Context } from '@remult/core';
 import { InputAreaComponent } from '../../common/input-area/input-area.component';
-import { DayPeriod } from '../drivers/DriverPrefSchedule';
+import { DayPeriod } from '../drivers/driverPrefSchedule';
 import { Ride } from '../rides/ride';
 import { Patient } from './patient';
 
