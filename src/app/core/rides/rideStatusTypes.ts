@@ -1,4 +1,4 @@
-export enum DrivingStatusTypes {
+export enum RideStatusTypes {
 
     WaitingForMatch = 1,
     WaitingForStart,

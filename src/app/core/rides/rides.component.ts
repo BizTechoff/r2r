@@ -1,0 +1,24 @@
+import { Component, OnInit } from '@angular/core';
+import { Context } from '@remult/core';
+import { Ride } from './ride';
+
+@Component({
+  selector: 'app-rides',
+  templateUrl: './rides.component.html',
+  styleUrls: ['./rides.component.scss']
+})
+export class RidesComponent implements OnInit {
+
+  ridesSettings = this.context.for(Ride).gridSettings({
+    allowCRUD: true,
+    // columnSettings: ()=>[
+
+    // ],
+  });
+  
+  constructor(private context: Context) { }
+
+  ngOnInit() {
+  }
+
+}

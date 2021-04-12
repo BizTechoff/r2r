@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Context } from '@remult/core';
-import { Driver } from '../driver/driver';
-import { Patient } from '../patient/patient';
+import { Driver } from '../drivers/driver';
+import { Patient } from '../patients/patient';
 
 @Component({
   selector: 'app-usher',

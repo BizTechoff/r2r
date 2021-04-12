@@ -1,7 +1,8 @@
 import { async } from "@angular/core/testing";
 import { BoolColumn, Context, DateTimeColumn, EntityClass, IdEntity, NumberColumn, StringColumn } from "@remult/core";
 import { Roles } from "../../users/roles";
-import { DrivingMatcher } from "../driving/drivingMatcher";
+import { LocationIdColumn } from "../locations/location";
+import { RideMatcher } from "../rides/rideMatches";
 
 
 @EntityClass
@@ -10,14 +11,18 @@ export class Patient extends IdEntity {
     name = new StringColumn({});
     mobile = new StringColumn({});
     idNumber = new StringColumn({});
-    defaultBorderCrossing = new StringColumn({});
-    defaultHospital = new StringColumn({});
+    defaultBorderCrossing = new LocationIdColumn(this.context, "Default Border Crossing", "defaultBorderCrossing");
+    defaultHospital = new LocationIdColumn(this.context, "Default Hospital", "defaultHospital");
     
     constructor(private context: Context) {
         super({
             name: "patients",
-            allowApiCRUD: [Roles.matcher],
+            allowApiCRUD: c => c.isSignedIn(), //[Roles.matcher],
             allowApiRead: c => c.isSignedIn(),
+        });
+    }
+}
+
             // allowApiDelete:false,
             // saving:async()=>{
             //     this.isNew()
@@ -30,7 +35,3 @@ export class Patient extends IdEntity {
 
             // },
             // deleted:async()=>{}
-
-        });
-    }
-}

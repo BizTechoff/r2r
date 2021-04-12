@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
 import { DialogConfig } from '@remult/angular';
 import { Context } from '@remult/core';
-import { Driver } from '../../core/driver/driver';
+import { Driver } from '../../core/drivers/driver';
 
 @DialogConfig({
   minWidth:'95%'

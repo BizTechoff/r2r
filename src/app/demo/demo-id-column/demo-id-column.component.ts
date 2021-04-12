@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { SelectValueDialogComponent } from '@remult/angular';
 import { Context, DataAreaSettings, StringColumn } from '@remult/core';
-import { Driver } from '../../core/driver/driver';
+import { Driver } from '../../core/drivers/driver';
 import { SelectDriverComponent } from '../select-driver/select-driver.component';
 
 

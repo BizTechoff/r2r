@@ -8,25 +8,32 @@ import { UsersComponent } from './users/users.component';
 import { AdminGuard, UsherGuard, MatcherGuard, DriverGuard } from './users/roles';
 import { ShowDialogOnErrorErrorHandler } from './common/dialog';
 import { UsherComponent } from './core/usher/usher.component';
-import { PatientComponent } from './core/patient/patient.component';
-import { DriverComponent } from './core/driver/driver.component';
 import { DemoOneComponent } from './demo/demo-one/demo-one.component';
 import { DemoEnumComponent } from './demo/demo-enum/demo-enum.component';
 import { DemoIdColumnComponent } from './demo/demo-id-column/demo-id-column.component';
-import { PatientListComponent } from './core/patient/patient-list/patient-list.component';
+import { LocationsComponent } from './core/locations/locations.component';
+import { DriversComponent } from './core/drivers/drivers.component';
+import { PatientsComponent } from './core/patients/patients.component';
+import { RidesComponent } from './core/rides/rides.component';
 
 
 const routes: Routes = [
+
+  { path: 'Rides', component: RidesComponent },
+  { path: 'Drivers', component: DriversComponent },//, canActivate: [NotSignedInGuard] },
+  { path: 'Patients', component: PatientsComponent },
+  { path: 'Locations', component: LocationsComponent },//, canActivate: [NotSignedInGuard] },
+  { path: '--------------', component: DemoOneComponent },
   { path: 'demo', component: DemoOneComponent },
   { path: 'demoenum', component: DemoEnumComponent },
   { path: 'demo-id-column', component: DemoIdColumnComponent },
-  { path: 'Home', component: HomeComponent, canActivate: [NotSignedInGuard] },
-  { path: 'Current State', component: UsherComponent, canActivate: [UsherGuard] },
-  { path: 'Patient List', component: PatientListComponent },
-  { path: 'Personal Info', component: DriverComponent, canActivate: [DriverGuard] },
+  { path: 'Home', component: HomeComponent },//, canActivate: [NotSignedInGuard] },
+
+  { path: 'Current State', component: UsherComponent },//, canActivate: [UsherGuard] },
+  { path: 'Personal Info', component: DriversComponent },//, canActivate: [DriverGuard] },
   // { path: 'Preferences', component: DriverComponent, canActivate: [DriverGuard] },
-  { path: 'Transportation Requests', component: DriverComponent, canActivate: [DriverGuard] },
-  { path: 'User Accounts', component: UsersComponent, canActivate: [AdminGuard] },
+  { path: 'Transportation Requests', component: DriversComponent },//, canActivate: [DriverGuard] },
+  { path: 'User Accounts', component: UsersComponent },//, canActivate: [AdminGuard] },
   { path: '', redirectTo: '/Home', pathMatch: 'full' },
   { path: '**', redirectTo: '/Home', pathMatch: 'full' }
 

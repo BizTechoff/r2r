@@ -25,14 +25,16 @@ import { DialogService } from './common/dialog';
 import { AdminGuard, DriverGuard, MatcherGuard, UsherGuard } from './users/roles';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { UsherComponent } from './core/usher/usher.component';
-import { DriverComponent } from './core/driver/driver.component';
-import { PatientComponent } from './core/patient/patient.component';
-import { DrivingComponent } from './core/driving/driving.component';
 import { DemoOneComponent } from './demo/demo-one/demo-one.component';
 import { DemoEnumComponent } from './demo/demo-enum/demo-enum.component';
 import { DemoIdColumnComponent } from './demo/demo-id-column/demo-id-column.component';
 import { SelectDriverComponent } from './demo/select-driver/select-driver.component';
-import { PatientListComponent } from './core/patient/patient-list/patient-list.component';
+import { LocationsComponent } from './core/locations/locations.component';
+import { DriversComponent } from './core/drivers/drivers.component';
+import { PatientsComponent } from './core/patients/patients.component';
+import { RidesComponent } from './core/rides/rides.component';
+import { GridDialogComponent } from './common/grid-dialog/grid-dialog.component';
+import { DynamicServerSideSearchDialogComponent } from './common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component';
 
 @NgModule({
   declarations: [
@@ -42,14 +44,16 @@ import { PatientListComponent } from './core/patient/patient-list/patient-list.c
     YesNoQuestionComponent,
     InputAreaComponent,
     UsherComponent,
-    DriverComponent,
-    PatientComponent,
-    DrivingComponent,
     DemoOneComponent,
     DemoEnumComponent,
     DemoIdColumnComponent,
     SelectDriverComponent,
-    PatientListComponent
+    LocationsComponent,
+    DriversComponent,
+    PatientsComponent,
+    RidesComponent,
+    GridDialogComponent,
+    DynamicServerSideSearchDialogComponent
   ],
   imports: [
     BrowserModule,
@@ -72,6 +76,7 @@ import { PatientListComponent } from './core/patient/patient-list/patient-list.c
   ],
   providers: [DialogService, AdminGuard, UsherGuard, MatcherGuard, DriverGuard],
   bootstrap: [AppComponent],
-  entryComponents: [YesNoQuestionComponent, InputAreaComponent,SelectDriverComponent,PatientComponent]
+  entryComponents: [YesNoQuestionComponent, InputAreaComponent, SelectDriverComponent,
+    GridDialogComponent, DynamicServerSideSearchDialogComponent]
 })
 export class AppModule { }

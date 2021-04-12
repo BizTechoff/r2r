@@ -1,6 +1,6 @@
 
 import { Allowed, BoolColumn, checkForDuplicateValue, ColumnOptions, ColumnSettings, Context, EntityClass, IdColumn, IdEntity, ServerMethod, StringColumn } from "@remult/core";
-import { Driver } from "../core/driver/driver";
+import { Driver } from "../core/drivers/driver";
 import { changeDate } from '../shared/types';
 import { Roles } from './roles';
 

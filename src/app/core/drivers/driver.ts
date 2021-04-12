@@ -1,5 +1,5 @@
 import { Context, EntityClass, IdEntity, StringColumn } from "@remult/core";
-import { Roles } from "./../../users/roles";
+import { Roles } from "../../users/roles";
 
 @EntityClass
 export class Driver extends IdEntity {
@@ -11,7 +11,7 @@ export class Driver extends IdEntity {
     constructor(private context: Context) {
         super({
             name: "drivers",
-            allowApiCRUD: [Roles.driver, Roles.admin],
+            allowApiCRUD: c => c.isSignedIn(),// [Roles.driver, Roles.admin],
             allowApiRead: c => c.isSignedIn(),
             
             // allowApiDelete:false,

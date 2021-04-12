@@ -1,9 +1,9 @@
 import { Context, DateTimeColumn, EntityClass, IdEntity, StringColumn } from "@remult/core";
-import { Driver } from "../driver/driver";
-import { Patient } from "../patient/patient";
+import { Driver } from "../drivers/driver";
+import { Patient } from "../patients/patient";
 
 @EntityClass
-export class DrivingMatcher extends IdEntity {
+export class RideMatcher extends IdEntity {
 
     driverId = new StringColumn({});
     patientId = new StringColumn({});
@@ -21,7 +21,7 @@ export class DrivingMatcher extends IdEntity {
 
     constructor(private context: Context) {
         super({
-            name: "drivingsMatchers",
+            name: "ridesMatchers",
             allowApiCRUD: c => c.isSignedIn(),
             allowApiRead: c => c.isSignedIn(),
 
