@@ -1,1 +1,10 @@
-<data-grid [settings]="patientsSettings"></data-grid>
+<div>
+    <div class="patients-top">
+        <data-control [column]="byDate"></data-control>
+        <button class="mat-raised-button" (click)="assign()">Assign</button>
+    </div>
+
+    <div>
+        <data-grid class="patients-center" [settings]="patientsSettings"></data-grid>
+    </div>
+</div>

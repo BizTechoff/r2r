@@ -12,8 +12,6 @@ import { AdminGuard } from './users/roles';
 import { UsersComponent } from './users/users.component';
 
 
-
-
 const routes: Routes = [
 
   { path: 'Rides', component: RidesComponent },
@@ -31,8 +29,8 @@ const routes: Routes = [
   // { path: 'Preferences', component: DriverComponent, canActivate: [DriverGuard] },
   // { path: 'Transportation Requests', component: DriversComponent },//, canActivate: [DriverGuard] },
   { path: 'User Accounts', component: UsersComponent },//, canActivate: [AdminGuard] },
-  { path: '', redirectTo: '/Home', pathMatch: 'full' },
-  { path: '**', redirectTo: '/Home', pathMatch: 'full' }
+  { path: '', redirectTo: '/--------------', pathMatch: 'full' },
+  { path: '**', redirectTo: '/--------------', pathMatch: 'full' }
 
 ];
 
@@ -42,4 +40,3 @@ const routes: Routes = [
   exports: [RouterModule]
 })
 export class AppRoutingModule { }
-

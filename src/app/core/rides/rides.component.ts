@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Context } from '@remult/core';
-import { Ride } from './ride';
+import { Ride, RideStatus } from './ride';
 
 @Component({
   selector: 'app-rides',

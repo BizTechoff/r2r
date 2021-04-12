@@ -25,6 +25,8 @@ export class Ride extends IdEntity {
             name: "rides",
             allowApiCRUD: c => c.isSignedIn(),
             allowApiRead: c => c.isSignedIn(),
+
+            
         });
     }
 
@@ -44,6 +46,7 @@ export class Ride extends IdEntity {
 }
 
 export class RideStatus {
+    static waitingForPatient = new RideStatus(0, 'waitingForPatient',);//driver future ride
     static waitingForMatch = new RideStatus(1, 'waitingForMatch',);
     static waitingForStart = new RideStatus(2, 'waitingForStart',);
     static waitingForPickup = new RideStatus(3, 'waitingForPickup',);
@@ -57,5 +60,6 @@ export class RideStatus {
 export class RideStatusColumn extends ValueListColumn<RideStatus>{
     constructor() {
         super(RideStatus);
+        this.value = RideStatus.waitingForMatch;
     }
 }
