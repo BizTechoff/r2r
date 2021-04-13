@@ -46,11 +46,12 @@ export class Ride extends IdEntity {
 }
 
 export class RideStatus {
-    static waitingForPatient = new RideStatus(0, 'waitingForPatient',);//driver future ride
-    static waitingForMatch = new RideStatus(1, 'waitingForMatch',);
-    static waitingForStart = new RideStatus(2, 'waitingForStart',);
-    static waitingForPickup = new RideStatus(3, 'waitingForPickup',);
-    static waitingForArrived = new RideStatus(4, 'waitingForArrived',);
+    static waitingFor2Patient = new RideStatus(2, 'waitingForPatient',);//driver future ride
+    static waitingFor1DriverAccept = new RideStatus(1, 'waitingForDriverAccept',);
+    static waitingFor3Match = new RideStatus(3, 'waitingForMatch',);
+    static waitingFor4Start = new RideStatus(4, 'waitingForStart',);
+    static waitingFor5Pickup = new RideStatus(5, 'waitingForPickup',);
+    static waitingFor6Arrived = new RideStatus(6, 'waitingForArrived',);
     static succeeded = new RideStatus(10, 'succeeded',);
     static failed = new RideStatus(11, 'failed',);
     static rejected = new RideStatus(12, 'rejected',);
@@ -60,6 +61,6 @@ export class RideStatus {
 export class RideStatusColumn extends ValueListColumn<RideStatus>{
     constructor() {
         super(RideStatus);
-        this.value = RideStatus.waitingForMatch;
+        this.value = RideStatus.waitingFor3Match;
     }
 }

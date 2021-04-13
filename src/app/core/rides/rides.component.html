@@ -1,1 +1,11 @@
-<data-grid [settings]="ridesSettings"></data-grid>
+<div>
+    <div class="patients-top" style="display: flex;">
+        <data-control [column]="byDate"></data-control>
+        
+        <button class="mat-raised-button" (click)="assign()">Assign</button>
+    </div>
+
+    <div>
+        <data-grid class="patients-center" [settings]="ridesSettings"></data-grid>
+    </div>
+</div>

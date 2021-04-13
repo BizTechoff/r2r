@@ -3,7 +3,8 @@ import { BoolColumn, Context } from '@remult/core';
 import { InputAreaComponent } from '../../common/input-area/input-area.component';
 import { DayPeriod } from '../drivers/driverPrefSchedule';
 import { Ride } from '../rides/ride';
-import { ByDate, ByDateColumn, Usher } from '../usher/usher';
+import { ByDateColumn } from '../usher/ByDate';
+
 import { Patient } from './patient';
 
 @Component({
@@ -13,8 +14,8 @@ import { Patient } from './patient';
 })
 export class PatientsComponent implements OnInit {
 
-  
-  byDate = new ByDateColumn();
+
+  search = new ByDateColumn();
 
   patientsSettings = this.context.for(Patient).gridSettings({
     allowCRUD: true,
@@ -28,17 +29,10 @@ export class PatientsComponent implements OnInit {
   });
 
   constructor(private context: Context) {
-   }
+  }
 
   ngOnInit() {
     // this.byDate.value = ByDate.today;
-  }
-
-  async assign(){
-    await (new Usher()).organize(
-      this.byDate.value,
-      this.context,
-    );
   }
 
   async openRideDialog(p: Patient) {
