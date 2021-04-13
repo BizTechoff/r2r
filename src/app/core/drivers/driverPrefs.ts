@@ -2,6 +2,7 @@ import { Context, EntityClass, IdEntity, StringColumn } from "@remult/core";
 import { DynamicServerSideSearchDialogComponent } from "../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component";
 import { LocationIdColumn, Location } from "../locations/location";
 import { DriverIdColumn } from "./driver";
+import { DayOfWeekColumn, DayPeriodColumn } from "./driverPrefSchedule";
 
 @EntityClass
 export class DriverPrefs extends IdEntity {
@@ -9,6 +10,9 @@ export class DriverPrefs extends IdEntity {
     driverId = new DriverIdColumn(this.context, "Driver", "driverId");
     locationId = new LocationIdColumn(this.context, "Location", "locationId");//fk
 
+    dayOfWeek = new DayOfWeekColumn();
+    dayPeriod = new DayPeriodColumn();
+    
     constructor(private context: Context) {
         super({
             name: "driversPrefs",

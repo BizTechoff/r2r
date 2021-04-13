@@ -17,9 +17,10 @@ export class DriverPrefsSchedule extends IdEntity {
 }
 
 export class DayPeriod {
-    static morning = new DayPeriod(1, 'morning',);
-    static afternoon = new DayPeriod(2, 'afternoon', 'red');
-    constructor(public id: number, public caption: string, public color = 'green') { }
+    static morning = new DayPeriod();
+    static afternoon = new DayPeriod('red');
+    constructor(public color = 'green') { }
+    id;
 }
 
 export class DayPeriodColumn extends ValueListColumn<DayPeriod>{
@@ -28,16 +29,16 @@ export class DayPeriodColumn extends ValueListColumn<DayPeriod>{
     }
 }
 
-
 export class DayOfWeek {
-    static sunday = new DayOfWeek(1, 'sunday',);
-    static monday = new DayOfWeek(2, 'monday',);
-    static tuesday = new DayOfWeek(3, 'tuesday',);
-    static wednesday = new DayOfWeek(4, 'wednesday',);
-    static thursday = new DayOfWeek(5, 'thursday',);
-    static friday = new DayOfWeek(6, 'friday',);
-    static saturday = new DayOfWeek(7, 'saturday',);
-    constructor(public id: number, public caption: string, public color = 'green') { }
+    static sunday = new DayOfWeek();
+    static monday = new DayOfWeek();
+    static tuesday = new DayOfWeek();
+    static wednesday = new DayOfWeek();
+    static thursday = new DayOfWeek();
+    static friday = new DayOfWeek();
+    static saturday = new DayOfWeek();
+    constructor(public color = 'green') { }
+    id;
 }
 
 export class DayOfWeekColumn extends ValueListColumn<DayOfWeek>{
@@ -45,5 +46,4 @@ export class DayOfWeekColumn extends ValueListColumn<DayOfWeek>{
         super(DayOfWeek);
     }
 }
-
 

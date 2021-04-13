@@ -24,7 +24,7 @@ export class PatientsComponent implements OnInit {
       click: async (p) => await this.openRideDialog(p),
       icon: "drive_eta",
       visible: (d) => !d.isNew(),
-      showInLine: true,
+      // showInLine: true,
     },],
   });
 

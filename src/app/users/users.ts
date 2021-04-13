@@ -135,7 +135,7 @@ export class Users extends IdEntity {
         this.password.value = PasswordColumn.passwordHelper.generateHash(password);
         await this.save();
 
-        await this.createEntityForUserByRole(Roles.driver, this);
+        // await this.createEntityForUserByRole(Roles.driver, this);
     }
 
     @ServerMethod({ allowed: context => context.isSignedIn() })

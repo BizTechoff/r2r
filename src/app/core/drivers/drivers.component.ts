@@ -20,8 +20,16 @@ export class DriversComponent implements OnInit {
       click: async (d) => await this.openPreferencesDialog(d),
       icon: "settings_suggest",
       visible: (d) => !d.isNew(),
-      showInLine: true,
+      // showInLine: true,
     },],
+    columnSettings: (d) => [
+      d.name,
+      d.idNumber,
+      d.birthDate,
+      d.seats,
+      d.mobile,
+      d.email,
+    ],
   });
 
   constructor(private context: Context) { }
@@ -58,18 +66,20 @@ export class DriversComponent implements OnInit {
         newRow: p => p.driverId.value = d.id.value,
         allowCRUD: true,
         columnSettings: p => [
-          p.locationId
+          p.locationId,
+          p.dayOfWeek,
+          p.dayPeriod,
         ],
-        rowButtons: [
-          {
-            name: "Schedules",
-            icon: "schedule",
-            click: (d) => {
-              this.openSchedulePrefsDialog(d)
-            },
-            showInLine: true,
-          },
-        ],
+        // rowButtons: [
+        //   {
+        //     name: "Create Of This",
+        //     icon: "schedule",
+        //     click: (d) => {
+        //       this.openSchedulePrefsDialog(d)
+        //     },
+        //     showInLine: true,
+        //   },
+        // ],
       })
     });
   }

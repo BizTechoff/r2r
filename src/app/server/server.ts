@@ -13,6 +13,7 @@ import * as compression from 'compression';
 import * as passwordHash from 'password-hash';
 import '../app.module';
 import { PasswordColumn } from '../users/users';
+import { importData } from './import-data';
 
 config(); //loads the configuration from the .env file
 const pool = new Pool({
@@ -45,5 +46,9 @@ app.use('/*', async (req, res) => {
         res.sendStatus(500);
     }
 });
+
+console.time('noam');
+//importData(database).then(()=>console.timeEnd("noam"));
+
 let port = process.env.PORT || 3000;
 app.listen(port); 

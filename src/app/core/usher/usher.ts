@@ -1,5 +1,5 @@
 import { ColumnSettings, Context, ServerFunction, ValueListColumn } from "@remult/core";
-import { DayPeriod } from "../drivers/driverPrefSchedule";
+import { DayOfWeek, DayPeriod } from "../drivers/driverPrefSchedule";
 import { Ride, RideStatus } from "../rides/ride";
 import { ByDate, ByDateColumn } from "./ByDate";
 
@@ -17,7 +17,7 @@ export class Usher {
             rideId: String,
             locationFromId: String,
             locationToId?: String,//catch the driver when returns back. to bring back OTHER patient for him.
-            dayOfWeek?: Date,
+            dayOfWeek?: DayOfWeek,
             dayPeriod?: DayPeriod,
             containsLocation?: (id) => boolean,
             drivers: {//the matching drivers for ride

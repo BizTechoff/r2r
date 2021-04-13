@@ -1,11 +1,11 @@
-import { Context, EntityClass, IdEntity, StringColumn, ValueListColumn } from "@remult/core";
+import { ColumnOptions, Context, EntityClass, IdEntity, StringColumn, ValueListColumn } from "@remult/core";
 import { DynamicServerSideSearchDialogComponent } from "../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component";
 
 @EntityClass
 export class Location extends IdEntity {
 
   name = new StringColumn({});
-  type = new LocationTypeColumn();
+  type = new LocationTypeColumn({});
 
   constructor() {
     super({
@@ -18,14 +18,15 @@ export class Location extends IdEntity {
 }
 
 export class LocationType {
-  static hospital = new LocationType(1, 'hospital',);
-  static border = new LocationType(2, 'border', 'red');
-  constructor(public id: number, public caption: string, public color = 'green') { }
+  static hospital = new LocationType();
+  static border = new LocationType();
+  static driver = new LocationType();
+  constructor() { }
 }
 
 export class LocationTypeColumn extends ValueListColumn<LocationType>{
-  constructor() {
-    super(LocationType);
+  constructor(options: ColumnOptions) {
+    super(LocationType, options);
   }
 }
 

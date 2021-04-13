@@ -1,6 +1,7 @@
-import { Context, EntityClass, IdEntity, StringColumn } from "@remult/core";
+import { Context, DateColumn, EntityClass, IdEntity, NumberColumn, StringColumn } from "@remult/core";
 import { DynamicServerSideSearchDialogComponent } from "../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component";
 import { Roles } from "../../users/roles";
+import { LocationIdColumn } from "../locations/location";
 
 @EntityClass
 export class Driver extends IdEntity {
@@ -8,6 +9,11 @@ export class Driver extends IdEntity {
     userId = new StringColumn({});// The user-table will be the driver.
     name = new StringColumn({});
     mobile = new StringColumn({});
+    home = new LocationIdColumn(this.context, "Home", "home");
+    email = new StringColumn({});
+    seats = new NumberColumn({});
+    idNumber = new StringColumn({});
+    birthDate = new DateColumn({});
 
     constructor(private context: Context) {
         super({
