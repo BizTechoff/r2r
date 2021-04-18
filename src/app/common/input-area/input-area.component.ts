@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
+import { DialogConfig } from '@remult/angular';
 import { getColumnsFromObject,IDataAreaSettings, DataAreaSettings, DataArealColumnSetting } from '@remult/core';
 
 import { DialogService } from '../dialog';

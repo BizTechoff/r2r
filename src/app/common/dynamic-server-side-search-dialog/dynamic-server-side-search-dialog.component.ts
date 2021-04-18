@@ -47,7 +47,7 @@ export class DynamicServerSideSearchDialogComponent implements OnInit {
         
         this.searchString.value ? this._args.searchColumn(p).isContains(this.searchString)
           : undefined
-    ]});
+    ]}); 
   }
 
   searchString = new StringColumn({

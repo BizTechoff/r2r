@@ -1,6 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { Context } from '@remult/core';
+import { BusyService, SelectValueDialogComponent } from '@remult/angular';
+import { Column, Context, NumberColumn, StringColumn } from '@remult/core';
 import { GridDialogComponent } from '../../common/grid-dialog/grid-dialog.component';
+import { Ride } from '../rides/ride';
+import { Usher } from '../usher/usher';
 import { Location } from './../locations/location';
 import { Driver } from './driver';
 import { DriverPrefs } from './driverPrefs';
@@ -13,29 +16,59 @@ import { DriverPrefsSchedule } from './driverPrefSchedule';
 })
 export class DriversComponent implements OnInit {
 
+  search = new StringColumn({
+    caption: 'search driver name',
+    valueChange: () => this.busy.donotWait(async () => this.retrieveDrivers())
+
+  });
+
+  // prefsCount = new NumberColumn({});
   driversSettings = this.context.for(Driver).gridSettings({
-    allowCRUD: true,
+    // allowCRUD: true,
     rowButtons: [{
       name: "Preferences",
       click: async (d) => await this.openPreferencesDialog(d),
       icon: "settings_suggest",
       visible: (d) => !d.isNew(),
-      // showInLine: true,
+      //showInLine: (this.context.for(DriverPrefs).count(p => p.driverId.isEqualTo("")).then(() => { return true; })),
+    }, {
+      name: "Find Rides",
+      click: async (d) => await this.openReleventRidesDialog(d),
+      icon: "ride",
+      visible: (d) => !d.isNew(),
+      //showInLine: (this.context.for(DriverPrefs).count(p => p.driverId.isEqualTo("")).then(() => { return true; })),
     },],
+    where: p => this.search.value ? p.name.isContains(this.search) : undefined,
+    numOfColumnsInGrid: 10,
     columnSettings: (d) => [
+      // d.name,
+      // {
+      //   column: this.prefsCount,
+      //   // getValue:async() => await this.context.for(DriverPrefs).count(p=>p.driverId.isEqualTo(d.id)),
+      // },
       d.name,
       d.idNumber,
       d.birthDate,
       d.seats,
       d.mobile,
       d.email,
+      //prefsCount, await this.context.for(DriverPrefs).count(p=>p.driverId.isEqualTo(d.id));
     ],
   });
 
-  constructor(private context: Context) { }
+  constructor(private context: Context, private busy: BusyService) { }
+
 
   ngOnInit() {
+    this.retrieveDrivers();
   }
+  async retrieveDrivers() {
+    this.driversSettings.reloadData();
+    // this.patients = await this.context.for(Patient).find({
+    //   where:p=>this.search.value?p.name.isContains(this.search):undefined
+    // });
+  }
+  async addDriver() { }
 
 
   async openScheduleDialog(p: Driver) {
@@ -70,18 +103,61 @@ export class DriversComponent implements OnInit {
           p.dayOfWeek,
           p.dayPeriod,
         ],
-        // rowButtons: [
-        //   {
-        //     name: "Create Of This",
-        //     icon: "schedule",
-        //     click: (d) => {
-        //       this.openSchedulePrefsDialog(d)
-        //     },
-        //     showInLine: true,
-        //   },
-        // ],
       })
     });
+  }
+
+  async openReleventRidesDialog(d: Driver) {
+    let relevantRides = await Usher.getReleventRidesForDriver(d.id.value);
+
+    let rides = (await this.context.for(Ride).find({
+      where: r => r.id.isIn(...relevantRides),
+
+    })).map(r => ({
+      item: r,
+      caption: r.from.displayValue + " " + r.to.value,
+    }));
+
+
+    this.context.openDialog(SelectValueDialogComponent, x => x.args({
+      title: `Relevent Rides (${rides.length})`,
+      values: rides,
+      onSelect: async x => {
+        let ride = await this.context.for(Ride).findId(x.item.id);
+        ride.driverId.value = d.id.value;
+        await ride.save();
+        // this.retrieveDrivers();
+      },
+    }))
+
+    // this.context.openDialog(GridDialogComponent, gd => gd.args = {
+    //   title: "Relevent Rides",
+    //   buttons: [{
+    //     text: 'select',
+    //     click: async () => { 
+    //       gd.
+    //       // getSelection().
+    //       // await this.mergeFamilies(x); }
+    //     }
+    //   }],
+    //   settings: this.context.for(Ride).gridSettings({
+    //     where: r => r.id.isIn(...relevantRides),
+    //     //where: p => p.id.isEqualTo(d.id),
+    //     // newRow: p => p.driverId.value = d.id.value,
+    //     // allowCRUD: true,
+    //     numOfColumnsInGrid: 10,
+    //     columnSettings: r => [
+    //       r.driverId,
+    //       r.dayOfWeek,
+    //       r.dayPeriod,
+    //       r.patientId,
+    //       r.from,
+    //       r.to,
+    //     ],
+    //     allowSelection: true,
+    //   }),
+
+    // });
   }
 
 }

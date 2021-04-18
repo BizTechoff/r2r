@@ -7,6 +7,7 @@ import { LocationIdColumn } from "../locations/location";
 export class Patient extends IdEntity {
 
     name = new StringColumn({});
+    hebName = new StringColumn({});
     mobile = new StringColumn({});
     idNumber = new StringColumn({});
     defaultBorderCrossing = new LocationIdColumn(this.context, "Default Border Crossing", "defaultBorderCrossing");
@@ -17,6 +18,7 @@ export class Patient extends IdEntity {
             name: "patients",
             allowApiCRUD: c => c.isSignedIn(), //[Roles.matcher],
             allowApiRead: c => c.isSignedIn(),
+            defaultOrderBy:()=>this.name
         });
     }
 }

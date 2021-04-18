@@ -1,6 +1,7 @@
-import { BoolColumn, Context, DateColumn, EntityClass, IdEntity, NumberColumn, ValueListColumn } from "@remult/core";
+import { BoolColumn, Context, DateColumn, EntityClass, IdEntity, NumberColumn, StringColumn, ValueListColumn } from "@remult/core";
+import { Utils } from "../../shared/utils";
 import { DriverIdColumn } from "../drivers/driver";
-import { DayPeriodColumn } from "../drivers/driverPrefSchedule";
+import { DayOfWeekColumn, DayPeriodColumn } from "../drivers/driverPrefSchedule";
 import { LocationIdColumn } from "../locations/location";
 import { PatientIdColumn } from "../patients/patient";
 
@@ -10,12 +11,20 @@ export class Ride extends IdEntity {
     driverId = new DriverIdColumn(this.context, "Driver", "driverId");
     patientId = new PatientIdColumn(this.context, "Patient", "patientId");
     status = new RideStatusColumn();
-
+    importRideNum = new StringColumn();
+    
     from = new LocationIdColumn(this.context, "From", 'from_');
     to = new LocationIdColumn(this.context, "To", 'to_');
-    date = new DateColumn({});
+    date = new DateColumn({
+        // valueChange: () => {this.dayOfWeek.value = Utils.getDayOfWeek(this.date.getDayOfWeek())},
+         
+    });
     dayPeriod = new DayPeriodColumn();
+    dayOfWeek = new DayOfWeekColumn({
+        // return Utils.getDayOfWeek(this.date.getDayOfWeek());
+    });
 
+    isNeedBabyChair = new BoolColumn({ caption: 'Need Baby Chair' });
     isNeedWheelchair = new BoolColumn({ caption: 'Need Wheel Chair' });
     isHasEscort = new BoolColumn({ caption: 'Has Escort' });
     escortsCount = new NumberColumn({});
@@ -28,6 +37,10 @@ export class Ride extends IdEntity {
 
             
         });
+    }
+
+    getDayOfWeek(){
+        return Utils.getDayOfWeek(this.date.getDayOfWeek());
     }
 
     copyTo(target: Ride) {

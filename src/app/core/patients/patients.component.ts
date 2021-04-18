@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { BoolColumn, Context } from '@remult/core';
+import { BusyService } from '@remult/angular';
+import { BoolColumn, Context, StringColumn } from '@remult/core';
 import { InputAreaComponent } from '../../common/input-area/input-area.component';
+import { Utils } from '../../shared/utils';
 import { DayPeriod } from '../drivers/driverPrefSchedule';
 import { Ride } from '../rides/ride';
 import { ByDateColumn } from '../usher/ByDate';
@@ -15,25 +17,45 @@ import { Patient } from './patient';
 export class PatientsComponent implements OnInit {
 
 
-  search = new ByDateColumn();
+  search = new StringColumn({
+    caption: 'search patient name',
+    valueChange: () => this.busy.donotWait(async () => this.retrievePatients())
 
+  });
+ // patients: Patient[];
   patientsSettings = this.context.for(Patient).gridSettings({
-    allowCRUD: true,
+    gridButtons: [{
+      name: 'new patient',
+      click: () => {
+        alert('123')
+      }
+    }],
+    numOfColumnsInGrid: 10,
+    columnSettings: p => [p.name, p.mobile, /*p.idNumber,*/ p.defaultBorderCrossing, p.defaultHospital],
+    where:p=>this.search.value?p.name.isContains(this.search):undefined,
     rowButtons: [{
-      name: "Add Ride",
+      textInMenu: "Add Ride",
       click: async (p) => await this.openRideDialog(p),
       icon: "drive_eta",
       visible: (d) => !d.isNew(),
-      // showInLine: true,
+      showInLine: true,
     },],
   });
 
-  constructor(private context: Context) {
+  constructor(private context: Context, private busy: BusyService) {
   }
 
   ngOnInit() {
-    // this.byDate.value = ByDate.today;
+    this.retrievePatients();
   }
+  async retrievePatients() {
+    this.patientsSettings.reloadData();
+    // this.patients = await this.context.for(Patient).find({
+    //   where:p=>this.search.value?p.name.isContains(this.search):undefined
+    // });
+  }
+
+  async addPatient(){}
 
   async openRideDialog(p: Patient) {
     let today = new Date();
@@ -42,6 +64,7 @@ export class PatientsComponent implements OnInit {
 
     var ride = this.context.for(Ride).create();
     ride.date.value = tomorrow;
+    ride.dayOfWeek.value = Utils.getDayOfWeek(ride.date.getDayOfWeek());
     ride.dayPeriod.value = DayPeriod.morning;
     ride.patientId.value = p.id.value;
     ride.from.value = p.defaultBorderCrossing.value;
@@ -69,6 +92,7 @@ export class PatientsComponent implements OnInit {
         ],
         ok: async () => {
           //PromiseThrottle
+          // ride.driverId.value = undefined;
           await ride.save();
           if (isNeedReturnTrip.value) {
             var returnRide = this.context.for(Ride).create();

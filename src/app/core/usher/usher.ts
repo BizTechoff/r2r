@@ -1,11 +1,133 @@
-import { ColumnSettings, Context, ServerFunction, ValueListColumn } from "@remult/core";
+import { Column, ColumnSettings, Context, ServerFunction, ValueListColumn } from "@remult/core";
+import { usherDriversResponse } from "../../shared/types";
+import { Utils } from "../../shared/utils";
+import { Driver } from "../drivers/driver";
+import { DriverPrefs } from "../drivers/driverPrefs";
 import { DayOfWeek, DayPeriod } from "../drivers/driverPrefSchedule";
 import { Ride, RideStatus } from "../rides/ride";
 import { ByDate, ByDateColumn } from "./ByDate";
 
 export class Usher {
 
-   
+
+    @ServerFunction({ allowed: c => c.isSignedIn() })//allowed: Roles.matcher
+    static async getReleventRidesForDriver(driverId: string, context?: Context) {
+        let result: string[] = [];
+
+        let prefs = await context.for(DriverPrefs).find({
+            where: rf => rf.driverId.isEqualTo(driverId)
+        });
+
+        let empty = [undefined];
+        for (const p of prefs) {
+            let rides = await context.for(Ride).find({
+                where: r => r.dayOfWeek.isEqualTo(p.dayOfWeek)
+                    .and( r.dayPeriod.isEqualTo(p.dayPeriod))
+                // && (r.driverId),
+                // && (p.locationId && p.locationId.value && p.locationId.value.length > 0
+                //     ? r.from.isEqualTo(p.locationId)
+                //     : r.id.isEqualTo(r.id))//should be always true
+
+            });
+            if (rides && rides.length > 0) {
+                rides.forEach(r => {
+                    if (!(r.driverId && r.driverId.value && r.driverId.value.length > 0)) {
+                        if (!(result.includes(r.id.value))) {
+                            result.push(r.id.value);
+                        }
+                    }
+                });
+            }
+        }
+
+
+        return result;
+    }
+
+
+    @ServerFunction({ allowed: c => c.isSignedIn() })//allowed: Roles.matcher
+    static async getReleventDriversForRide(rideId: string, context?: Context) {
+        let result: string[] = [];
+
+        let ride = await context.for(Ride).findId(rideId);
+
+        // let empty = [undefined];
+        // for (const p of prefs) {
+        let drivers = await context.for(DriverPrefs).find({
+            where: d => d.dayOfWeek.isEqualTo(ride.dayOfWeek)
+                .and( d.dayPeriod.isEqualTo(ride.dayPeriod))
+            // && (r.driverId),
+            // && (p.locationId && p.locationId.value && p.locationId.value.length > 0
+            //     ? r.from.isEqualTo(p.locationId)
+            //     : r.id.isEqualTo(r.id))//should be always true
+
+        });
+        drivers.forEach(async rf =>
+            console.log(rf.driverId.value +": " + ((await context.for(Driver).findId(rf.driverId)).name.value)));
+        if (drivers && drivers.length > 0) {
+            drivers.forEach(d => {
+                if (!(result.includes(d.driverId.value))) {
+                    result.push(d.driverId.value);
+                }
+            });
+        }
+        //}
+
+
+        return result;
+    }
+
+
+
+    // let result: usherDriversResponse[] = [];
+
+    // let ride = await context.for(Ride).findId(rideId);
+    // let locationId = ride.from.value;
+    // let dayOfWeek = ride.dayOfWeek.value;
+    // let dayPeriod = ride.dayPeriod.value;
+
+    // console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@ " + rideId);
+    // console.log("locationId=" + locationId + " dayOfWeek=" + dayOfWeek + " dayPeriod=" + dayPeriod);
+
+    // /*
+    //  where: prf => prf.locationId.isEqualTo(locationId).and(
+    //                 prf.dayOfWeek.isEqualTo(dayOfWeek).and(
+    //                     prf.dayPeriod.isEqualTo(dayPeriod))
+    //             )
+    // */
+
+    // for await (const prf of context.for(DriverPrefs).iterate()) {
+    //     // console.log(prf.id.value);
+    //     // same driver, same date, same period
+    //     if (locationId && prf.locationId.isEqualTo(locationId)) {
+    //         if (dayOfWeek && prf.dayOfWeek.isEqualTo(dayOfWeek)) {
+    //             if (dayPeriod && prf.dayPeriod.isEqualTo(dayPeriod)) {
+
+    //                 let exists = [];// await context.for(Ride).find({
+    //                 //     where: r =>
+    //                 //         r.driverId.isEqualTo(prf.driverId)
+    //                 //         && r.date.isEqualTo(ride.date)
+    //                 //         && r.dayPeriod.isEqualTo(dayPeriod)
+    //                 //     // && r.dayOfWeek.isEqualTo(dayOfWeek)
+    //                 // });
+    //                 if (exists && exists.length > 0) {
+    //                     console.log(`Driver ${prf.driverId.value} aslready have ride ${exists[0].id.value} at same time`)
+    //                 }
+    //                 else {
+    //                     result.push({
+    //                         driverId: prf.driverId.value,
+    //                         display: (await prf.driverId.getValueName()) + `(${"עפ\"י העדפות"})`,
+    //                     });
+    //                 }
+    //             }
+    //         }
+    //     }
+    // };
+
+    // console.log("result.length=" + result.length);
+    // return result;
+    // }
+
 
     // assign driver to ride by his prefs(location&dayOfWeek&dayPeriod)
     @ServerFunction({ allowed: c => c.isSignedIn() })//allowed: Roles.matcher
@@ -29,34 +151,34 @@ export class Usher {
             }[],
         }[];// = [];
 
-       
-        for await (const r of  context.for(Ride).iterate({
+
+        for await (const r of context.for(Ride).iterate({
             // limit: 1000,
             orderBy: r => [{ column: r.date }],
             where: r => [this.filter(r, byDate)],
         })) {
             relevents.push({
-                drivers:[],
-                locationFromId:r.from.value,
-                rideId:r.id.value,
-                containsLocation:l=>r.from.value ==l || r.to.value==l
+                drivers: [],
+                locationFromId: r.from.value,
+                rideId: r.id.value,
+                containsLocation: l => r.from.value == l || r.to.value == l
             });
         }
-        
-
-       
 
 
 
 
 
-            // relevents.push({
-            //     containsLocation: id => 
-            //         r.from.isEqualTo(id)
-            //             .or(r.from.isEqualTo(id))
-                
-            // }
-            // );
+
+
+
+        // relevents.push({
+        //     containsLocation: id => 
+        //         r.from.isEqualTo(id)
+        //             .or(r.from.isEqualTo(id))
+
+        // }
+        // );
 
         // // maybe for check isActive
         // // drivers.forEach(d=>{
@@ -221,7 +343,7 @@ export class Usher {
     }
 
     // Filter by status&driver&date
-    static filter(ride: Ride, orgBy?: ByDate) {
+    private static filter(ride: Ride, orgBy?: ByDate) {
 
         const today = new Date();
         const yesterday = new Date(today.getDate() - 1);
@@ -260,4 +382,48 @@ export class Usher {
         return filter;
     }
 
+}
+
+function getDayOfWeek(desc: string) {
+    switch (desc) {
+        case "ראשון":
+        case "1":
+            return DayOfWeek.sunday;
+        case "שני":
+        case "2":
+            return DayOfWeek.monday;
+        case "שלישי":
+        case "3":
+            return DayOfWeek.tuesday;
+        case "רביעי":
+        case "4":
+            return DayOfWeek.wednesday;
+        case "חמישי":
+        case "5":
+            return DayOfWeek.thursday;
+        case "שישי":
+        case "6":
+            return DayOfWeek.friday;
+        case "שבת":
+        case "7":
+            return DayOfWeek.saturday;
+
+        default:
+            break;
+    }
+}
+
+function getDayPeriod(dayNum: number) {
+    switch (dayNum) {
+        case 1: return DayOfWeek.sunday;
+        case 2: return DayOfWeek.monday;
+        case 3: return DayOfWeek.tuesday;
+        case 4: return DayOfWeek.wednesday;
+        case 5: return DayOfWeek.thursday;
+        case 6: return DayOfWeek.friday;
+        case 7: return DayOfWeek.saturday;
+
+        default:
+            break;
+    }
 }

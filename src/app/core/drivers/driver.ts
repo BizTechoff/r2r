@@ -8,12 +8,15 @@ export class Driver extends IdEntity {
 
     userId = new StringColumn({});// The user-table will be the driver.
     name = new StringColumn({});
+    hebName = new StringColumn({});
     mobile = new StringColumn({});
     home = new LocationIdColumn(this.context, "Home", "home");
     email = new StringColumn({});
     seats = new NumberColumn({});
     idNumber = new StringColumn({});
     birthDate = new DateColumn({});
+    city = new StringColumn({});
+    address = new StringColumn({});
 
     constructor(private context: Context) {
         super({
@@ -40,13 +43,18 @@ export class Driver extends IdEntity {
 
 
 export class DriverIdColumn extends StringColumn {
-
+    getName(){ 
+        return this.context.for(Driver).lookup(this).name.value;
+    }
+    async getValueName(){ 
+        return (await this.context.for(Driver).findId(this.value)).name.value;
+    }
     constructor(private context: Context, caption: string, dbName: string) {
         super({
             caption: caption,
             dbName: dbName,
             dataControlSettings: () => ({
-                getValue: () => this.context.for(Driver).lookup(this).name.value,
+                getValue: () => this.getName(),
                 hideDataOnInput: true,
                 clickIcon: 'search',
                 click: () => {

@@ -19,11 +19,11 @@ export class Users extends IdEntity {
     });
     createDate = new changeDate('Create Date');
 
-    isAdmin = new BoolColumn();
-    isUsher = new BoolColumn();
-    isMatcher = new BoolColumn();
-    isDriver = new BoolColumn();
-
+    isAdmin = new BoolColumn({ allowApiUpdate: Roles.admin });
+    isUsher = new BoolColumn({ allowApiUpdate: Roles.admin });
+    isMatcher = new BoolColumn({ allowApiUpdate: Roles.admin });
+    isDriver = new BoolColumn({ allowApiUpdate: Roles.admin });
+ 
     mobile = new StringColumn();
 
     constructor(private context: Context) {
@@ -119,7 +119,7 @@ export class Users extends IdEntity {
             switch (role.valueOf()) {
 
                 case Roles.driver: {
-                    let d = await this.context.for(Driver).findFirst({where: d => d.userId.isEqualTo( userId)});
+                    let d = await this.context.for(Driver).findFirst({ where: d => d.userId.isEqualTo(userId) });
                     if (d) {
                         await d.delete();
                     }

@@ -14,3 +14,6 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     flex-shrink: 0;
     overflow-y: auto;
   }
+  .mat-list-item-content{
+    justify-content: space-between;
+  }

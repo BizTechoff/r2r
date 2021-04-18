@@ -1,4 +1,4 @@
-import { BoolColumn, Context, EntityClass, IdEntity, NumberColumn, StringColumn, ValueListColumn } from "@remult/core";
+import { BoolColumn, ColumnSettings, Context, EntityClass, IdEntity, NumberColumn, StringColumn, ValueListColumn } from "@remult/core";
 
 @EntityClass
 export class DriverPrefsSchedule extends IdEntity {
@@ -19,13 +19,21 @@ export class DriverPrefsSchedule extends IdEntity {
 export class DayPeriod {
     static morning = new DayPeriod();
     static afternoon = new DayPeriod('red');
+    // static both = new DayPeriod('red');
     constructor(public color = 'green') { }
     id;
 }
 
 export class DayPeriodColumn extends ValueListColumn<DayPeriod>{
-    constructor() {
-        super(DayPeriod);
+    // constructor() {
+    //     super(DayPeriod);
+    // }
+    constructor(options?:ColumnSettings<DayPeriod>) {
+        // super(DayOfWeek);
+        super(DayPeriod, {
+            defaultValue: DayPeriod.morning,
+            ...options
+        });
     }
 }
 
@@ -42,8 +50,12 @@ export class DayOfWeek {
 }
 
 export class DayOfWeekColumn extends ValueListColumn<DayOfWeek>{
-    constructor() {
-        super(DayOfWeek);
+    constructor(options?:ColumnSettings<DayOfWeek>) {
+        // super(DayOfWeek);
+        super(DayOfWeek, {
+            // defaultValue: ByDate.today,
+            ...options
+        });
     }
 }
 

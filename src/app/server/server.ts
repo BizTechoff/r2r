@@ -13,12 +13,12 @@ import * as compression from 'compression';
 import * as passwordHash from 'password-hash';
 import '../app.module';
 import { PasswordColumn } from '../users/users';
-import { importData } from './import-data';
-
+import { importDataNew } from './import-data';
+ 
 config(); //loads the configuration from the .env file
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: process.env.DEV_MODE ? false : { rejectUnauthorized: false }// use ssl in production but not in development. the `rejectUnauthorized: false`  is required for deployment to heroku etc...
+    ssl: process.env.DB_DEV_MODE ? false : { rejectUnauthorized: false }// use ssl in production but not in development. the `rejectUnauthorized: false`  is required for deployment to heroku etc...
 });
 let database = new SqlDatabase(new PostgresDataProvider(pool));
 verifyStructureOfAllEntities(database); //This method can be run in the install phase on the server.
@@ -48,7 +48,7 @@ app.use('/*', async (req, res) => {
 });
 
 console.time('noam');
-//importData(database).then(()=>console.timeEnd("noam"));
-
+//importDataNew(database).then(()=>console.timeEnd("noam"));
+ 
 let port = process.env.PORT || 3000;
 app.listen(port); 
