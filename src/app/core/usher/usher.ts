@@ -21,8 +21,9 @@ export class Usher {
         let empty = [undefined];
         for (const p of prefs) {
             let rides = await context.for(Ride).find({
-                where: r => r.dayOfWeek.isEqualTo(p.dayOfWeek)
-                    .and( r.dayPeriod.isEqualTo(p.dayPeriod))
+                where: r =>
+                    (r.dayOfWeek.isEqualTo(p.dayOfWeek).or(p.dayOfWeek.isEqualTo(DayOfWeek.all)))
+                        .and((r.dayPeriod.isEqualTo(p.dayPeriod)).or(p.dayPeriod.isEqualTo(DayPeriod.both)))
                 // && (r.driverId),
                 // && (p.locationId && p.locationId.value && p.locationId.value.length > 0
                 //     ? r.from.isEqualTo(p.locationId)
@@ -31,11 +32,11 @@ export class Usher {
             });
             if (rides && rides.length > 0) {
                 rides.forEach(r => {
-                    if (!(r.driverId && r.driverId.value && r.driverId.value.length > 0)) {
-                        if (!(result.includes(r.id.value))) {
-                            result.push(r.id.value);
-                        }
+                    //if (!(r.driverId && r.driverId.value && r.driverId.value.length > 0)) {
+                    if (!(result.includes(r.id.value))) {
+                        result.push(r.id.value);
                     }
+                    //}
                 });
             }
         }
@@ -50,30 +51,32 @@ export class Usher {
         let result: string[] = [];
 
         let ride = await context.for(Ride).findId(rideId);
+        if (ride && ride.id.value && ride.id.value.length > 0) {        // let empty = [undefined];
+            // for (const p of prefs) {
+            let drivers = await context.for(DriverPrefs).find({
+                where: pf =>
+                    (pf.dayOfWeek.isEqualTo(ride.dayOfWeek).or(pf.dayOfWeek.isEqualTo(DayOfWeek.all)))
+                        .and((pf.dayPeriod.isEqualTo(ride.dayPeriod)).or(pf.dayPeriod.isEqualTo(DayPeriod.both)))
+                // where: d => d.dayOfWeek.isEqualTo(ride.dayOfWeek)
+                //     .and(d.dayPeriod.isEqualTo(ride.dayPeriod))
+                // && (r.driverId),
+                // && (p.locationId && p.locationId.value && p.locationId.value.length > 0
+                //     ? r.from.isEqualTo(p.locationId)
+                //     : r.id.isEqualTo(r.id))//should be always true
 
-        // let empty = [undefined];
-        // for (const p of prefs) {
-        let drivers = await context.for(DriverPrefs).find({
-            where: d => d.dayOfWeek.isEqualTo(ride.dayOfWeek)
-                .and( d.dayPeriod.isEqualTo(ride.dayPeriod))
-            // && (r.driverId),
-            // && (p.locationId && p.locationId.value && p.locationId.value.length > 0
-            //     ? r.from.isEqualTo(p.locationId)
-            //     : r.id.isEqualTo(r.id))//should be always true
-
-        });
-        drivers.forEach(async rf =>
-            console.log(rf.driverId.value +": " + ((await context.for(Driver).findId(rf.driverId)).name.value)));
-        if (drivers && drivers.length > 0) {
-            drivers.forEach(d => {
-                if (!(result.includes(d.driverId.value))) {
-                    result.push(d.driverId.value);
-                }
             });
+            // drivers.forEach(async rf =>
+            //     console.log(rf.driverId.value + ": " + ((await context.for(Driver).findId(rf.driverId)).name.value)));
+            if (drivers && drivers.length > 0) {
+                drivers.forEach(d => {
+                    if (!(result.includes(d.driverId.value))) {
+                        result.push(d.driverId.value);
+                    }
+                });
+            }
+            //}
+
         }
-        //}
-
-
         return result;
     }
 

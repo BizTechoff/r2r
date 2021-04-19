@@ -20,7 +20,7 @@ export class Location extends IdEntity {
 export class LocationType {
   static hospital = new LocationType();
   static border = new LocationType();
-  static driver = new LocationType();
+  // static driver = new LocationType();
   constructor() { }
 }
 

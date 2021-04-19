@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { BusyService, SelectValueDialogComponent } from '@remult/angular';
-import { Column, Context, NumberColumn, StringColumn } from '@remult/core';
+import { Column, Context, NumberColumn, StringColumn, ValueListItem } from '@remult/core';
 import { GridDialogComponent } from '../../common/grid-dialog/grid-dialog.component';
+import { Patient } from '../patients/patient';
 import { Ride } from '../rides/ride';
 import { Usher } from '../usher/usher';
 import { Location } from './../locations/location';
@@ -34,7 +35,7 @@ export class DriversComponent implements OnInit {
     }, {
       name: "Find Rides",
       click: async (d) => await this.openReleventRidesDialog(d),
-      icon: "ride",
+      icon: "directions_bus_filled",
       visible: (d) => !d.isNew(),
       //showInLine: (this.context.for(DriverPrefs).count(p => p.driverId.isEqualTo("")).then(() => { return true; })),
     },],
@@ -110,20 +111,30 @@ export class DriversComponent implements OnInit {
   async openReleventRidesDialog(d: Driver) {
     let relevantRides = await Usher.getReleventRidesForDriver(d.id.value);
 
-    let rides = (await this.context.for(Ride).find({
-      where: r => r.id.isIn(...relevantRides),
+    // let rides2 = (await this.context.for(Ride).find({
+    //   where: r => r.id.isIn(...relevantRides),
 
-    })).map(r => ({
-      item: r,
-      caption: r.from.displayValue + " " + r.to.value,
+    // })).map(r => ({
+    //   item: r,
+    //   caption: r.patientId.value,
+    // }));
+
+    let rides: ValueListItem[] = [];
+    let items = (await this.context.for(Ride).find({
+      where: r => r.id.isIn(...relevantRides)
     }));
+
+    items.forEach(async r => {
+      let name = (await this.context.for(Patient).findId(r.patientId.value)).name.value;
+      rides.push({ id: r.id.value, caption: name } as ValueListItem)
+    })
 
 
     this.context.openDialog(SelectValueDialogComponent, x => x.args({
-      title: `Relevent Rides (${rides.length})`,
+      title: `Relevent Ride's Patients`,// ( ${rides.length})`,
       values: rides,
       onSelect: async x => {
-        let ride = await this.context.for(Ride).findId(x.item.id);
+        let ride = await this.context.for(Ride).findId(x.id);
         ride.driverId.value = d.id.value;
         await ride.save();
         // this.retrieveDrivers();

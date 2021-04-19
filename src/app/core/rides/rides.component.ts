@@ -21,40 +21,40 @@ export class RidesComponent implements OnInit {
     rowButtons: [{
       textInMenu: "Find Driver",
       click: async (r) => await this.openDriversDialog(r),
-      icon: "driver",
+      icon: "drive_eta",
       visible: (r) => !r.isNew(),
       showInLine: true,
     },{
       textInMenu: "Remove Driver",
       // click: async (p) => await this.openRideDialog(p),
-      icon: "driver",
+      icon: "taxi_alert",
       visible: (d) => !d.isNew(),
       // showInLine: true,
       click: async (r) => {
         // console.log(r);
-        // r.driverId.value = null;
-        // await r.save();
+        r.driverId = null;
+        await r.save();
       },
     },],
     numOfColumnsInGrid: 10,
     columnSettings: r => [
       {
         column: r.driverId,
-        click: async r => {
+        click: async clicked => {
 
-          let relevantdrivers = await Usher.getReleventDriversForRide(r.id.value);
+          let relevantdrivers = await Usher.getReleventDriversForRide(clicked.id.value);
 
           let drivers = (await this.context.for(Driver).find({
             where: d => d.id.isIn(...relevantdrivers),
       
-          })).map(r => ({
-            item: r,
-            caption: r.name.value,
+          })).map(rr => ({
+            item: rr,
+            caption: rr.name.value,
           }));
       
       
           this.context.openDialog(SelectValueDialogComponent, x => x.args({
-            title: `Relevent Drivers (${drivers.length})`,
+            title: `Relevent Drivers`,// (${drivers.length})`,
             values: drivers,
             onSelect: async x => {
               r.driverId.value = x.item.id.value;
