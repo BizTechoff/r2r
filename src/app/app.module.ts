@@ -30,6 +30,10 @@ import { UsherComponent } from './core/usher/usher.component';
 import { HomeComponent } from './home/home.component';
 import { AdminGuard, DriverGuard, MatcherGuard, UsherGuard } from './users/roles';
 import { UsersComponent } from './users/users.component';
+import { DriverDetailsComponent } from './core/drivers/driver-details/driver-details.component';
+import { DriverPreferencesComponent } from './core/drivers/driver-preferences/driver-preferences.component';
+import { DriverRidesComponent } from './core/drivers/driver-rides/driver-rides.component';
+import { DriverUsefulInformationComponent } from './core/drivers/driver-useful-information/driver-useful-information.component';
 
 
 @NgModule({
@@ -45,7 +49,11 @@ import { UsersComponent } from './users/users.component';
     PatientsComponent,
     RidesComponent,
     GridDialogComponent,
-    DynamicServerSideSearchDialogComponent
+    DynamicServerSideSearchDialogComponent,
+    DriverDetailsComponent,
+    DriverPreferencesComponent,
+    DriverRidesComponent,
+    DriverUsefulInformationComponent,
   ],
   imports: [
     BrowserModule,

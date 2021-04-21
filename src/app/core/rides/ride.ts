@@ -70,10 +70,11 @@ export class RideStatus {
     static rejected = new RideStatus(12, 'rejected',);
     constructor(public id: number, public caption: string, public color = 'green') { }
 }
-
+//חולה ונהג יכולים להיות ריקים
 export class RideStatusColumn extends ValueListColumn<RideStatus>{
     constructor() {
         super(RideStatus);
         this.value = RideStatus.waitingFor3Match;
     }
 }
+ 

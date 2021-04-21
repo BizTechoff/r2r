@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { BusyService, SelectValueDialogComponent } from '@remult/angular';
 import { Column, Context, NumberColumn, StringColumn, ValueListItem } from '@remult/core';
 import { GridDialogComponent } from '../../common/grid-dialog/grid-dialog.component';
+import { InputAreaComponent } from '../../common/input-area/input-area.component';
 import { Patient } from '../patients/patient';
 import { Ride } from '../rides/ride';
 import { Usher } from '../usher/usher';
@@ -25,7 +26,7 @@ export class DriversComponent implements OnInit {
 
   // prefsCount = new NumberColumn({});
   driversSettings = this.context.for(Driver).gridSettings({
-    // allowCRUD: true,
+    allowCRUD: true,
     rowButtons: [{
       name: "Preferences",
       click: async (d) => await this.openPreferencesDialog(d),
@@ -38,9 +39,30 @@ export class DriversComponent implements OnInit {
       icon: "directions_bus_filled",
       visible: (d) => !d.isNew(),
       //showInLine: (this.context.for(DriverPrefs).count(p => p.driverId.isEqualTo("")).then(() => { return true; })),
+    },{
+      name: "Call Documentation",
+      click: async (d) => await this.openCallDocumentationDialog(d),
+      icon: "tty",
+      visible: (d) => !d.isNew(),
+      //showInLine: (this.context.for(DriverPrefs).count(p => p.driverId.isEqualTo("")).then(() => { return true; })),
     },],
+    gridButtons: [{
+      name: 'Add New Driver',
+      icon: 'add',
+      // cssClass: 'color="primary"',
+      click: async () => {
+        await this.addDriver();
+      }
+
+    }, {
+      name: 'bla bla',
+      click: () => {
+        alert(this.driversSettings.selectedRows.map(x => x.name.value).join(','));
+      }
+    }],
     where: p => this.search.value ? p.name.isContains(this.search) : undefined,
     numOfColumnsInGrid: 10,
+    allowSelection: true,
     columnSettings: (d) => [
       // d.name,
       // {
@@ -69,8 +91,34 @@ export class DriversComponent implements OnInit {
     //   where:p=>this.search.value?p.name.isContains(this.search):undefined
     // });
   }
-  async addDriver() { }
+  async addDriver() {
+    var driver = this.context.for(Driver).create();
+    this.context.openDialog(
+      InputAreaComponent,
+      x => x.args = {
+        title: "Add New Driver",
+        columnSettings: () => [
+          [driver.name, driver.hebName],
+          [driver.mobile, driver.email],
+          [driver.idNumber, driver.birthDate],
+          [driver.home, driver.seats],
+          [driver.city, driver.address],
+        ],
+        ok: async () => {
+          await driver.save();
+          this.retrieveDrivers();
+          //PromiseThrottle
+          // ride.driverId.value = undefined;
+          // await driver.save();
+          // // this.patientsSettings.items.push(patient);
+          // this.retrieveDrivers();
+        }
+      },
+    )
+  }
 
+  async openCallDocumentationDialog(p: Driver) {
+  }
 
   async openScheduleDialog(p: Driver) {
   }

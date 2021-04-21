@@ -1,8 +1,9 @@
-<div class="center" style="margin: 10px;">
-<p>
-  <img src="assets/logo.png">
-</p>
+<div mat-dialog-content class="center-screen">
+  <div>
 
-<h1>Rides Organizer Application</h1>
+    <h1>Rides Organizer Application</h1>
+    <h2>Welcome</h2>
+    <h3 *ngIf="!context.isSignedIn()">Please Sign In</h3>
 
+  </div>
 </div>

@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Context, DataAreaSettings, ServerFunction } from '@remult/core';
+import { Context, DataAreaSettings, ServerFunction, ValueListItem } from '@remult/core';
 import { DialogService } from '../../common/dialog';
 import { Usher } from '../usher/usher';
 import { ByDate, ByDateColumn } from "../usher/ByDate";
@@ -21,18 +21,19 @@ export class RidesComponent implements OnInit {
     rowButtons: [{
       textInMenu: "Find Driver",
       click: async (r) => await this.openDriversDialog(r),
-      icon: "drive_eta",
+      icon: "person_search",
       visible: (r) => !r.isNew(),
       showInLine: true,
-    },{
+    }, {
       textInMenu: "Remove Driver",
       // click: async (p) => await this.openRideDialog(p),
-      icon: "taxi_alert",
+      icon: "person_remove",
       visible: (d) => !d.isNew(),
       // showInLine: true,
       click: async (r) => {
         // console.log(r);
-        r.driverId = null;
+        let e: string;
+        r.driverId.value = e;
         await r.save();
       },
     },],
@@ -40,44 +41,11 @@ export class RidesComponent implements OnInit {
     columnSettings: r => [
       {
         column: r.driverId,
-        click: async clicked => {
-
-          let relevantdrivers = await Usher.getReleventDriversForRide(clicked.id.value);
-
-          let drivers = (await this.context.for(Driver).find({
-            where: d => d.id.isIn(...relevantdrivers),
-      
-          })).map(rr => ({
-            item: rr,
-            caption: rr.name.value,
-          }));
-      
-      
-          this.context.openDialog(SelectValueDialogComponent, x => x.args({
-            title: `Relevent Drivers`,// (${drivers.length})`,
-            values: drivers,
-            onSelect: async x => {
-              r.driverId.value = x.item.id.value;
-              await r.save();
-              // this.retrieveDrivers();
-            },
-          }))
-
-
-
-
-          
-          // let drivers = (await Usher.getReleventDriversForRide(r.id.value)).map(d => ({
-          //   item: d,
-          //   caption: d.,
-          // }));
-          // this.context.openDialog(SelectValueDialogComponent, x => x.args({
-          //   title: `Relevent Drivers (${drivers.length})`,
-          //   values: drivers,
-          //   onSelect: x => r.driverId.value = x.item.driverId,
-          // }))
+        click: async clkRide => {
+          await this.openDriversDialog(clkRide);
         }
       },
+      r.date,
       r.dayOfWeek,
       r.dayPeriod,
       r.patientId,
@@ -87,8 +55,8 @@ export class RidesComponent implements OnInit {
     allowCRUD: true,
     where: r =>
       this.byDate.value.filter(r.date),
-      orderBy: r=>[{ column: r.date, descending: true }],
-      // saving: r => {r.dayOfWeek.value = Utils.getDayOfWeek(r.date.getDayOfWeek())},
+    orderBy: r => [{ column: r.date, descending: true }],
+    // saving: r => {r.dayOfWeek.value = Utils.getDayOfWeek(r.date.getDayOfWeek())},
 
   });
   byDate = new ByDateColumn({
@@ -96,54 +64,75 @@ export class RidesComponent implements OnInit {
     defaultValue: ByDate.all
   });//(ByDate.today);
 
-  // @ServerFunction({ allowed: true })
-  // static async findDrivers(rideId: string, context?: Context) {
-  //   var drivers: usherDriversResponse[] =
-  //     await Usher.getReleventDriversForRide(rideId);
-
-  //   // var result: { id: string, name: string, reason: string }[] = [];
-  //   // var i = 0;
-  //   // drivers.forEach(d => {
-  //   //   result.push({
-  //   //     id: d.id.value,
-  //   //     name: d.name.value,
-  //   //     reason: 'סתם סיבה'
-  //   //   });
-  //   //   if (i++ > 100)
-  //   //     break;
-
-  //   // }
-  //   return drivers;
-  // }
-
   constructor(private context: Context, private snakebar: DialogService) { }
 
   ngOnInit() {
   }
 
-async openDriversDialog(r:Ride) {
-  let relevantDrivers = await Usher.getReleventDriversForRide(r.id.value);
+  async openDriversDialog(r: Ride) {
+    // console.log(r.date);
+    let relevantDrivers = await Usher.getReleventDriversForRide(r.id.value);
 
-    let drivers = (await this.context.for(Driver).find({
-      where: d => d.id.isIn(...relevantDrivers),
-
-    })).map(d => ({
-      item: d,
-      caption: d.name.value,
+    let items = (await this.context.for(Driver).find({
+      where: r => r.id.isIn(...relevantDrivers)
     }));
+    // console.log(items.length);
 
+    let drivers: ValueListItem[] = [];
+    var order: { count: number, item: ValueListItem }[] = [];
+    items.forEach(async d => {
+      let name = d.name.value;
+      let mobile = d.mobile.value;
+      let days = 0;
+      let location = "";
+
+      let finds = await this.context.for(Ride).find({
+        limit: 1,
+        where: r => r.driverId.isEqualTo(d.id),
+        orderBy: r => [{ column: r.date, descending: true }]
+      });
+      if (finds && finds.length > 0) {
+
+        let now = new Date();//now
+        let rDate = finds[0].date.value;
+        let diff = +now - +rDate;
+        days = (-1 * (Math.ceil(diff / 1000 / 60 / 60 / 24) + 1));
+      }
+
+      let caption = name + " | " + mobile + " | " + days;
+      let item = { id: d.id.value, caption: caption } as ValueListItem;
+      drivers.push(item);
+
+      order.push({
+        count: days,
+        item: item,
+      });
+    });
+    // console.log(order);
+    order.sort((a, b) => b.count - a.count);//??PROBLEM
+    console.log(order.length);
+
+    // console.log(order);
+    // order.forEach(o => {
+    //   drivers.push(o.item);
+    // });
 
     this.context.openDialog(SelectValueDialogComponent, x => x.args({
       title: `Relevent Drivers (${drivers.length})`,
       values: drivers,
+      // orderBy:r => [{ column: r.date, descending: true }]
       onSelect: async x => {
         // let ride = await this.context.for(Ride).findId(x.item.id);
-        r.driverId.value = x.item.id.value;
+        r.driverId.value = x.id;
         await r.save();
         // this.retrieveDrivers();
       },
     }))
-}
+  }
+
+  async refresh() {
+    await this.ridesSettings.reloadData();
+  }
 
   async assign() {
     this.snakebar.info("Starting assignment..")

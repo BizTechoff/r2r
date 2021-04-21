@@ -1,19 +1,24 @@
 <div class="full-page">
-    <div class="patients-top" style="display: flex;
+  <div class="patients-top" style="display: flex;
     align-content: space-between;">
-        <data-control [column]="search"></data-control>
-        <button mat-mini-fab  color="accent" (click)="addPatient()"><mat-icon>add</mat-icon></button>
-    </div>
+    <data-control [column]="search"></data-control>
+    <button mat-raised-button style="margin: 10px;" color="primary" (click)="addPatient()">
+      <mat-icon>add</mat-icon>
+      <mat-label>Add New Patient</mat-label>
+      <!-- <mat-label>Add New Patient</mat-label> -->
+    </button>
+    <!-- <button mat-mini-fab  color="accent" (click)="addPatient()"><mat-icon>add</mat-icon></button> -->
+  </div>
 
-    <div class="grow-item">
-        <!-- <mat-nav-list #shoes >
+  <div class="grow-item">
+    <!-- <mat-nav-list #shoes >
             <mat-list-item *ngFor="let p of patientsSettings.items" >
               {{p.name.value}}
               <button mat-icon-button (click)="openRideDialog(p)"><mat-icon>drive_eta</mat-icon></button>
               <mat-divider></mat-divider>
             </mat-list-item>
           </mat-nav-list> -->
-      
-        <data-grid class="patients-center" [settings]="patientsSettings"></data-grid>
-    </div>
+
+    <data-grid class="patients-center" [settings]="patientsSettings"></data-grid>
+  </div>
 </div>

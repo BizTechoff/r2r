@@ -24,7 +24,7 @@ export class Users extends IdEntity {
     isMatcher = new BoolColumn({ allowApiUpdate: Roles.admin });
     isDriver = new BoolColumn({ allowApiUpdate: Roles.admin });
  
-    mobile = new StringColumn();
+    mobile? = new StringColumn();
 
     constructor(private context: Context) {
 

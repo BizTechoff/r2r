@@ -1,6 +1,6 @@
 <div style="height:100%;display:flex;flex-direction: column;">
   <mat-toolbar color="primary" style="flex-shrink: 0;">
-    <img src="assets/logo.png" width="150px">
+    <!-- <img src="assets/logo.png" width="150px"> -->
     <button mat-button class="sidenav-toggle" (click)="sidenav.toggle()">
       <mat-icon>menu</mat-icon>
     </button>
@@ -23,7 +23,9 @@
       [mode]="dialogService.isScreenSmall()?'over':'side'">
       <div style="width:100%;text-align: center">
 
-      </div>
+      </div><a href="http://www.roadtorecovery.org.il/Site/en/EnIndex.html" target="_blank">
+        <img src="assets/logo.png" width="150px" title="About Us"/>
+      </a>
       <h4 *ngIf="context.isSignedIn()">Hello {{context.user.name}}</h4>
       <mat-nav-list role="list">
         <!-- <mat-list-item routerLinkActive="active-route">
