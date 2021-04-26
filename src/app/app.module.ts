@@ -4,6 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDialogModule } from '@angular/material/dialog';
+import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -22,6 +23,10 @@ import { DynamicServerSideSearchDialogComponent } from './common/dynamic-server-
 import { GridDialogComponent } from './common/grid-dialog/grid-dialog.component';
 import { InputAreaComponent } from './common/input-area/input-area.component';
 import { YesNoQuestionComponent } from './common/yes-no-question/yes-no-question.component';
+import { DriverDetailsComponent } from './core/drivers/driver-details/driver-details.component';
+import { DriverPreferencesComponent } from './core/drivers/driver-preferences/driver-preferences.component';
+import { DriverRidesComponent } from './core/drivers/driver-rides/driver-rides.component';
+import { DriverUsefulInformationComponent } from './core/drivers/driver-useful-information/driver-useful-information.component';
 import { DriversComponent } from './core/drivers/drivers.component';
 import { LocationsComponent } from './core/locations/locations.component';
 import { PatientsComponent } from './core/patients/patients.component';
@@ -30,10 +35,11 @@ import { UsherComponent } from './core/usher/usher.component';
 import { HomeComponent } from './home/home.component';
 import { AdminGuard, DriverGuard, MatcherGuard, UsherGuard } from './users/roles';
 import { UsersComponent } from './users/users.component';
-import { DriverDetailsComponent } from './core/drivers/driver-details/driver-details.component';
-import { DriverPreferencesComponent } from './core/drivers/driver-preferences/driver-preferences.component';
-import { DriverRidesComponent } from './core/drivers/driver-rides/driver-rides.component';
-import { DriverUsefulInformationComponent } from './core/drivers/driver-useful-information/driver-useful-information.component';
+import { ReportWeeklyRidesComponent } from './reports/report-weekly-rides/report-weekly-rides.component';
+import { ReportWeeklyDriversComponent } from './reports/report-weekly-drivers/report-weekly-drivers.component';
+import { DriverReleventRidesComponent } from './core/drivers/driver-relevent-rides/driver-relevent-rides.component';
+import { ApplicationSettingsComponent } from './core/application-settings/application-settings.component';
+import { DriverSettingsComponent } from './core/drivers/driver-settings/driver-settings.component';
 
 
 @NgModule({
@@ -54,6 +60,11 @@ import { DriverUsefulInformationComponent } from './core/drivers/driver-useful-i
     DriverPreferencesComponent,
     DriverRidesComponent,
     DriverUsefulInformationComponent,
+    ReportWeeklyRidesComponent,
+    ReportWeeklyDriversComponent,
+    DriverReleventRidesComponent,
+    ApplicationSettingsComponent,
+    DriverSettingsComponent,
   ],
   imports: [
     BrowserModule,
@@ -71,6 +82,7 @@ import { DriverUsefulInformationComponent } from './core/drivers/driver-useful-i
     MatButtonModule,
     MatIconModule,
     MatMenuModule,
+    MatExpansionModule,
     RemultModule,
     BrowserAnimationsModule
   ],

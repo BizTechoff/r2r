@@ -4,7 +4,9 @@ import { RemultModule } from '@remult/angular';
 import { ShowDialogOnErrorErrorHandler } from './common/dialog';
 import { DriverDetailsComponent } from './core/drivers/driver-details/driver-details.component';
 import { DriverPreferencesComponent } from './core/drivers/driver-preferences/driver-preferences.component';
+import { DriverReleventRidesComponent } from './core/drivers/driver-relevent-rides/driver-relevent-rides.component';
 import { DriverRidesComponent } from './core/drivers/driver-rides/driver-rides.component';
+import { DriverSettingsComponent } from './core/drivers/driver-settings/driver-settings.component';
 import { DriverUsefulInformationComponent } from './core/drivers/driver-useful-information/driver-useful-information.component';
 import { DriversComponent } from './core/drivers/drivers.component';
 import { LocationsComponent } from './core/locations/locations.component';
@@ -18,21 +20,22 @@ import { UsersComponent } from './users/users.component';
 
 const routes: Routes = [
   { path: '---- DRIVER ------', component: HomeComponent },
-  { path: 'Personal Info', component: DriverDetailsComponent },//, canActivate: [AdminGuard] },
-  { path: 'Preferences', component: DriverPreferencesComponent },
-  { path: 'Find Me a Ride', component: DriverRidesComponent },
-  { path: 'My Rides', component: DriverRidesComponent },
+  { path: 'Rides', component: DriverRidesComponent },
+  { path: 'Settings', component: DriverSettingsComponent },//, canActivate: [AdminGuard] },
   { path: 'Useful Information', component: DriverUsefulInformationComponent },
+  // { path: 'Find Me a Ride', component: DriverRidesComponent },
+  // { path: 'My Rides', component: DriverReleventRidesComponent },
   { path: '---- MACHER ------', component: HomeComponent },
   // { path: 'Personal Info', component: UsersComponent },
   { path: 'Patients', component: PatientsComponent },
   { path: '---- USHER ------', component: HomeComponent },
-  { path: 'Rides', component: RidesComponent },
+  { path: 'Rides2', component: RidesComponent },
   { path: 'Drivers', component: DriversComponent },//, canActivate: [NotSignedInGuard] },
   { path: 'Patients', component: PatientsComponent },
   // { path: '__________', component: HomeComponent },
   { path: 'Locations', component: LocationsComponent },//, canActivate: [NotSignedInGuard] },
   { path: '---- ADMIN ------', component: HomeComponent },
+  { path: 'Reports', component: LocationsComponent },//, canActivate: [NotSignedInGuard] },
   { path: 'User Accounts', component: UsersComponent },//, canActivate: [AdminGuard] },
   
   // { path: 'demo', component: DemoOneComponent },

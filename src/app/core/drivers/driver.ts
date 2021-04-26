@@ -23,7 +23,8 @@ export class Driver extends IdEntity {
 
         validate: () => {
             if (!this.mobile.value) {
-                this.mobile.validationError = " Is Too Short";
+                // this.mobile.value = "0"
+                // this.mobile.validationError = " Is Too Short";
             }
             else if (!Utils.isValidMobile(this.mobile.value)) {
                 this.mobile.validationError = " Not Valid";
@@ -80,7 +81,7 @@ export class DriverIdColumn extends StringColumn {
                 getValue: () => this.getName(),
                 hideDataOnInput: true,
                 clickIcon: 'search',
-                click: () => {
+                click: (d) => {
                     this.context.openDialog(DynamicServerSideSearchDialogComponent,
                         x => x.args(Driver, {
                             onSelect: l => this.value = l.id.value,

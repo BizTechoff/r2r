@@ -14,7 +14,9 @@ export class DriverPreferencesComponent implements OnInit {
 
   args: {
     driverId: string,
-  };
+  } = {
+      driverId: this.context.user.id
+    };
 
   constructor(
     private context: Context,
@@ -22,56 +24,33 @@ export class DriverPreferencesComponent implements OnInit {
     private snakebar: DialogService) {
   }
 
-  prefs = this.context.for(DriverPrefs).gridSettings({
+  prefsSettings = this.context.for(DriverPrefs).gridSettings({
     numOfColumnsInGrid: 10,
     allowUpdate: true,
     where: pf => pf.driverId.isEqualTo(this.args.driverId),
+    newRow: pf => pf.driverId.value = this.args.driverId,
     columnSettings: pf => [
       pf.locationId,
       pf.dayOfWeek,
       pf.dayPeriod,
-      // [d.name, d.hebName],
-      // [d.mobile, d.email],
-      // [d.idNumber, d.birthDate],
-      // [d.home, d.seats],
-      // [d.city, d.address],
     ],
 
   });
 
-  ngOnInit() {
+  async ngOnInit() {
+    this.args.driverId = (await this.context.for(Driver).findFirst(
+      d => d.userId.isEqualTo(this.context.user.id))).id.value;
 
-    // this.args.driverId = this.context.user.id;
-    this.args = { driverId: this.context.user.id };
-
-    this.prefs.reloadData().then(() => { });
-
-    if(this.prefs.items.length == 0){
-      this.prefs.addArea({ columnSettings: pf => [ new StringColumn({caption: "Found no records" })]});
+    if (this.prefsSettings.items.length == 0) {
+      this.prefsSettings.addArea({ columnSettings: pf => [new StringColumn({ caption: "Found no records" })] });
     }
-    // console.log(this.args.driverId);
 
-    // console.log(11);
-    // let driver = this.context.for(Driver).findFirst(
-    //   d => d.userId.isEqualTo(this.context.user.id)
-    // ).then( (d) => {this.args.driverId = d.id.value});
-
-    // this.prefs.reloadData().then(() => {
-    // });
-    // console.log(driver);
-    // if (driver && driver.id && driver.id.value) {
-    //   this.args.driverId = driver.id.value;
-    //   console.log(this.args.driverId);
-
-    //   this.prefs.reloadData().then(() => {
-    //   });
-    // }
-
+    await this.prefsSettings.reloadData();
   }
 
   async update() {
-    if (this.prefs.items.length > 0) {
-      this.prefs.items[0].save();
+    if (this.prefsSettings.items.length > 0) {
+      this.prefsSettings.items[0].save();
       this.snakebar.info("Your Preferences Succefully Saved");
       // this.routeHelper.navigateToComponent(dri))
     }

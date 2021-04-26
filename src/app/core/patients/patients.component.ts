@@ -103,8 +103,10 @@ export class PatientsComponent implements OnInit {
         columnSettings: () => [
           ride.from,
           ride.to,
-          ride.date,
-          ride.dayPeriod,
+          ride.date, {
+            column: ride.dayPeriod,
+            valueList: [DayPeriod.morning, DayPeriod.afternoon]
+          },
           {
             column: isNeedReturnTrip,
             visible: (r) => ride.dayPeriod.value == DayPeriod.morning,

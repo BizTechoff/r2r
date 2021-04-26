@@ -8,6 +8,8 @@ import { SelectValueDialogComponent } from '@remult/angular';
 import { Driver } from '../drivers/driver';
 import { usherDriversResponse } from '../../shared/types';
 import { Utils } from '../../shared/utils';
+import { DynamicServerSideSearchDialogComponent } from '../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component';
+import { Patient } from '../patients/patient';
 
 @Component({
   selector: 'app-rides',
@@ -16,11 +18,12 @@ import { Utils } from '../../shared/utils';
 })
 export class RidesComponent implements OnInit {
 
-
   ridesSettings = this.context.for(Ride).gridSettings({
+    allowCRUD: false,
+    // allowDelete: false,
     rowButtons: [{
       textInMenu: "Find Driver",
-      click: async (r) => await this.openDriversDialog(r),
+      click: async (r) => await this.openReleventDriversDialog(r),
       icon: "person_search",
       visible: (r) => !r.isNew(),
       showInLine: true,
@@ -32,9 +35,37 @@ export class RidesComponent implements OnInit {
       // showInLine: true,
       click: async (r) => {
         // console.log(r);
-        let e: string;
-        r.driverId.value = e;
+        // let e: string;
+        r.driverId.value = '';
         await r.save();
+      },
+    }, {
+      textInMenu: "______________",//seperator
+      //textInMenu: "<hr/>",
+    }, {
+      textInMenu: "Edit Ride",
+      // click: async (p) => await this.openRideDialog(p),
+      icon: "edit",
+      visible: (d) => !d.isNew(),
+      // showInLine: true,
+      click: async (r) => {
+        // console.log(r);
+        // let e: string;
+        // r.driverId.value = '';
+        // await r.save();
+      },
+    }, {
+      textInMenu: "Delete Ride",
+      // click: async (p) => await this.openRideDialog(p),
+      icon: "delete",
+      visible: (d) => !d.isNew(),
+      // showInLine: true,
+
+      click: async (r) => {
+        let name = (await this.context.for(Patient).findId(r.patientId.value)).name.value;
+        if (await this.snakebar.confirmDelete(name)) {
+          await r.delete();
+        }
       },
     },],
     numOfColumnsInGrid: 10,
@@ -42,7 +73,13 @@ export class RidesComponent implements OnInit {
       {
         column: r.driverId,
         click: async clkRide => {
-          await this.openDriversDialog(clkRide);
+          // console.log(clkRide.id.va)
+          if (clkRide.id == undefined || clkRide.id.value == undefined) {
+            await this.openDriversDialog(clkRide);
+          }
+          else {
+            await this.openReleventDriversDialog(clkRide);
+          }
         }
       },
       r.date,
@@ -52,9 +89,10 @@ export class RidesComponent implements OnInit {
       r.from,
       r.to,
     ],
-    allowCRUD: true,
-    where: r =>
-      this.byDate.value.filter(r.date),
+    // where: r =>
+    //   r.id && r.id.value && r.id.value.length > 0
+    //     ? this.byDate.value.filter(r.date)
+    //     : r.isHasEscort.isEqualTo(true).or(r.isHasEscort.isEqualTo(false)),
     orderBy: r => [{ column: r.date, descending: true }],
     // saving: r => {r.dayOfWeek.value = Utils.getDayOfWeek(r.date.getDayOfWeek())},
 
@@ -69,57 +107,24 @@ export class RidesComponent implements OnInit {
   ngOnInit() {
   }
 
+
   async openDriversDialog(r: Ride) {
+
+    this.context.openDialog(DynamicServerSideSearchDialogComponent,
+      x => x.args(Driver, {
+        onSelect: l => {
+          r.driverId.value = l.id.value;
+        },
+        searchColumn: l => l.name
+      }));
+  }
+  async openReleventDriversDialog(r: Ride) {
     // console.log(r.date);
     let relevantDrivers = await Usher.getReleventDriversForRide(r.id.value);
-
-    let items = (await this.context.for(Driver).find({
-      where: r => r.id.isIn(...relevantDrivers)
-    }));
-    // console.log(items.length);
-
-    let drivers: ValueListItem[] = [];
-    var order: { count: number, item: ValueListItem }[] = [];
-    items.forEach(async d => {
-      let name = d.name.value;
-      let mobile = d.mobile.value;
-      let days = 0;
-      let location = "";
-
-      let finds = await this.context.for(Ride).find({
-        limit: 1,
-        where: r => r.driverId.isEqualTo(d.id),
-        orderBy: r => [{ column: r.date, descending: true }]
-      });
-      if (finds && finds.length > 0) {
-
-        let now = new Date();//now
-        let rDate = finds[0].date.value;
-        let diff = +now - +rDate;
-        days = (-1 * (Math.ceil(diff / 1000 / 60 / 60 / 24) + 1));
-      }
-
-      let caption = name + " | " + mobile + " | " + days;
-      let item = { id: d.id.value, caption: caption } as ValueListItem;
-      drivers.push(item);
-
-      order.push({
-        count: days,
-        item: item,
-      });
-    });
-    // console.log(order);
-    order.sort((a, b) => b.count - a.count);//??PROBLEM
-    console.log(order.length);
-
-    // console.log(order);
-    // order.forEach(o => {
-    //   drivers.push(o.item);
-    // });
-
+    // console.table(relevantDrivers);
     this.context.openDialog(SelectValueDialogComponent, x => x.args({
-      title: `Relevent Drivers (${drivers.length})`,
-      values: drivers,
+      title: `Relevent Drivers (${relevantDrivers.length})`,
+      values: relevantDrivers,
       // orderBy:r => [{ column: r.date, descending: true }]
       onSelect: async x => {
         // let ride = await this.context.for(Ride).findId(x.item.id);

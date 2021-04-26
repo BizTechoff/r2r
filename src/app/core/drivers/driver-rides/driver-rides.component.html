@@ -1,47 +1,67 @@
 <div class="full-page">
-    <button mat-raised-button style="margin: 10px;" color="primary" (click)="addRide()">
-        <mat-icon>add</mat-icon>
-        <mat-label>Add New Ride</mat-label>
-        <!-- <mat-label>Add New Patient</mat-label> -->
-      </button>
-    <div class="grow-item">
-        <data-grid [settings]="ridesSettings"></data-grid>
+  <div class="grow-item">
+    <div *ngIf="driverDataRows">
+
+      <div *ngIf="driverDataRows.todayMorning.length > 0">
+        <mat-expansion-panel>
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              Today - Morning
+            </mat-panel-title>
+            <mat-panel-description>
+              Count: {{ driverDataRows.todayMorning.length }} Rides
+            </mat-panel-description>
+          </mat-expansion-panel-header>
+          <div>
+            <table style="width: 100%;">
+              <tr *ngFor="let r of driverDataRows.todayMorning">
+                <td></td>
+                <td>{{ r.title }}</td>
+                <td>Found {{ r.subTitle }} Passengers</td>
+                <td>
+                  <mat-icon *ngFor="let i of r.icons">
+                    {{ i }}
+                  </mat-icon>
+                </td>
+                <td><button mat-button (click)="register(r.id)">
+                    Register
+                  </button></td>
+              </tr>
+            </table>
+          </div>
+        </mat-expansion-panel>
+      </div>
+
+      <div *ngIf="driverDataRows.tomorrowMorning.length > 0">
+        <mat-expansion-panel>
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              Tomorrow - Morning
+            </mat-panel-title>
+            <mat-panel-description>
+              Count: {{ driverDataRows.tomorrowMorning.length }} Rides
+            </mat-panel-description>
+          </mat-expansion-panel-header>
+          <div>
+            <table style="width: 100%;">
+              <tr *ngFor="let r of driverDataRows.tomorrowMorning">
+                <td></td>
+                <td>{{ r.title }}</td>
+                <td>Found {{ r.subTitle }} Passengers</td>
+                <td>
+                  <mat-icon *ngFor="let i of r.icons">
+                    {{ i }}
+                  </mat-icon>
+                </td>
+                <td><button mat-button (click)="register(r.id)">
+                    Register
+                  </button></td>
+              </tr>
+            </table>
+          </div>
+        </mat-expansion-panel>
+      </div>
+
     </div>
+  </div>
 </div>
-
-
-
-<!-- <div mat-dialog-content class="content">
-    <div class="full-page">
-        <div>
-            <div class="grow-item">
-
-                <data-grid [settings]="ridesSettings"></data-grid> -->
-
-                <!-- <mat-accordion *ngIf="familiesInfo" [multi]="true">
-                <mat-expansion-panel *ngIf="delivery" #deliveryPanel>
-                    <mat-expansion-panel-header>
-                        <div>
-                            <mat-panel-title>
-                                {{settings.lang.deliveryInfo}}
-                            </mat-panel-title>
-                        </div>
-                        <div>
-                            <mat-panel-description>
-                                {{delivery.getShortDeliveryDescription()}}
-                            </mat-panel-description>
-                        </div>
-
-                    </mat-expansion-panel-header>
-                    <ng-template matExpansionPanelContent>
-                        <button mat-raised-button color="primary" style="margin-bottom:5px" *ngIf="showNewDelivery()"
-                            (click)="newDelivery()">{{settings.lang.newDelivery}}</button>
-                        <data-area [settings]="deliverInfo"></data-area>
-                    </ng-template>
-                </mat-expansion-panel>
-            </mat-accordion> -->
-
-            <!-- </div>
-        </div>
-    </div>
-</div> -->

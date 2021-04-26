@@ -33,7 +33,7 @@ export class PatientIdColumn extends StringColumn {
                 getValue: () => this.context.for(Patient).lookup(this).name.value,
                 hideDataOnInput: true,
                 clickIcon: 'search',
-                click: () => {
+                click: (p) => {
                     this.context.openDialog(DynamicServerSideSearchDialogComponent,
                         x => x.args(Patient, {
                             onSelect: l => this.value = l.id.value,

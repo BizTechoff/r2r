@@ -1,4 +1,4 @@
-import { BoolColumn, Context, DateColumn, EntityClass, IdEntity, NumberColumn, StringColumn, ValueListColumn } from "@remult/core";
+import { BoolColumn, ColumnSettings, Context, DateColumn, EntityClass, IdEntity, NumberColumn, StringColumn, ValueListColumn } from "@remult/core";
 import { Utils } from "../../shared/utils";
 import { DriverIdColumn } from "../drivers/driver";
 import { DayOfWeekColumn, DayPeriodColumn } from "../drivers/driverPrefSchedule";
@@ -24,9 +24,12 @@ export class Ride extends IdEntity {
         // return Utils.getDayOfWeek(this.date.getDayOfWeek());
     });
 
+    assignDate = new DateColumn({});
     isNeedBabyChair = new BoolColumn({ caption: 'Need Baby Chair' });
     isNeedWheelchair = new BoolColumn({ caption: 'Need Wheel Chair' });
-    isHasEscort = new BoolColumn({ caption: 'Has Escort' });
+    isHasExtraEquipment = new BoolColumn({ caption: 'Has Extra Equipment' });
+    
+    isHasEscort = new BoolColumn({ caption: 'Has Escort', defaultValue: false });
     escortsCount = new NumberColumn({});
 
     constructor(private context: Context) {
@@ -59,22 +62,27 @@ export class Ride extends IdEntity {
 }
 
 export class RideStatus {
-    static waitingFor2Patient = new RideStatus(2, 'waitingForPatient',);//driver future ride
-    static waitingFor1DriverAccept = new RideStatus(1, 'waitingForDriverAccept',);
-    static waitingFor3Match = new RideStatus(3, 'waitingForMatch',);
-    static waitingFor4Start = new RideStatus(4, 'waitingForStart',);
-    static waitingFor5Pickup = new RideStatus(5, 'waitingForPickup',);
-    static waitingFor6Arrived = new RideStatus(6, 'waitingForArrived',);
-    static succeeded = new RideStatus(10, 'succeeded',);
-    static failed = new RideStatus(11, 'failed',);
-    static rejected = new RideStatus(12, 'rejected',);
+    static waitingFor10DriverAccept = new RideStatus(10, 'waitingForDriverAccept',);
+    //static waitingFor12Patient = new RideStatus(2, 'waitingForPatient',);//driver future ride
+    //static waitingFor18Match = new RideStatus(3, 'waitingForMatch',);
+    static waitingFor20UsherApproove = new RideStatus(20, 'waitingForUsherApproove',);
+    static waitingFor30Start = new RideStatus(30, 'waitingForStart',);
+    static waitingFor40Pickup = new RideStatus(40, 'waitingForPickup',);
+    static waitingFor50Arrived = new RideStatus(50, 'waitingForArrived',);
+    static waitingFor60End = new RideStatus(60, 'waitingForEnd',);
+    static succeeded = new RideStatus(100, 'succeeded',);
+    static failed = new RideStatus(101, 'failed',);
+    static rejected = new RideStatus(102, 'rejected',);
     constructor(public id: number, public caption: string, public color = 'green') { }
 }
+
 //חולה ונהג יכולים להיות ריקים
 export class RideStatusColumn extends ValueListColumn<RideStatus>{
-    constructor() {
-        super(RideStatus);
-        this.value = RideStatus.waitingFor3Match;
+    constructor(options?:ColumnSettings<RideStatus>) {
+        super(RideStatus, {
+            defaultValue:  RideStatus.waitingFor10DriverAccept,
+            ...options
+        });
     }
 }
  
