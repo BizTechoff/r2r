@@ -75,6 +75,13 @@ export class DriverRidesComponent implements OnInit {
     this.driverDataRows = await DriverRidesComponent.retrieve(
       this.driver.id.value);
 
+    if ((this.driverDataRows.todayMorning.length == 0) &&
+      (this.driverDataRows.todayAfternoon.length == 0) &&
+      (this.driverDataRows.tomorrowMorning.length == 0) &&
+      (this.driverDataRows.tomorrowAfternoon.length == 0)) {
+      this.snakebar.info("Thank You! No Rides for now, Please try later");
+    }
+
     console.log(this.driverDataRows);
   }
 
@@ -143,8 +150,8 @@ export class DriverRidesComponent implements OnInit {
         driverPassengersCount: "" + (ride.escortsCount.value + 1),
         driverRemarks: '',
       };
-      if (ride.date.value.getDate()==(today.getDate())) {
-        console.log(ride.date.value + " " + today.toString());
+      if (ride.date.value.getDate() == (today.getDate())) {
+        // console.log(ride.date.value + " " + today.toString());
         if (ride.dayPeriod.isEqualTo(DayPeriod.morning)) {
           result.todayMorning.push(rr);
         }
@@ -152,7 +159,7 @@ export class DriverRidesComponent implements OnInit {
           result.todayAfternoon.push(rr);
         }
       }
-      else if (ride.date.value.getDate()==(tomorrow.getDate())) {
+      else if (ride.date.value.getDate() == (tomorrow.getDate())) {
         if (ride.dayPeriod.isEqualTo(DayPeriod.morning)) {
           result.tomorrowMorning.push(rr);
         }
