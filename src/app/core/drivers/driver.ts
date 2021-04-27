@@ -34,7 +34,7 @@ export class Driver extends IdEntity {
             }
         },
     });
-    home = new LocationIdColumn(this.context, "Home", "home");
+    home? = new LocationIdColumn(this.context, "Home", "home", true);
     email = new StringColumn({});
     seats = new NumberColumn({});
     idNumber = new StringColumn({});

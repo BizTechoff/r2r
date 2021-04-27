@@ -23,8 +23,8 @@ export class Users extends IdEntity {
     isUsher = new BoolColumn({ allowApiUpdate: Roles.admin });
     isMatcher = new BoolColumn({ allowApiUpdate: Roles.admin });
     isDriver = new BoolColumn({ allowApiUpdate: Roles.admin });
- 
-    mobile? = new StringColumn();
+
+    mobile?= new StringColumn();
 
     constructor(private context: Context) {
 
@@ -40,8 +40,12 @@ export class Users extends IdEntity {
 
                     if (this.isNew()) {
                         this.createDate.value = new Date();
-                        if ((await context.for(Users).count()) == 0)
+                        if ((await context.for(Users).count()) == 0) {
                             this.isAdmin.value = true;// If it's the first user, make it an admin
+                        }
+                        else {
+                            this.isDriver.value = true;
+                        }
                     }
                     await checkForDuplicateValue(this, this.name, this.context.for(Users));
 

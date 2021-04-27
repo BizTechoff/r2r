@@ -79,10 +79,10 @@ export class DriverRidesComponent implements OnInit {
       (this.driverDataRows.todayAfternoon.length == 0) &&
       (this.driverDataRows.tomorrowMorning.length == 0) &&
       (this.driverDataRows.tomorrowAfternoon.length == 0)) {
-      this.snakebar.info("Thank You! No Rides for now, Please try later");
+      this.snakebar.info("Thank You! Found No Rides Suits Your Preffered Borders");
     }
 
-    console.log(this.driverDataRows);
+    // console.log(this.driverDataRows);
   }
 
   @ServerFunction({ allowed: c => c.isSignedIn() })
@@ -113,61 +113,65 @@ export class DriverRidesComponent implements OnInit {
       // console.log(pf.locationId.value);
     };
 
-    // Should be server-function ?
-    for await (const ride of context.for(Ride).iterate({
-      where: r => (r.date.isIn(today, tomorrow))//.isEqualTo(today).or(r.date.isEqualTo(tomorrow)))
-        .and(r.status.isEqualTo(RideStatus.waitingFor10DriverAccept))
-        .and(r.from.isIn(...locationsIds)),
-    })) {
-      //       console.log("ride.from.value");
-      // console.log(ride.from.value);
-      let title = (await context.for(Location).findId(ride.from.value)).name.value
-        + " -> " + (await context.for(Location).findId(ride.to.value)).name.value;
+    if (locationsIds.length > 0) {
 
-      // if(!(distinct.includes(title))){
-      //   distinct.push(title);
-      //   groupBy.push(new groupByRideRow());
-      // }
+      // Should be server-function ?
+      for await (const ride of context.for(Ride).iterate({
+        where: r => (r.date.isIn(today, tomorrow))//.isEqualTo(today).or(r.date.isEqualTo(tomorrow)))
+          .and(r.status.isEqualTo(RideStatus.waitingFor10DriverAccept))
+          .and(r.from.isIn(...locationsIds)),
+      })) {
+        //       console.log("ride.from.value");
+        // console.log(ride.from.value);
+        let title = (await context.for(Location).findId(ride.from.value)).name.value
+          + " -> " + (await context.for(Location).findId(ride.to.value)).name.value;
 
-      // groupBy[""].
+        // if(!(distinct.includes(title))){
+        //   distinct.push(title);
+        //   groupBy.push(new groupByRideRow());
+        // }
 
-      let subTitle = "Found " + (ride.escortsCount.value + 1) + " Passengers";// + " + ride.date.getDayOfWeek();
-      let icons: string[] = [];
-      if (ride.isNeedWheelchair.value) {
-        icons.push("accessible");
-      }
-      if (ride.isHasExtraEquipment.value) {
-        icons.push("home_repair_service");
-      }
+        // groupBy[""].
 
-      let rr: rideRow = {
-        id: ride.id.value,
-        title: title,
-        subTitle: subTitle,
-        icons: icons,
-        driverFromHour: "00:00",
-        driverToHour: "00:00",
-        driverPassengersCount: "" + (ride.escortsCount.value + 1),
-        driverRemarks: '',
+        let subTitle = "Found " + (ride.escortsCount.value + 1) + " Passengers";// + " + ride.date.getDayOfWeek();
+        let icons: string[] = [];
+        if (ride.isNeedWheelchair.value) {
+          icons.push("accessible");
+        }
+        if (ride.isHasExtraEquipment.value) {
+          icons.push("home_repair_service");
+        }
+
+        let rr: rideRow = {
+          id: ride.id.value,
+          title: title,
+          subTitle: subTitle,
+          icons: icons,
+          driverFromHour: "00:00",
+          driverToHour: "00:00",
+          driverPassengersCount: "" + (ride.escortsCount.value + 1),
+          driverRemarks: '',
+        };
+        if (ride.date.value.getDate() == (today.getDate())) {
+          // console.log(ride.date.value + " " + today.toString());
+          if (ride.dayPeriod.isEqualTo(DayPeriod.morning)) {
+            result.todayMorning.push(rr);
+          }
+          else if (ride.dayPeriod.isEqualTo(DayPeriod.afternoon)) {
+            result.todayAfternoon.push(rr);
+          }
+        }
+        else if (ride.date.value.getDate() == (tomorrow.getDate())) {
+          if (ride.dayPeriod.isEqualTo(DayPeriod.morning)) {
+            result.tomorrowMorning.push(rr);
+          }
+          else if (ride.dayPeriod.isEqualTo(DayPeriod.afternoon)) {
+            result.tomorrowAfternoon.push(rr);
+          }
+        }
       };
-      if (ride.date.value.getDate() == (today.getDate())) {
-        // console.log(ride.date.value + " " + today.toString());
-        if (ride.dayPeriod.isEqualTo(DayPeriod.morning)) {
-          result.todayMorning.push(rr);
-        }
-        else if (ride.dayPeriod.isEqualTo(DayPeriod.afternoon)) {
-          result.todayAfternoon.push(rr);
-        }
-      }
-      else if (ride.date.value.getDate() == (tomorrow.getDate())) {
-        if (ride.dayPeriod.isEqualTo(DayPeriod.morning)) {
-          result.tomorrowMorning.push(rr);
-        }
-        else if (ride.dayPeriod.isEqualTo(DayPeriod.afternoon)) {
-          result.tomorrowAfternoon.push(rr);
-        }
-      }
-    };
+
+    }
     return result;
   }
 }

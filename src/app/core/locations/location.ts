@@ -33,10 +33,19 @@ export class LocationTypeColumn extends ValueListColumn<LocationType>{
 
 export class LocationIdColumn extends StringColumn {
 
-  constructor(private context: Context, caption: string, dbName: string) {
+  constructor(private context: Context, caption: string, dbName: string, allowNull = false) {
     super({
+      allowNull: allowNull,
       caption: caption,
       dbName: dbName,
+      validate: () => {
+        // console.log(this.defs.allowNull);
+        if (this.defs.allowNull) { }
+        else if (this.value && this.value.length > 0) { }
+        else {
+          this.validationError = " No Location Seleceted";
+        }
+      },
       dataControlSettings: () => ({
         getValue: () => this.context.for(Location).lookup(this).name.value,
         hideDataOnInput: true,
