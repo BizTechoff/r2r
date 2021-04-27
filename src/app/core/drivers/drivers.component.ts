@@ -39,7 +39,7 @@ export class DriversComponent implements OnInit {
       icon: "directions_bus_filled",
       visible: (d) => !d.isNew(),
       //showInLine: (this.context.for(DriverPrefs).count(p => p.driverId.isEqualTo("")).then(() => { return true; })),
-    },{
+    }, {
       name: "Call Documentation",
       click: async (d) => await this.openCallDocumentationDialog(d),
       icon: "tty",
@@ -54,15 +54,10 @@ export class DriversComponent implements OnInit {
         await this.addDriver();
       }
 
-    }, {
-      name: 'bla bla',
-      click: () => {
-        alert(this.driversSettings.selectedRows.map(x => x.name.value).join(','));
-      }
-    }],
+    },],
     where: p => this.search.value ? p.name.isContains(this.search) : undefined,
     numOfColumnsInGrid: 10,
-    allowSelection: true,
+    // allowSelection: true,
     columnSettings: (d) => [
       // d.name,
       // {

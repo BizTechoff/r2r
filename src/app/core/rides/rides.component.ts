@@ -10,6 +10,8 @@ import { usherDriversResponse } from '../../shared/types';
 import { Utils } from '../../shared/utils';
 import { DynamicServerSideSearchDialogComponent } from '../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component';
 import { Patient } from '../patients/patient';
+import { InputAreaComponent } from '../../common/input-area/input-area.component';
+import { DayPeriod } from '../drivers/driverPrefSchedule';
 
 @Component({
   selector: 'app-rides',
@@ -49,6 +51,8 @@ export class RidesComponent implements OnInit {
       visible: (d) => !d.isNew(),
       // showInLine: true,
       click: async (r) => {
+
+        await this.openRideDialog(r);
         // console.log(r);
         // let e: string;
         // r.driverId.value = '';
@@ -107,6 +111,33 @@ export class RidesComponent implements OnInit {
   ngOnInit() {
   }
 
+  async openRideDialog(ride: Ride) {
+    this.context.openDialog(
+      InputAreaComponent,
+      x => x.args = {
+        title: "Edit Ride",
+        columnSettings: () => [
+          ride.from,
+          ride.to,
+          ride.date, {
+            column: ride.dayPeriod,
+            valueList: [DayPeriod.morning, DayPeriod.afternoon]
+          },
+          ride.isNeedWheelchair,
+          ride.isHasEscort,
+          {
+            column: ride.escortsCount,
+            visible: (r) => ride.isHasEscort.value
+          },
+        ],
+        ok: async () => {
+          //PromiseThrottle
+          // ride.driverId.value = undefined;
+          await ride.save();
+        }
+      },
+    )
+  }
 
   async openDriversDialog(r: Ride) {
 
