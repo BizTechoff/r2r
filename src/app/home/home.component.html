@@ -2,7 +2,7 @@
   <div>
 
     <h1>Rides Organizer Application</h1>
-    <h2>Welcome</h2>
+    <h2>Welcome {{context.isSignedIn()?"("+context.user.roles.join()+")":""}}</h2>
     <h3 *ngIf="!context.isSignedIn()">Please Sign In</h3>
 
   </div>

@@ -34,13 +34,21 @@ export class Driver extends IdEntity {
             }
         },
     });
-    home? = new LocationIdColumn(this.context, "Home", "home", true);
+    home?= new LocationIdColumn(this.context, "Home", "home", true);
     email = new StringColumn({});
-    seats = new NumberColumn({});
+    seats = new NumberColumn({
+        validate: () => {
+            if (this.seats.value <= 0) {
+                this.seats.value = 1;
+            }
+        },
+    });
     idNumber = new StringColumn({});
     birthDate = new DateColumn({});
     city = new StringColumn({});
     address = new StringColumn({});
+    defaultFromTime = new StringColumn({ defaultValue: "00:00" });
+    defaultToTime = new StringColumn({ defaultValue: "00:00" });
 
     constructor(private context: Context) {
         super({

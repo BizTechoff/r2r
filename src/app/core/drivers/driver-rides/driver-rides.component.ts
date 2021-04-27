@@ -25,7 +25,8 @@ export class DriverRidesComponent implements OnInit {
   today: Date;
   tomorrow: Date;
 
-  driverDataRows: driverRideRows;
+  driverSuggestions: driverRideRows;
+  driverRegistered: driverRideRows;
 
   constructor(private context: Context, private snakebar: DialogService) { }
 
@@ -38,11 +39,11 @@ export class DriverRidesComponent implements OnInit {
         columnSettings: () => [
           {
             caption: "I'm Available From Hour",
-            column: new StringColumn({}),
+            column: new StringColumn({ defaultValue: this.driver.defaultFromTime.value }),
           },
           {
             caption: "I'm Available till Hour",
-            column: new StringColumn({}),
+            column: new StringColumn({ defaultValue: this.driver.defaultToTime.value }),
           },
           {
             caption: "Paasengers I can take",
@@ -57,10 +58,55 @@ export class DriverRidesComponent implements OnInit {
           },
         ],
         ok: async () => {
+          ride.driverId.value = this.driver.id.value;
+          ride.status.value = RideStatus.waitingFor20UsherApproove;
+          await ride.save();
           this.snakebar.info("Thank You! We will contact you ASAP")
-          //PromiseThrottle
-          // ride.driverId.value = undefined;
-          // await ride.save();
+          await this.retrieve();
+        }
+      },
+    )
+  }
+
+  async startDriving(rideId: string) {
+    let ride = await this.context.for(Ride).findId(rideId);
+    ride.status.value = RideStatus.waitingFor40Pickup;
+    await ride.save();
+    await this.retrieve();
+  }
+
+  async pickup(rideId: string) {
+    let ride = await this.context.for(Ride).findId(rideId);
+    ride.status.value = RideStatus.waitingFor50Arrived;
+    await ride.save();
+    await this.retrieve();
+  }
+
+  async arrived(rideId: string) {
+    let ride = await this.context.for(Ride).findId(rideId);
+    ride.status.value = RideStatus.succeeded;
+    await ride.save();
+    await this.retrieve();
+  }
+
+  async unRegister(rideId: string) {
+    let ride = await this.context.for(Ride).findId(rideId);
+    this.context.openDialog(
+      InputAreaComponent,
+      x => x.args = {
+        title: "UnRegister From Ride",
+        columnSettings: () => [
+          {
+            caption: "Please Tell Us Why?",
+            column: new StringColumn({}),
+          },
+        ],
+        ok: async () => {
+          ride.driverId.value = '';
+          ride.status.value = RideStatus.waitingFor10DriverAccept;
+          await ride.save();
+          this.snakebar.info("Thank You! Waiting To See You Again")
+          await this.retrieve();
         }
       },
     )
@@ -72,26 +118,112 @@ export class DriverRidesComponent implements OnInit {
     this.driver = await this.context.for(Driver).findFirst(
       d => d.userId.isEqualTo(this.context.user.id),
     );
-    this.driverDataRows = await DriverRidesComponent.retrieve(
+
+    await this.retrieve();
+  }
+
+  async retrieve() {
+
+    this.driverSuggestions = await DriverRidesComponent.retrieveSuggestedRides(
       this.driver.id.value);
 
-    if ((this.driverDataRows.todayMorning.length == 0) &&
-      (this.driverDataRows.todayAfternoon.length == 0) &&
-      (this.driverDataRows.tomorrowMorning.length == 0) &&
-      (this.driverDataRows.tomorrowAfternoon.length == 0)) {
+    if ((this.driverSuggestions.todayMorning.length == 0) &&
+      (this.driverSuggestions.todayAfternoon.length == 0) &&
+      (this.driverSuggestions.tomorrowMorning.length == 0) &&
+      (this.driverSuggestions.tomorrowAfternoon.length == 0)) {
       this.snakebar.info("Thank You! Found No Rides Suits Your Preffered Borders");
+    }
+
+    this.driverRegistered = await DriverRidesComponent.retrieveRegisteredRides(
+      this.driver.id.value);
+
+    if ((this.driverRegistered.todayMorning.length == 0) &&
+      (this.driverRegistered.todayAfternoon.length == 0) &&
+      (this.driverRegistered.tomorrowMorning.length == 0) &&
+      (this.driverRegistered.tomorrowAfternoon.length == 0)) {
+      // this.snakebar.info("Thank You! Found No Rides Suits Your Preffered Borders");
     }
 
     // console.log(this.driverDataRows);
   }
 
+  // isWaitingForUsherApproove(r: Ride) {
+  //   return r.isWaitingForUsherApproove();
+  // }
+ 
   @ServerFunction({ allowed: c => c.isSignedIn() })
   static async getServerDate() {
     return new Date();
   }
 
   @ServerFunction({ allowed: Roles.driver })
-  static async retrieve(driverId: string, context?: Context) {
+  static async retrieveRegisteredRides(driverId: string, context?: Context) {
+    let result: driverRideRows = {
+      todayMorning: [] = [],
+      todayAfternoon: [] = [],
+      tomorrowMorning: [] = [],
+      tomorrowAfternoon: [] = [],
+    };
+
+    let today = await DriverRidesComponent.getServerDate();
+    let tomorrow = addDays(1);
+    // Should be server-function ?
+    for await (const ride of context.for(Ride).iterate({
+      where: r => (r.date.isIn(today, tomorrow))//.isEqualTo(today).or(r.date.isEqualTo(tomorrow)))
+        .and(r.status.isDifferentFrom(RideStatus.waitingFor10DriverAccept))
+        .and(r.driverId.isEqualTo(driverId))
+    })) {
+      let title = (await context.for(Location).findId(ride.from.value)).name.value
+        + " -> " + (await context.for(Location).findId(ride.to.value)).name.value;
+
+      let subTitle = "Found " + (ride.escortsCount.value + 1) + " Passengers";// + " + ride.date.getDayOfWeek();
+      let icons: string[] = [];
+      if (ride.isNeedWheelchair.value) {
+        icons.push("accessible");
+      }
+      if (ride.isHasExtraEquipment.value) {
+        icons.push("home_repair_service");
+      }
+
+      let rr: rideRow = {
+        id: ride.id.value,
+        title: title,
+        subTitle: subTitle,
+        status: ride.status.value.caption,
+        icons: icons,
+        driverFromHour: "00:00",
+        driverToHour: "00:00",
+        driverPassengersCount: "" + (ride.escortsCount.value + 1),
+        driverRemarks: '',
+        isWaitingForUsherApproove: ride.isWaitingForUsherApproove(),
+        isWaitingForStart: ride.isWaitingForStart(),
+        isWaitingForPickup: ride.isWaitingForPickup(),
+        isWaitingForArrived: ride.isWaitingForArrived(),
+      };
+      if (ride.date.value.getDate() == (today.getDate())) {
+        // console.log(ride.date.value + " " + today.toString());
+        if (ride.dayPeriod.isEqualTo(DayPeriod.morning)) {
+          result.todayMorning.push(rr);
+        }
+        else if (ride.dayPeriod.isEqualTo(DayPeriod.afternoon)) {
+          result.todayAfternoon.push(rr);
+        }
+      }
+      else if (ride.date.value.getDate() == (tomorrow.getDate())) {
+        if (ride.dayPeriod.isEqualTo(DayPeriod.morning)) {
+          result.tomorrowMorning.push(rr);
+        }
+        else if (ride.dayPeriod.isEqualTo(DayPeriod.afternoon)) {
+          result.tomorrowAfternoon.push(rr);
+        }
+      }
+    };
+    return result;
+  }
+
+
+  @ServerFunction({ allowed: Roles.driver })
+  static async retrieveSuggestedRides(driverId: string, context?: Context) {
     let result: driverRideRows = {
       todayMorning: [] = [],
       todayAfternoon: [] = [],
@@ -151,6 +283,7 @@ export class DriverRidesComponent implements OnInit {
           driverToHour: "00:00",
           driverPassengersCount: "" + (ride.escortsCount.value + 1),
           driverRemarks: '',
+          isWaitingForDriverAccept: ride.isWaitingForDriverAccept(),
         };
         if (ride.date.value.getDate() == (today.getDate())) {
           // console.log(ride.date.value + " " + today.toString());
@@ -193,10 +326,14 @@ export interface rideRow {
   title: string,
   subTitle: string,
   icons: string[],
-  // from:string,
-  // to:string,
+  status?: string,
   driverFromHour: string,
   driverToHour: string,
   driverPassengersCount: string,
   driverRemarks: string,
+  isWaitingForDriverAccept? :boolean,
+  isWaitingForUsherApproove? :boolean,
+  isWaitingForStart? :boolean,
+  isWaitingForPickup? :boolean,
+  isWaitingForArrived?:boolean,
 };

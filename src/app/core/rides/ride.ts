@@ -45,6 +45,28 @@ export class Ride extends IdEntity {
     getDayOfWeek(){
         return Utils.getDayOfWeek(this.date.getDayOfWeek());
     }
+    
+
+    isWaitingForDriverAccept(){
+        return this.status.value === RideStatus.waitingFor10DriverAccept;
+    }
+
+    isWaitingForUsherApproove(){
+        return this.status.value === RideStatus.waitingFor20UsherApproove;
+    }
+
+    isWaitingForStart(){
+        return this.status.value === RideStatus.waitingFor30Start;
+    }
+
+    isWaitingForPickup(){
+        return this.status.value === RideStatus.waitingFor40Pickup;
+    }
+
+    isWaitingForArrived(){
+        return this.status.value === RideStatus.waitingFor50Arrived;
+    }
+    
 
     copyTo(target: Ride) {
         target.from.value = this.from.value;

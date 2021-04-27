@@ -1,6 +1,6 @@
 import { ErrorHandler, NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { RemultModule } from '@remult/angular';
+import { NotSignedInGuard, RemultModule } from '@remult/angular';
 import { ShowDialogOnErrorErrorHandler } from './common/dialog';
 import { DriverDetailsComponent } from './core/drivers/driver-details/driver-details.component';
 import { DriverPreferencesComponent } from './core/drivers/driver-preferences/driver-preferences.component';
@@ -14,43 +14,36 @@ import { PatientsComponent } from './core/patients/patients.component';
 import { RidesComponent } from './core/rides/rides.component';
 // import { UsherComponent } from './core/usher/usher.component';
 import { HomeComponent } from './home/home.component';
-import { AdminGuard } from './users/roles';
+import { AdminGuard, DriverGuard, MatcherGuard, UsherGuard } from './users/roles';
 import { UsersComponent } from './users/users.component';
 
 
 const routes: Routes = [
-  { path: '---- DRIVER ------', component: HomeComponent },
-  { path: 'Rides', component: DriverRidesComponent },
-  { path: 'Settings', component: DriverSettingsComponent },//, canActivate: [AdminGuard] },
-  { path: 'Useful Information', component: DriverUsefulInformationComponent },
-  // { path: 'Find Me a Ride', component: DriverRidesComponent },
-  // { path: 'My Rides', component: DriverReleventRidesComponent },
-  { path: '---- MACHER ------', component: HomeComponent },
-  // { path: 'Personal Info', component: UsersComponent },
-  { path: 'Patients', component: PatientsComponent },
-  { path: '---- USHER ------', component: HomeComponent },
-  { path: 'Rides2', component: RidesComponent },
-  { path: 'Drivers', component: DriversComponent },//, canActivate: [NotSignedInGuard] },
-  { path: 'Patients', component: PatientsComponent },
-  // { path: '__________', component: HomeComponent },
-  { path: 'Locations', component: LocationsComponent },//, canActivate: [NotSignedInGuard] },
-  { path: '---- ADMIN ------', component: HomeComponent },
-  { path: 'Reports', component: LocationsComponent },//, canActivate: [NotSignedInGuard] },
-  { path: 'User Accounts', component: UsersComponent },//, canActivate: [AdminGuard] },
+
+  // Driver
+  { path: 'RidesDriver', component: DriverRidesComponent, canActivate: [DriverGuard], data: { name: "Rides" } },
+  { path: 'Settings', component: DriverSettingsComponent, canActivate: [DriverGuard], data: { name: "Settings" } },
+  { path: 'UsefulInformation', component: DriverUsefulInformationComponent, canActivate: [DriverGuard], data: { name: "Useful Information" } },
+
+  // Usher
+  { path: 'Rides', component: RidesComponent, canActivate: [UsherGuard] },
+  { path: 'Drivers', component: DriversComponent, canActivate: [UsherGuard] },
   
-  // { path: 'demo', component: DemoOneComponent },
-  // { path: 'demoenum', component: DemoEnumComponent },
-  // { path: 'demo-id-column', component: DemoIdColumnComponent },
-  // { path: 'Home', component: HomeComponent },//, canActivate: [NotSignedInGuard] },
+  // Matcher
+  { path: 'PatientsMatcher', component: PatientsComponent, canActivate: [MatcherGuard], data: { name: "Patients" } },
 
-  // { path: 'Current State', component: UsherComponent },//, canActivate: [UsherGuard] },
-  // { path: 'Personal Info', component: DriversComponent },//, canActivate: [DriverGuard] },
-  // { path: 'Preferences', component: DriverComponent, canActivate: [DriverGuard] },
-  // { path: 'Transportation Requests', component: DriversComponent },//, canActivate: [DriverGuard] },
-  { path: '', redirectTo: '/---- DRIVER ------', pathMatch: 'full' },
-  { path: '**', redirectTo: '/---- DRIVER ------', pathMatch: 'full' }
+  { path: 'Locations', component: LocationsComponent, canActivate: [UsherGuard] },
 
-]; 
+  // Admin
+  { path: 'Reports', component: LocationsComponent, canActivate: [AdminGuard] },
+  { path: 'User Accounts', component: UsersComponent, canActivate: [AdminGuard] },
+
+  { path: 'Home', component: HomeComponent, canActivate: [NotSignedInGuard], data: { name: "Welcome" } },
+
+  { path: '', redirectTo: '/Home', pathMatch: 'full' },
+  { path: '**', redirectTo: '/Home', pathMatch: 'full' }
+
+];
 
 @NgModule({
   imports: [RouterModule.forRoot(routes), RemultModule],

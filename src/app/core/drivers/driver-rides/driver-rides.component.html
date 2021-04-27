@@ -1,20 +1,23 @@
 <div class="full-page">
   <div class="grow-item">
-    <div *ngIf="driverDataRows">
 
-      <div *ngIf="driverDataRows.todayMorning.length > 0">
+    <h3>Your Registered Rides</h3>
+
+    <div *ngIf="driverRegistered">
+
+      <div *ngIf="driverRegistered.todayMorning.length > 0">
         <mat-expansion-panel>
           <mat-expansion-panel-header>
             <mat-panel-title>
               Today - Morning
             </mat-panel-title>
             <mat-panel-description>
-              Count: {{ driverDataRows.todayMorning.length }} Rides
+              Count: {{ driverRegistered.todayMorning.length }} Rides
             </mat-panel-description>
           </mat-expansion-panel-header>
           <div>
             <table style="width: 100%;">
-              <tr *ngFor="let r of driverDataRows.todayMorning">
+              <tr *ngFor="let r of driverRegistered.todayMorning">
                 <td>|___</td>
                 <td>{{ r.title }}</td>
                 <td>{{ r.subTitle }}</td>
@@ -23,28 +26,40 @@
                     {{ i }}
                   </mat-icon>
                 </td>
-                <td><button mat-button (click)="register(r.id)">
-                    Register..
-                  </button></td>
+                <!-- <td>{{ r.status }}</td> -->
+                <td>
+                  <button *ngIf="r.isWaitingForUsherApproove" mat-button (click)="unRegister(r.id)">
+                    UnRegister..
+                  </button>
+                  <button *ngIf="r.isWaitingForStart" mat-button (click)="startDriving(r.id)">
+                    Start..
+                  </button>
+                  <button *ngIf="r.isWaitingForPickup" mat-button (click)="pickup(r.id)">
+                    Pickup..
+                  </button>
+                  <button *ngIf="r.isWaitingForArrived" mat-button (click)="arrived(r.id)">
+                    Arrived..
+                  </button>
+                </td>
               </tr>
             </table>
           </div>
         </mat-expansion-panel>
       </div>
 
-      <div *ngIf="driverDataRows.todayAfternoon.length > 0">
+      <div *ngIf="driverRegistered.todayAfternoon.length > 0">
         <mat-expansion-panel>
           <mat-expansion-panel-header>
             <mat-panel-title>
               Today - Afternoon
             </mat-panel-title>
             <mat-panel-description>
-              Count: {{ driverDataRows.todayAfternoon.length }} Rides
+              Count: {{ driverRegistered.todayAfternoon.length }} Rides
             </mat-panel-description>
           </mat-expansion-panel-header>
           <div>
             <table style="width: 100%;">
-              <tr *ngFor="let r of driverDataRows.todayAfternoon">
+              <tr *ngFor="let r of driverRegistered.todayAfternoon">
                 <td>|___</td>
                 <td>{{ r.title }}</td>
                 <td>{{ r.subTitle }}</td>
@@ -53,28 +68,38 @@
                     {{ i }}
                   </mat-icon>
                 </td>
-                <td><button mat-button (click)="register(r.id)">
-                    Register..
-                  </button></td>
-              </tr>
+                <td>
+                  <button *ngIf="r.isWaitingForUsherApproove" mat-button (click)="unRegister(r.id)">
+                    UnRegister..
+                  </button>
+                  <button *ngIf="r.isWaitingForStart" mat-button (click)="startDriving(r.id)">
+                    Start..
+                  </button>
+                  <button *ngIf="r.isWaitingForPickup" mat-button (click)="pickup(r.id)">
+                    Pickup..
+                  </button>
+                  <button *ngIf="r.isWaitingForArrived" mat-button (click)="arrived(r.id)">
+                    Arrived..
+                  </button>
+                </td>
             </table>
           </div>
         </mat-expansion-panel>
       </div>
 
-      <div *ngIf="driverDataRows.tomorrowMorning.length > 0">
+      <div *ngIf="driverRegistered.tomorrowMorning.length > 0">
         <mat-expansion-panel>
           <mat-expansion-panel-header>
             <mat-panel-title>
               Tomorrow - Morning
             </mat-panel-title>
             <mat-panel-description>
-              Count: {{ driverDataRows.tomorrowMorning.length }} Rides
+              Count: {{ driverRegistered.tomorrowMorning.length }} Rides
             </mat-panel-description>
           </mat-expansion-panel-header>
           <div>
             <table style="width: 100%;">
-              <tr *ngFor="let r of driverDataRows.tomorrowMorning">
+              <tr *ngFor="let r of driverRegistered.tomorrowMorning">
                 <td>|___</td>
                 <td>{{ r.title }}</td>
                 <td>{{ r.subTitle }}</td>
@@ -83,28 +108,39 @@
                     {{ i }}
                   </mat-icon>
                 </td>
-                <td><button mat-button (click)="register(r.id)">
-                    Register..
-                  </button></td>
+                <td>
+                  <button *ngIf="r.isWaitingForUsherApproove" mat-button (click)="unRegister(r.id)">
+                    UnRegister..
+                  </button>
+                  <button *ngIf="r.isWaitingForStart" mat-button (click)="startDriving(r.id)">
+                    Start..
+                  </button>
+                  <button *ngIf="r.isWaitingForPickup" mat-button (click)="pickup(r.id)">
+                    Pickup..
+                  </button>
+                  <button *ngIf="r.isWaitingForArrived" mat-button (click)="arrived(r.id)">
+                    Arrived..
+                  </button>
+                </td>
               </tr>
             </table>
           </div>
         </mat-expansion-panel>
       </div>
 
-      <div *ngIf="driverDataRows.tomorrowAfternoon.length > 0">
+      <div *ngIf="driverRegistered.tomorrowAfternoon.length > 0">
         <mat-expansion-panel>
           <mat-expansion-panel-header>
             <mat-panel-title>
               Tomorrow - Afternoon
             </mat-panel-title>
             <mat-panel-description>
-              Count: {{ driverDataRows.tomorrowAfternoon.length }} Rides
+              Count: {{ driverRegistered.tomorrowAfternoon.length }} Rides
             </mat-panel-description>
           </mat-expansion-panel-header>
           <div>
             <table style="width: 100%;">
-              <tr *ngFor="let r of driverDataRows.tomorrowAfternoon">
+              <tr *ngFor="let r of driverRegistered.tomorrowAfternoon">
                 <td>|___</td>
                 <td>{{ r.title }}</td>
                 <td>{{ r.subTitle }}</td>
@@ -113,15 +149,151 @@
                     {{ i }}
                   </mat-icon>
                 </td>
-                <td><button mat-button (click)="register(r.id)">
-                    Register..
-                  </button></td>
-              </tr>
+                <td>
+                  <button *ngIf="r.isWaitingForUsherApproove" mat-button (click)="unRegister(r.id)">
+                    UnRegister..
+                  </button>
+                  <button *ngIf="r.isWaitingForStart" mat-button (click)="startDriving(r.id)">
+                    Start..
+                  </button>
+                  <button *ngIf="r.isWaitingForPickup" mat-button (click)="pickup(r.id)">
+                    Pickup..
+                  </button>
+                  <button *ngIf="r.isWaitingForArrived" mat-button (click)="arrived(r.id)">
+                    Arrived..
+                  </button>
+                </td>
             </table>
           </div>
         </mat-expansion-panel>
       </div>
 
+      <h3>More Rides You Can Register</h3>
+
+      <!-- ====================================================== -->
+
+      <div *ngIf="driverSuggestions">
+
+        <div *ngIf="driverSuggestions.todayMorning.length > 0">
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                Today - Morning
+              </mat-panel-title>
+              <mat-panel-description>
+                Count: {{ driverSuggestions.todayMorning.length }} Rides
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+            <div>
+              <table style="width: 100%;">
+                <tr *ngFor="let r of driverSuggestions.todayMorning">
+                  <td>|___</td>
+                  <td>{{ r.title }}</td>
+                  <td>{{ r.subTitle }}</td>
+                  <td>
+                    <mat-icon *ngFor="let i of r.icons">
+                      {{ i }}
+                    </mat-icon>
+                  </td>
+                  <td><button mat-button (click)="register(r.id)">
+                      Register..
+                    </button></td>
+                </tr>
+              </table>
+            </div>
+          </mat-expansion-panel>
+        </div>
+
+        <div *ngIf="driverSuggestions.todayAfternoon.length > 0">
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                Today - Afternoon
+              </mat-panel-title>
+              <mat-panel-description>
+                Count: {{ driverSuggestions.todayAfternoon.length }} Rides
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+            <div>
+              <table style="width: 100%;">
+                <tr *ngFor="let r of driverSuggestions.todayAfternoon">
+                  <td>|___</td>
+                  <td>{{ r.title }}</td>
+                  <td>{{ r.subTitle }}</td>
+                  <td>
+                    <mat-icon *ngFor="let i of r.icons">
+                      {{ i }}
+                    </mat-icon>
+                  </td>
+                  <td><button mat-button (click)="register(r.id)">
+                      Register..
+                    </button></td>
+                </tr>
+              </table>
+            </div>
+          </mat-expansion-panel>
+        </div>
+
+        <div *ngIf="driverSuggestions.tomorrowMorning.length > 0">
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                Tomorrow - Morning
+              </mat-panel-title>
+              <mat-panel-description>
+                Count: {{ driverSuggestions.tomorrowMorning.length }} Rides
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+            <div>
+              <table style="width: 100%;">
+                <tr *ngFor="let r of driverSuggestions.tomorrowMorning">
+                  <td>|___</td>
+                  <td>{{ r.title }}</td>
+                  <td>{{ r.subTitle }}</td>
+                  <td>
+                    <mat-icon *ngFor="let i of r.icons">
+                      {{ i }}
+                    </mat-icon>
+                  </td>
+                  <td><button mat-button (click)="register(r.id)">
+                      Register..
+                    </button></td>
+                </tr>
+              </table>
+            </div>
+          </mat-expansion-panel>
+        </div>
+
+        <div *ngIf="driverSuggestions.tomorrowAfternoon.length > 0">
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                Tomorrow - Afternoon
+              </mat-panel-title>
+              <mat-panel-description>
+                Count: {{ driverSuggestions.tomorrowAfternoon.length }} Rides
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+            <div>
+              <table style="width: 100%;">
+                <tr *ngFor="let r of driverSuggestions.tomorrowAfternoon">
+                  <td>|___</td>
+                  <td>{{ r.title }}</td>
+                  <td>{{ r.subTitle }}</td>
+                  <td>
+                    <mat-icon *ngFor="let i of r.icons">
+                      {{ i }}
+                    </mat-icon>
+                  </td>
+                  <td><button mat-button (click)="register(r.id)">
+                      Register..
+                    </button></td>
+                </tr>
+              </table>
+            </div>
+          </mat-expansion-panel>
+        </div>
+
+      </div>
     </div>
   </div>
-</div>

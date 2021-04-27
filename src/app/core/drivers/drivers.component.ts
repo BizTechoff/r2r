@@ -70,6 +70,8 @@ export class DriversComponent implements OnInit {
       d.seats,
       d.mobile,
       d.email,
+      d.defaultFromTime,
+      d.defaultToTime,
       //prefsCount, await this.context.for(DriverPrefs).count(p=>p.driverId.isEqualTo(d.id));
     ],
   });

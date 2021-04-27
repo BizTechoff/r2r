@@ -3,8 +3,8 @@ import { Injectable } from '@angular/core';
 
 
 
-export const Roles = { 
-    admin: 'admin',
+export const Roles = {
+    admin: 'admin',//מנהל
     usher: 'usher',//סדרן
     matcher: 'matcher',//מתאמת
     driver: 'driver',//מתנדב
@@ -23,7 +23,7 @@ export class AdminGuard extends SignedInGuard {
 export class UsherGuard extends SignedInGuard {
 
     isAllowed() {
-        return Roles.usher;
+        return c => c.isAllowed(Roles.usher) || c.isAllowed(Roles.admin);
     }
 }
 
@@ -31,7 +31,7 @@ export class UsherGuard extends SignedInGuard {
 export class MatcherGuard extends SignedInGuard {
 
     isAllowed() {
-        return Roles.matcher;
+        return c => c.isAllowed(Roles.matcher) || c.isAllowed(Roles.usher)  || c.isAllowed(Roles.admin);
     }
 }
 

@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { Context, DataAreaSettings, ServerFunction, ValueListItem } from '@remult/core';
+import { Context, DataAreaSettings, ServerFunction, StringColumn, ValueListItem } from '@remult/core';
 import { DialogService } from '../../common/dialog';
 import { Usher } from '../usher/usher';
 import { ByDate, ByDateColumn } from "../usher/ByDate";
-import { Ride } from './ride';
+import { Ride, RideStatus } from './ride';
 import { SelectValueDialogComponent } from '@remult/angular';
 import { Driver } from '../drivers/driver';
 import { usherDriversResponse } from '../../shared/types';
@@ -12,6 +12,7 @@ import { DynamicServerSideSearchDialogComponent } from '../../common/dynamic-ser
 import { Patient } from '../patients/patient';
 import { InputAreaComponent } from '../../common/input-area/input-area.component';
 import { DayPeriod } from '../drivers/driverPrefSchedule';
+import { SmsService } from '../../shared/smsService';
 
 @Component({
   selector: 'app-rides',
@@ -19,6 +20,30 @@ import { DayPeriod } from '../drivers/driverPrefSchedule';
   styleUrls: ['./rides.component.scss']
 })
 export class RidesComponent implements OnInit {
+
+  async openApprooveDialog(ride: Ride) {
+
+    this.context.openDialog(
+      InputAreaComponent,
+      x => x.args = {
+        title: "Approove Ride",
+        columnSettings: () => [
+          {
+            caption: "Send Sms To Driver",
+            column: new StringColumn({}),
+          },
+        ],
+        ok: async () => {
+          ride.status.value = RideStatus.waitingFor30Start;
+          await ride.save();
+          if (await SmsService.SendApproovedToDriver(ride.driverId.value)) {
+            this.snakebar.info("Sms Sent To Driver")
+          }
+          // await this.retrieve();
+        }
+      },
+    )
+  }
 
   ridesSettings = this.context.for(Ride).gridSettings({
     allowCRUD: false,
@@ -59,6 +84,20 @@ export class RidesComponent implements OnInit {
         // await r.save();
       },
     }, {
+      textInMenu: "Approove",
+      // click: async (p) => await this.openRideDialog(p),
+      icon: "ok",
+      visible: (r) => r.status.value === RideStatus.waitingFor20UsherApproove,
+      // showInLine: true,
+      click: async (r) => {
+
+        await this.openApprooveDialog(r);
+        // console.log(r);
+        // let e: string;
+        // r.driverId.value = '';
+        // await r.save();
+      },
+    }, {
       textInMenu: "Delete Ride",
       // click: async (p) => await this.openRideDialog(p),
       icon: "delete",
@@ -86,6 +125,7 @@ export class RidesComponent implements OnInit {
           }
         }
       },
+      r.status,
       r.date,
       r.dayOfWeek,
       r.dayPeriod,
