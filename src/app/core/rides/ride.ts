@@ -1,12 +1,9 @@
-import { BoolColumn, ColumnSettings, Context, DateColumn, EntityClass, IdEntity, NumberColumn, ServerFunction, StringColumn, ValueListColumn } from "@remult/core";
+import { BoolColumn, ColumnSettings, Context, DateColumn, EntityClass, IdEntity, NumberColumn, StringColumn, ValueListColumn } from "@remult/core";
 import { ServerEventsService } from "../../server/server-events-service";
-import { Utils } from "../../shared/utils";
-import { Driver, DriverIdColumn } from "../drivers/driver";
-import { DriverRidesComponent } from "../drivers/driver-rides/driver-rides.component";
+import { DriverIdColumn } from "../drivers/driver";
 import { DayOfWeekColumn, DayPeriodColumn, DriverPrefs } from "../drivers/driverPrefs";
 import { LocationIdColumn } from "../locations/location";
 import { PatientIdColumn } from "../patients/patient";
-import { addDays } from "../usher/ByDate";
 
 @EntityClass
 export class Ride extends IdEntity {
@@ -91,62 +88,6 @@ export class Ride extends IdEntity {
         target.driverId.value = this.driverId.value;
         target.status = this.status;
     }
-
-    @ServerFunction({ allowed: c => c.isSignedIn() })//allowed: Roles.matcher
-    static async getSuggestedDriversForRide(rideId: string, context?: Context) {
-        let result: drivers4UsherRow[] = [];
-
-        let ride = await context.for(Ride).findId(rideId);
-
-        let today = await Utils.getServerDate();
-        let tomorrow = addDays(1);
-        let todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());//T00:00:00
-        let tomorrowDate = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());//T00:00:00
-
-        let driversIds: string[] = [];
-        for await (const pf of context.for(DriverPrefs).iterate({
-            where: pf => (pf.locationId.isEqualTo(ride.from).or(pf.locationId.isEqualTo(ride.to))),
-        })) {
-            driversIds.push(pf.driverId.value);
-        };
-
-        if (driversIds.length > 0) {
-
-            for await (const d of context.for(Driver).iterate({
-                where: d => d.id.isIn(...driversIds),
-            })) {
-
-
-                let last = await context.for(Ride).findFirst({
-                    where: r => r.driverId.isEqualTo(d.id),
-                    orderBy: r => [{ column: r.date, descending: true }]
-                });
-                let days = 0;
-                if (last) {
-
-                    let now = new Date();//now
-                    let rDate = last.date.value;
-                    let diff = +now - +rDate;
-                    days = (-1 * (Math.ceil(diff / 1000 / 60 / 60 / 24) + 1));
-                }
-
-                let row: drivers4UsherRow = {
-                    id: d.id.value,
-                    name: d.name.value,
-                    mobile: d.mobile.value,
-                    days: days,
-                    lastStatus: d.lastStatus.value ? d.lastStatus.value.caption : "",
-                    lastStatusDate: d.lastStatusDate.value,
-                    isWaitingForUsherApproove: d.isWaitingForUsherApproove(),
-                    isWaitingForStart: d.isWaitingForStart(),
-                    isWaitingForPickup: d.isWaitingForPickup(),
-                    isWaitingForArrived: d.isWaitingForArrived(),
-                };
-                result.push(row);
-            }
-        }
-        return result;
-    }
 }
 
 export class RideStatus {
@@ -175,17 +116,3 @@ export class RideStatusColumn extends ValueListColumn<RideStatus>{
     }
 }
 
-
-export interface drivers4UsherRow {
-    id: string,
-    name: string,
-    mobile: string,
-    days: number,
-
-    lastStatus: string,
-    lastStatusDate: Date,
-    isWaitingForUsherApproove: boolean,
-    isWaitingForStart: boolean,
-    isWaitingForPickup: boolean,
-    isWaitingForArrived: boolean,
-};

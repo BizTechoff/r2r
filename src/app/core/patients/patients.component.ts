@@ -5,6 +5,7 @@ import { DialogService } from '../../common/dialog';
 import { InputAreaComponent } from '../../common/input-area/input-area.component';
 import { DayPeriod, DriverPrefs } from '../drivers/driverPrefs';
 import { Ride } from '../rides/ride';
+import { Usher } from '../usher/usher';
 import { Patient } from './patient';
 
 
@@ -94,7 +95,7 @@ export class PatientsComponent implements OnInit {
 
     let values: ValueListItem[] = [];
     // console.log(r.date);
-    let rides = await Patient.getRegisteredRidesForPatient(p.id.value);
+    let rides = await Usher.getRegisteredRidesForPatient(p.id.value);
     for (const r of rides) {
       values.push({
         id: r.id,
@@ -163,7 +164,7 @@ export class PatientsComponent implements OnInit {
             returnRide.to.value = ride.from.value;
             returnRide.dayOfWeek.value = ride.dayOfWeek.value;
             returnRide.dayPeriod.value = DayPeriod.afternoon;
-            returnRide.save();
+            await returnRide.save();
           }
         }
       },

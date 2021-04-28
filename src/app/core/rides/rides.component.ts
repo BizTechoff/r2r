@@ -195,7 +195,7 @@ export class RidesComponent implements OnInit {
 
     let values:ValueListItem[] = [];
     // console.log(r.date);
-    let drivers = await Ride.getSuggestedDriversForRide(r.id.value);
+    let drivers = await Usher.getSuggestedDriversForRide(r.id.value);
     for (const d of drivers) {
       values.push({
         id: d.id,

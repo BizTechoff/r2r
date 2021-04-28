@@ -3,13 +3,9 @@ import { Context, NumberColumn, ServerFunction, StringColumn } from '@remult/cor
 import { DialogService } from '../../../common/dialog';
 import { InputAreaComponent } from '../../../common/input-area/input-area.component';
 import { DestroyHelper, ServerEventsService } from '../../../server/server-events-service';
-import { Roles } from '../../../users/roles';
-import { Location } from '../../locations/location';
-import { Patient } from '../../patients/patient';
 import { Ride, RideStatus } from '../../rides/ride';
-import { addDays } from '../../usher/ByDate';
-import { Driver, rides4Driver } from '../driver';
-import { DriverPrefs } from '../driverPrefs';
+import { rides4Driver, Usher } from '../../usher/usher';
+import { Driver } from '../driver';
 
 @Component({
   selector: 'app-driver-rides',
@@ -27,7 +23,7 @@ export class DriverRidesComponent implements OnInit, OnDestroy {
     private snakebar: DialogService,
     private events: ServerEventsService) {
     events.onMessage(async (message) => {
-      console.log("got message: "+message.text,message);
+      console.log("got message: " + message.text, message);
     }, this.destroyHelper);
   }
 
@@ -41,7 +37,7 @@ export class DriverRidesComponent implements OnInit, OnDestroy {
   }
   @ServerFunction({ allowed: true })
   static async sendMessage() {
-    ServerEventsService.OnServerSendMessageToChannel("",{text:'The message text'});
+    ServerEventsService.OnServerSendMessageToChannel("", { text: 'The message text' });
 
   }
 
@@ -55,7 +51,7 @@ export class DriverRidesComponent implements OnInit, OnDestroy {
 
   async retrieve() {
 
-    this.driverRegistered = await Driver.retrieveRegisteredRides(
+    this.driverRegistered = await Usher.getRegisteredRidesForDriver(
       this.driver.id.value);
 
     console.log(this.driverRegistered);
@@ -64,7 +60,7 @@ export class DriverRidesComponent implements OnInit, OnDestroy {
       // this.snakebar.info("Thank You! Found No Rides Suits Your Preffered Borders");
     }
 
-    this.driverSuggestions = await Driver.retrieveSuggestedRides(
+    this.driverSuggestions = await Usher.getSuggestedRidesForDriver(
       this.driver.id.value);
 
     console.log(this.driverSuggestions);
@@ -118,7 +114,7 @@ export class DriverRidesComponent implements OnInit, OnDestroy {
     await ride.save();
     await this.retrieve();
   }
-
+ 
   async pickup(rideId: string) {
     let ride = await this.context.for(Ride).findId(rideId);
     ride.status.value = RideStatus.waitingFor50Arrived;

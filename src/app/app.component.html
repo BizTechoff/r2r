@@ -27,6 +27,7 @@
         <img src="assets/logo.png" width="150px" title="About Us"/>
       </a>
       <h4 *ngIf="context.isSignedIn()">Hello {{context.user.name}}</h4>
+      <mat-divider></mat-divider>
       <mat-nav-list role="list">
         <!-- <mat-list-item routerLinkActive="active-route">
           <a matLine [routerLink]="'/home'">kuku</a>
@@ -34,9 +35,9 @@
         <mat-divider></mat-divider> -->
         <ng-container *ngFor="let m of router.config">
         <mat-list-item *ngIf="shouldDisplayRoute(m)" routerLinkActive="active-route">
+          <mat-divider *ngIf="m.path === 'Locations'"></mat-divider>
           <a matLine [routerLink]="m.path" (click)="routeClicked()">{{routeName(m)}}</a>
         </mat-list-item>
-
 
       </ng-container>
     </mat-nav-list>

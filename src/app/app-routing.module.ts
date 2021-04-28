@@ -2,6 +2,7 @@ import { ErrorHandler, NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { NotSignedInGuard, RemultModule } from '@remult/angular';
 import { ShowDialogOnErrorErrorHandler } from './common/dialog';
+import { ApplicationSettingsComponent } from './core/application-settings/application-settings.component';
 import { DriverRidesComponent } from './core/drivers/driver-rides/driver-rides.component';
 import { DriverSettingsComponent } from './core/drivers/driver-settings/driver-settings.component';
 import { DriverUsefulInformationComponent } from './core/drivers/driver-useful-information/driver-useful-information.component';
@@ -33,6 +34,7 @@ const routes: Routes = [
   // Admin
   { path: 'Reports', component: LocationsComponent, canActivate: [AdminGuard] },
   { path: 'User Accounts', component: UsersComponent, canActivate: [AdminGuard] },
+  { path: 'AppSettings', component: ApplicationSettingsComponent, canActivate: [AdminGuard], data: { name: "App Settings" } },
 
   { path: 'Home', component: HomeComponent, canActivate: [NotSignedInGuard], data: { name: "Welcome" } },
 

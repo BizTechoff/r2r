@@ -1,24 +1,21 @@
-import { Component, Injector, ViewChild } from '@angular/core';
-import { Router, Route, CanActivate, ActivatedRoute } from '@angular/router';
+import { Component, ViewChild } from '@angular/core';
 import { MatSidenav } from '@angular/material/sidenav';
-import { MatDialog } from '@angular/material/dialog';
-
-import { Context, JwtSessionService, ServerFunction, StringColumn, UserInfo } from '@remult/core';
-
-import { DialogService } from './common/dialog';
+import { ActivatedRoute, Route, Router } from '@angular/router';
 import { RouteHelperService } from '@remult/angular';
-import { PasswordColumn, Users } from './users/users';
-import { Roles } from './users/roles';
+import { Context, JwtSessionService, ServerFunction, StringColumn, UserInfo } from '@remult/core';
+import { DialogService } from './common/dialog';
 import { InputAreaComponent } from './common/input-area/input-area.component';
-import { async } from '@angular/core/testing';
-import { ServerEventsService } from './server/server-events-service';
+import { Roles } from './users/roles';
+import { PasswordColumn, Users } from './users/users';
+
+
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent  {
+export class AppComponent {
 
 
   constructor(
@@ -28,8 +25,8 @@ export class AppComponent  {
     public dialogService: DialogService,
     private session: JwtSessionService,
     public context: Context) {
-      session.loadUserInfo();
-      
+    session.loadUserInfo();
+
 
   }
 
@@ -164,6 +161,7 @@ export class AppComponent  {
       return false;
     return this.routeHelper.canNavigateToRoute(route);
   }
+  
   //@ts-ignore ignoring this to match angular 7 and 8
   @ViewChild('sidenav') sidenav: MatSidenav;
   routeClicked() {
@@ -171,6 +169,5 @@ export class AppComponent  {
       this.sidenav.close();
 
   }
-
 
 }

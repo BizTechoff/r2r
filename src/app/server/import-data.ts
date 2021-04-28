@@ -359,10 +359,10 @@ async function fiilDriverPref(context: Context, r: any) {
             driverId = driverExists.id.value;
             let lFrom = await context.for(Location).findOrCreate(
                 l => l.name.isEqualTo(from));
-            lFrom.save();
+            await lFrom.save();
             let lTo = await context.for(Location).findOrCreate(
                 l => l.name.isEqualTo(to));
-            lTo.save();
+            await lTo.save();
 
             let prefs = await context.for(DriverPrefs).find({
                 where: d => d.driverId.isEqualTo(driverExists.id)
@@ -385,7 +385,7 @@ async function fiilDriverPref(context: Context, r: any) {
                     console.log(p.driverId.value);
                 }
                 p.locationId.value = lFrom.id.value;
-                p.save();
+                await p.save();
             }
         }
         else {

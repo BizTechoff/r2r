@@ -12,7 +12,8 @@ export class changeDate extends DateTimeColumn {
 //   date: Date
 // };
 
-export interface usherDriversResponse{
-  driverId:string,
-  display:string,
+export interface usherDriversResponse {
+  driverId: string,
+  display: string,
 };
+
