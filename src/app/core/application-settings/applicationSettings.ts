@@ -11,4 +11,7 @@ export class ApplicationSettings extends IdEntity{
     //מספר הימים להראות בחלון סדרן - היום בוקר היום צהריים ומחר בוקר ומחר צהריים
     numOfDaysToShowOnRides = new NumberColumn({defaultValue: 2});
 
+    //השעה (מתוך 24) שמהוה גבול בין בוקר לצהריים 
+    delimiterAfternoonHour = new NumberColumn({defaultValue: 12});
+
 }
