@@ -349,44 +349,6 @@ export class Usher {
         return result;
     }
 
-    // assign driver to ride by his prefs(location&dayOfWeek&dayPeriod)
-    @ServerFunction({ allowed: c => c.isSignedIn() })//allowed: Roles.matcher
-    static async organize(byDate?: ByDate, context?: Context) {
-        let assignsCount = 0;
-        byDate = new ByDateColumn().info.byId(byDate.id);
-
-        var relevents: {
-            rideId: String,
-            locationFromId: String,
-            locationToId?: String,//catch the driver when returns back. to bring back OTHER patient for him.
-            dayOfWeek?: DayOfWeek,
-            dayPeriod?: DayPeriod,
-            containsLocation?: (id) => boolean,
-            drivers: {//the matching drivers for ride
-                driverId: String,
-                prefs: {//the matching prefs for driver-ride
-                    prefId: String,
-                    status: RideStatus,
-                }[],
-            }[],
-        }[];// = [];
-
-
-        for await (const r of context.for(Ride).iterate({
-            // limit: 1000,
-            orderBy: r => [{ column: r.date }],
-            where: r => [this.filter(r, byDate)],
-        })) {
-            relevents.push({
-                drivers: [],
-                locationFromId: r.from.value,
-                rideId: r.id.value,
-                containsLocation: l => r.from.value == l || r.to.value == l
-            });
-        }
-        return assignsCount;
-    }
-
     // Filter by status&driver&date
     private static filter(ride: Ride, orgBy?: ByDate) {
 

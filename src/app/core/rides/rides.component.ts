@@ -220,17 +220,4 @@ export class RidesComponent implements OnInit {
     await this.ridesSettings.reloadData();
   }
 
-  async assign() {
-    this.snakebar.info("Starting assignment..")
-    let count = await Usher.organize(
-      this.byDate.value,
-      this.context,
-    );
-    if (count > 0) {
-      this.ridesSettings.initOrigList();
-      // this.refresh();
-    }
-    this.snakebar.info(`Assigned ${count} rides.`)
-  }
-
 }
