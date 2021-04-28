@@ -2,10 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { BoolColumn, Context, NumberColumn, ServerFunction, StringColumn } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
 import { InputAreaComponent } from '../../../common/input-area/input-area.component';
-import { Utils } from '../../../shared/utils';
 import { Ride, RideStatus } from '../../rides/ride';
 import { addDays, ByDate, ByDateColumn } from '../../usher/ByDate';
-import { Usher } from '../../usher/usher';
 import { Driver } from '../driver';
 import { DayPeriod } from '../driverPrefSchedule';
 import { Location } from '../../locations/location';
@@ -124,18 +122,10 @@ export class DriverRidesComponent implements OnInit {
 
   async retrieve() {
 
-    this.driverSuggestions = await DriverRidesComponent.retrieveSuggestedRides(
-      this.driver.id.value);
-
-    if ((this.driverSuggestions.todayMorning.length == 0) &&
-      (this.driverSuggestions.todayAfternoon.length == 0) &&
-      (this.driverSuggestions.tomorrowMorning.length == 0) &&
-      (this.driverSuggestions.tomorrowAfternoon.length == 0)) {
-      this.snakebar.info("Thank You! Found No Rides Suits Your Preffered Borders");
-    }
-
     this.driverRegistered = await DriverRidesComponent.retrieveRegisteredRides(
       this.driver.id.value);
+
+    console.log(this.driverRegistered);
 
     if ((this.driverRegistered.todayMorning.length == 0) &&
       (this.driverRegistered.todayAfternoon.length == 0) &&
@@ -144,13 +134,23 @@ export class DriverRidesComponent implements OnInit {
       // this.snakebar.info("Thank You! Found No Rides Suits Your Preffered Borders");
     }
 
-    // console.log(this.driverDataRows);
+    this.driverSuggestions = await DriverRidesComponent.retrieveSuggestedRides(
+      this.driver.id.value);
+
+    console.log(this.driverSuggestions);
+
+    if ((this.driverSuggestions.todayMorning.length == 0) &&
+      (this.driverSuggestions.todayAfternoon.length == 0) &&
+      (this.driverSuggestions.tomorrowMorning.length == 0) &&
+      (this.driverSuggestions.tomorrowAfternoon.length == 0)) {
+      this.snakebar.info("Thank You! Found No Rides Suits Your Preffered Borders");
+    }
   }
 
   // isWaitingForUsherApproove(r: Ride) {
   //   return r.isWaitingForUsherApproove();
   // }
- 
+
   @ServerFunction({ allowed: c => c.isSignedIn() })
   static async getServerDate() {
     return new Date();
@@ -251,7 +251,7 @@ export class DriverRidesComponent implements OnInit {
       for await (const ride of context.for(Ride).iterate({
         where: r => (r.date.isIn(today, tomorrow))//.isEqualTo(today).or(r.date.isEqualTo(tomorrow)))
           .and(r.status.isEqualTo(RideStatus.waitingFor10DriverAccept))
-          .and(r.from.isIn(...locationsIds)),
+          .and(r.from.isIn(...locationsIds).or(r.to.isIn(...locationsIds))),
       })) {
         //       console.log("ride.from.value");
         // console.log(ride.from.value);
@@ -285,20 +285,30 @@ export class DriverRidesComponent implements OnInit {
           driverRemarks: '',
           isWaitingForDriverAccept: ride.isWaitingForDriverAccept(),
         };
-        if (ride.date.value.getDate() == (today.getDate())) {
+
+        let rDate = new Date(ride.date.value.getFullYear(), ride.date.value.getMonth(), ride.date.value.getDate());
+        let todDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        let tomDate = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());
+
+        // console.log(ride.dayPeriod.value);
+        // console.log(todDate.getTime());
+        // console.log(tomDate.getTime());
+
+        // console.log(ride.date.value.getTime() + "|" + ride.dayPeriod.value + "|" +ride.date.value);
+        if (rDate.getTime() === todDate.getTime()) {
           // console.log(ride.date.value + " " + today.toString());
-          if (ride.dayPeriod.isEqualTo(DayPeriod.morning)) {
+          if (ride.dayPeriod.value === DayPeriod.morning) {
             result.todayMorning.push(rr);
           }
-          else if (ride.dayPeriod.isEqualTo(DayPeriod.afternoon)) {
+          else if (ride.dayPeriod.value === DayPeriod.afternoon) {
             result.todayAfternoon.push(rr);
           }
         }
-        else if (ride.date.value.getDate() == (tomorrow.getDate())) {
-          if (ride.dayPeriod.isEqualTo(DayPeriod.morning)) {
+        else if (rDate.getTime() === tomDate.getTime()) {
+          if (ride.dayPeriod.value === DayPeriod.morning) {
             result.tomorrowMorning.push(rr);
           }
-          else if (ride.dayPeriod.isEqualTo(DayPeriod.afternoon)) {
+          else if (ride.dayPeriod.value === DayPeriod.afternoon) {
             result.tomorrowAfternoon.push(rr);
           }
         }
@@ -331,9 +341,9 @@ export interface rideRow {
   driverToHour: string,
   driverPassengersCount: string,
   driverRemarks: string,
-  isWaitingForDriverAccept? :boolean,
-  isWaitingForUsherApproove? :boolean,
-  isWaitingForStart? :boolean,
-  isWaitingForPickup? :boolean,
-  isWaitingForArrived?:boolean,
+  isWaitingForDriverAccept?: boolean,
+  isWaitingForUsherApproove?: boolean,
+  isWaitingForStart?: boolean,
+  isWaitingForPickup?: boolean,
+  isWaitingForArrived?: boolean,
 };

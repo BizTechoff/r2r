@@ -19,7 +19,7 @@ export class DriverPrefsSchedule extends IdEntity {
 export class DayPeriod {
     static morning = new DayPeriod();
     static afternoon = new DayPeriod('red');
-    static both = new DayPeriod('red');
+    // static both = new DayPeriod('red');
     constructor(public color = 'green') { }
     id;
 }
@@ -45,8 +45,8 @@ export class DayOfWeek {
     static thursday = new DayOfWeek();
     static friday = new DayOfWeek();
     static saturday = new DayOfWeek();
-    static all = new DayOfWeek();
-    static work = new DayOfWeek();
+    // static all = new DayOfWeek();
+    // static work = new DayOfWeek();
     constructor(public color = 'green') { }
     id;
 }
@@ -60,4 +60,3 @@ export class DayOfWeekColumn extends ValueListColumn<DayOfWeek>{
         });
     }
 }
-

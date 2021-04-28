@@ -22,8 +22,8 @@ export class Usher {
         for (const p of prefs) {
             let rides = await context.for(Ride).find({
                 where: r =>
-                    (r.dayOfWeek.isEqualTo(p.dayOfWeek).or(p.dayOfWeek.isEqualTo(DayOfWeek.all)))
-                        .and((r.dayPeriod.isEqualTo(p.dayPeriod)).or(p.dayPeriod.isEqualTo(DayPeriod.both)))
+                    (r.dayOfWeek.isEqualTo(p.dayOfWeek))
+                        .and((r.dayPeriod.isEqualTo(p.dayPeriod)))
                         // .and(isOnlyNoDriver? r.driverId == undefined || r.driverId.value == undefined:true)
                 // && (r.driverId),
                 // && (p.locationId && p.locationId.value && p.locationId.value.length > 0
@@ -58,8 +58,8 @@ export class Usher {
             // get relevent prefs.
             let driversPrefs = await context.for(DriverPrefs).find({
                 where: pf =>
-                    (pf.dayOfWeek.isEqualTo(ride.dayOfWeek).or(pf.dayOfWeek.isEqualTo(DayOfWeek.all)))
-                        .and((pf.dayPeriod.isEqualTo(ride.dayPeriod)).or(pf.dayPeriod.isEqualTo(DayPeriod.both)))
+                    (pf.dayOfWeek.isEqualTo(ride.dayOfWeek))
+                        .and((pf.dayPeriod.isEqualTo(ride.dayPeriod)))
             });
             
             // get last ride for driver(s).

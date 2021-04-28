@@ -37,6 +37,10 @@ static fixMobile(value: string) {
         return this.getDayOfWeekFromString(dayNum.toString());
     }
 
+    static getDatePart(date:Date){
+        return date.setHours(0,0,0,0);
+    }
+
     static getDayOfWeekFromString(desc: string) {
         switch (desc) {
             case "ראשון":
@@ -60,7 +64,7 @@ static fixMobile(value: string) {
             case "שבת":
             case "7":
                 return DayOfWeek.saturday;
-
+ 
             default:
                 break;
         }
