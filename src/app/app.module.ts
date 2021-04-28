@@ -23,9 +23,9 @@ import { DynamicServerSideSearchDialogComponent } from './common/dynamic-server-
 import { GridDialogComponent } from './common/grid-dialog/grid-dialog.component';
 import { InputAreaComponent } from './common/input-area/input-area.component';
 import { YesNoQuestionComponent } from './common/yes-no-question/yes-no-question.component';
-import { DriverDetailsComponent } from './core/drivers/driver-details/driver-details.component';
-import { DriverPreferencesComponent } from './core/drivers/driver-preferences/driver-preferences.component';
+import { ApplicationSettingsComponent } from './core/application-settings/application-settings.component';
 import { DriverRidesComponent } from './core/drivers/driver-rides/driver-rides.component';
+import { DriverSettingsComponent } from './core/drivers/driver-settings/driver-settings.component';
 import { DriverUsefulInformationComponent } from './core/drivers/driver-useful-information/driver-useful-information.component';
 import { DriversComponent } from './core/drivers/drivers.component';
 import { LocationsComponent } from './core/locations/locations.component';
@@ -33,14 +33,12 @@ import { PatientsComponent } from './core/patients/patients.component';
 import { RidesComponent } from './core/rides/rides.component';
 import { UsherComponent } from './core/usher/usher.component';
 import { HomeComponent } from './home/home.component';
+import { ReportWeeklyDriversComponent } from './reports/report-weekly-drivers/report-weekly-drivers.component';
+import { ReportWeeklyRidesComponent } from './reports/report-weekly-rides/report-weekly-rides.component';
+import { ServerEventsService } from './server/server-events-service';
+import { Utils } from './shared/utils';
 import { AdminGuard, DriverGuard, MatcherGuard, UsherGuard } from './users/roles';
 import { UsersComponent } from './users/users.component';
-import { ReportWeeklyRidesComponent } from './reports/report-weekly-rides/report-weekly-rides.component';
-import { ReportWeeklyDriversComponent } from './reports/report-weekly-drivers/report-weekly-drivers.component';
-import { DriverReleventRidesComponent } from './core/drivers/driver-relevent-rides/driver-relevent-rides.component';
-import { ApplicationSettingsComponent } from './core/application-settings/application-settings.component';
-import { DriverSettingsComponent } from './core/drivers/driver-settings/driver-settings.component';
-import { ServerEventsService } from './server/server-events-service';
 
 
 @NgModule({
@@ -57,13 +55,10 @@ import { ServerEventsService } from './server/server-events-service';
     RidesComponent,
     GridDialogComponent,
     DynamicServerSideSearchDialogComponent,
-    DriverDetailsComponent,
-    DriverPreferencesComponent,
     DriverRidesComponent,
     DriverUsefulInformationComponent,
     ReportWeeklyRidesComponent,
     ReportWeeklyDriversComponent,
-    DriverReleventRidesComponent,
     ApplicationSettingsComponent,
     DriverSettingsComponent,
   ],
@@ -87,7 +82,7 @@ import { ServerEventsService } from './server/server-events-service';
     RemultModule,
     BrowserAnimationsModule
   ],
-  providers: [DialogService, AdminGuard, UsherGuard, MatcherGuard, DriverGuard,ServerEventsService],
+  providers: [DialogService, AdminGuard, UsherGuard, MatcherGuard, DriverGuard,ServerEventsService, Utils],
   bootstrap: [AppComponent],
   entryComponents: [YesNoQuestionComponent, InputAreaComponent,
     GridDialogComponent, DynamicServerSideSearchDialogComponent]

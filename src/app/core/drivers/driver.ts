@@ -106,7 +106,7 @@ export class Driver extends IdEntity {
   static async retrieveRegisteredRides(driverId: string, context?: Context) {
     let result: rides4Driver[] = [];
 
-    let today = await DriverRidesComponent.getServerDate();
+    let today = await Utils.getServerDate();
     let tomorrow = addDays(1);
     let todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());//T00:00:00
     let tomorrowDate = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());//T00:00:00
@@ -170,7 +170,7 @@ export class Driver extends IdEntity {
   static async retrieveSuggestedRides(driverId: string, context?: Context) {
     let result: rides4Driver[] = [];
 
-    let today = await DriverRidesComponent.getServerDate();
+    let today = await Utils.getServerDate();
     let tomorrow = addDays(1);
     let todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());//T00:00:00
     let tomorrowDate = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());//T00:00:00

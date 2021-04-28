@@ -1,5 +1,4 @@
 import { DateTimeColumn } from "@remult/core";
-import { DayOfWeek, DayPeriod } from "../core/drivers/driverPrefSchedule";
 
 export class changeDate extends DateTimeColumn {
   readonly = true;

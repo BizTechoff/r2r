@@ -1,15 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { BusyService, SelectValueDialogComponent } from '@remult/angular';
-import { Column, Context, NumberColumn, StringColumn, ValueListItem } from '@remult/core';
+import { Context, StringColumn, ValueListItem } from '@remult/core';
 import { GridDialogComponent } from '../../common/grid-dialog/grid-dialog.component';
 import { InputAreaComponent } from '../../common/input-area/input-area.component';
 import { Patient } from '../patients/patient';
 import { Ride } from '../rides/ride';
 import { Usher } from '../usher/usher';
-import { Location } from './../locations/location';
 import { Driver } from './driver';
 import { DriverPrefs } from './driverPrefs';
-import { DriverPrefsSchedule } from './driverPrefSchedule';
 
 @Component({
   selector: 'app-drivers',
@@ -118,22 +116,6 @@ export class DriversComponent implements OnInit {
   }
 
   async openScheduleDialog(p: Driver) {
-  }
-
-  async openSchedulePrefsDialog(prefs: DriverPrefs) {
-
-    this.context.openDialog(GridDialogComponent, gd => gd.args = {
-      title: "Schedule For " + this.context.for(Location).findId(prefs.locationId.value),
-      settings: this.context.for(DriverPrefsSchedule).gridSettings({
-        where: s => s.driverPrefsId.isEqualTo(prefs.id),
-        newRow: s => s.driverPrefsId.value = prefs.id.value,
-        allowCRUD: true,
-        columnSettings: s => [
-          s.dayOfWeek,
-          s.dayPeriod,
-        ]
-      })
-    });
   }
 
   async openPreferencesDialog(d: Driver) {

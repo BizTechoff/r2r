@@ -2,9 +2,6 @@ import { ErrorHandler, NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { NotSignedInGuard, RemultModule } from '@remult/angular';
 import { ShowDialogOnErrorErrorHandler } from './common/dialog';
-import { DriverDetailsComponent } from './core/drivers/driver-details/driver-details.component';
-import { DriverPreferencesComponent } from './core/drivers/driver-preferences/driver-preferences.component';
-import { DriverReleventRidesComponent } from './core/drivers/driver-relevent-rides/driver-relevent-rides.component';
 import { DriverRidesComponent } from './core/drivers/driver-rides/driver-rides.component';
 import { DriverSettingsComponent } from './core/drivers/driver-settings/driver-settings.component';
 import { DriverUsefulInformationComponent } from './core/drivers/driver-useful-information/driver-useful-information.component';
@@ -12,7 +9,6 @@ import { DriversComponent } from './core/drivers/drivers.component';
 import { LocationsComponent } from './core/locations/locations.component';
 import { PatientsComponent } from './core/patients/patients.component';
 import { RidesComponent } from './core/rides/rides.component';
-// import { UsherComponent } from './core/usher/usher.component';
 import { HomeComponent } from './home/home.component';
 import { AdminGuard, DriverGuard, MatcherGuard, UsherGuard } from './users/roles';
 import { UsersComponent } from './users/users.component';
@@ -28,7 +24,7 @@ const routes: Routes = [
   // Usher
   { path: 'Rides', component: RidesComponent, canActivate: [UsherGuard] },
   { path: 'Drivers', component: DriversComponent, canActivate: [UsherGuard] },
-  
+
   // Matcher
   { path: 'PatientsMatcher', component: PatientsComponent, canActivate: [MatcherGuard], data: { name: "Patients" } },
 

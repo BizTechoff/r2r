@@ -5,6 +5,7 @@ import { LocationIdColumn } from "../locations/location";
 import { Ride } from "../rides/ride";
 import { addDays } from "../usher/ByDate";
 import { Location } from "../locations/location";
+import { Utils } from "../../shared/utils";
 
 
 @EntityClass
@@ -30,7 +31,7 @@ export class Patient extends IdEntity {
   static async getRegisteredRidesForPatient(patientId: string, context?: Context) {
     let result: rides4PatientRow[] = [];
 
-    let today = await DriverRidesComponent.getServerDate();
+    let today = await Utils.getServerDate();
     let tomorrow = addDays(1);
     let todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());//T00:00:00
     let tomorrowDate = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());//T00:00:00

@@ -74,11 +74,6 @@ export class DriverRidesComponent implements OnInit, OnDestroy {
     }
   }
 
-  @ServerFunction({ allowed: c => c.isSignedIn() })
-  static async getServerDate() {
-    return new Date();
-  }
-
   async register(rideId: string) {
     let ride = await this.context.for(Ride).findId(rideId);
     this.context.openDialog(

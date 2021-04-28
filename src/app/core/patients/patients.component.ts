@@ -1,16 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { BusyService, SelectValueDialogComponent } from '@remult/angular';
-import { BoolColumn, Context, ServerFunction, StringColumn, ValueListItem } from '@remult/core';
+import { BoolColumn, Context, StringColumn, ValueListItem } from '@remult/core';
 import { DialogService } from '../../common/dialog';
 import { InputAreaComponent } from '../../common/input-area/input-area.component';
-import { Utils } from '../../shared/utils';
-import { DriverRidesComponent } from '../drivers/driver-rides/driver-rides.component';
-import { DayPeriod } from '../drivers/driverPrefSchedule';
+import { DayPeriod, DriverPrefs } from '../drivers/driverPrefs';
 import { Ride } from '../rides/ride';
-import { addDays, ByDateColumn } from '../usher/ByDate';
-import { Location } from '../locations/location';
-
 import { Patient } from './patient';
+
 
 @Component({
   selector: 'app-patients',
@@ -47,7 +43,7 @@ export class PatientsComponent implements OnInit {
       icon: "directions_bus_filled",
       visible: (d) => !d.isNew(),
       showInLine: true,
-    },{
+    }, {
       textInMenu: "Schedule Rides",
       click: async (p) => await this.openScheduleRides(p),
       icon: "departure_board",
@@ -96,12 +92,12 @@ export class PatientsComponent implements OnInit {
 
   async openScheduleRides(p: Patient) {
 
-    let values:ValueListItem[] = [];
+    let values: ValueListItem[] = [];
     // console.log(r.date);
     let rides = await Patient.getRegisteredRidesForPatient(p.id.value);
     for (const r of rides) {
       values.push({
-        id: r.id, 
+        id: r.id,
         caption: `${r.date} | ${r.from} | ${r.to} | ${r.status} | ${r.statusDate} | ${r.passengers} | ${r.phones}`,
       });
     };
@@ -128,7 +124,7 @@ export class PatientsComponent implements OnInit {
 
     var ride = this.context.for(Ride).create();
     ride.date.value = tomorrow;
-    ride.dayOfWeek.value = Utils.getDayOfWeek(ride.date.getDayOfWeek());
+    ride.dayOfWeek.value = DriverPrefs.getDayOfWeek(ride.date.getDayOfWeek());
     ride.dayPeriod.value = DayPeriod.morning;
     ride.patientId.value = p.id.value;
     ride.from.value = p.defaultBorderCrossing.value;

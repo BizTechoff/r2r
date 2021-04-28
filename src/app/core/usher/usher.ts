@@ -1,9 +1,6 @@
-import { Column, ColumnSettings, Context, Filter, ServerFunction, ValueListColumn } from "@remult/core";
-import { usherDriversResponse } from "../../shared/types";
-import { Utils } from "../../shared/utils";
+import { ColumnSettings, Context, Filter, ServerFunction, ValueListColumn } from "@remult/core";
 import { Driver } from "../drivers/driver";
-import { DriverPrefs } from "../drivers/driverPrefs";
-import { DayOfWeek, DayPeriod } from "../drivers/driverPrefSchedule";
+import { DayOfWeek, DayPeriod, DriverPrefs } from "../drivers/driverPrefs";
 import { Ride, RideStatus } from "../rides/ride";
 import { ByDate } from "./ByDate";
 
@@ -12,7 +9,7 @@ export class Usher {
 
     @ServerFunction({ allowed: c => c.isSignedIn() })//allowed: Roles.matcher
     static async getReleventRidesForDriver(driverId: string, context?: Context) {//, isOnlyNoDriver = false
-        let result: string[] = []; 
+        let result: string[] = [];
 
         let prefs = await context.for(DriverPrefs).find({
             where: rf => rf.driverId.isEqualTo(driverId)
@@ -24,7 +21,7 @@ export class Usher {
                 where: r =>
                     (r.dayOfWeek.isEqualTo(p.dayOfWeek))
                         .and((r.dayPeriod.isEqualTo(p.dayPeriod)))
-                        // .and(isOnlyNoDriver? r.driverId == undefined || r.driverId.value == undefined:true)
+                // .and(isOnlyNoDriver? r.driverId == undefined || r.driverId.value == undefined:true)
                 // && (r.driverId),
                 // && (p.locationId && p.locationId.value && p.locationId.value.length > 0
                 //     ? r.from.isEqualTo(p.locationId)
@@ -54,21 +51,21 @@ export class Usher {
         // get ride details.
         let ride = await context.for(Ride).findId(rideId);
         if (ride && ride.id.value && ride.id.value.length > 0) {        // let empty = [undefined];
-           
+
             // get relevent prefs.
             let driversPrefs = await context.for(DriverPrefs).find({
                 where: pf =>
                     (pf.dayOfWeek.isEqualTo(ride.dayOfWeek))
                         .and((pf.dayPeriod.isEqualTo(ride.dayPeriod)))
             });
-            
+
             // get last ride for driver(s).
             if (driversPrefs && driversPrefs.length > 0) {
                 let driversIds: string[] = [];//keep uniqe (not duplicate)
                 for (const pf of driversPrefs) {
                     // console.log(driversIds.length);
                     if (!(driversIds.includes(pf.driverId.value))) {
-                    //if (!(pf.driverId.isIn(...driversIds))) {
+                        //if (!(pf.driverId.isIn(...driversIds))) {
                         // console.log(pf.id)
                         driversIds.push(pf.driverId.value);
 
@@ -100,7 +97,7 @@ export class Usher {
                 }
             }
         }
-        return result; 
+        return result;
     }
 
     // assign driver to ride by his prefs(location&dayOfWeek&dayPeriod)
@@ -241,7 +238,7 @@ export function addDays(days: number) {
     return x;
 }
 export class ByDateColumn extends ValueListColumn<ByDate>{
-    constructor(options?:ColumnSettings<ByDate>) {
+    constructor(options?: ColumnSettings<ByDate>) {
         super(ByDate, {
             defaultValue: ByDate.today,
             ...options

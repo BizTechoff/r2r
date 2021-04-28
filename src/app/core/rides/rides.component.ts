@@ -11,10 +11,9 @@ import { Utils } from '../../shared/utils';
 import { DynamicServerSideSearchDialogComponent } from '../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component';
 import { Patient } from '../patients/patient';
 import { InputAreaComponent } from '../../common/input-area/input-area.component';
-import { DayPeriod } from '../drivers/driverPrefSchedule';
 import { SmsService } from '../../shared/smsService';
 import { DriverRidesComponent } from '../drivers/driver-rides/driver-rides.component';
-import { DriverPrefs } from '../drivers/driverPrefs';
+import { DayPeriod, DriverPrefs } from '../drivers/driverPrefs';
 
 @Component({
   selector: 'app-rides',

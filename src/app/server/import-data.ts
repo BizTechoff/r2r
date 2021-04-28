@@ -3,7 +3,6 @@ import * as fs from 'fs';
 import * as fetch from 'node-fetch';
 import { Driver } from '../core/drivers/driver';
 import { DriverPrefs } from '../core/drivers/driverPrefs';
-import { DayOfWeek, DayPeriod } from '../core/drivers/driverPrefSchedule';
 import { Location, LocationType } from '../core/locations/location';
 import { Patient } from '../core/patients/patient';
 import { Ride } from '../core/rides/ride';
@@ -11,7 +10,6 @@ import { Users } from '../users/users';
 
 let volunteersFolder = "c:/r2r/volunteers";
 let ridersFolder = "c:/r2r/rides";
-
 
 export async function importDataNew(db: SqlDatabase, fresh = false) {
 
@@ -117,13 +115,13 @@ async function createDriverPrefsNew(driverRecord: any, driverId: string, context
     let result = [];
     if (driverEntityRecord.PrefTime && driverEntityRecord.PrefTime.length > 0) {
         for (const time of driverEntityRecord.PrefTime) {
-            let day = getDayOfWeek(time[0]);
-            let period = getDayPeriod(time[1]);
+            let day = DriverPrefs.getDayOfWeek(time[0]);
+            let period = DriverPrefs.getDayPeriod(time[1]);
 
             let prefs = await context.for(DriverPrefs).find({
                 where: p => p.dayOfWeek.isEqualTo(day)
-                .and(p.dayPeriod.isEqualTo(period))
-                .and(p.driverId.isEqualTo(driverId)),
+                    .and(p.dayPeriod.isEqualTo(period))
+                    .and(p.driverId.isEqualTo(driverId)),
             });
             if (prefs && prefs.length > 0) {
                 console.log(`Duplicate Prefs for driver: ${driverId}`)
@@ -164,8 +162,8 @@ async function createRideNew(rideRecord: any, driverId: string, patientId: strin
     ride.from.value = fromId;
     ride.to.value = toId;
     ride.date.value = toDate(rideRecord.Date);
-    ride.dayOfWeek.value = getDayOfWeek((ride.date.value.getDay() + 1).toString());
-    ride.dayPeriod.value = getDayPeriod(ride.date.value.getHours() > 12 ? "afternoon" : "morning");
+    ride.dayOfWeek.value = DriverPrefs.getDayOfWeek((ride.date.value.getDay() + 1));
+    ride.dayPeriod.value = DriverPrefs.getDayPeriod(ride.date.value.getHours() > 12 ? "afternoon" : "morning");
     // console.log(rideRecord.RideNum);
     // console.log(ride);
     await ride.save();
@@ -333,8 +331,8 @@ async function fiilRide(context: Context, r: any, patientId: string, driverId: s
         ride.to.value = location.id.value;
         let date = toDate(r.Date);
         // console.log(date);
-        ride.date.value = date; getDayOfWeek((date.getDay() + 1).toString());
-        ride.dayPeriod.value = getDayPeriod(date.getHours() > 12 ? "afternoon" : "morning");
+        ride.date.value = date; //DriverPrefs.getDayOfWeek((date.getDay() + 1));
+        ride.dayPeriod.value = DriverPrefs.getDayPeriod(date.getHours() > 12 ? "afternoon" : "morning");
     }
     await ride.save();
     return ride.id.value;
@@ -401,8 +399,8 @@ function fixPrefDays(p: DriverPrefs, d: string) {
     if (d && d.length > 0) {
         let date = toDate(d);
         // console.log(date);
-        p.dayOfWeek.value = getDayOfWeek((date.getDay() + 1).toString());
-        p.dayPeriod.value = getDayPeriod(date.getHours() > 12 ? "afternoon" : "morning");
+        p.dayOfWeek.value = DriverPrefs.getDayOfWeek((date.getDay() + 1));
+        p.dayPeriod.value = DriverPrefs.getDayPeriod(date.getHours() > 12 ? "afternoon" : "morning");
 
         // console.log(p.dayOfWeek.value);
         // console.log(p.dayPeriod.value);
@@ -427,7 +425,7 @@ async function fillPref(volunteersFolder: string, p: DriverPrefs, driverName: st
                 // var schedule: string[] = person.PrefTime;
                 // console.log(person.PrefTime[0][0],person.PrefTime[0][1]);
                 if (day) {
-                    p.dayOfWeek.value = getDayOfWeek(day);
+                    p.dayOfWeek.value = DriverPrefs.getDayOfWeek(day);
                 }
                 else {
                     if (person.Date && person.Date.length > 0) {
@@ -438,7 +436,7 @@ async function fillPref(volunteersFolder: string, p: DriverPrefs, driverName: st
                     }
                 }
                 if (person) {
-                    p.dayPeriod.value = getDayPeriod(period);
+                    p.dayPeriod.value = DriverPrefs.getDayPeriod(period);
                 }
             }
             else {
@@ -542,8 +540,8 @@ async function createDriverPrefs(context: Context, prefs: any, driverId: string,
         let dPref = await context.for(DriverPrefs).create();
         dPref.driverId.value = driverId;
         dPref.locationId.value = locationId;
-        dPref.dayOfWeek.value = getDayOfWeek(p[0]);
-        dPref.dayPeriod.value = getDayPeriod(p[1]);
+        dPref.dayOfWeek.value = DriverPrefs.getDayOfWeek(p[0]);
+        dPref.dayPeriod.value = DriverPrefs.getDayPeriod(p[1]);
         await dPref.save();
     }
 
@@ -619,51 +617,6 @@ async function get(url: string, body: any) {
         //      "mode": "cors"
     });
     return JSON.parse((await r.json()).d);
-}
-
-function getDayOfWeek(desc: string) {
-    switch (desc) {
-        case "ראשון":
-        case "1":
-            return DayOfWeek.sunday;
-        case "שני":
-        case "2":
-            return DayOfWeek.monday;
-        case "שלישי":
-        case "3":
-            return DayOfWeek.tuesday;
-        case "רביעי":
-        case "4":
-            return DayOfWeek.wednesday;
-        case "חמישי":
-        case "5":
-            return DayOfWeek.thursday;
-        case "שישי":
-        case "6":
-            return DayOfWeek.friday;
-        case "שבת":
-        case "7":
-            return DayOfWeek.saturday;
-
-        default:
-            break;
-    }
-}
-
-function getDayPeriod(desc: string) {
-    switch (desc) {
-        case "אחהצ":
-        case "אחה\"צ":
-        case "אחר הצהריים":
-        case "afternoon":
-            return DayPeriod.afternoon;
-        case "בוקר":
-        case "morning":
-            return DayPeriod.morning;
-
-        default:
-            break;
-    }
 }
 
 function toDate(date: string) {

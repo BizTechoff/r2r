@@ -1,8 +1,6 @@
-import { Context, EntityClass, IdEntity, StringColumn } from "@remult/core";
-import { DynamicServerSideSearchDialogComponent } from "../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component";
-import { LocationIdColumn, Location } from "../locations/location";
+import { ColumnSettings, Context, EntityClass, IdEntity, ValueListColumn } from "@remult/core";
+import { Location, LocationIdColumn } from "../locations/location";
 import { DriverIdColumn } from "./driver";
-import { DayOfWeekColumn, DayPeriodColumn } from "./driverPrefSchedule";
 
 @EntityClass
 export class DriverPrefs extends IdEntity {
@@ -12,7 +10,7 @@ export class DriverPrefs extends IdEntity {
 
     dayOfWeek = new DayOfWeekColumn();
     dayPeriod = new DayPeriodColumn();
-    
+
     constructor(private context: Context) {
         super({
             name: "driversPrefs",
@@ -32,9 +30,102 @@ export class DriverPrefs extends IdEntity {
         }
         return result;
     }
+
+    static getDayOfWeek(dayNum: number) {
+        return this.getDayOfWeekFromString(dayNum.toString());
+    }
+
+    static getDayOfWeekFromString(desc: string) {
+        switch (desc) {
+            case "ראשון":
+            case "1":
+                return DayOfWeek.sunday;
+            case "שני":
+            case "2":
+                return DayOfWeek.monday;
+            case "שלישי":
+            case "3":
+                return DayOfWeek.tuesday;
+            case "רביעי":
+            case "4":
+                return DayOfWeek.wednesday;
+            case "חמישי":
+            case "5":
+                return DayOfWeek.thursday;
+            case "שישי":
+            case "6":
+                return DayOfWeek.friday;
+            case "שבת":
+            case "7":
+                return DayOfWeek.saturday;
+
+            default:
+                break;
+        }
+    }
+
+    static getDayPeriod(desc: string) {
+        switch (desc) {
+            case "אחהצ":
+            case "אחה\"צ":
+            case "אחר הצהריים":
+            case "afternoon":
+                return DayPeriod.afternoon;
+            case "בוקר":
+            case "morning":
+                return DayPeriod.morning;
+
+            default:
+                break;
+        }
+    }
 }
 
 
+export class DayPeriod {
+    static morning = new DayPeriod();
+    static afternoon = new DayPeriod('red');
+    // static both = new DayPeriod('red');
+    constructor(public color = 'green') { }
+    id;
+}
+
+export class DayPeriodColumn extends ValueListColumn<DayPeriod>{
+    // constructor() {
+    //     super(DayPeriod);
+    // }
+    constructor(options?: ColumnSettings<DayPeriod>) {
+        // super(DayOfWeek);
+        super(DayPeriod, {
+            defaultValue: DayPeriod.morning,
+            ...options
+        });
+    }
+}
+
+export class DayOfWeek {
+    static sunday = new DayOfWeek();
+    static monday = new DayOfWeek();
+    static tuesday = new DayOfWeek();
+    static wednesday = new DayOfWeek();
+    static thursday = new DayOfWeek();
+    static friday = new DayOfWeek();
+    static saturday = new DayOfWeek();
+    // static all = new DayOfWeek();
+    // static work = new DayOfWeek();
+    constructor(public color = 'green') { }
+    id;
+}
+
+export class DayOfWeekColumn extends ValueListColumn<DayOfWeek>{
+    constructor(options?: ColumnSettings<DayOfWeek>) {
+        // super(DayOfWeek);
+        super(DayOfWeek, {
+            // defaultValue: ByDate.today,
+            ...options
+        });
+    }
+}
 
 // export class DriverPrefsIdColumn extends StringColumn {
 
