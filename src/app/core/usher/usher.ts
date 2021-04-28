@@ -1,4 +1,4 @@
-import { ColumnSettings, Context, Filter, ServerFunction, ValueListColumn } from "@remult/core";
+import { ColumnSettings, Context, DateColumn, Filter, ServerFunction, ValueListColumn } from "@remult/core";
 import { Utils } from "../../shared/utils";
 import { Roles } from "../../users/roles";
 import { Driver } from "../drivers/driver";
@@ -6,7 +6,6 @@ import { DayOfWeek, DayPeriod, DriverPrefs } from "../drivers/driverPrefs";
 import { Patient } from "../patients/patient";
 import { Ride, RideStatus } from "../rides/ride";
 import { Location } from "./../locations/location";
-import { ByDate } from "./ByDate";
 
 export class Usher {
 
@@ -487,6 +486,19 @@ export function addDays(days: number) {
     x.setDate(x.getDate() + days);
     return x;
 }
+
+
+export class ByDate {
+    static yesterday = new ByDate(d => d.isEqualTo(addDays(-1)));
+    static today = new ByDate(d => d.isEqualTo(new Date()));
+    static tomorrow = new ByDate(d => d.isEqualTo(addDays(1)));
+    static todayAndAbove = new ByDate(d => d.isGreaterOrEqualTo(new Date()));
+    static yesterdayAndBelow = new ByDate(d => d.isLessThan(new Date()));
+    static all = new ByDate(d => new Filter(x => { }));
+    constructor(public filter: (date: DateColumn) => Filter) { }
+    id;
+}
+
 export class ByDateColumn extends ValueListColumn<ByDate>{
     constructor(options?: ColumnSettings<ByDate>) {
         super(ByDate, {

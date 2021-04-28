@@ -1,19 +1,15 @@
 import { Component, OnInit } from '@angular/core';
-import { Context, DataAreaSettings, ServerFunction, StringColumn, ValueListItem } from '@remult/core';
-import { DialogService } from '../../common/dialog';
-import { Usher } from '../usher/usher';
-import { addDays, ByDate, ByDateColumn } from "../usher/ByDate";
-import { Ride, RideStatus } from './ride';
 import { SelectValueDialogComponent } from '@remult/angular';
-import { Driver } from '../drivers/driver';
-import { usherDriversResponse } from '../../shared/types';
-import { Utils } from '../../shared/utils';
+import { Context, StringColumn, ValueListItem } from '@remult/core';
+import { DialogService } from '../../common/dialog';
 import { DynamicServerSideSearchDialogComponent } from '../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component';
-import { Patient } from '../patients/patient';
 import { InputAreaComponent } from '../../common/input-area/input-area.component';
 import { SmsService } from '../../shared/smsService';
-import { DriverRidesComponent } from '../drivers/driver-rides/driver-rides.component';
-import { DayPeriod, DriverPrefs } from '../drivers/driverPrefs';
+import { Driver } from '../drivers/driver';
+import { DayPeriod } from '../drivers/driverPrefs';
+import { Patient } from '../patients/patient';
+import { ByDate, ByDateColumn, Usher } from '../usher/usher';
+import { Ride, RideStatus } from './ride';
 
 @Component({
   selector: 'app-rides',
@@ -146,7 +142,7 @@ export class RidesComponent implements OnInit {
     valueChange: () => this.ridesSettings.reloadData(),
     defaultValue: ByDate.all
   });//(ByDate.today);
- 
+
   constructor(private context: Context, private snakebar: DialogService) { }
 
   ngOnInit() {
@@ -193,7 +189,7 @@ export class RidesComponent implements OnInit {
 
   async openReleventDriversDialog(r: Ride) {
 
-    let values:ValueListItem[] = [];
+    let values: ValueListItem[] = [];
     // console.log(r.date);
     let drivers = await Usher.getSuggestedDriversForRide(r.id.value);
     for (const d of drivers) {
@@ -211,7 +207,7 @@ export class RidesComponent implements OnInit {
         // let ride = await this.context.for(Ride).findId(x.item.id);
         r.driverId.value = x.id;
         r.status.value = RideStatus.waitingFor30Start,
-        await r.save();
+          await r.save();
         this.snakebar.info(`Sending Sms To Driver: ${x.caption}`);
         // this.retrieveDrivers();
       },
