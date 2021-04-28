@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Context, DataAreaSettings, ServerFunction, StringColumn, ValueListItem } from '@remult/core';
 import { DialogService } from '../../common/dialog';
 import { Usher } from '../usher/usher';
-import { ByDate, ByDateColumn } from "../usher/ByDate";
+import { addDays, ByDate, ByDateColumn } from "../usher/ByDate";
 import { Ride, RideStatus } from './ride';
 import { SelectValueDialogComponent } from '@remult/angular';
 import { Driver } from '../drivers/driver';
@@ -13,6 +13,8 @@ import { Patient } from '../patients/patient';
 import { InputAreaComponent } from '../../common/input-area/input-area.component';
 import { DayPeriod } from '../drivers/driverPrefSchedule';
 import { SmsService } from '../../shared/smsService';
+import { DriverRidesComponent } from '../drivers/driver-rides/driver-rides.component';
+import { DriverPrefs } from '../drivers/driverPrefs';
 
 @Component({
   selector: 'app-rides',
@@ -145,7 +147,7 @@ export class RidesComponent implements OnInit {
     valueChange: () => this.ridesSettings.reloadData(),
     defaultValue: ByDate.all
   });//(ByDate.today);
-
+ 
   constructor(private context: Context, private snakebar: DialogService) { }
 
   ngOnInit() {
@@ -189,22 +191,35 @@ export class RidesComponent implements OnInit {
         searchColumn: l => l.name
       }));
   }
+
   async openReleventDriversDialog(r: Ride) {
+
+    let values:ValueListItem[] = [];
     // console.log(r.date);
-    let relevantDrivers = await Usher.getReleventDriversForRide(r.id.value);
+    let drivers = await Ride.getSuggestedDriversForRide(r.id.value);
+    for (const d of drivers) {
+      values.push({
+        id: d.id,
+        caption: `${d.name} | ${d.mobile} | ${d.days} | ${d.lastStatus}`,
+      });
+    };
     // console.table(relevantDrivers);
     this.context.openDialog(SelectValueDialogComponent, x => x.args({
-      title: `Relevent Drivers (${relevantDrivers.length})`,
-      values: relevantDrivers,
+      title: `Relevent Drivers (${drivers.length})`,
+      values: values,
       // orderBy:r => [{ column: r.date, descending: true }]
       onSelect: async x => {
         // let ride = await this.context.for(Ride).findId(x.item.id);
         r.driverId.value = x.id;
+        r.status.value = RideStatus.waitingFor30Start,
         await r.save();
+        this.snakebar.info(`Sending Sms To Driver: ${x.caption}`);
         // this.retrieveDrivers();
       },
-    }))
+    }));
   }
+
+
 
   async refresh() {
     await this.ridesSettings.reloadData();

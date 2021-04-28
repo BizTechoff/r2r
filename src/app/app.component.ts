@@ -11,13 +11,14 @@ import { PasswordColumn, Users } from './users/users';
 import { Roles } from './users/roles';
 import { InputAreaComponent } from './common/input-area/input-area.component';
 import { async } from '@angular/core/testing';
+import { ServerEventsService } from './server/server-events-service';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent {
+export class AppComponent  {
 
 
   constructor(
@@ -28,6 +29,7 @@ export class AppComponent {
     private session: JwtSessionService,
     public context: Context) {
       session.loadUserInfo();
+      
 
   }
 

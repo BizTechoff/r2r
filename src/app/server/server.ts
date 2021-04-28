@@ -14,6 +14,7 @@ import * as passwordHash from 'password-hash';
 import '../app.module';
 import { PasswordColumn } from '../users/users';
 import { importDataNew } from './import-data';
+import { ServerEvents } from './server-events';
  
 config(); //loads the configuration from the .env file
 const pool = new Pool({
@@ -29,6 +30,7 @@ PasswordColumn.passwordHelper = {
 }
 
 let app = express();
+new ServerEvents(app);
 app.use(compression());
 if (!process.env.DEV_MODE)
     app.use(forceHttps); 

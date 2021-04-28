@@ -1,7 +1,7 @@
 <div>
   <!-- style="display:flex; justify-content: space-between;flex-grow: 1;"> -->
   <div>
-
+    <!-- <button (click)="sendMessage()">Send Message</button> -->
     <h3>Your Registered Rides</h3>
 
     <div *ngFor="let group of driverRegistered">
@@ -14,18 +14,38 @@
             Count: {{ group.rows.length }} Rides
           </mat-panel-description>
         </mat-expansion-panel-header>
+
+        <!-- <mat-card>
+          <mat-card-title>title</mat-card-title>
+          <mat-card-header>header</mat-card-header>
+          <mat-card-subtitle>subtitle</mat-card-subtitle>
+          <mat-card-content>content</mat-card-content>
+          <mat-card-footer>footer</mat-card-footer>
+          <mat-card-title-group>title-group</mat-card-title-group>
+          <mat-card-actions>actions</mat-card-actions>
+        </mat-card> -->
+
         <div>
           <table style="width: 100%;">
             <tr *ngFor="let r of group.rows">
               <table style="width: 100%;">
                 <tr>
                   <td>|___</td>
-                  <td>{{ r.from }} -> {{ r.to }}</td>
-                  <td>{{ r.passengers }} Passenger{{ r.passengers > 1 ? "s" : "" }}</td>
                   <td>
-                    <mat-icon *ngFor="let i of r.icons">
-                      {{ i }}
-                    </mat-icon>
+                    <table style="width: 100%;">
+                      <tr><td>{{ r.from }} -> {{ r.to }}</td></tr>
+                      <tr><td>{{ r.passengers }} Passenger{{ r.passengers > 1 ? "s" : "" }}</td></tr>
+                      <tr>
+                        <td>
+                          <mat-icon *ngFor="let i of r.icons">
+                            {{ i }}
+                          </mat-icon>
+                        </td>
+                      </tr>
+                      <tr *ngIf="!r.isWaitingForUsherApproove">
+                        Phones:
+                      </tr>
+                    </table>
                   </td>
                   <td>
                     <button *ngIf="r.isWaitingForUsherApproove" mat-button (click)="unRegister(r.id)">
@@ -41,9 +61,6 @@
                       Arrived..
                     </button>
                   </td>
-                </tr>
-                <tr *ngIf="!r.isWaitingForUsherApproove">
-                  Phones:
                 </tr>
               </table>
             </tr>
@@ -69,13 +86,17 @@
             <table style="width: 100%;">
               <tr *ngFor="let r of group.rows">
                 <td>|___</td>
-                <td>{{ r.from }} -> {{ r.to }}</td>
-                <td>Found: {{ r.passengers }} Passenger{{ r.passengers > 1 ? "s" : "" }}</td>
-                <td>
-                  <mat-icon *ngFor="let i of r.icons">
-                    {{ i }}
-                  </mat-icon>
-                </td>
+                <table style="width: 100%;">
+                  <tr><td>{{ r.from }} -> {{ r.to }}</td></tr>
+                  <tr><td>Found: {{ r.passengers }} Passenger{{ r.passengers > 1 ? "s" : "" }}</td></tr>
+                  <tr>
+                    <td>
+                      <mat-icon *ngFor="let i of r.icons">
+                        {{ i }}
+                      </mat-icon>
+                    </td>
+                  </tr>
+                </table>
                 <td>
                   <button mat-button (click)="register(r.id)">
                     Register..

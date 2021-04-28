@@ -40,6 +40,7 @@ import { ReportWeeklyDriversComponent } from './reports/report-weekly-drivers/re
 import { DriverReleventRidesComponent } from './core/drivers/driver-relevent-rides/driver-relevent-rides.component';
 import { ApplicationSettingsComponent } from './core/application-settings/application-settings.component';
 import { DriverSettingsComponent } from './core/drivers/driver-settings/driver-settings.component';
+import { ServerEventsService } from './server/server-events-service';
 
 
 @NgModule({
@@ -86,7 +87,7 @@ import { DriverSettingsComponent } from './core/drivers/driver-settings/driver-s
     RemultModule,
     BrowserAnimationsModule
   ],
-  providers: [DialogService, AdminGuard, UsherGuard, MatcherGuard, DriverGuard],
+  providers: [DialogService, AdminGuard, UsherGuard, MatcherGuard, DriverGuard,ServerEventsService],
   bootstrap: [AppComponent],
   entryComponents: [YesNoQuestionComponent, InputAreaComponent,
     GridDialogComponent, DynamicServerSideSearchDialogComponent]

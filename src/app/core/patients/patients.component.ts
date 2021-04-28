@@ -1,12 +1,14 @@
 import { Component, OnInit } from '@angular/core';
-import { BusyService } from '@remult/angular';
-import { BoolColumn, Context, StringColumn } from '@remult/core';
+import { BusyService, SelectValueDialogComponent } from '@remult/angular';
+import { BoolColumn, Context, ServerFunction, StringColumn, ValueListItem } from '@remult/core';
 import { DialogService } from '../../common/dialog';
 import { InputAreaComponent } from '../../common/input-area/input-area.component';
 import { Utils } from '../../shared/utils';
+import { DriverRidesComponent } from '../drivers/driver-rides/driver-rides.component';
 import { DayPeriod } from '../drivers/driverPrefSchedule';
 import { Ride } from '../rides/ride';
-import { ByDateColumn } from '../usher/ByDate';
+import { addDays, ByDateColumn } from '../usher/ByDate';
+import { Location } from '../locations/location';
 
 import { Patient } from './patient';
 
@@ -45,6 +47,12 @@ export class PatientsComponent implements OnInit {
       icon: "directions_bus_filled",
       visible: (d) => !d.isNew(),
       showInLine: true,
+    },{
+      textInMenu: "Schedule Rides",
+      click: async (p) => await this.openScheduleRides(p),
+      icon: "departure_board",
+      visible: (d) => !d.isNew(),
+      showInLine: true,
     },],
   });
 
@@ -54,6 +62,9 @@ export class PatientsComponent implements OnInit {
   ngOnInit() {
     this.retrievePatients();
   }
+
+
+
   async retrievePatients() {
     this.patientsSettings.reloadData();
     // this.patients = await this.context.for(Patient).find({
@@ -81,6 +92,33 @@ export class PatientsComponent implements OnInit {
         }
       },
     )
+  }
+
+  async openScheduleRides(p: Patient) {
+
+    let values:ValueListItem[] = [];
+    // console.log(r.date);
+    let rides = await Patient.getRegisteredRidesForPatient(p.id.value);
+    for (const r of rides) {
+      values.push({
+        id: r.id, 
+        caption: `${r.date} | ${r.from} | ${r.to} | ${r.status} | ${r.statusDate} | ${r.passengers} | ${r.phones}`,
+      });
+    };
+    // console.table(relevantDrivers);
+    this.context.openDialog(SelectValueDialogComponent, x => x.args({
+      title: `Registered Rides (${rides.length})`,
+      values: values,
+      // orderBy:r => [{ column: r.date, descending: true }]
+      onSelect: async x => {
+        // let ride = await this.context.for(Ride).findId(x.item.id);
+        // r.driverId.value = x.id;
+        // r.status.value = RideStatus.waitingFor30Start,
+        // await r.save();
+        // this.snakebar.info(`Sending Sms To Driver: ${x.caption}`);
+        // this.retrieveDrivers();
+      },
+    }));
   }
 
   async openRideDialog(p: Patient) {
@@ -136,3 +174,4 @@ export class PatientsComponent implements OnInit {
     )
   }
 }
+
