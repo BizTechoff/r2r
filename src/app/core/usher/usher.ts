@@ -224,14 +224,14 @@ export class Usher {
     static async getRegisteredRidesForDriver(driverId: string, context?: Context) {
         let result: rides4DriverRow[] = [];
 
-        for await (const grp of await this.getRegisteredRidesForDriverGoupByDateAndPeriod(driverId, context)) {
+        for await (const grp of await this.getRegisteredRidesForDriverGoupByDateAndPeriod(driverId, false, context)) {
             result.push(...grp.rows);
         }
         return result;
     }
 
     @ServerFunction({ allowed: Roles.driver })
-    static async getRegisteredRidesForDriverGoupByDateAndPeriod(driverId: string, context?: Context) {
+    static async getRegisteredRidesForDriverGoupByDateAndPeriod(driverId: string, groupByFromAndTo = false, context?: Context) {
         let result: rides4Driver[] = [];
 
         let today = await Utils.getServerDate();
@@ -292,7 +292,25 @@ export class Usher {
                 group = { title: title, rows: [] };
                 result.push(group);
             }
-            group.rows.push(row);
+
+            if (groupByFromAndTo) {
+                let key = `${row.from}-${row.to}`;
+                let r = group.rows.find(r => key === `${r.from}-${r.to}`);
+                if (r) {
+                    r.ids.push(row.id);
+                    r.passengers += row.passengers;
+                }
+                else {
+                    r = row;
+                    r.ids.push(row.id);
+                    r.groupByLocation = true;
+                    r.icons = [];
+                    group.rows.push(r);
+                }
+            }
+            else {
+                group.rows.push(row);
+            }
         }
         return result;
     }

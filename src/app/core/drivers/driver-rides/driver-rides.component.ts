@@ -63,7 +63,7 @@ export class DriverRidesComponent implements OnInit, OnDestroy {
   async retrieve() {
 
     this.driverRegistered = await Usher.getRegisteredRidesForDriverGoupByDateAndPeriod(
-      this.driver.id.value);
+      this.driver.id.value, this.groupSameLocations);
 
     console.log(this.driverRegistered);
 

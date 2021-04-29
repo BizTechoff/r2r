@@ -1,11 +1,17 @@
 <div>
   <table style="width: 100%;">
-    <tr><td>Date Of Today: {{ serverToday | date: 'dd.MM.yyyy' }}</td>
+    <tr>
+      <td>Date Of Today: {{ serverToday | date: 'dd.MM.yyyy' }}</td>
       <td rowspan="2"><button mat-mini-fab title="Refresh" (click)="retrieve()" color="primary">
-        <mat-icon>refresh</mat-icon>
-      </button></td>
+          <mat-icon>refresh</mat-icon>
+        </button></td>
     </tr>
-    <tr><td><mat-checkbox [checked]="groupSameLocations" (change)="onGroupSameLocations()">Group Same Locations</mat-checkbox></td></tr>
+    <tr>
+      <td>
+        <mat-checkbox [checked]="groupSameLocations" (change)="onGroupSameLocations()">Group Same Locations
+        </mat-checkbox>
+      </td>
+    </tr>
   </table>
   <!-- style="display:flex; justify-content: space-between;flex-grow: 1;"> -->
   <div>
@@ -13,17 +19,18 @@
     <h3>Your Registered Rides</h3>
 
     <div *ngFor="let group of driverRegistered">
-      <mat-expansion-panel>
-        <mat-expansion-panel-header>
-          <mat-panel-title>
-            <strong>{{ group.title | titlecase }}</strong>
-          </mat-panel-title>
-          <mat-panel-description>
-            Count: {{ group.rows.length }} Rides
-          </mat-panel-description>
-        </mat-expansion-panel-header>
+      <mat-accordion [multi]="true">
+        <mat-expansion-panel>
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <strong>{{ group.title | titlecase }}</strong>
+            </mat-panel-title>
+            <mat-panel-description>
+              Count: {{ group.rows.length }} Rows
+            </mat-panel-description>
+          </mat-expansion-panel-header>
 
-        <!-- <mat-card>
+          <!-- <mat-card>
           <mat-card-title>title</mat-card-title>
           <mat-card-header>header</mat-card-header>
           <mat-card-subtitle>subtitle</mat-card-subtitle>
@@ -33,88 +40,106 @@
           <mat-card-actions>actions</mat-card-actions>
         </mat-card> -->
 
-        <div>
-          <table style="width: 100%;">
-            <tr *ngFor="let r of group.rows">
-              <table style="width: 100%;">
-                <tr>
-                  <td>|___</td>
-                  <td>
-                    <table style="width: 100%;">
-                      <tr><td><a href="https://waze.com/ul?q={{ r.from }}&navigate=yes" target="_blank">{{ r.from }}</a> -> <a href="https://waze.com/ul?q={{ r.to }}&navigate=yes" target="_blank">{{ r.to }}</a></td></tr>
-                      <tr><td>{{ r.passengers }} Passenger{{ r.passengers > 1 ? "s" : "" }}</td></tr>
-                      <tr> 
-                        <td>
-                          <mat-icon *ngFor="let i of r.icons">
-                            {{ i }}
-                          </mat-icon>
-                        </td>
-                      </tr>
-                      <tr *ngIf="!r.isWaitingForUsherApproove">
-                        Phones:
-                      </tr>
-                    </table>
-                  </td>
-                  <td>
-                    <button *ngIf="r.isWaitingForUsherApproove" mat-button color="primary" (click)="unRegister(r.id)">
-                      UnRegister..
-                    </button>
-                    <button *ngIf="r.isWaitingForStart" mat-raised-button color="primary" (click)="startDriving(r.id)">
-                      Start..
-                    </button>
-                    <button *ngIf="r.isWaitingForPickup" mat-raised-button color="primary" (click)="pickup(r.id)">
-                      Pickup..
-                    </button>
-                    <button *ngIf="r.isWaitingForArrived" mat-raised-button color="primary" (click)="arrived(r.id)">
-                      Arrived..
-                    </button>
-                  </td>
-                </tr>
-              </table>
-            </tr>
-          </table>
-        </div>
-      </mat-expansion-panel>
+          <div>
+            <table style="width: 100%;">
+              <tr *ngFor="let r of group.rows">
+                <table style="width: 100%;">
+                  <tr>
+                    <td>|___</td>
+                    <td>
+                      <table style="width: 100%;">
+                        <tr>
+                          <td><a href="https://waze.com/ul?q={{ r.from }}&navigate=yes" target="_blank">{{ r.from }}</a>
+                            -> <a href="https://waze.com/ul?q={{ r.to }}&navigate=yes" target="_blank">{{ r.to }}</a>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>{{ r.passengers }} Passenger{{ r.passengers > 1 ? "s" : "" }}</td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <mat-icon *ngFor="let i of r.icons">
+                              {{ i }}
+                            </mat-icon>
+                          </td>
+                        </tr>
+                        <tr *ngIf="!r.isWaitingForUsherApproove">
+                          Phones:
+                        </tr>
+                      </table>
+                    </td>
+                    <td>
+                      <button *ngIf="r.isWaitingForUsherApproove" mat-button color="primary" (click)="unRegister(r.id)">
+                        UnRegister..
+                      </button>
+                      <button *ngIf="r.isWaitingForStart" mat-raised-button color="primary"
+                        (click)="startDriving(r.id)">
+                        Start..
+                      </button>
+                      <button *ngIf="r.isWaitingForPickup" mat-raised-button color="primary" (click)="pickup(r.id)">
+                        Pickup..
+                      </button>
+                      <button *ngIf="r.isWaitingForArrived" mat-raised-button color="primary" (click)="arrived(r.id)">
+                        Arrived..
+                      </button>
+                    </td>
+                  </tr>
+                </table>
+              </tr>
+            </table>
+          </div>
+        </mat-expansion-panel>
+      </mat-accordion>
     </div>
     <p style="height: 25px;"></p>
     <div>
       <h3>Suggested Rides For You</h3>
 
-      <div *ngFor="let group of driverSuggestions">
-        <mat-expansion-panel>
-          <mat-expansion-panel-header>
-            <mat-panel-title>
-              <strong>{{ group.title | titlecase }}</strong>
-            </mat-panel-title>
-            <mat-panel-description>
-              Count: {{ group.rows.length }} Rides
-            </mat-panel-description>
-          </mat-expansion-panel-header>
-          <div>
-            <table style="width: 100%;">
-              <tr *ngFor="let r of group.rows">
-                <td>|___</td>
-                <table style="width: 100%;">
-                  <tr><td><a href="waze://?q={{ r.from }}&navigate=yes">{{ r.from }}</a> -> <a href="waze://?q={{ r.to }}&navigate=yes">{{ r.to }}</a></td></tr>
-                  <tr><td>{{ groupSameLocations ? "Optional" : "Found" }}: {{ r.passengers }} Passenger{{ r.passengers > 1 ? "s" : "" }}</td></tr>
-                  <tr>
-                    <td>
-                      <mat-icon *ngFor="let i of r.icons">
-                        {{ i }}
-                      </mat-icon>
-                    </td>
-                  </tr>
-                </table>
-                <td>
-                  <button mat-button color="primary" (click)="register(r)">
-                    Register..
-                  </button>
-                </td>
-              </tr>
-            </table>
-          </div>
-        </mat-expansion-panel>
-      </div>
+      <mat-accordion [multi]="false">
+      <!-- <div *ngFor="let group of driverSuggestions"> -->
+          <mat-expansion-panel *ngFor="let group of driverSuggestions">
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <strong>{{ group.title | titlecase }}</strong>
+              </mat-panel-title>
+              <mat-panel-description>
+                Count: {{ group.rows.length }} Rows
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+            <!-- <mat-card> -->
+            <div>
+              <table style="width: 100%;">
+                <tr *ngFor="let r of group.rows">
+                  <td>|___</td>
+                  <table style="width: 100%;">
+                    <tr>
+                      <td><a href="waze://?q={{ r.from }}&navigate=yes">{{ r.from }}</a> -> <a
+                          href="waze://?q={{ r.to }}&navigate=yes">{{ r.to }}</a></td>
+                    </tr>
+                    <tr>
+                      <td>{{ groupSameLocations ? "Optional" : "Found" }}: {{ r.passengers }} Passenger{{ r.passengers >
+                        1 ? "s" : "" }}</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <mat-icon *ngFor="let i of r.icons">
+                          {{ i }}
+                        </mat-icon>
+                      </td>
+                    </tr>
+                  </table>
+                  <td>
+                    <button mat-button color="primary" (click)="register(r)">
+                      Register..
+                    </button>
+                  </td>
+                </tr>
+              </table>
+            </div>
+            <!-- </mat-card> -->
+          </mat-expansion-panel>
+      <!-- </div> -->
+    </mat-accordion>
 
     </div>
   </div>
