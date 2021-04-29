@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Context, NumberColumn, ServerFunction, StringColumn } from '@remult/core';
+import { Column, Context, NumberColumn, ServerFunction, StringColumn } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
 import { InputAreaComponent } from '../../../common/input-area/input-area.component';
 import { DestroyHelper, ServerEventsService } from '../../../server/server-events-service';
@@ -53,7 +53,7 @@ export class DriverRidesComponent implements OnInit, OnDestroy {
     await this.retrieve();
   }
 
-  async onGroupSameLocations(){
+  async onGroupSameLocations() {
     console.log("onGroupSameLocations B: ", this.groupSameLocations)
     this.groupSameLocations = !this.groupSameLocations;
     console.log("onGroupSameLocations A: ", this.groupSameLocations)
@@ -83,41 +83,52 @@ export class DriverRidesComponent implements OnInit, OnDestroy {
 
   async register(rideRow: rides4DriverRow) {
 
-    if(rideRow.groupByLocation){
+    let pass = Math.min(rideRow.passengers, this.driver.seats.value > 0 ? this.driver.seats.value : Number.MAX_VALUE);
 
-      return;
-    }
-
-    let ride = await this.context.for(Ride).findId(rideRow.id);
+    let driverSelected: Column[] = [
+      new StringColumn({ caption: "I'm Available From Hour", defaultValue: this.driver.defaultFromTime.value }),
+      new StringColumn({ caption: "I'm Available till Hour", defaultValue: this.driver.defaultToTime.value }),
+      new NumberColumn({ caption: "Paasengers I can take", defaultValue: pass, validate: () => { } }),
+      new StringColumn({ caption: "Remarks", defaultValue: this.driver.defaultFromTime.value }),
+    ];
     this.context.openDialog(
       InputAreaComponent,
       x => x.args = {
         title: "Register To Ride",
         columnSettings: () => [
-          {
-            caption: "I'm Available From Hour",
-            column: new StringColumn({ defaultValue: this.driver.defaultFromTime.value }),
-          },
-          {
-            caption: "I'm Available till Hour",
-            column: new StringColumn({ defaultValue: this.driver.defaultToTime.value }),
-          },
-          {
-            caption: "Paasengers I can take",
-            column: new NumberColumn({
-              defaultValue: Math.min(ride.escortsCount.value + 1, this.driver.seats.value > 0 ? this.driver.seats.value : Number.MAX_VALUE),
-              validate: () => { }
-            }),//max,min
-          },
-          {
-            caption: "Remarks",
-            column: new StringColumn({}),
-          },
+          driverSelected[0],
+          driverSelected[1],
+          driverSelected[2],
+          driverSelected[3],
         ],
         ok: async () => {
-          ride.driverId.value = this.driver.id.value;
-          ride.status.value = RideStatus.waitingFor20UsherApproove;
-          await ride.save();
+          let rides: Ride[] = [];
+          if (rideRow.groupByLocation) {
+            let all = await this.context.for(Ride).find({
+              where: r => r.id.isIn(...rideRow.ids),
+              orderBy: r => [{ column: r.escortsCount, descending: true }],
+            });
+
+            let count = 0;
+            for (const r of all) {
+              //todo: find algoritem to get the max rides (1,2,3)=4seats=(1+2)|(3+1)
+              let curPass = r.escortsCount.value + 1;
+              if(count + curPass <= driverSelected[2].value)//bigger than what driver wants.
+              {
+                rides.push(r);
+                count += curPass;
+              }
+            }
+          }
+          else {
+            rides.push(await this.context.for(Ride).findId(rideRow.id));
+          }
+
+          for (const r of rides) {
+            r.driverId.value = this.driver.id.value;
+            r.status.value = RideStatus.waitingFor20UsherApproove;
+            await r.save();
+          }
           this.snakebar.info("Thank You! We will contact you ASAP")
           await this.retrieve();
         }
@@ -131,7 +142,7 @@ export class DriverRidesComponent implements OnInit, OnDestroy {
     await ride.save();
     await this.retrieve();
   }
- 
+
   async pickup(rideId: string) {
     let ride = await this.context.for(Ride).findId(rideId);
     ride.status.value = RideStatus.waitingFor50Arrived;

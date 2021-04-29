@@ -279,6 +279,7 @@ export class Usher {
                 icons: icons,
                 phones: phones,
                 date: ride.date.value,
+                ids: [],
                 groupByLocation: false,
                 isWaitingForUsherApproove: ride.isWaitingForUsherApproove(),
                 isWaitingForStart: ride.isWaitingForStart(),
@@ -305,19 +306,23 @@ export class Usher {
         let todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());//T00:00:00
         let tomorrowDate = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());//T00:00:00
 
-        let locationsIds: string[] = [];
+        let fromBorders: string[] = [];
+        let toBorders: string[] = [];
         for await (const pf of context.for(DriverPrefs).iterate({
             where: pf => pf.driverId.isEqualTo(driverId),
         })) {
-            locationsIds.push(pf.locationId.value);
+            fromBorders.push(pf.locationId.value);
+            if (pf.isAlsoBack.value) {
+                toBorders.push(pf.locationId.value);
+            }
         };
 
-        if (locationsIds.length > 0) {
+        if (fromBorders.length > 0) {
 
             for await (const ride of context.for(Ride).iterate({
                 where: r => (r.date.isGreaterOrEqualTo(todayDate))//dates
                     .and(r.status.isEqualTo(RideStatus.waitingFor10DriverAccept))//status
-                    .and(r.from.isIn(...locationsIds).or(r.to.isIn(...locationsIds))),//locations
+                    .and(r.from.isIn(...fromBorders).or(r.to.isIn(...toBorders))),//locations
             })) {
 
                 // Build Row
@@ -347,6 +352,7 @@ export class Usher {
                     icons: icons,
                     phones: "",
                     groupByLocation: false,
+                    ids: [],
                     date: ride.date.value,
                     isWaitingForUsherApproove: ride.isWaitingForUsherApproove(),
                     isWaitingForStart: ride.isWaitingForStart(),
@@ -364,10 +370,12 @@ export class Usher {
                     let key = `${row.from}-${row.to}`;
                     let r = group.rows.find(r => key === `${r.from}-${r.to}`);
                     if (r) {
+                        r.ids.push(row.id);
                         r.passengers += row.passengers;
                     }
                     else {
                         r = row;
+                        r.ids.push(row.id);
                         r.groupByLocation = true;
                         r.icons = [];
                         group.rows.push(r);
@@ -555,6 +563,7 @@ export interface rides4DriverRow {
     phones: string,
     date: Date,
     groupByLocation: boolean,
+    ids: string[],
 
     isWaitingForUsherApproove: boolean,
     isWaitingForStart: boolean,

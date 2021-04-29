@@ -1,6 +1,12 @@
 <div>
-  Date Of Today: {{ serverToday | date: 'dd.MM.yyyy' }}
-  <mat-checkbox [checked]="groupSameLocations" (change)="onGroupSameLocations()">Group Same Locations</mat-checkbox>
+  <table style="width: 100%;">
+    <tr><td>Date Of Today: {{ serverToday | date: 'dd.MM.yyyy' }}</td>
+      <td rowspan="2"><button mat-mini-fab title="Refresh" (click)="retrieve()" color="primary">
+        <mat-icon>refresh</mat-icon>
+      </button></td>
+    </tr>
+    <tr><td><mat-checkbox [checked]="groupSameLocations" (change)="onGroupSameLocations()">Group Same Locations</mat-checkbox></td></tr>
+  </table>
   <!-- style="display:flex; justify-content: space-between;flex-grow: 1;"> -->
   <div>
     <!-- <button (click)="sendMessage()">Send Message</button> -->
