@@ -3,7 +3,6 @@ import { BusyService, SelectValueDialogComponent } from '@remult/angular';
 import { Context, StringColumn, ValueListItem } from '@remult/core';
 import { GridDialogComponent } from '../../common/grid-dialog/grid-dialog.component';
 import { InputAreaComponent } from '../../common/input-area/input-area.component';
-import { Patient } from '../patients/patient';
 import { Ride } from '../rides/ride';
 import { Usher } from '../usher/usher';
 import { Driver } from './driver';
@@ -32,8 +31,8 @@ export class DriversComponent implements OnInit {
       visible: (d) => !d.isNew(),
       //showInLine: (this.context.for(DriverPrefs).count(p => p.driverId.isEqualTo("")).then(() => { return true; })),
     }, {
-      name: "Find Rides",
-      click: async (d) => await this.openReleventRidesDialog(d),
+      name: "Suggest Rides",
+      click: async (d) => await this.openSuggestedRidesForDriverDialog(d),
       icon: "directions_bus_filled",
       visible: (d) => !d.isNew(),
       //showInLine: (this.context.for(DriverPrefs).count(p => p.driverId.isEqualTo("")).then(() => { return true; })),
@@ -135,31 +134,21 @@ export class DriversComponent implements OnInit {
     });
   }
 
-  async openReleventRidesDialog(d: Driver) {
-    let relevantRides = await Usher.getReleventRidesForDriver(d.id.value);
+  async openSuggestedRidesForDriverDialog(d: Driver) {
+    let suggestedRides = await Usher.getSuggestedRidesForDriver(d.id.value);
 
-    // let rides2 = (await this.context.for(Ride).find({
-    //   where: r => r.id.isIn(...relevantRides),
-
-    // })).map(r => ({
-    //   item: r,
-    //   caption: r.patientId.value,
-    // }));
-
-    let rides: ValueListItem[] = [];
-    let items = (await this.context.for(Ride).find({
-      where: r => r.id.isIn(...relevantRides)
-    }));
-
-    items.forEach(async r => {
-      let name = (await this.context.for(Patient).findId(r.patientId.value)).name.value;
-      rides.push({ id: r.id.value, caption: name } as ValueListItem)
-    })
-
+    let values: ValueListItem[] = [];
+    for (const ride of suggestedRides) {
+      let caption = `${ride.date} | ${ride.from} | ${ride.to} | ${ride.passengers} | ${ride.phones}`;
+      values.push({
+        id: ride.id,
+        caption: caption
+      });
+    }
 
     this.context.openDialog(SelectValueDialogComponent, x => x.args({
-      title: `Relevent Ride's Patients`,// ( ${rides.length})`,
-      values: rides,
+      title: `Suggested Rides`,
+      values: values,
       onSelect: async x => {
         let ride = await this.context.for(Ride).findId(x.id);
         ride.driverId.value = d.id.value;

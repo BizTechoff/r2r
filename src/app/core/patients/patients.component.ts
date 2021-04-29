@@ -99,7 +99,7 @@ export class PatientsComponent implements OnInit {
     for (const r of rides) {
       values.push({
         id: r.id,
-        caption: `${r.date} | ${r.from} | ${r.to} | ${r.status} | ${r.statusDate} | ${r.passengers} | ${r.phones}`,
+        caption: r.toString(),
       });
     };
     // console.table(relevantDrivers);

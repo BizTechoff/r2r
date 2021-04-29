@@ -88,6 +88,10 @@ export class Ride extends IdEntity {
         target.driverId.value = this.driverId.value;
         target.status = this.status;
     }
+
+    toString(){
+        return `${this.date.value} | ${this.from.value} | ${this.to.value} | ${this.status.value} | ${this.statusDate.value} | ${this.escortsCount.value + 1}`
+    }
 }
 
 export class RideStatus {

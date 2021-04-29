@@ -50,6 +50,7 @@ export class LocationIdColumn extends StringColumn {
         getValue: () => this.context.for(Location).lookup(this).name.value,
         hideDataOnInput: true,
         clickIcon: 'search',
+        width: "150px",
         click: () => {
           this.context.openDialog(DynamicServerSideSearchDialogComponent,
             x => x.args(Location, {

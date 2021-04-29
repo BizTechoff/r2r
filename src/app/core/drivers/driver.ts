@@ -59,7 +59,8 @@ export class Driver extends IdEntity {
     super({
       name: "drivers",
       allowApiCRUD: Roles.usher,// c => c.isSignedIn(),// [Roles.driver, Roles.admin],
-      allowApiRead: true,
+      allowApiUpdate: Roles.driver,
+      allowApiRead: c => c.isSignedIn(),
       allowApiDelete: false,
 
       // allowApiDelete:false,

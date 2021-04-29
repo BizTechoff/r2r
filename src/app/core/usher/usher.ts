@@ -3,7 +3,7 @@ import { ColumnSettings, Context, DateColumn, Filter, ServerFunction, ValueListC
 import { Utils } from "../../shared/utils";
 import { Roles } from "../../users/roles";
 import { Driver } from "../drivers/driver";
-import { DayOfWeek, DayPeriod, DriverPrefs } from "../drivers/driverPrefs";
+import { DayOfWeek, DriverPrefs } from "../drivers/driverPrefs";
 import { Patient } from "../patients/patient";
 import { Ride, RideStatus } from "../rides/ride";
 import { Location } from "./../locations/location";
@@ -33,7 +33,7 @@ export class Usher {
                 ? "Today"
                 : rDate.getTime() === tomorrowDate.getTime()
                     ? "Tomorrow"
-                    : formatDate(rDate.getTime(),"dd/MM/yyyy", 'en-US');//todo:'he-IL';
+                    : formatDate(rDate.getTime(), "dd/MM/yyyy", 'en-US');//todo:'he-IL';
             let period = ride.dayPeriod.value.id;
             let title = `${date} - ${period}`;
 
@@ -219,8 +219,19 @@ export class Usher {
         return result;
     }
 
+
     @ServerFunction({ allowed: Roles.driver })
     static async getRegisteredRidesForDriver(driverId: string, context?: Context) {
+        let result: rides4DriverRow[] = [];
+
+        for await (const grp of await this.getRegisteredRidesForDriverGoupByDateAndPeriod(driverId, context)) {
+            result.push(...grp.rows);
+        }
+        return result;
+    }
+
+    @ServerFunction({ allowed: Roles.driver })
+    static async getRegisteredRidesForDriverGoupByDateAndPeriod(driverId: string, context?: Context) {
         let result: rides4Driver[] = [];
 
         let today = await Utils.getServerDate();
@@ -242,7 +253,7 @@ export class Usher {
                 ? "Today"
                 : rDate.getTime() === tomorrowDate.getTime()
                     ? "Tomorrow"
-                    : formatDate(rDate.getTime(),"dd/MM/yyyy", 'en-US');//todo:'he-IL';
+                    : formatDate(rDate.getTime(), "dd/MM/yyyy", 'en-US');//todo:'he-IL';
             let period = ride.dayPeriod.value.id;
             let title = `${date} - ${period}`;
 
@@ -267,6 +278,8 @@ export class Usher {
                 passengers: 1 + ride.escortsCount.value,//patient+escorts
                 icons: icons,
                 phones: phones,
+                date: ride.date.value,
+                groupByLocation: false,
                 isWaitingForUsherApproove: ride.isWaitingForUsherApproove(),
                 isWaitingForStart: ride.isWaitingForStart(),
                 isWaitingForPickup: ride.isWaitingForPickup(),
@@ -284,7 +297,7 @@ export class Usher {
     }
 
     @ServerFunction({ allowed: Roles.driver })
-    static async getSuggestedRidesForDriver(driverId: string, context?: Context) {
+    static async getSuggestedRidesForDriverAsGoupByDateAndPeriod(driverId: string, groupByFromAndTo = false, context?: Context): Promise<rides4Driver[]> {
         let result: rides4Driver[] = [];
 
         let today = await Utils.getServerDate();
@@ -314,7 +327,7 @@ export class Usher {
                     ? "Today"
                     : rDate.getTime() === tomorrowDate.getTime()
                         ? "Tomorrow"
-                        : formatDate(rDate.getTime(),"dd/MM/yyyy", 'en-US');//todo:'he-IL'
+                        : formatDate(rDate.getTime(), "dd/MM/yyyy", 'en-US');//todo:'he-IL'
                 let period = ride.dayPeriod.value.id;
                 let title = `${date} - ${period}`;
 
@@ -333,6 +346,8 @@ export class Usher {
                     passengers: 1 + ride.escortsCount.value,//patient+escorts
                     icons: icons,
                     phones: "",
+                    groupByLocation: false,
+                    date: ride.date.value,
                     isWaitingForUsherApproove: ride.isWaitingForUsherApproove(),
                     isWaitingForStart: ride.isWaitingForStart(),
                     isWaitingForPickup: ride.isWaitingForPickup(),
@@ -344,9 +359,38 @@ export class Usher {
                     group = { title: title, rows: [] };
                     result.push(group);
                 }
-                group.rows.push(row);
+
+                if (groupByFromAndTo) {
+                    let key = `${row.from}-${row.to}`;
+                    let r = group.rows.find(r => key === `${r.from}-${r.to}`);
+                    if (r) {
+                        r.passengers += row.passengers;
+                    }
+                    else {
+                        r = row;
+                        r.groupByLocation = true;
+                        r.icons = [];
+                        group.rows.push(r);
+                    }
+                }
+                else {
+                    group.rows.push(row);
+                }
+
             }
         }
+
+        return result;
+    }
+
+    @ServerFunction({ allowed: Roles.driver })
+    static async getSuggestedRidesForDriver(driverId: string, context?: Context): Promise<rides4DriverRow[]> {
+        let result: rides4DriverRow[] = [];
+
+        for await (const grp of await this.getSuggestedRidesForDriverAsGoupByDateAndPeriod(driverId, false, context)) {
+            result.push(...grp.rows);
+        }
+
         return result;
     }
 
@@ -509,12 +553,15 @@ export interface rides4DriverRow {
     passengers: number,
     icons: string[],
     phones: string,
+    date: Date,
+    groupByLocation: boolean,
 
     isWaitingForUsherApproove: boolean,
     isWaitingForStart: boolean,
     isWaitingForPickup: boolean,
     isWaitingForArrived: boolean,
 
+    // info:()=>string,
     // status: string, 
     // status: (id: string) => void,
 };

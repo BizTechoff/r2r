@@ -5,7 +5,7 @@ import { InputAreaComponent } from '../../../common/input-area/input-area.compon
 import { DestroyHelper, ServerEventsService } from '../../../server/server-events-service';
 import { Utils } from '../../../shared/utils';
 import { Ride, RideStatus } from '../../rides/ride';
-import { rides4Driver, Usher } from '../../usher/usher';
+import { rides4Driver, rides4DriverRow, Usher } from '../../usher/usher';
 import { Driver } from '../driver';
 
 @Component({
@@ -15,6 +15,7 @@ import { Driver } from '../driver';
 })
 export class DriverRidesComponent implements OnInit, OnDestroy {
 
+  groupSameLocations: boolean = true;
   serverToday: Date;
   driver: Driver;
   //https://github.com/rintoj/ngx-virtual-scroller
@@ -52,9 +53,16 @@ export class DriverRidesComponent implements OnInit, OnDestroy {
     await this.retrieve();
   }
 
+  async onGroupSameLocations(){
+    console.log("onGroupSameLocations B: ", this.groupSameLocations)
+    this.groupSameLocations = !this.groupSameLocations;
+    console.log("onGroupSameLocations A: ", this.groupSameLocations)
+    await this.retrieve();
+  }
+
   async retrieve() {
 
-    this.driverRegistered = await Usher.getRegisteredRidesForDriver(
+    this.driverRegistered = await Usher.getRegisteredRidesForDriverGoupByDateAndPeriod(
       this.driver.id.value);
 
     console.log(this.driverRegistered);
@@ -63,8 +71,8 @@ export class DriverRidesComponent implements OnInit, OnDestroy {
       // this.snakebar.info("Thank You! Found No Rides Suits Your Preffered Borders");
     }
 
-    this.driverSuggestions = await Usher.getSuggestedRidesForDriver(
-      this.driver.id.value);
+    this.driverSuggestions = await Usher.getSuggestedRidesForDriverAsGoupByDateAndPeriod(
+      this.driver.id.value, this.groupSameLocations);
 
     console.log(this.driverSuggestions);
 
@@ -73,8 +81,14 @@ export class DriverRidesComponent implements OnInit, OnDestroy {
     }
   }
 
-  async register(rideId: string) {
-    let ride = await this.context.for(Ride).findId(rideId);
+  async register(rideRow: rides4DriverRow) {
+
+    if(rideRow.groupByLocation){
+
+      return;
+    }
+
+    let ride = await this.context.for(Ride).findId(rideRow.id);
     this.context.openDialog(
       InputAreaComponent,
       x => x.args = {

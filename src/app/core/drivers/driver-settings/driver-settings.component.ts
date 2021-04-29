@@ -56,14 +56,26 @@ export class DriverSettingsComponent implements OnInit {
     // });
 
     this.context.openDialog(GridDialogComponent, gd => gd.args = {
-      title: "Prefered Borders",
+      title: "Preferred Borders",
       settings: this.context.for(DriverPrefs).gridSettings({
         where: p => p.driverId.isEqualTo(this.driverId),
         newRow: p => p.driverId.value = this.driverId,
-        allowCRUD: true, 
+        allowCRUD: true,
         columnSettings: p => [
-          p.locationId,
-          p.isAlsoBack,
+          {
+            column: p.locationId,
+            caption: "'From' Border"
+          },
+          {
+            column: p.isAlsoBack,
+            caption: "Also 'To' That Border"
+          },
+          // p.locationId,
+          // p.isAlsoBack,
+          // {column: p.locationId,
+          // caption: "B->"},
+          // {column:  p.isAlsoBack,
+          //   caption: "<-B"},
           // p.dayOfWeek,
           // p.dayPeriod,
         ],

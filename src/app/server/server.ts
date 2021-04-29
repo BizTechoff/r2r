@@ -15,6 +15,7 @@ import '../app.module';
 import { PasswordColumn } from '../users/users';
 import { importDataNew } from './import-data';
 import { ServerEvents } from './server-events';
+import { env, exit } from 'process';
  
 config(); //loads the configuration from the .env file
 const pool = new Pool({
@@ -48,9 +49,12 @@ app.use('/*', async (req, res) => {
         res.sendStatus(500);
     }
 });
-
+ 
 console.time('noam');
-//importDataNew(database).then(()=>console.timeEnd("noam"));
+if (process.env.IMPORT_DATA && process.env.IMPORT_DATA === "true")
+{
+    importDataNew(database).then(()=>console.timeEnd("noam"));
+}
  
 let port = process.env.PORT || 3000;
 app.listen(port); 
