@@ -1,4 +1,4 @@
-import { ColumnSettings, Context, EntityClass, IdEntity, ValueListColumn } from "@remult/core";
+import { BoolColumn, ColumnSettings, Context, EntityClass, IdEntity, ValueListColumn } from "@remult/core";
 import { Location, LocationIdColumn } from "../locations/location";
 import { DriverIdColumn } from "./driver";
 
@@ -6,8 +6,9 @@ import { DriverIdColumn } from "./driver";
 export class DriverPrefs extends IdEntity {
 
     driverId = new DriverIdColumn(this.context, "Driver", "driverId");
-    locationId = new LocationIdColumn(this.context, "Location", "locationId");//fk
+    locationId = new LocationIdColumn(this.context, "Location", "locationId", true /*onlyBorders*/);//todo:onlyBorders
 
+    isAlsoBack = new BoolColumn({});
     dayOfWeek = new DayOfWeekColumn();
     dayPeriod = new DayPeriodColumn();
 

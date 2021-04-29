@@ -3,6 +3,7 @@ import { Context, NumberColumn, ServerFunction, StringColumn } from '@remult/cor
 import { DialogService } from '../../../common/dialog';
 import { InputAreaComponent } from '../../../common/input-area/input-area.component';
 import { DestroyHelper, ServerEventsService } from '../../../server/server-events-service';
+import { Utils } from '../../../shared/utils';
 import { Ride, RideStatus } from '../../rides/ride';
 import { rides4Driver, Usher } from '../../usher/usher';
 import { Driver } from '../driver';
@@ -14,6 +15,7 @@ import { Driver } from '../driver';
 })
 export class DriverRidesComponent implements OnInit, OnDestroy {
 
+  serverToday: Date;
   driver: Driver;
   //https://github.com/rintoj/ngx-virtual-scroller
   driverSuggestions: rides4Driver[];
@@ -45,6 +47,7 @@ export class DriverRidesComponent implements OnInit, OnDestroy {
     this.driver = await this.context.for(Driver).findFirst(
       d => d.userId.isEqualTo(this.context.user.id),
     );
+    this.serverToday = await Utils.getServerDate();
 
     await this.retrieve();
   }

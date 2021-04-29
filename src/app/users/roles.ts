@@ -5,8 +5,8 @@ import { Injectable } from '@angular/core';
 
 export const Roles = {
     admin: 'admin',//מנהל
-    usher: 'usher',//סדרן
-    matcher: 'matcher',//מתאמת
+    usher: 'usher',//מתאמת ישראלית, סדרן
+    matcher: 'matcher',//מתאמת פלשתינית
     driver: 'driver',//מתנדב
 }
 

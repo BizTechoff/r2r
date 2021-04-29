@@ -60,9 +60,10 @@ export class DriverSettingsComponent implements OnInit {
       settings: this.context.for(DriverPrefs).gridSettings({
         where: p => p.driverId.isEqualTo(this.driverId),
         newRow: p => p.driverId.value = this.driverId,
-        allowCRUD: true,
+        allowCRUD: true, 
         columnSettings: p => [
           p.locationId,
+          p.isAlsoBack,
           // p.dayOfWeek,
           // p.dayPeriod,
         ],

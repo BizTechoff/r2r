@@ -36,7 +36,7 @@ export class PatientsComponent implements OnInit {
       }
     }],
     numOfColumnsInGrid: 10,
-    columnSettings: p => [p.name, p.mobile, /*p.idNumber,*/ p.defaultBorderCrossing, p.defaultHospital],
+    columnSettings: p => [p.name, p.mobile, /*p.idNumber,*/ p.defaultBorder, p.defaultHospital],
     where: p => this.search.value ? p.name.isContains(this.search) : undefined,
     rowButtons: [{
       textInMenu: "Add Ride",
@@ -78,7 +78,7 @@ export class PatientsComponent implements OnInit {
         columnSettings: () => [
           [patient.name, patient.hebName],
           [patient.mobile, patient.idNumber],
-          [patient.defaultBorderCrossing, patient.defaultHospital],
+          [patient.defaultBorder, patient.defaultHospital],
         ],
         ok: async () => {
           //PromiseThrottle
@@ -128,7 +128,7 @@ export class PatientsComponent implements OnInit {
     ride.dayOfWeek.value = DriverPrefs.getDayOfWeek(ride.date.getDayOfWeek());
     ride.dayPeriod.value = DayPeriod.morning;
     ride.patientId.value = p.id.value;
-    ride.from.value = p.defaultBorderCrossing.value;
+    ride.from.value = p.defaultBorder.value;
     ride.to.value = p.defaultHospital.value;
     var isNeedReturnTrip = new BoolColumn({ caption: "Need Return Ride" });
     this.context.openDialog(

@@ -10,8 +10,8 @@ export class Patient extends IdEntity {
   hebName = new StringColumn({});
   mobile = new StringColumn({});
   idNumber = new StringColumn({});
-  defaultBorderCrossing?= new LocationIdColumn(this.context, "Default Border Crossing", "defaultBorderCrossing");
-  defaultHospital?= new LocationIdColumn(this.context, "Default Hospital", "defaultHospital");
+  defaultBorder?= new LocationIdColumn(this.context, "Default Border", "defaultBorder", true);
+  defaultHospital?= new LocationIdColumn(this.context, "Default Hospital", "defaultHospital", true);
 
   constructor(private context: Context) {
     super({

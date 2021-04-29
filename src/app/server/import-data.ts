@@ -1,6 +1,7 @@
 import { Context, ServerContext, SqlDatabase } from '@remult/core';
 import * as fs from 'fs';
 import * as fetch from 'node-fetch';
+import { ApplicationSettings } from '../core/application-settings/applicationSettings';
 import { Driver } from '../core/drivers/driver';
 import { DriverPrefs } from '../core/drivers/driverPrefs';
 import { Location, LocationType } from '../core/locations/location';
@@ -11,102 +12,190 @@ import { Users } from '../users/users';
 let volunteersFolder = "c:/r2r/volunteers";
 let ridersFolder = "c:/r2r/rides";
 
+var counter = 0;
+
 export async function importDataNew(db: SqlDatabase, fresh = false) {
 
+    counter = 0;
     console.log("starting import");
     var context = new ServerContext(db);
 
+    await seed(context);
+
     var rides = fs.readdirSync(ridersFolder);
     console.log("rides.length=" + rides.length);
+
     for (const id of rides) {
+        ++counter;
+
         let fileName = `${ridersFolder}/${id}`;
         var r = JSON.parse(fs.readFileSync(fileName).toString());
 
         let status: string = r.Status;
         if (status.trim() == 'נמחקה') {
+            console.log('נמחקה');
             continue;
         }
 
         await createFromRideRecordNew(r, context);
+
     }
+
+    //console.log("list tables with data");
+    console.log(`settings: ${await context.for(ApplicationSettings).count()} rows`);
+    console.log(`locations: ${await context.for(Location).count()} rows`);
+    console.log(`users: ${await context.for(Users).count()} rows`);
+    console.log(`drivers: ${await context.for(Driver).count()} rows`);
+    console.log(`driversPrefs: ${await context.for(DriverPrefs).count()} rows`);
+    console.log(`patients: ${await context.for(Patient).count()} rows`);
+    console.log(`rides: ${await context.for(Ride).count()} rows`);
+
     console.log("finished import");
 }
 
-async function createFromRideRecordNew(record: any, context?: Context) {
-    let fromId = await createLocationNew(record.Origin, context);
-    let toId = await createLocationNew(record.Destination, context);
-    let patientId = await createPatientNew(record.Pat, context);
-    let userId = undefined;// await createUserNew(record.Drivers[0], context);// user auto-create driver
-    let driverId = await createDriverNew(record.Drivers[0], userId, context);
-    let driverPrefIds = await createDriverPrefsNew(record.Drivers[0], driverId, context);
-    let rideId = await createRideNew(record, driverId, patientId, fromId, toId, context);
+async function seed(context?: Context) {
+
+    // Create admin user if not exists.
+    let count = await context.for(ApplicationSettings).count();
+    if (count == 0) {
+        let a = context.for(ApplicationSettings).create();
+        await a.save();
+        console.log("created ApplicationSettings");
+    }
+
+    // Create admin user if not exists.
+    count = await context.for(Users).count();
+    if (count == 0) {
+        let u = context.for(Users).create();
+        u.isAdmin.value = true;
+        u.name.value = "admin";
+        await u.create("Q1w2e3r4");
+        console.log("created admin");
+    }
 }
 
-async function createLocationNew(locationRecord: any, context: Context) {
+async function createFromRideRecordNew(record: any, context?: Context) {
+    // console.log("createFromRideRecordNew called");
+    let fromId = await findOrCreateLocationNew(record.Origin, context);
+    let toId = await findOrCreateLocationNew(record.Destination, context);
+    let patientId = await findOrCreatePatientNew(record.Pat, context);
+    let userId = await findOrCreateUserNew(record.Drivers[0], context);// user auto-create driver
+    if (!(userId && userId.length > 0)) {
+        console.log("userId null");
+        return;
+    }
+    let driverId = await findOrCreateDriverNew(record.Drivers[0], userId, context);
+    if (!(driverId && driverId.length > 0)) {
+        console.log("driverId null");
+        return;
+    }
+    let driverPrefIds = await findOrCreateDriverPrefsNew(record.Drivers[0], driverId, context);
+    let rideId = await findOrCreateRideNew(record, driverId, patientId, fromId, toId, context);
+}
+
+async function findOrCreateLocationNew(locationRecord: any, context: Context) {
+    let name = locationRecord.EnglishName;
+    if(name){
+        name = name.trim();
+    }
     let location = await context.for(Location).findOrCreate({
-        where: l => l.name.isEqualTo(locationRecord.EnglishName),
-    });
-    location.type.value = LocationType.border;
+        where: l => l.name.isEqualTo(name),
+    }); 
+    location.type.value = isBorder(name) ? LocationType.border : LocationType.hospital;
     await location.save();
     return location.id.value;
 }
 
-async function createPatientNew(patientRecord: any, context: Context) {
+async function findOrCreatePatientNew(patientRecord: any, context: Context) {
     let patient = await context.for(Patient).findOrCreate({
         where: l => l.name.isEqualTo(patientRecord.EnglishName),
     });
     patient.hebName.value = patientRecord.DisplayName;
     patient.mobile.value = patientRecord.CellPhone;
     // patient.idNumber.value = patientRecord
-    await patient.save();
+    try { await patient.save(); }
+    catch (error) {
+        console.log("error");
+        console.log(error);
+    }
     return patient.id.value;
 }
 
-async function createUserNew(driverRecord: any, context: Context) {
-    // console.log(driverRecord.DisplayName);
+async function findOrCreateUserNew(driverRecord: any, context: Context) {
+    let result = "";
     let driverEntityRecord = await getDriverEntityRecord(
         driverRecord.DisplayName
     );
-    if (driverEntityRecord.EnglishName && driverEntityRecord.EnglishName.length > 0) {
-        let user = await context.for(Users).findOrCreate({
-            where: l => l.name.isEqualTo(driverEntityRecord.EnglishName),
-        });
 
-        // let user = await context.for(Users).create();
-        user.mobile.value = driverEntityRecord.CellPhone;
-        user.name.value = driverEntityRecord.EnglishName;
+    let driverName = driverEntityRecord.EnglishName;
+    if (!(driverName && driverName.length > 0)) {
+        driverName = driverEntityRecord.DisplayName;
+    }
+    if (!(driverName && driverName.length > 0)) {
+        driverName = "No_Driver_Name_" + counter;
+    }
+    let user = await context.for(Users).findOrCreate({
+        where: u => u.name.isEqualTo(driverName),
+    });
+    if (user.isNew()) {// first driver-row is taken.
+        let mobile = driverEntityRecord.CellPhone;
+        user.mobile.value = mobile;
+        user.name.value = driverName;
         user.isDriver.value = true;
         user.createDate.value = new Date();
-        await user.create(driverEntityRecord.CellPhone);
-        return user.id.value;
+        await user.create(/*password:*/ mobile);
     }
+
+    result = user.id.value;
+
+    return result;
 }
 
-async function createDriverNew(driverRecord: any, userId: string, context: Context) {
+async function findOrCreateDriverNew(driverRecord: any, userId: string, context: Context) {
+    let result = "";
     // console.log(driverRecord.DisplayName);
     let driverEntityRecord = await getDriverEntityRecord(
         driverRecord.DisplayName
     );
 
-    let driver = await context.for(Driver).findOrCreate({
-        // where: l => l.userId.isEqualTo(userId),
-        where: l => l.name.isEqualTo(driverEntityRecord.EnglishName),
-    });
-    driver.userId.value = userId;
-    driver.name.value = driverEntityRecord.EnglishName;
-    driver.hebName.value = driverEntityRecord.DisplayName;
-    driver.mobile.value = driverEntityRecord.CellPhone;
-    driver.seats.value = driverEntityRecord.AvailableSeats;
-    driver.email.value = driverEntityRecord.Email;
-    driver.idNumber.value = driverEntityRecord.VolunteerIdentity;
-    driver.birthDate.value = new Date(driverEntityRecord.BirthDate);
-    driver.city.value = driverEntityRecord.City;
-    driver.address.value = driverEntityRecord.Address;
-    await driver.save();
-    return driver.id.value;
+    let driverName = driverEntityRecord.EnglishName;
+    if (!(driverName && driverName.length > 0)) {
+        driverName = driverEntityRecord.DisplayName;
+    }
+    if (!(driverName && driverName.length > 0)) {
+        driverName = "No_Driver_Name_" + counter;
+    }
+    if (driverName && driverName.length > 0) {
+        let driver = await context.for(Driver).findOrCreate({
+            // where: l => l.userId.isEqualTo(userId),
+            where: d => d.name.isEqualTo(driverName),
+        });
+        driver.userId.value = userId;
+        driver.name.value = driverName;
+        driver.hebName.value = driverEntityRecord.DisplayName;
+        driver.mobile.value = driverEntityRecord.CellPhone;
+        driver.seats.value = driverEntityRecord.AvailableSeats;
+        driver.email.value = driverEntityRecord.Email;
+        driver.idNumber.value = driverEntityRecord.VolunteerIdentity;
+        driver.birthDate.value = new Date(driverEntityRecord.BirthDate);
+        driver.city.value = driverEntityRecord.City;
+        driver.address.value = driverEntityRecord.Address;
+        try {
+            await driver.save();
+            result = driver.id.value;
+        }
+        catch (error) {
+            console.log(`${driverName}`);
+            console.log(error);
+        }
+    }
+    else {
+        console.log(`no driver name`);
+    }
+    return result;
 }
 
-async function createDriverPrefsNew(driverRecord: any, driverId: string, context: Context) {
+async function findOrCreateDriverPrefsNew(driverRecord: any, driverId: string, context: Context) {
 
     let driverEntityRecord = await getDriverEntityRecord(
         driverRecord.DisplayName
@@ -114,26 +203,29 @@ async function createDriverPrefsNew(driverRecord: any, driverId: string, context
 
     let result = [];
     if (driverEntityRecord.PrefTime && driverEntityRecord.PrefTime.length > 0) {
-        for (const time of driverEntityRecord.PrefTime) {
-            let day = DriverPrefs.getDayOfWeek(time[0]);
-            let period = DriverPrefs.getDayPeriod(time[1]);
-
-            let prefs = await context.for(DriverPrefs).find({
-                where: p => p.dayOfWeek.isEqualTo(day)
-                    .and(p.dayPeriod.isEqualTo(period))
-                    .and(p.driverId.isEqualTo(driverId)),
-            });
-            if (prefs && prefs.length > 0) {
-                console.log(`Duplicate Prefs for driver: ${driverId}`)
-                return;
-            }
-            let newPref = await context.for(DriverPrefs).create();
-            newPref.driverId.value = driverId;
-            newPref.dayOfWeek.value = day;
-            newPref.dayPeriod.value = period;
-            await newPref.save();
-            result.push(newPref.id.value);
+        if (driverEntityRecord.PrefLocation && driverEntityRecord.PrefLocation.length > 0) {
+            console.log(driverEntityRecord.PrefLocation);
         }
+        // for (const time of driverEntityRecord.PrefTime) {
+        //     let day = DriverPrefs.getDayOfWeek(time[0]);
+        //     let period = DriverPrefs.getDayPeriod(time[1]);
+
+        //     let prefs = await context.for(DriverPrefs).find({
+        //         where: p => p.dayOfWeek.isEqualTo(day)
+        //             .and(p.dayPeriod.isEqualTo(period))
+        //             .and(p.driverId.isEqualTo(driverId)),
+        //     });
+        //     if (prefs && prefs.length > 0) {
+        //         console.log(`Duplicate Prefs for driver: ${driverId}`)
+        //         return;
+        //     }
+        //     let newPref = context.for(DriverPrefs).create();
+        //     newPref.driverId.value = driverId;
+        //     newPref.dayOfWeek.value = day;
+        //     newPref.dayPeriod.value = period;
+        //     await newPref.save();
+        //     result.push(newPref.id.value);
+        // }
     }
     return result;
 }
@@ -153,9 +245,9 @@ async function getDriverEntityRecord(fileDriverHebName: string) {
     }
 }
 
-async function createRideNew(rideRecord: any, driverId: string, patientId: string, fromId: string, toId: string, context: Context) {
+async function findOrCreateRideNew(rideRecord: any, driverId: string, patientId: string, fromId: string, toId: string, context: Context) {
     // try{
-    let ride = await context.for(Ride).create();
+    let ride = context.for(Ride).create();
     ride.importRideNum.value = rideRecord.RideNum;
     ride.driverId.value = driverId;
     ride.patientId.value = patientId;
@@ -315,7 +407,7 @@ async function fiilPatient(context: Context, r: any) {
 
 async function fiilRide(context: Context, r: any, patientId: string, driverId: string) {
 
-    let ride = await context.for(Ride).create();
+    let ride = context.for(Ride).create();
     ride.patientId.value = patientId;
     ride.driverId.value = driverId;
     // find from-location
@@ -370,7 +462,7 @@ async function fiilDriverPref(context: Context, r: any) {
             });
             //create new if not found
             if (prefs == undefined || prefs.length == 0) {
-                let newPref = await context.for(DriverPrefs).create();
+                let newPref = context.for(DriverPrefs).create();
                 newPref.driverId.value = driverExists.id.value;
                 prefs.push(newPref);
             }
@@ -537,7 +629,7 @@ async function createDriver(context: Context, volunteer: any) {
 async function createDriverPrefs(context: Context, prefs: any, driverId: string, locationId: string) {
 
     for (const p of prefs) {
-        let dPref = await context.for(DriverPrefs).create();
+        let dPref = context.for(DriverPrefs).create();
         dPref.driverId.value = driverId;
         dPref.locationId.value = locationId;
         dPref.dayOfWeek.value = DriverPrefs.getDayOfWeek(p[0]);
@@ -642,3 +734,28 @@ function camelize(str: string) {
     return result;
 }
 
+function isBorder(name: string) {
+
+    return borders.includes(name.trim().toLocaleLowerCase());
+
+}
+
+let borders: string[] = [];
+{
+    borders.push(`Baqa El Garbia start`.trim().toLocaleLowerCase());
+    borders.push(`pardes hana`.trim().toLocaleLowerCase());
+    borders.push(`Shaare Zedec`.trim().toLocaleLowerCase());
+    borders.push(`Erez`.trim().toLocaleLowerCase());
+    borders.push(`Husan`.trim().toLocaleLowerCase());
+    borders.push(`Eliyahu`.trim().toLocaleLowerCase());
+    borders.push(`Sha'ar Efraim`.trim().toLocaleLowerCase());
+    borders.push(`sde hemed`.trim().toLocaleLowerCase());
+    borders.push(`Macabim`.trim().toLocaleLowerCase());
+    borders.push(`Reihan`.trim().toLocaleLowerCase());
+    borders.push(`Tarkumia`.trim().toLocaleLowerCase());
+    borders.push(`Glilot`.trim().toLocaleLowerCase());
+    borders.push(`ajenda`.trim().toLocaleLowerCase());
+    borders.push(`Na'alin`.trim().toLocaleLowerCase());
+    borders.push(`Bethlehem`.trim().toLocaleLowerCase());
+    borders.push(`Eyal`.trim().toLocaleLowerCase());
+};

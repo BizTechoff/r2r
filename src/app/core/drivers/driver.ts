@@ -1,6 +1,7 @@
 import { Context, DateColumn, EntityClass, IdEntity, NumberColumn, StringColumn } from "@remult/core";
 import { DynamicServerSideSearchDialogComponent } from "../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component";
 import { Utils } from "../../shared/utils";
+import { Roles } from "../../users/roles";
 import { LocationIdColumn } from "../locations/location";
 import { RideStatus, RideStatusColumn } from "../rides/ride";
 
@@ -37,6 +38,7 @@ export class Driver extends IdEntity {
   home?= new LocationIdColumn(this.context, "Home", "home", true);
   email = new StringColumn({});
   seats = new NumberColumn({
+    defaultValue: 1,
     validate: () => {
       if (this.seats.value <= 0) {
         this.seats.value = 1;
@@ -56,8 +58,9 @@ export class Driver extends IdEntity {
   constructor(private context: Context) {
     super({
       name: "drivers",
-      allowApiCRUD: c => c.isSignedIn(),// [Roles.driver, Roles.admin],
-      allowApiRead: c => c.isSignedIn(),
+      allowApiCRUD: Roles.usher,// c => c.isSignedIn(),// [Roles.driver, Roles.admin],
+      allowApiRead: true,
+      allowApiDelete: false,
 
       // allowApiDelete:false,
       // saving:async()=>{
@@ -124,4 +127,3 @@ export class DriverIdColumn extends StringColumn {
     });
   }
 }
-

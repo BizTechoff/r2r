@@ -79,23 +79,24 @@ export class Users extends IdEntity {
             switch (role.valueOf()) {
 
                 case Roles.driver: {
-                    let d = await this.context.for(Driver).findId(user.id.value);
-                    if (d) {
-                        // because after saved-event, check what updated.
-                        if (user.isDriver.value) {
-                            d.name.value = user.name.value;
-                            d.mobile.value = user.mobile.value;
-                            await d.save();
-                        }
-                        else {
-                            await this.deleteEntityForUserByRole(
-                                Roles.driver, this.id.value);
-                        }
+
+                    let d = await this.context.for(Driver).findOrCreate({
+                        where: d => d.userId.isEqualTo(user.id)
+                    });
+
+                    if (user.isDriver.value) {//need driver also
+                        // 'refresh' his name & mobile if changed
+                        d.name.value = user.name.value;
+                        d.mobile.value = user.mobile.value;
+                        await d.save();
                     }
-                    else if (createIfNotExists) {
-                        await this.createEntityForUserByRole(
-                            role, this);
+                    else if (!(d.isNew())) {
+                        // 'delete' it
+                        d.userId.value = '';
+                        await d.save();
                     }
+ 
+                    break;
                 }
             }
         }

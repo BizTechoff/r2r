@@ -1,12 +1,12 @@
 import { Injectable, NgZone } from '@angular/core';
 import { BusyService } from '@remult/angular';
-import { ServerFunction, Context, JwtSessionService } from '@remult/core';
+import { Context, JwtSessionService, ServerFunction } from '@remult/core';
 import { Subject } from 'rxjs';
 
 
 @Injectable()
 export class ServerEventsService {
-    
+
     constructor(public zone: NgZone, private busy: BusyService, private tokenHelper: JwtSessionService, private context: Context) {
 
         this.refreshEventListener();
@@ -16,11 +16,11 @@ export class ServerEventsService {
         };
 
     }
-    static OnServerSendMessageToChannel:(family: string, message: Message)=> void;
+    static OnServerSendMessageToChannel: (family: string, message: Message) => void;
     private familyInfoChangedSubject = new Subject<Message>();
-    onMessage(whatToDo: (message:Message) => Promise<void>, destroyHelper: DestroyHelper) {
-        let y = this.familyInfoChangedSubject.subscribe((m:Message) => {
-            this.busy.donotWait(async ()=>await whatToDo(m));
+    onMessage(whatToDo: (message: Message) => Promise<void>, destroyHelper: DestroyHelper) {
+        let y = this.familyInfoChangedSubject.subscribe((m: Message) => {
+            this.busy.donotWait(async () => await whatToDo(m));
 
         });
         destroyHelper.add(() => y.unsubscribe());
@@ -39,7 +39,7 @@ export class ServerEventsService {
                     }
                     this.eventSource = source;
                     source.onmessage = e => {
-                        
+
 
                         this.zone.run(() => {
                             this.familyInfoChangedSubject.next(JSON.parse(e.data));
@@ -58,9 +58,9 @@ export class ServerEventsService {
             }
         }
     }
-    
-        
-    
+
+
+
 
     @ServerFunction({ allowed: c => c.isSignedIn() })
     static DoAthorize(key: string, context?: Context) {
@@ -87,6 +87,6 @@ export class DestroyHelper {
     }
 
 }
-export interface Message{
-    text:string
-  }
+export interface Message {
+    text: string
+}

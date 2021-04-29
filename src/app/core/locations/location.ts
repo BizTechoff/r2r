@@ -33,7 +33,7 @@ export class LocationTypeColumn extends ValueListColumn<LocationType>{
 
 export class LocationIdColumn extends StringColumn {
 
-  constructor(private context: Context, caption: string, dbName: string, allowNull = false) {
+  constructor(private context: Context, caption: string, dbName: string, allowNull = false, onlyBorders = false) {
     super({
       allowNull: allowNull,
       caption: caption,

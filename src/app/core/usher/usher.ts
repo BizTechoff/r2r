@@ -1,3 +1,4 @@
+import { formatDate } from "@angular/common";
 import { ColumnSettings, Context, DateColumn, Filter, ServerFunction, ValueListColumn } from "@remult/core";
 import { Utils } from "../../shared/utils";
 import { Roles } from "../../users/roles";
@@ -32,7 +33,7 @@ export class Usher {
                 ? "Today"
                 : rDate.getTime() === tomorrowDate.getTime()
                     ? "Tomorrow"
-                    : rDate.toDateString;
+                    : formatDate(rDate.getTime(),"dd/MM/yyyy", 'en-US');//todo:'he-IL';
             let period = ride.dayPeriod.value.id;
             let title = `${date} - ${period}`;
 
@@ -241,7 +242,7 @@ export class Usher {
                 ? "Today"
                 : rDate.getTime() === tomorrowDate.getTime()
                     ? "Tomorrow"
-                    : rDate.toDateString;
+                    : formatDate(rDate.getTime(),"dd/MM/yyyy", 'en-US');//todo:'he-IL';
             let period = ride.dayPeriod.value.id;
             let title = `${date} - ${period}`;
 
@@ -313,7 +314,7 @@ export class Usher {
                     ? "Today"
                     : rDate.getTime() === tomorrowDate.getTime()
                         ? "Tomorrow"
-                        : rDate.toDateString;
+                        : formatDate(rDate.getTime(),"dd/MM/yyyy", 'en-US');//todo:'he-IL'
                 let period = ride.dayPeriod.value.id;
                 let title = `${date} - ${period}`;
 
