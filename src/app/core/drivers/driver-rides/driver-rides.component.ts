@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Column, Context, NumberColumn, ServerFunction, StringColumn } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
 import { InputAreaComponent } from '../../../common/input-area/input-area.component';
-import { DestroyHelper, ServerEventsService } from '../../../server/server-events-service';
+import { DestroyHelper, MessageType, ServerEventsService } from '../../../server/server-events-service';
 import { Utils } from '../../../shared/utils';
 import { Ride, RideStatus } from '../../rides/ride';
 import { rides4Driver, rides4DriverRow, Usher } from '../../usher/usher';
@@ -35,13 +35,22 @@ export class DriverRidesComponent implements OnInit, OnDestroy {
     this.destroyHelper.destroy();
   }
 
-  sendMessage() {
-    DriverRidesComponent.sendMessage();
+  sendMessage(status: RideStatus) {
+    DriverRidesComponent.sendMessage(this.driver.id.value, status);
   }
   @ServerFunction({ allowed: true })
-  static async sendMessage() {
-    ServerEventsService.OnServerSendMessageToChannel("", { text: 'The message text' });
+  static async sendMessage(driverId: string, status: RideStatus) {
 
+    // if (appSettings.allowPublishMessages.value) {
+    if (false) {
+      ServerEventsService.OnServerSendMessageToChannel(
+        driverId,
+        {
+          type: MessageType.driverSendStatusToUsher,
+          status: status,
+          text: 'The message text'
+        });
+    }
   }
 
   async ngOnInit() {
@@ -54,6 +63,8 @@ export class DriverRidesComponent implements OnInit, OnDestroy {
   }
 
   async onGroupSameLocations() {
+    this.driverRegistered = [];
+    this.driverSuggestions = [];
     console.log("onGroupSameLocations B: ", this.groupSameLocations)
     this.groupSameLocations = !this.groupSameLocations;
     console.log("onGroupSameLocations A: ", this.groupSameLocations)
@@ -71,7 +82,7 @@ export class DriverRidesComponent implements OnInit, OnDestroy {
       // this.snakebar.info("Thank You! Found No Rides Suits Your Preffered Borders");
     }
 
-    this.driverSuggestions = await Usher.getSuggestedRidesForDriverAsGoupByDateAndPeriod(
+    this.driverSuggestions = await Usher.getSuggestedRidesForDriverGoupByDateAndPeriod(
       this.driver.id.value, this.groupSameLocations);
 
     console.log(this.driverSuggestions);
@@ -110,10 +121,10 @@ export class DriverRidesComponent implements OnInit, OnDestroy {
             });
 
             let count = 0;
-            for (const r of all) {
+            for (const r of all) { 
               //todo: find algoritem to get the max rides (1,2,3)=4seats=(1+2)|(3+1)
-              let curPass = r.escortsCount.value + 1;
-              if(count + curPass <= driverSelected[2].value)//bigger than what driver wants.
+              let curPass = r.passengers();
+              if (count + curPass <= driverSelected[2].value)//bigger than what driver wants.
               {
                 rides.push(r);
                 count += curPass;

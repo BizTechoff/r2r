@@ -158,7 +158,7 @@ export class DriversComponent implements OnInit {
     }))
 
     // this.context.openDialog(GridDialogComponent, gd => gd.args = {
-    //   title: "Relevent Rides",
+    //   title: "Suggested Rides",
     //   buttons: [{
     //     text: 'select',
     //     click: async () => { 

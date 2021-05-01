@@ -1,5 +1,6 @@
 import { BoolColumn, ColumnSettings, Context, DateColumn, EntityClass, IdEntity, NumberColumn, StringColumn, ValueListColumn } from "@remult/core";
-import { ServerEventsService } from "../../server/server-events-service";
+import { MessageType, ServerEventsService } from "../../server/server-events-service";
+import { ApplicationSettings } from "../application-settings/applicationSettings";
 import { DriverIdColumn } from "../drivers/driver";
 import { DayOfWeekColumn, DayPeriodColumn, DriverPrefs } from "../drivers/driverPrefs";
 import { LocationIdColumn } from "../locations/location";
@@ -26,22 +27,38 @@ export class Ride extends IdEntity {
     });
 
     assignDate = new DateColumn({});
-    isNeedBabyChair = new BoolColumn({ caption: 'Need Baby Chair' });
-    isNeedWheelchair = new BoolColumn({ caption: 'Need Wheel Chair' });
+    isHasBabyChair = new BoolColumn({ caption: 'Has Baby Chair' });
+    isHasWheelchair = new BoolColumn({ caption: 'Has Wheel Chair' });
     isHasExtraEquipment = new BoolColumn({ caption: 'Has Extra Equipment' });
 
     isHasEscort = new BoolColumn({ caption: 'Has Escort', defaultValue: false });
     escortsCount = new NumberColumn({});
 
-    constructor(private context: Context) {
+    passengers() {
+        return 1 /*patient*/ + (this.isHasEscort.value ? this.escortsCount.value : 0);
+    }
+
+    constructor(private context: Context, private appSettings: ApplicationSettings) {
         super({
             name: "rides",
             allowApiCRUD: c => c.isSignedIn(),
             allowApiRead: c => c.isSignedIn(),
-            saved: () => {
-                if (context.onServer) {//trigger db
+            saved: async () => {//trigger from db on status changed
+                if (context.onServer) {
                     if (this.status.wasChanged()) {
-                        ServerEventsService.OnServerSendMessageToChannel(this.driverId.value, { text: 'The message text' });
+                        // if (appSettings.allowPublishMessages.value) {
+                        if (false) {
+                            ServerEventsService.OnServerSendMessageToChannel(
+                                this.driverId.value,
+                                {
+                                    type: MessageType.usherSendStatusToDriver,
+                                    status: this.status.value,
+                                    text: 'The message text',
+                                });
+                        }
+                        else {
+                            console.log("appSettings.allowPublishMessages.value = false");
+                        }
                     }
                 }
             }
@@ -79,9 +96,12 @@ export class Ride extends IdEntity {
     copyTo(target: Ride) {
         target.from.value = this.from.value;
         target.to.value = this.to.value;
+        target.dayOfWeek.value = this.dayOfWeek.value;
         target.dayPeriod.value = this.dayPeriod.value;
         target.date.value = this.date.value;
-        target.isNeedWheelchair.value = this.isNeedWheelchair.value;
+        target.isHasBabyChair.value = this.isHasBabyChair.value;
+        target.isHasWheelchair.value = this.isHasWheelchair.value;
+        target.isHasExtraEquipment.value = this.isHasExtraEquipment.value;
         target.isHasEscort.value = this.isHasEscort.value;
         target.escortsCount.value = this.escortsCount.value;
         target.patientId.value = this.patientId.value;
@@ -89,8 +109,8 @@ export class Ride extends IdEntity {
         target.status = this.status;
     }
 
-    toString(){
-        return `${this.date.value} | ${this.from.value} | ${this.to.value} | ${this.status.value} | ${this.statusDate.value} | ${this.escortsCount.value + 1}`
+    toString() {
+        return `${this.date.value} | ${this.from.value} | ${this.to.value} | ${this.status.value} | ${this.statusDate.value} | ${this.passengers()}`
     }
 }
 

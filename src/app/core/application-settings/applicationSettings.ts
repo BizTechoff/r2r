@@ -1,4 +1,5 @@
-import { EntityClass, IdEntity, NumberColumn } from "@remult/core";
+import { Injectable } from "@angular/core";
+import { BoolColumn, Context, EntityClass, IdEntity, NumberColumn } from "@remult/core";
 import { Roles } from "../../users/roles";
 
 @EntityClass
@@ -24,4 +25,17 @@ export class ApplicationSettings extends IdEntity {
     //השעה (מתוך 24) שמהוה גבול בין בוקר לצהריים 
     delimiterAfternoonHour = new NumberColumn({ defaultValue: 12 });
 
+    //השעה (מתוך 24) שמהוה גבול בין בוקר לצהריים 
+    allowPublishMessages = new BoolColumn({ defaultValue: false });
+
+}
+ 
+@Injectable()
+export class SettingsService {
+  constructor(private context: Context){}
+  
+  instance: ApplicationSettings;
+  async init() {
+    this.instance = await this.context.for(ApplicationSettings).findFirst();
+  }
 }

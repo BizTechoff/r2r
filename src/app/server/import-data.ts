@@ -6,7 +6,7 @@ import { Driver } from '../core/drivers/driver';
 import { DriverPrefs } from '../core/drivers/driverPrefs';
 import { Location, LocationType } from '../core/locations/location';
 import { Patient } from '../core/patients/patient';
-import { Ride } from '../core/rides/ride';
+import { Ride, RideStatus } from '../core/rides/ride';
 import { Users } from '../users/users';
 
 let volunteersFolder = "c:/r2r/volunteers";
@@ -15,6 +15,11 @@ let ridersFolder = "c:/r2r/rides";
 var counter = 0;
 
 export async function importDataNew(db: SqlDatabase, fresh = false) {
+
+    if (fresh) {
+        await importRidesToFiles(ridersFolder);
+        await importDriversToFiles(volunteersFolder);
+    }
 
     counter = 0;
     console.log("starting import");
@@ -95,12 +100,12 @@ async function createFromRideRecordNew(record: any, context?: Context) {
 
 async function findOrCreateLocationNew(locationRecord: any, context: Context) {
     let name = locationRecord.EnglishName;
-    if(name){
+    if (name) {
         name = name.trim();
     }
     let location = await context.for(Location).findOrCreate({
         where: l => l.name.isEqualTo(name),
-    }); 
+    });
     location.type.value = isBorder(name) ? LocationType.border : LocationType.hospital;
     await location.save();
     return location.id.value;
@@ -256,6 +261,31 @@ async function findOrCreateRideNew(rideRecord: any, driverId: string, patientId:
     ride.date.value = toDate(rideRecord.Date);
     ride.dayOfWeek.value = DriverPrefs.getDayOfWeek((ride.date.value.getDay() + 1));
     ride.dayPeriod.value = DriverPrefs.getDayPeriod(ride.date.value.getHours() > 12 ? "afternoon" : "morning");
+
+    ride.status.value = RideStatus.waitingFor10DriverAccept;
+    if (rideRecord.Statuses) {
+        for (const st of rideRecord.Statuses) {
+            switch (st) {
+                case "ממתינה לשיבוץ": {
+                    ride.status.value = RideStatus.waitingFor10DriverAccept;
+                    break;
+                }
+                case "שובץ נהג": {
+                    ride.status.value = RideStatus.waitingFor30Start;
+                    break;
+                }
+                case "אספתי את החולה": {
+                    ride.status.value = RideStatus.waitingFor50Arrived;
+                    break;
+                }
+                case "הגענו ליעד": {
+                    ride.status.value = RideStatus.succeeded;
+                    break;
+                }
+            }
+        }
+    }
+
     // console.log(rideRecord.RideNum);
     // console.log(ride);
     await ride.save();
@@ -264,412 +294,6 @@ async function findOrCreateRideNew(rideRecord: any, driverId: string, patientId:
     //     console.log("error on RideNum: " + rideRecord.RideNum);
     // }
 }
-
-
-// ====================================================================================
-// ====================================================================================
-// ====================================================================================
-
-
-
-
-
-export async function importData(db: SqlDatabase, fresh = false) {
-
-    var context = new ServerContext(db);
-    // await createDriversFromFiles(volunteersFolder, context);
-    // await findRidesDrivers(ridersFolder, context);
-    await importAllFromRides(context);
-
-
-    //await createDriversFromFiles(volunteersFolder, context);
-
-    if (fresh) {
-        await importRidesToFiles(ridersFolder);
-        await importDriversToFiles(volunteersFolder);
-    }
-
-    if (false) {
-        var context = new ServerContext(db);
-
-        await createDriversFromFiles(volunteersFolder, context);
-        await createRidesFromFiles(ridersFolder, volunteersFolder, context);
-    }
-}
-
-async function importAllFromRides(context: ServerContext) {
-    var rides = fs.readdirSync(ridersFolder);
-    console.log("rides.length=" + rides.length);
-    for (const id of rides) {
-        let fileName = `${ridersFolder}/${id}`;
-        var r = JSON.parse(fs.readFileSync(fileName).toString());
-
-        let status: string = r.Status;
-        if (status.trim() == 'נמחקה') {
-            continue;
-        }
-
-        // create driver+prefs
-        let driverId = undefined;
-        if (r.Drivers && r.Drivers.length > 0) {
-            driverId = await createDriverFromFile(context, r.Drivers[0].DisplayName);
-            if (driverId && driverId.length > 0) {
-            }
-        }
-
-        // driverId = await fiilDriverPref(context, r);
-        // if(driverId && driverId.length > 0){
-        // }
-
-        // create patient
-        let patientId = await fiilPatient(context, r);
-        if (patientId && patientId.length > 0) {
-        }
-
-        let rideId = await fiilRide(context, r, patientId, driverId);
-        if (rideId && rideId.length > 0) {
-        }
-    }
-}
-var i = 0;
-async function createDriverFromFile(context: ServerContext, name: string) {
-    // console.log("name=" + name);
-    // return;
-    var volunteers = fs.readdirSync(volunteersFolder);
-    if (volunteers) {
-        let fileName = name + ".json";
-        if (volunteers.includes(fileName)) {
-            let fullPath = `${volunteersFolder}/${fileName}`;
-            var person = JSON.parse(fs.readFileSync(fullPath).toString());
-            // console.log(++i);
-
-            let driverId = await createDriver(context, person);
-            if (driverId && driverId.length > 0) {
-                await createDriverPrefs(context, person.PrefTime, driverId, undefined);
-            }
-            return driverId;
-        }
-    }
-    else {
-        console.log(`No volunteers found in '${volunteersFolder}' folder.`);
-    }
-}
-
-async function findRidesDrivers(ridersFolder: string, context: ServerContext) {
-    var rides = fs.readdirSync(ridersFolder);
-    for (const id of rides) {
-        let fileName = `${ridersFolder}/${id}`;
-        var r = JSON.parse(fs.readFileSync(fileName).toString());
-
-        let status: string = r.Status;
-        if (status.trim() == 'נמחקה') {
-            continue;
-        }
-
-        // let locationId = await fiilLocations(context, r);
-        // if (locationId && locationId.length > 0) {
-        // }
-
-        let driverId = await fiilDriverPref(context, r);//driver&prefs
-        if (driverId && driverId.length > 0) {
-        }
-
-        let patientId = await fiilPatient(context, r);// patient&locations
-        if (patientId && patientId.length > 0) {
-        }
-
-        // let rideId = await fiilRide(context, r, patientId, driverId);
-        // if (rideId && rideId.length > 0) {
-        // }
-    }
-}
-
-async function fiilPatient(context: Context, r: any) {
-    let name = r && r.Pat && r.Pat.EnglishName && r.Pat.EnglishName.length > 0
-        ? r.Pat.EnglishName
-        : "";
-    if (!(name && name.length > 0)) {
-        name = r.Pat.CellPhone;
-    }
-    // name = name.trim().toLowerCase();
-    let patient = await context.for(Patient).findOrCreate(
-        p => p.name.isEqualTo(name));
-    if (!patient.isNew()) {
-        console.log(`Duplicate Patient Name: ${name}`);
-        return;
-    }
-    // console.log(patient.name.value);
-    patient.mobile.value = r.Pat.CellPhone;
-    patient.hebName.value = r.Pat.DisplayName;
-    await patient.save();
-    return patient.id.value;
-}
-
-async function fiilRide(context: Context, r: any, patientId: string, driverId: string) {
-
-    let ride = context.for(Ride).create();
-    ride.patientId.value = patientId;
-    ride.driverId.value = driverId;
-    // find from-location
-    let location = await context.for(Location).findFirst(
-        l => l.name.isEqualTo(r.Origin.EnglishName));
-    if (location) {
-        ride.from.value = location.id.value;
-    }
-    // find from-location
-    location = await context.for(Location).findFirst(
-        l => l.name.isEqualTo(r.Destination.EnglishName));
-    if (location) {
-        ride.to.value = location.id.value;
-        let date = toDate(r.Date);
-        // console.log(date);
-        ride.date.value = date; //DriverPrefs.getDayOfWeek((date.getDay() + 1));
-        ride.dayPeriod.value = DriverPrefs.getDayPeriod(date.getHours() > 12 ? "afternoon" : "morning");
-    }
-    await ride.save();
-    return ride.id.value;
-}
-
-async function fiilDriverPref(context: Context, r: any) {
-    let driverId = "";
-    let from = r.Origin.EnglishName;
-    let to = r.Destination.EnglishName;
-    let driver = "";
-    if (r.Drivers && r.Drivers.length > 0) {
-        driver = r.Drivers[0].DisplayName;
-    }
-
-    if (driver.length > 0) {
-        let driverExists = await context.for(Driver).findOrCreate(
-            d => d.hebName.isEqualTo(driver));
-        if (driverExists.isNew()) {
-            // driverExists.name = 
-        }
-        // let driverExists = await context.for(Driver).findFirst(
-        //     d => d.hebName.isEqualTo(driver));
-        if (driverExists) {
-            driverId = driverExists.id.value;
-            let lFrom = await context.for(Location).findOrCreate(
-                l => l.name.isEqualTo(from));
-            await lFrom.save();
-            let lTo = await context.for(Location).findOrCreate(
-                l => l.name.isEqualTo(to));
-            await lTo.save();
-
-            let prefs = await context.for(DriverPrefs).find({
-                where: d => d.driverId.isEqualTo(driverExists.id)
-                    .and(d.locationId.isEqualTo(undefined)),
-            });
-            //create new if not found
-            if (prefs == undefined || prefs.length == 0) {
-                let newPref = context.for(DriverPrefs).create();
-                newPref.driverId.value = driverExists.id.value;
-                prefs.push(newPref);
-            }
-
-            for (const p of prefs) {
-                await fillPref(volunteersFolder, p, driverExists.hebName.value, context);
-
-                if (!(p.dayOfWeek && p.dayOfWeek.value)) {
-                    console.log(p.dayOfWeek.value);
-                    fixPrefDays(p, r.Date);
-                    console.log(p.dayOfWeek.value);
-                    console.log(p.driverId.value);
-                }
-                p.locationId.value = lFrom.id.value;
-                await p.save();
-            }
-        }
-        else {
-            console.log(`NO Match for driver ${driver}`);
-        }
-    }
-    return driverId
-}
-
-function fixPrefDays(p: DriverPrefs, d: string) {
-    if (d && d.length > 0) {
-        let date = toDate(d);
-        // console.log(date);
-        p.dayOfWeek.value = DriverPrefs.getDayOfWeek((date.getDay() + 1));
-        p.dayPeriod.value = DriverPrefs.getDayPeriod(date.getHours() > 12 ? "afternoon" : "morning");
-
-        // console.log(p.dayOfWeek.value);
-        // console.log(p.dayPeriod.value);
-    }
-}
-
-async function fillPref(volunteersFolder: string, p: DriverPrefs, driverName: string, context: Context) {
-
-    var volunteers = fs.readdirSync(volunteersFolder);
-    if (volunteers) {
-        let name = volunteers.find((v) =>
-            v.includes(driverName.trim().toLowerCase()));
-        if (name) {
-            let fileName = `${volunteersFolder}/${name}`;
-            var person = JSON.parse(fs.readFileSync(fileName).toString());
-
-            if (person.PrefTime && person.PrefTime[0]) {
-
-                let day = person.PrefTime[0][0];
-                let period = person.PrefTime[0][1];
-
-                // var schedule: string[] = person.PrefTime;
-                // console.log(person.PrefTime[0][0],person.PrefTime[0][1]);
-                if (day) {
-                    p.dayOfWeek.value = DriverPrefs.getDayOfWeek(day);
-                }
-                else {
-                    if (person.Date && person.Date.length > 0) {
-                        let date = toDate(person.Date);
-                        console.log(date);
-                        // newPref.dayOfWeek.value = getDayOfWeek(date.getDay().toString());
-                        // newPref.dayPeriod.value = getDayPeriod(date.getHours() > 12 ? "afternoon" : "morning");
-                    }
-                }
-                if (person) {
-                    p.dayPeriod.value = DriverPrefs.getDayPeriod(period);
-                }
-            }
-            else {
-
-            }
-        }
-    }
-    else {
-        console.log(`No volunteers found in '${volunteersFolder}' folder.`);
-    }
-}
-
-async function createRidesFromFiles(ridersFolder: string, volunteersFolder: string, context: ServerContext) {
-    var rides = fs.readdirSync(ridersFolder);
-    for (const id of rides) {
-        let fileName = `${volunteersFolder}/${id}`;
-        var person = JSON.parse(fs.readFileSync(fileName).toString());
-
-        await createLocation(context, person.Destination);
-        await createPatient(context, person.Pat);
-        await createRide(context, person);
-    }
-}
-
-async function createDriversFromFiles(volunteersFolder: string, context: ServerContext) {
-    var volunteers = fs.readdirSync(volunteersFolder);
-    if (volunteers) {
-        for (const name of volunteers) {
-            let fileName = `${volunteersFolder}/${name}`;
-            var person = JSON.parse(fs.readFileSync(fileName).toString());
-
-            let driverId = await createDriver(context, person);
-            //await createDriverPrefs(context, person.PrefTime, driverId);
-        }
-    }
-    else {
-        console.log(`No volunteers found in '${volunteersFolder}' folder.`);
-    }
-}
-
-async function createDriver(context: Context, volunteer: any) {
-    // console.log(volunteer.DisplayName);
-    //     return; 
-    if (volunteer.CellPhone && volunteer.CellPhone.length > 0) {
-        let name = (volunteer.EnglishFN + " " + volunteer.EnglishLN);
-        if ((!(name)) || name.trim().length == 0) {
-            // name = volunteer.DisplayName;
-            // if ((!(name)) || name.trim().length == 0) {
-            //     name = "No Name";
-            // }
-        }
-
-        if (name) {// Each driver is a user.
-
-            // console.log(name +": " + volunteer.CellPhone);
-            // return;
-            var user = await context.for(Users)
-                .findOrCreate(u => u.name.isEqualTo(volunteer.CellPhone));
-            user.name.value = name;// volunteer.DisplayName;
-            user.isDriver.value = true;
-            user.mobile.value = volunteer.CellPhone;
-            user.createDate.value = new Date();
-            try { await user.create(volunteer.CellPhone); }
-            catch (error) {
-                console.log(`${error}(name=${name})`);
-            }
-        }
-        else {
-            console.log(`!!!!!!! no name for ${volunteer}`);
-            return;
-        }
-    }
-    else {
-        console.log(`!!!!!!! no mobile for ${volunteer}`);
-        return;
-    }
-
-    // return;
-
-    // created by creation of user above.
-    let driver = await context.for(Driver).
-        findFirst(d => d.userId.isEqualTo(user.id));
-    if (driver) {
-        // driver.name.value = volunteer.EnglishFN + " " + volunteer.EnglishLN;// volunteer.DisplayName;
-        driver.hebName.value = volunteer.DisplayName;
-        driver.mobile.value = volunteer.CellPhone;
-        driver.email.value = volunteer.Email;
-        driver.seats.value = volunteer.AvailableSeats;
-        driver.idNumber.value = volunteer.VolunteerIdentity;
-        if (volunteer.BirthDate) {
-            driver.birthDate.value = new Date(Date.parse(volunteer.BirthDate));
-        }
-        await driver.save();
-        return driver.id.value;
-    }
-}
-
-async function createDriverPrefs(context: Context, prefs: any, driverId: string, locationId: string) {
-
-    for (const p of prefs) {
-        let dPref = context.for(DriverPrefs).create();
-        dPref.driverId.value = driverId;
-        dPref.locationId.value = locationId;
-        dPref.dayOfWeek.value = DriverPrefs.getDayOfWeek(p[0]);
-        dPref.dayPeriod.value = DriverPrefs.getDayPeriod(p[1]);
-        await dPref.save();
-    }
-
-    // let dPref = await context.for(DriverPrefs).
-    //     findOrCreate(prf => prf.locationId.isEqualTo(vPref.DisplayName))
-    // dPref.locationId.value = (await context.for(Location)
-    //     .findOrCreate(l => l.name.isEqualTo(vPref.location.name))).id.value;
-    // dPref.driverId.value = driverId;
-    // dPref.dayOfWeek.value = getDayOfWeek(vPref.name);
-    // dPref.dayPeriod.value = getDayPeriod(vPref.name);
-}
-
-async function createLocation(context: Context, location: any) {
-    let loc = await context.for(Location).
-        findOrCreate(l => l.name.isEqualTo(location.DisplayName));
-    loc.name.value = location.DisplayName;
-    loc.type.value = LocationType.border;
-    await loc.save();
-}
-
-async function createPatient(context: Context, patient: any) {
-    let pat = await context.for(Patient).
-        findOrCreate(l => l.name.isEqualTo(patient.DisplayName));
-    pat.name.value = patient.DisplayName;
-    pat.mobile.value = patient.CellPhone;
-    await pat.save();
-}
-
-async function createRide(context: Context, ride: any) {
-    let pat = await context.for(Ride).
-        findOrCreate(l => l.id.isEqualTo(ride.DisplayName));
-    pat.id.value = ride.DisplayName;
-    await pat.save();
-}
-
-
 async function importRidesToFiles(folderName: string) {
     let r = await get('GetRidePatViewByTimeFilter', { from: 7, until: 1 });
     for (const v of r) {

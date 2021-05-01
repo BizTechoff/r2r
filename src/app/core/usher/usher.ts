@@ -37,12 +37,15 @@ export class Usher {
             let period = ride.dayPeriod.value.id;
             let title = `${date} - ${period}`;
 
-            let icons: string[] = [];
-            if (ride.isNeedWheelchair.value) {
-                icons.push("accessible");
+            let icons: {name: string, desc:string}[] = [];
+            if (ride.isHasBabyChair.value) {
+                icons.push({name: "child_friendly", desc: "Has Babychair"});
+            }
+            if (ride.isHasWheelchair.value) {
+                icons.push({name: "accessible", desc: "Has Wheelchair"});
             }
             if (ride.isHasExtraEquipment.value) {
-                icons.push("home_repair_service");
+                icons.push({name: "home_repair_service", desc: "Has Extra Equipment"});
             }
 
             let phones = "";
@@ -58,7 +61,7 @@ export class Usher {
                 statusDate: ride.statusDate.value,
                 from: (await context.for(Location).findId(ride.from.value)).name.value,
                 to: (await context.for(Location).findId(ride.to.value)).name.value,
-                passengers: 1 + ride.escortsCount.value,//patient+escorts
+                passengers: ride.passengers(),
                 phones: phones,
                 isWaitingForUsherApproove: ride.isWaitingForUsherApproove(),
                 isWaitingForStart: ride.isWaitingForStart(),
@@ -66,6 +69,105 @@ export class Usher {
                 isWaitingForArrived: ride.isWaitingForArrived(),
             };
             result.push(row);
+        }
+        return result;
+    }
+
+
+    @ServerFunction({ allowed: Roles.driver })
+    static async getRegisteredRidesForDriver(driverId: string, context?: Context) {
+        let result: rides4DriverRow[] = [];
+
+        for await (const grp of await this.getRegisteredRidesForDriverGoupByDateAndPeriod(driverId, false, context)) {
+            result.push(...grp.rows);
+        }
+        return result;
+    }
+
+    @ServerFunction({ allowed: Roles.driver })
+    static async getRegisteredRidesForDriverGoupByDateAndPeriod(driverId: string, groupByFromAndTo = false, context?: Context) {
+        let result: rides4Driver[] = [];
+
+        let today = await Utils.getServerDate();
+        let tomorrow = addDays(1);
+        let todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());//T00:00:00
+        let tomorrowDate = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());//T00:00:00
+
+        for await (const ride of context.for(Ride).iterate({
+            where: r => (r.date.isGreaterOrEqualTo(todayDate))
+                .and(r.status.isDifferentFrom(RideStatus.waitingFor10DriverAccept))
+                .and(r.driverId.isEqualTo(driverId)),
+            orderBy: r => [{ column: r.date, descending: false }],
+        })) {
+
+            // Build Row
+            let rDate = new Date(ride.date.value.getFullYear(), ride.date.value.getMonth(), ride.date.value.getDate());
+
+            let date = rDate.getTime() === todayDate.getTime()
+                ? "Today"
+                : rDate.getTime() === tomorrowDate.getTime()
+                    ? "Tomorrow"
+                    : formatDate(rDate.getTime(), "dd/MM/yyyy", 'en-US');//todo:'he-IL';
+            let period = ride.dayPeriod.value.id;
+            let title = `${date} - ${period}`;
+
+            let icons: {name: string, desc:string}[] = [];
+            if (ride.isHasBabyChair.value) {
+                icons.push({name: "child_friendly", desc: "Has Babychair"});
+            }
+            if (ride.isHasWheelchair.value) {
+                icons.push({name: "accessible", desc: "Has Wheelchair"});
+            }
+            if (ride.isHasExtraEquipment.value) {
+                icons.push({name: "home_repair_service", desc: "Has Extra Equipment"});
+            }
+
+            let phones = "";
+            let p = await context.for(Patient).findId(ride.patientId.value);
+            if (p && p.mobile && p.mobile.value) {
+                phones = p.mobile.value;
+            }
+
+            let row: rides4DriverRow = {
+                id: ride.id.value,
+                from: (await context.for(Location).findId(ride.from.value)).name.value,
+                to: (await context.for(Location).findId(ride.to.value)).name.value,
+                passengers: ride.passengers(),
+                icons: icons,
+                phones: phones,
+                date: ride.date.value,
+                ids: [],
+                groupByLocation: false,
+                isWaitingForUsherApproove: ride.isWaitingForUsherApproove(),
+                isWaitingForStart: ride.isWaitingForStart(),
+                isWaitingForPickup: ride.isWaitingForPickup(),
+                isWaitingForArrived: ride.isWaitingForArrived(),
+            };
+
+            let group = result.find(grp => grp.title === title);
+            if (!(group)) {
+                group = { title: title, rows: [] };
+                result.push(group);
+            }
+
+            if (groupByFromAndTo) {
+                let key = `${row.from}-${row.to}`;
+                let r = group.rows.find(r => key === `${r.from}-${r.to}`);
+                if (r) {
+                    r.ids.push(row.id);
+                    r.passengers += row.passengers;
+                }
+                else {
+                    r = row;
+                    r.ids.push(row.id);
+                    r.groupByLocation = true;
+                    r.icons = [];
+                    group.rows.push(r);
+                }
+            }
+            else {
+                group.rows.push(row);
+            }
         }
         return result;
     }
@@ -126,197 +228,14 @@ export class Usher {
         return result;
     }
 
-    @ServerFunction({ allowed: c => c.isSignedIn() })//allowed: Roles.matcher
-    static async getReleventRidesForDriver(driverId: string, context?: Context) {//, isOnlyNoDriver = false
-        let result: string[] = [];
-
-        let prefs = await context.for(DriverPrefs).find({
-            where: rf => rf.driverId.isEqualTo(driverId)
-        });
-
-        let empty = [undefined];
-        for (const p of prefs) {
-            let rides = await context.for(Ride).find({
-                where: r =>
-                    (r.dayOfWeek.isEqualTo(p.dayOfWeek))
-                        .and((r.dayPeriod.isEqualTo(p.dayPeriod)))
-                // .and(isOnlyNoDriver? r.driverId == undefined || r.driverId.value == undefined:true)
-                // && (r.driverId),
-                // && (p.locationId && p.locationId.value && p.locationId.value.length > 0
-                //     ? r.from.isEqualTo(p.locationId)
-                //     : r.id.isEqualTo(r.id))//should be always true
-
-            });
-            if (rides && rides.length > 0) {
-                rides.forEach(r => {
-                    //if (!(r.driverId && r.driverId.value && r.driverId.value.length > 0)) {
-                    if (!(result.includes(r.id.value))) {
-                        result.push(r.id.value);
-                    }
-                    //}
-                });
-            }
-        }
-
-
-        return result;
-    }
-
-
-    @ServerFunction({ allowed: c => c.isSignedIn() })//allowed: Roles.matcher
-    static async getReleventDriversForRide(rideId: string, context?: Context) {
-        let result: { id: string, caption: string, days: number }[] = [];
-
-        // get ride details.
-        let ride = await context.for(Ride).findId(rideId);
-        if (ride && ride.id.value && ride.id.value.length > 0) {        // let empty = [undefined];
-
-            // get relevent prefs.
-            let driversPrefs = await context.for(DriverPrefs).find({
-                where: pf =>
-                    (pf.dayOfWeek.isEqualTo(ride.dayOfWeek))
-                        .and((pf.dayPeriod.isEqualTo(ride.dayPeriod)))
-            });
-
-            // get last ride for driver(s).
-            if (driversPrefs && driversPrefs.length > 0) {
-                let driversIds: string[] = [];//keep uniqe (not duplicate)
-                for (const pf of driversPrefs) {
-                    // console.log(driversIds.length);
-                    if (!(driversIds.includes(pf.driverId.value))) {
-                        //if (!(pf.driverId.isIn(...driversIds))) {
-                        // console.log(pf.id)
-                        driversIds.push(pf.driverId.value);
-
-                        let last = await context.for(Ride).findFirst({
-                            where: r => r.driverId.isEqualTo(pf.driverId),
-                            orderBy: r => [{ column: r.date, descending: true }]
-                        });
-                        let days = 0;
-                        if (last) {
-
-                            let now = new Date();//now
-                            let rDate = last.date.value;
-                            let diff = +now - +rDate;
-                            days = (-1 * (Math.ceil(diff / 1000 / 60 / 60 / 24) + 1));
-                        }
-
-                        // get driver details (name&mobile)
-                        let d = await context.for(Driver).findId(pf.driverId.value);
-                        let caption = `${d.name.value} | ${d.mobile.value} | ${days}`;
-
-                        result.push({
-                            id: d.id.value,
-                            caption: caption,
-                            days: days,
-                        })
-
-                        result.sort((a, b) => a.days - b.days);
-                    }
-                }
-            }
-        }
-        return result;
-    }
-
-
     @ServerFunction({ allowed: Roles.driver })
-    static async getRegisteredRidesForDriver(driverId: string, context?: Context) {
-        let result: rides4DriverRow[] = [];
-
-        for await (const grp of await this.getRegisteredRidesForDriverGoupByDateAndPeriod(driverId, false, context)) {
-            result.push(...grp.rows);
-        }
+    static async getSuggestedPatientsForRide(patientId: string, groupByFromAndTo = false, context?: Context): Promise<rides4PatientRow[]>{
+        let result: rides4PatientRow[]  = [];
         return result;
     }
 
     @ServerFunction({ allowed: Roles.driver })
-    static async getRegisteredRidesForDriverGoupByDateAndPeriod(driverId: string, groupByFromAndTo = false, context?: Context) {
-        let result: rides4Driver[] = [];
-
-        let today = await Utils.getServerDate();
-        let tomorrow = addDays(1);
-        let todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());//T00:00:00
-        let tomorrowDate = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());//T00:00:00
-
-        for await (const ride of context.for(Ride).iterate({
-            where: r => (r.date.isGreaterOrEqualTo(todayDate))
-                .and(r.status.isDifferentFrom(RideStatus.waitingFor10DriverAccept))
-                .and(r.driverId.isEqualTo(driverId)),
-            orderBy: r => [{ column: r.date, descending: false }],
-        })) {
-
-            // Build Row
-            let rDate = new Date(ride.date.value.getFullYear(), ride.date.value.getMonth(), ride.date.value.getDate());
-
-            let date = rDate.getTime() === todayDate.getTime()
-                ? "Today"
-                : rDate.getTime() === tomorrowDate.getTime()
-                    ? "Tomorrow"
-                    : formatDate(rDate.getTime(), "dd/MM/yyyy", 'en-US');//todo:'he-IL';
-            let period = ride.dayPeriod.value.id;
-            let title = `${date} - ${period}`;
-
-            let icons: string[] = [];
-            if (ride.isNeedWheelchair.value) {
-                icons.push("accessible");
-            }
-            if (ride.isHasExtraEquipment.value) {
-                icons.push("home_repair_service");
-            }
-
-            let phones = "";
-            let p = await context.for(Patient).findId(ride.patientId.value);
-            if (p && p.mobile && p.mobile.value) {
-                phones = p.mobile.value;
-            }
-
-            let row: rides4DriverRow = {
-                id: ride.id.value,
-                from: (await context.for(Location).findId(ride.from.value)).name.value,
-                to: (await context.for(Location).findId(ride.to.value)).name.value,
-                passengers: 1 + ride.escortsCount.value,//patient+escorts
-                icons: icons,
-                phones: phones,
-                date: ride.date.value,
-                ids: [],
-                groupByLocation: false,
-                isWaitingForUsherApproove: ride.isWaitingForUsherApproove(),
-                isWaitingForStart: ride.isWaitingForStart(),
-                isWaitingForPickup: ride.isWaitingForPickup(),
-                isWaitingForArrived: ride.isWaitingForArrived(),
-            };
-
-            let group = result.find(grp => grp.title === title);
-            if (!(group)) {
-                group = { title: title, rows: [] };
-                result.push(group);
-            }
-
-            if (groupByFromAndTo) {
-                let key = `${row.from}-${row.to}`;
-                let r = group.rows.find(r => key === `${r.from}-${r.to}`);
-                if (r) {
-                    r.ids.push(row.id);
-                    r.passengers += row.passengers;
-                }
-                else {
-                    r = row;
-                    r.ids.push(row.id);
-                    r.groupByLocation = true;
-                    r.icons = [];
-                    group.rows.push(r);
-                }
-            }
-            else {
-                group.rows.push(row);
-            }
-        }
-        return result;
-    }
-
-    @ServerFunction({ allowed: Roles.driver })
-    static async getSuggestedRidesForDriverAsGoupByDateAndPeriod(driverId: string, groupByFromAndTo = false, context?: Context): Promise<rides4Driver[]> {
+    static async getSuggestedRidesForDriverGoupByDateAndPeriod(driverId: string, groupByFromAndTo = false, context?: Context): Promise<rides4Driver[]> {
         let result: rides4Driver[] = [];
 
         let today = await Utils.getServerDate();
@@ -354,19 +273,22 @@ export class Usher {
                 let period = ride.dayPeriod.value.id;
                 let title = `${date} - ${period}`;
 
-                let icons: string[] = [];
-                if (ride.isNeedWheelchair.value) {
-                    icons.push("accessible");
+                let icons: {name: string, desc:string}[] = [];
+                if (ride.isHasBabyChair.value) {
+                    icons.push({name: "child_friendly", desc: "Has Babychair"});
+                }
+                if (ride.isHasWheelchair.value) {
+                    icons.push({name: "accessible", desc: "Has Wheelchair"});
                 }
                 if (ride.isHasExtraEquipment.value) {
-                    icons.push("home_repair_service");
+                    icons.push({name: "home_repair_service", desc: "Has Extra Equipment"});
                 }
 
                 let row: rides4DriverRow = {
                     id: ride.id.value,
                     from: (await context.for(Location).findId(ride.from.value)).name.value,
                     to: (await context.for(Location).findId(ride.to.value)).name.value,
-                    passengers: 1 + ride.escortsCount.value,//patient+escorts
+                    passengers: ride.passengers(),
                     icons: icons,
                     phones: "",
                     groupByLocation: false,
@@ -413,7 +335,7 @@ export class Usher {
     static async getSuggestedRidesForDriver(driverId: string, context?: Context): Promise<rides4DriverRow[]> {
         let result: rides4DriverRow[] = [];
 
-        for await (const grp of await this.getSuggestedRidesForDriverAsGoupByDateAndPeriod(driverId, false, context)) {
+        for await (const grp of await this.getSuggestedRidesForDriverGoupByDateAndPeriod(driverId, false, context)) {
             result.push(...grp.rows);
         }
 
@@ -577,7 +499,7 @@ export interface rides4DriverRow {
     from: string,
     to: string,
     passengers: number,
-    icons: string[],
+    icons: {name: string,desc:  string}[],
     phones: string,
     date: Date,
     groupByLocation: boolean,

@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { APP_INITIALIZER, NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -15,7 +15,8 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { RemultModule } from '@remult/angular';
+import { RemultModule, } from '@remult/angular';
+import { Context } from '@remult/core';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { DialogService } from './common/dialog';
@@ -24,6 +25,7 @@ import { GridDialogComponent } from './common/grid-dialog/grid-dialog.component'
 import { InputAreaComponent } from './common/input-area/input-area.component';
 import { YesNoQuestionComponent } from './common/yes-no-question/yes-no-question.component';
 import { ApplicationSettingsComponent } from './core/application-settings/application-settings.component';
+import { ApplicationSettings, SettingsService } from './core/application-settings/applicationSettings';
 import { DriverRidesComponent } from './core/drivers/driver-rides/driver-rides.component';
 import { DriverSettingsComponent } from './core/drivers/driver-settings/driver-settings.component';
 import { DriverUsefulInformationComponent } from './core/drivers/driver-useful-information/driver-useful-information.component';
@@ -82,9 +84,37 @@ import { UsersComponent } from './users/users.component';
     RemultModule,
     BrowserAnimationsModule
   ],
-  providers: [DialogService, AdminGuard, UsherGuard, MatcherGuard, DriverGuard,ServerEventsService, Utils],
+  providers: [DialogService, AdminGuard, UsherGuard, MatcherGuard, DriverGuard, ServerEventsService, Utils,
+
+    // {
+    //   provide: ApplicationSettings, useFactory: (service: SettingsService) => {
+    //     return service.instance;
+    //   },
+    //   deps: [SettingsService]
+    // },
+    // {
+    //   provide: APP_INITIALIZER,
+    //   deps: [JwtSessionManager, SettingsService,Context],
+    //   useFactory: initApp,
+    //   multi: true,
+
+    // },
+    // SettingsService,
+  ],
   bootstrap: [AppComponent],
   entryComponents: [YesNoQuestionComponent, InputAreaComponent,
     GridDialogComponent, DynamicServerSideSearchDialogComponent]
 })
 export class AppModule { }
+
+// export function initApp(session: JwtSessionManager, settings: SettingsService,context:Context) {
+//   return async () => {
+
+//     try {
+//       // session.loadSessionFromCookie(Sites.getOrganizationFromContext(context));
+
+//       await settings.init();
+//     }
+//   }
+// }
+

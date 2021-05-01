@@ -47,7 +47,7 @@ export class RidesComponent implements OnInit {
     // allowDelete: false,
     rowButtons: [{
       textInMenu: "Find Driver",
-      click: async (r) => await this.openReleventDriversDialog(r),
+      click: async (r) => await this.openSuggestedDriversForRideDialog(r),
       icon: "person_search",
       visible: (r) => !r.isNew(),
       showInLine: true,
@@ -118,7 +118,7 @@ export class RidesComponent implements OnInit {
             await this.openDriversDialog(clkRide);
           }
           else {
-            await this.openReleventDriversDialog(clkRide);
+            await this.openSuggestedDriversForRideDialog(clkRide);
           }
         }
       },
@@ -160,11 +160,23 @@ export class RidesComponent implements OnInit {
             column: ride.dayPeriod,
             valueList: [DayPeriod.morning, DayPeriod.afternoon]
           },
-          ride.isNeedWheelchair,
+          ride.isHasBabyChair,
+          ride.isHasWheelchair,
+          ride.isHasExtraEquipment,
           ride.isHasEscort,
+          // {
+          //   column: ride.isHasEscort,
+          //   allowClick: () => {return true;},
+          //   click: () => {// not trigger
+          //     console.log("clickclik");
+          //     if (ride.isHasEscort.value) {
+          //       ride.escortsCount.value = Math.max(1, ride.escortsCount.value);
+          //     }
+          //   },
+          // },
           {
             column: ride.escortsCount,
-            visible: (r) => ride.isHasEscort.value
+            visible: () => ride.isHasEscort.value,
           },
         ],
         ok: async () => {
@@ -187,7 +199,7 @@ export class RidesComponent implements OnInit {
       }));
   }
 
-  async openReleventDriversDialog(r: Ride) {
+  async openSuggestedDriversForRideDialog(r: Ride) {
 
     let values: ValueListItem[] = [];
     // console.log(r.date);
@@ -200,7 +212,7 @@ export class RidesComponent implements OnInit {
     };
     // console.table(relevantDrivers);
     this.context.openDialog(SelectValueDialogComponent, x => x.args({
-      title: `Relevent Drivers (${drivers.length})`,
+      title: `Suggested Drivers (${drivers.length})`,
       values: values,
       // orderBy:r => [{ column: r.date, descending: true }]
       onSelect: async x => {

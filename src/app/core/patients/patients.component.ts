@@ -146,7 +146,9 @@ export class PatientsComponent implements OnInit {
             column: isNeedReturnTrip,
             visible: (r) => ride.dayPeriod.value == DayPeriod.morning,
           },
-          ride.isNeedWheelchair,
+          ride.isHasBabyChair,
+          ride.isHasWheelchair,
+          ride.isHasExtraEquipment,
           ride.isHasEscort,
           {
             column: ride.escortsCount,
@@ -162,7 +164,6 @@ export class PatientsComponent implements OnInit {
             ride.copyTo(returnRide);
             returnRide.from.value = ride.to.value;
             returnRide.to.value = ride.from.value;
-            returnRide.dayOfWeek.value = ride.dayOfWeek.value;
             returnRide.dayPeriod.value = DayPeriod.afternoon;
             await returnRide.save();
           }

@@ -2,6 +2,7 @@ import { Injectable, NgZone } from '@angular/core';
 import { BusyService } from '@remult/angular';
 import { Context, JwtSessionService, ServerFunction } from '@remult/core';
 import { Subject } from 'rxjs';
+import { RideStatus } from '../core/rides/ride';
 
 
 @Injectable()
@@ -88,5 +89,12 @@ export class DestroyHelper {
 
 }
 export interface Message {
-    text: string
+    type: MessageType,
+    status: RideStatus,
+    text: string,
+}
+
+export class MessageType{
+    static driverSendStatusToUsher = new  MessageType();
+    static usherSendStatusToDriver = new  MessageType();
 }
