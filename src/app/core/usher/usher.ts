@@ -3,7 +3,7 @@ import { ColumnSettings, Context, DateColumn, Filter, ServerFunction, ValueListC
 import { Utils } from "../../shared/utils";
 import { Roles } from "../../users/roles";
 import { Driver } from "../drivers/driver";
-import { DayOfWeek, DriverPrefs } from "../drivers/driverPrefs";
+import { DriverPrefs } from "../drivers/driverPrefs";
 import { Patient } from "../patients/patient";
 import { Ride, RideStatus } from "../rides/ride";
 import { Location } from "./../locations/location";
@@ -11,9 +11,21 @@ import { Location } from "./../locations/location";
 export class Usher {
 
 
+
     @ServerFunction({ allowed: c => c.isSignedIn() })//allowed: Roles.matcher
-    static async getRegisteredRidesForPatient(patientId: string, context?: Context) {
-        let result: rides4PatientRow[] = [];
+    static async getSuggestedRidesIdsByDrivers(context?: Context, groupByFromAndTo = false): Promise<string[]> {
+        let result: string[] = [];
+        for await (const group of await this.getSuggestedRidesByDrivers(context, groupByFromAndTo)) {
+            for (const ride of group.rows) {
+                result.push(ride.id);
+            }
+        }
+        return result;
+    }
+
+    @ServerFunction({ allowed: c => c.isSignedIn() })//allowed: Roles.matcher
+    static async getSuggestedRidesByDrivers(context?: Context, groupByFromAndTo = false): Promise<ridesNoPatient[]> {
+        let result: ridesNoPatient[] = [];
 
         let today = await Utils.getServerDate();
         let tomorrow = addDays(1);
@@ -21,9 +33,9 @@ export class Usher {
         let tomorrowDate = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());//T00:00:00
 
         for await (const ride of context.for(Ride).iterate({
-            where: r => (r.date.isGreaterOrEqualTo(todayDate))
-                .and(r.patientId.isEqualTo(patientId)),
-            orderBy: r => [{ column: r.date, descending: false }],
+            where: r => (r.date.isGreaterOrEqualTo(todayDate)),
+            //.and(r.status.isEqualTo(RideStatus.suggestedByDriver)),
+            orderBy: r => [{ column: r.date, descending: false }, { column: r.dayPeriod, descending: true }],
         })) {
 
             // Build Row
@@ -35,17 +47,107 @@ export class Usher {
                     ? "Tomorrow"
                     : formatDate(rDate.getTime(), "dd/MM/yyyy", 'en-US');//todo:'he-IL';
             let period = ride.dayPeriod.value.id;
-            let title = `${date} - ${period}`;
 
-            let icons: {name: string, desc:string}[] = [];
+            let icons: { name: string, desc: string }[] = [];
             if (ride.isHasBabyChair.value) {
-                icons.push({name: "child_friendly", desc: "Has Babychair"});
+                icons.push({ name: "child_friendly", desc: "Has Babychair" });
             }
             if (ride.isHasWheelchair.value) {
-                icons.push({name: "accessible", desc: "Has Wheelchair"});
+                icons.push({ name: "accessible", desc: "Has Wheelchair" });
             }
             if (ride.isHasExtraEquipment.value) {
-                icons.push({name: "home_repair_service", desc: "Has Extra Equipment"});
+                icons.push({ name: "home_repair_service", desc: "Has Extra Equipment" });
+            }
+
+            let phones = "";
+            let p = await context.for(Patient).findId(ride.patientId.value);
+            if (p && p.mobile && p.mobile.value) {
+                phones = p.mobile.value;
+            }
+
+            let title = `${date} - ${period}`;
+            let group = result.find(grp => grp.title === title);
+            if (!(group)) {
+                group = { title: title, rows: [] };
+                result.push(group);
+            }
+
+            let row: rides4Usher = {
+                patinetName: '',
+                patinetAge: 0,
+                patientMobile: '',
+                ids: [],
+                icons: icons,
+                groupByLocation: groupByFromAndTo,
+                driverName: (await context.for(Driver).findId(ride.driverId.value)).name.value,
+                id: ride.id.value,
+                date: ride.date.value,
+                status: ride.status.value.id,
+                statusDate: ride.statusDate.value,
+                from: (await context.for(Location).findId(ride.from.value)).name.value,
+                to: (await context.for(Location).findId(ride.to.value)).name.value,
+                passengers: ride.passengers(),
+            };
+
+            if (groupByFromAndTo) {
+                let key = `${ride.from}-${row.to}`;
+                let r = group.rows.find(r => key === `${r.from}-${r.to}`);
+                if (r) {
+                    r.ids.push(row.id);
+                    r.passengers += row.passengers;
+                }
+                else {
+                    r = row;
+                    r.ids.push(row.id);
+                    r.groupByLocation = true;
+                    r.icons = [];
+                    group.rows.push(r);
+                }
+            }
+            else {
+                group.rows.push(row);
+            }
+        }
+        console.log(result.length);
+        return result;
+    }
+
+
+    @ServerFunction({ allowed: c => c.isSignedIn() })//allowed: Roles.matcher
+    static async getRegisteredRidesForPatient(patientId: string, context?: Context) {
+        let result: rides4PatientRow[] = [];
+
+        let today = await Utils.getServerDate();
+        // let tomorrow = addDays(1);
+        let todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());//T00:00:00
+        // let tomorrowDate = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());//T00:00:00
+
+        for await (const ride of context.for(Ride).iterate({
+            where: r => (r.date.isGreaterOrEqualTo(todayDate))
+                .and(r.patientId.isEqualTo(patientId)),
+            orderBy: r => [{ column: r.date, descending: false }],
+        })) {
+
+            // Build Row
+            // let rDate = new Date(ride.date.value.getFullYear(), ride.date.value.getMonth(), ride.date.value.getDate());
+
+            // let date = rDate.getTime() === todayDate.getTime()
+            //     ? "Today"
+            //     : rDate.getTime() === tomorrowDate.getTime()
+            //         ? "Tomorrow"
+            //         : formatDate(rDate.getTime(), "dd/MM/yyyy", 'en-US');//todo:'he-IL';
+            // let period = ride.dayPeriod.value.id;
+            // let title = `${date} - ${period}`;
+
+            let icons: { name: string, desc: string }[] = [];
+            if (ride.isHasBabyChair.value) {
+                icons.push({ name: "child_friendly", desc: "Has Babychair" });
+            }
+            if (ride.isHasWheelchair.value) {
+                icons.push({ name: "accessible", desc: "Has Wheelchair" });
+            }
+            if (ride.isHasExtraEquipment.value) {
+                icons.push({ name: "home_repair_service", desc: "Has Extra Equipment" });
             }
 
             let phones = "";
@@ -57,7 +159,7 @@ export class Usher {
             let row: rides4PatientRow = {
                 id: ride.id.value,
                 date: ride.date.value,
-                status: (ride.status.value ? ride.status.value.caption : ""),
+                status: ride.status.value,
                 statusDate: ride.statusDate.value,
                 from: (await context.for(Location).findId(ride.from.value)).name.value,
                 to: (await context.for(Location).findId(ride.to.value)).name.value,
@@ -95,7 +197,7 @@ export class Usher {
 
         for await (const ride of context.for(Ride).iterate({
             where: r => (r.date.isGreaterOrEqualTo(todayDate))
-                .and(r.status.isDifferentFrom(RideStatus.waitingFor10DriverAccept))
+                .and(r.status.isDifferentFrom(RideStatus.waitingForDriverAccept))
                 .and(r.driverId.isEqualTo(driverId)),
             orderBy: r => [{ column: r.date, descending: false }],
         })) {
@@ -111,15 +213,15 @@ export class Usher {
             let period = ride.dayPeriod.value.id;
             let title = `${date} - ${period}`;
 
-            let icons: {name: string, desc:string}[] = [];
+            let icons: { name: string, desc: string }[] = [];
             if (ride.isHasBabyChair.value) {
-                icons.push({name: "child_friendly", desc: "Has Babychair"});
+                icons.push({ name: "child_friendly", desc: "Has Babychair" });
             }
             if (ride.isHasWheelchair.value) {
-                icons.push({name: "accessible", desc: "Has Wheelchair"});
+                icons.push({ name: "accessible", desc: "Has Wheelchair" });
             }
             if (ride.isHasExtraEquipment.value) {
-                icons.push({name: "home_repair_service", desc: "Has Extra Equipment"});
+                icons.push({ name: "home_repair_service", desc: "Has Extra Equipment" });
             }
 
             let phones = "";
@@ -215,7 +317,7 @@ export class Usher {
                     name: d.name.value,
                     mobile: d.mobile.value,
                     days: days,
-                    lastStatus: d.lastStatus.value ? d.lastStatus.value.caption : "",
+                    lastStatus: d.lastStatus.value,
                     lastStatusDate: d.lastStatusDate.value,
                     isWaitingForUsherApproove: d.isWaitingForUsherApproove(),
                     isWaitingForStart: d.isWaitingForStart(),
@@ -229,8 +331,8 @@ export class Usher {
     }
 
     @ServerFunction({ allowed: Roles.driver })
-    static async getSuggestedPatientsForRide(patientId: string, groupByFromAndTo = false, context?: Context): Promise<rides4PatientRow[]>{
-        let result: rides4PatientRow[]  = [];
+    static async getSuggestedPatientsForRide(patientId: string, groupByFromAndTo = false, context?: Context): Promise<rides4PatientRow[]> {
+        let result: rides4PatientRow[] = [];
         return result;
     }
 
@@ -258,7 +360,7 @@ export class Usher {
 
             for await (const ride of context.for(Ride).iterate({
                 where: r => (r.date.isGreaterOrEqualTo(todayDate))//dates
-                    .and(r.status.isEqualTo(RideStatus.waitingFor10DriverAccept))//status
+                    .and(r.status.isEqualTo(RideStatus.waitingForDriverAccept))//status
                     .and(r.from.isIn(...fromBorders).or(r.to.isIn(...toBorders))),//locations
             })) {
 
@@ -273,15 +375,15 @@ export class Usher {
                 let period = ride.dayPeriod.value.id;
                 let title = `${date} - ${period}`;
 
-                let icons: {name: string, desc:string}[] = [];
+                let icons: { name: string, desc: string }[] = [];
                 if (ride.isHasBabyChair.value) {
-                    icons.push({name: "child_friendly", desc: "Has Babychair"});
+                    icons.push({ name: "child_friendly", desc: "Has Babychair" });
                 }
                 if (ride.isHasWheelchair.value) {
-                    icons.push({name: "accessible", desc: "Has Wheelchair"});
+                    icons.push({ name: "accessible", desc: "Has Wheelchair" });
                 }
                 if (ride.isHasExtraEquipment.value) {
-                    icons.push({name: "home_repair_service", desc: "Has Extra Equipment"});
+                    icons.push({ name: "home_repair_service", desc: "Has Extra Equipment" });
                 }
 
                 let row: rides4DriverRow = {
@@ -341,99 +443,6 @@ export class Usher {
 
         return result;
     }
-
-    // Filter by status&driver&date
-    private static filter(ride: Ride, orgBy?: ByDate) {
-
-        const today = new Date();
-        const yesterday = new Date(today.getDate() - 1);
-        const tomorrow = new Date(today.getDate() + 1);
-
-        // waitingForMatch&no-driver-yet
-        var filter = ride.status.isEqualTo(RideStatus.waitingFor10DriverAccept)
-            .and(ride.driverId.isEqualTo(undefined));
-
-        switch (orgBy) {
-            case ByDate.all: {
-                break;
-            }
-            case ByDate.todayAndAbove: {
-                filter = filter.and(ride.date.isGreaterOrEqualTo(today));
-                break;
-            }
-            case ByDate.yesterdayAndBelow: {
-                filter = filter.and(ride.date.isLessThan(today));
-                break;
-            }
-            case ByDate.yesterday: {
-                filter = filter.and(ride.date.isEqualTo(yesterday));
-                break;
-            }
-            case ByDate.tomorrow: {
-                filter = filter.and(ride.date.isEqualTo(tomorrow));
-                break;
-            }
-            default: {// OrganizeWhereCaulse.today:
-                filter = filter.and(ride.date.isEqualTo(today));
-                break;
-            }
-        }
-
-        return filter;
-    }
-
-}
-
-function getDayOfWeek(desc: string) {
-    switch (desc) {
-        case "ראשון":
-        case "1":
-            return DayOfWeek.sunday;
-        case "שני":
-        case "2":
-            return DayOfWeek.monday;
-        case "שלישי":
-        case "3":
-            return DayOfWeek.tuesday;
-        case "רביעי":
-        case "4":
-            return DayOfWeek.wednesday;
-        case "חמישי":
-        case "5":
-            return DayOfWeek.thursday;
-        case "שישי":
-        case "6":
-            return DayOfWeek.friday;
-        case "שבת":
-        case "7":
-            return DayOfWeek.saturday;
-
-        default:
-            break;
-    }
-}
-
-function getDayPeriod(dayNum: number) {
-    switch (dayNum) {
-        case 1: return DayOfWeek.sunday;
-        case 2: return DayOfWeek.monday;
-        case 3: return DayOfWeek.tuesday;
-        case 4: return DayOfWeek.wednesday;
-        case 5: return DayOfWeek.thursday;
-        case 6: return DayOfWeek.friday;
-        case 7: return DayOfWeek.saturday;
-
-        default:
-            break;
-    }
-}
-
-export class DriverRelevntBy {
-    static dayAndPeriod = new DriverRelevntBy(r => r.dayOfWeek.isEqualTo(r.dayOfWeek).and(r.dayPeriod.isEqualTo(r.dayPeriod)));
-    static noDriverId = new DriverRelevntBy(r => r.driverId.isEqualTo(undefined).or(r.driverId.isDifferentFrom('')));
-    static all = DriverRelevntBy.dayAndPeriod && DriverRelevntBy.noDriverId;
-    constructor(public filter: (ride: Ride) => Filter) { }
-    id;
 }
 
 export function addDays(days: number) {
@@ -462,6 +471,7 @@ export class ByDateColumn extends ValueListColumn<ByDate>{
         });
     }
 }
+
 export interface rides4PatientRow {
     id: string,
     date: Date,
@@ -469,7 +479,7 @@ export interface rides4PatientRow {
     to: string,
     passengers: number,
     phones: string,
-    status: string,
+    status: RideStatus,
     statusDate: Date,
     isWaitingForUsherApproove: boolean,
     isWaitingForStart: boolean,
@@ -486,7 +496,7 @@ export interface drivers4UsherRow {
     mobile: string,
     days: number,
 
-    lastStatus: string,
+    lastStatus: RideStatus,
     lastStatusDate: Date,
     isWaitingForUsherApproove: boolean,
     isWaitingForStart: boolean,
@@ -499,7 +509,7 @@ export interface rides4DriverRow {
     from: string,
     to: string,
     passengers: number,
-    icons: {name: string,desc:  string}[],
+    icons: { name: string, desc: string }[],
     phones: string,
     date: Date,
     groupByLocation: boolean,
@@ -517,4 +527,30 @@ export interface rides4DriverRow {
 export interface rides4Driver {
     title: string,
     rows: rides4DriverRow[],
+};
+export interface ridesNoPatient {
+    title: string,
+    rows: rides4Usher[],
+};
+
+export interface rides4Usher {
+
+    id: string,
+    date: Date,
+    from: string,
+    to: string,
+    patinetName: string,
+    patinetAge: number,
+    passengers: number,
+    patientMobile: string,
+    driverName: string,
+    status: string,
+    statusDate: Date,
+    icons: { name: string, desc: string }[],
+    groupByLocation: boolean,
+    ids: string[],
+}
+export interface ridesWaiting4Driver {
+    title: string,
+    rows: rides4Usher[],
 };

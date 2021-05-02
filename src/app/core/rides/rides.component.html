@@ -1,13 +1,83 @@
 <div class="full-page">
-    <div class="patients-top" style="display: flex;">
-        <data-control [column]="byDate"></data-control>
+  
+  <div class="grow-item" *ngIf="suggestedByDrivers && suggestedByDrivers.length > 0">
+    <h3>Suggested By Drivers ( Future Rides )</h3>
+    <mat-accordion [multi]="false">
+      <mat-expansion-panel *ngFor="let group of suggestedByDrivers" (afterExpand)="groupExpanded(group)">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <strong>{{ group.title | titlecase }}</strong>
+          </mat-panel-title>
+          <mat-panel-description>
+            Count: {{ group.rows.length }} {{ groupSameLocations? "Rows" : "Rides" }}
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+        <div *ngIf="group.title === this.selectedGroupTitle">
+          <data-grid class="grow-item" [settings]="suggestedByDriversSettings"></data-grid>
+        </div>
+      </mat-expansion-panel>
+    </mat-accordion>
+  </div>
+  
+  <div class="grow-item" *ngIf="suggestedByDrivers2 && suggestedByDrivers2.length > 0">
+    <h3>Waitings For Driver</h3>
+    <mat-accordion [multi]="false">
+      <mat-expansion-panel *ngFor="let group of suggestedByDrivers2" (afterExpand)="groupExpanded(group)">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <strong>{{ group.title | titlecase }}</strong>
+          </mat-panel-title>
+          <mat-panel-description>
+            Count: {{ group.rows.length }} {{ groupSameLocations? "Rows" : "Rides" }}
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+        <div *ngIf="group.title === this.selectedGroupTitle">
+          <data-grid class="grow-item" [settings]="ridesWaiting4DriverSettings"></data-grid>
+        </div>
+      </mat-expansion-panel>
+    </mat-accordion>
+  </div>
 
-        <!-- <button mat-mini-fab style="margin-left:50px" (click)="refresh()" color="primary">
+</div>
+
+<!-- <div class="full-page"> -->
+<!-- <div class="patients-top" style="display: flex;"> -->
+<!-- <data-control [column]="byDate"></data-control> -->
+
+<!-- <button mat-mini-fab style="margin-left:50px" (click)="refresh()" color="primary">
             <mat-icon>refresh</mat-icon>
           </button> -->
-    </div>
+<!-- </div> -->
 
-    <div class="grow-item">
+<!-- <div class="grow-item">
         <data-grid class="patients-center" [settings]="ridesSettings"></data-grid>
-    </div>
-</div>
+    </div> -->
+<!-- </div> -->
+
+
+          <!-- <table style="width: 100%;">
+            <tr>
+              <th></th>
+              <th>Date</th>
+              <th>From</th>
+              <th>To</th>
+              <th>Passengers</th>
+              <th>DriverName</th>
+              <th>Status</th>
+              <th>Requires</th>
+            </tr>
+            <tr *ngFor="let r of group.rows">
+              <td>|___</td>
+                <td>{{ r.date | date: 'HH:mm' }}</td>
+                <td>{{ r.from }}</td>
+                <td>{{ r.to }}</td>
+                <td>{{ r.passengers }} Passenger{{ r.passengers > 1 ? "s" : "" }}</td>
+                <td>{{ r.driverName }}</td>
+                <td>{{ r.status }}</td>
+                <td>
+                  <mat-icon title="{{ i.desc }}" *ngFor="let i of r.icons">
+                    {{ i.name }}
+                  </mat-icon>
+                </td>
+            </tr>
+          </table> -->

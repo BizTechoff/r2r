@@ -59,7 +59,13 @@ export class DriverRidesComponent implements OnInit, OnDestroy {
     );
     this.serverToday = await Utils.getServerDate();
 
-    await this.retrieve();
+    if (this.driver && this.driver.id && this.driver.id.value && this.driver.id.value.length > 0) {
+      await this.retrieve();
+    }
+    else{
+      this.snakebar.info("Your user NOT found, Please sign-up");
+      //this.navigate.to("/signup");
+    }
   }
 
   async onGroupSameLocations() {
@@ -121,7 +127,7 @@ export class DriverRidesComponent implements OnInit, OnDestroy {
             });
 
             let count = 0;
-            for (const r of all) { 
+            for (const r of all) {
               //todo: find algoritem to get the max rides (1,2,3)=4seats=(1+2)|(3+1)
               let curPass = r.passengers();
               if (count + curPass <= driverSelected[2].value)//bigger than what driver wants.
@@ -137,7 +143,7 @@ export class DriverRidesComponent implements OnInit, OnDestroy {
 
           for (const r of rides) {
             r.driverId.value = this.driver.id.value;
-            r.status.value = RideStatus.waitingFor20UsherApproove;
+            r.status.value = RideStatus.waitingForUsherApproove;
             await r.save();
           }
           this.snakebar.info("Thank You! We will contact you ASAP")
@@ -149,14 +155,14 @@ export class DriverRidesComponent implements OnInit, OnDestroy {
 
   async startDriving(rideId: string) {
     let ride = await this.context.for(Ride).findId(rideId);
-    ride.status.value = RideStatus.waitingFor40Pickup;
+    ride.status.value = RideStatus.waitingForPickup;
     await ride.save();
     await this.retrieve();
   }
 
   async pickup(rideId: string) {
     let ride = await this.context.for(Ride).findId(rideId);
-    ride.status.value = RideStatus.waitingFor50Arrived;
+    ride.status.value = RideStatus.waitingForArrived;
     await ride.save();
     await this.retrieve();
   }
@@ -182,7 +188,7 @@ export class DriverRidesComponent implements OnInit, OnDestroy {
         ],
         ok: async () => {
           ride.driverId.value = '';
-          ride.status.value = RideStatus.waitingFor10DriverAccept;
+          ride.status.value = RideStatus.waitingForDriverAccept;
           await ride.save();
           this.snakebar.info("Thank You! Waiting To See You Again")
           await this.retrieve();

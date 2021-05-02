@@ -80,23 +80,23 @@ export class Driver extends IdEntity {
   }
 
   isWaitingForDriverAccept() {
-    return this.lastStatus.value === RideStatus.waitingFor10DriverAccept;
+    return this.lastStatus.value === RideStatus.waitingForDriverAccept;
   }
 
   isWaitingForUsherApproove() {
-    return this.lastStatus.value === RideStatus.waitingFor20UsherApproove;
+    return this.lastStatus.value === RideStatus.waitingForUsherApproove;
   }
 
   isWaitingForStart() {
-    return this.lastStatus.value === RideStatus.waitingFor30Start;
+    return this.lastStatus.value === RideStatus.waitingForStart;
   }
 
   isWaitingForPickup() {
-    return this.lastStatus.value === RideStatus.waitingFor40Pickup;
+    return this.lastStatus.value === RideStatus.waitingForPickup;
   }
 
   isWaitingForArrived() {
-    return this.lastStatus.value === RideStatus.waitingFor50Arrived;
+    return this.lastStatus.value === RideStatus.waitingForArrived;
   }
 
 }

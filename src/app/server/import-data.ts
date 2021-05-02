@@ -204,7 +204,7 @@ async function findOrCreateDriverPrefsNew(driverRecord: any, driverId: string, c
 
     let driverEntityRecord = await getDriverEntityRecord(
         driverRecord.DisplayName
-    );
+    ); 
 
     let result = [];
     if (driverEntityRecord.PrefTime && driverEntityRecord.PrefTime.length > 0) {
@@ -235,21 +235,6 @@ async function findOrCreateDriverPrefsNew(driverRecord: any, driverId: string, c
     return result;
 }
 
-async function getDriverEntityRecord(fileDriverHebName: string) {
-    if (fileDriverHebName) {
-        // console.log(fileDriverHebName);
-        var volunteers = fs.readdirSync(volunteersFolder);
-        if (volunteers) {
-            let fileName = fileDriverHebName + ".json";
-            if (volunteers.includes(fileName)) {
-                let fullPath = `${volunteersFolder}/${fileName}`;
-                var person = JSON.parse(fs.readFileSync(fullPath).toString());
-                return person;
-            }
-        }
-    }
-}
-
 async function findOrCreateRideNew(rideRecord: any, driverId: string, patientId: string, fromId: string, toId: string, context: Context) {
     // try{
     let ride = context.for(Ride).create();
@@ -262,20 +247,20 @@ async function findOrCreateRideNew(rideRecord: any, driverId: string, patientId:
     ride.dayOfWeek.value = DriverPrefs.getDayOfWeek((ride.date.value.getDay() + 1));
     ride.dayPeriod.value = DriverPrefs.getDayPeriod(ride.date.value.getHours() > 12 ? "afternoon" : "morning");
 
-    ride.status.value = RideStatus.waitingFor10DriverAccept;
+    ride.status.value = RideStatus.waitingForDriverAccept;
     if (rideRecord.Statuses) {
         for (const st of rideRecord.Statuses) {
             switch (st) {
                 case "ממתינה לשיבוץ": {
-                    ride.status.value = RideStatus.waitingFor10DriverAccept;
+                    ride.status.value = RideStatus.waitingForDriverAccept;
                     break;
                 }
                 case "שובץ נהג": {
-                    ride.status.value = RideStatus.waitingFor30Start;
+                    ride.status.value = RideStatus.waitingForStart;
                     break;
                 }
                 case "אספתי את החולה": {
-                    ride.status.value = RideStatus.waitingFor50Arrived;
+                    ride.status.value = RideStatus.waitingForArrived;
                     break;
                 }
                 case "הגענו ליעד": {
@@ -294,6 +279,23 @@ async function findOrCreateRideNew(rideRecord: any, driverId: string, patientId:
     //     console.log("error on RideNum: " + rideRecord.RideNum);
     // }
 }
+
+
+async function getDriverEntityRecord(fileDriverHebName: string) {
+    if (fileDriverHebName) {
+        // console.log(fileDriverHebName);
+        var volunteers = fs.readdirSync(volunteersFolder);
+        if (volunteers) {
+            let fileName = fileDriverHebName + ".json";
+            if (volunteers.includes(fileName)) {
+                let fullPath = `${volunteersFolder}/${fileName}`;
+                var person = JSON.parse(fs.readFileSync(fullPath).toString());
+                return person;
+            }
+        }
+    }
+}
+
 async function importRidesToFiles(folderName: string) {
     let r = await get('GetRidePatViewByTimeFilter', { from: 7, until: 1 });
     for (const v of r) {

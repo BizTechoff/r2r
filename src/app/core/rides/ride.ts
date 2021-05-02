@@ -57,7 +57,9 @@ export class Ride extends IdEntity {
                                 });
                         }
                         else {
-                            console.log("appSettings.allowPublishMessages.value = false");
+                            if (!(process.env.IMPORT_DATA)) {
+                                console.log("appSettings.allowPublishMessages.value = false");
+                            }
                         }
                     }
                 }
@@ -67,29 +69,45 @@ export class Ride extends IdEntity {
         });
     }
 
+    exsistPatient(): boolean {
+      return this.patientId && this.patientId.value && this.patientId.value.length > 0;
+    }
+
+    exsistDriver(): boolean {
+      return this.driverId && this.driverId.value && this.driverId.value.length > 0;
+    }
+
     getDayOfWeek() {
         return DriverPrefs.getDayOfWeek(this.date.getDayOfWeek());
     }
 
 
+    isSuggestedByDriver() {
+        return this.status.value === RideStatus.suggestedByDriver;
+    }
+
+    isSuggestedByUsher() {
+        return this.status.value === RideStatus.suggestedByUsher;
+    }
+
     isWaitingForDriverAccept() {
-        return this.status.value === RideStatus.waitingFor10DriverAccept;
+        return this.status.value === RideStatus.waitingForDriverAccept;
     }
 
     isWaitingForUsherApproove() {
-        return this.status.value === RideStatus.waitingFor20UsherApproove;
+        return this.status.value === RideStatus.waitingForUsherApproove;
     }
 
     isWaitingForStart() {
-        return this.status.value === RideStatus.waitingFor30Start;
+        return this.status.value === RideStatus.waitingForStart;
     }
 
     isWaitingForPickup() {
-        return this.status.value === RideStatus.waitingFor40Pickup;
+        return this.status.value === RideStatus.waitingForPickup;
     }
 
     isWaitingForArrived() {
-        return this.status.value === RideStatus.waitingFor50Arrived;
+        return this.status.value === RideStatus.waitingForArrived;
     }
 
 
@@ -115,26 +133,27 @@ export class Ride extends IdEntity {
 }
 
 export class RideStatus {
-    static waitingFor10DriverAccept = new RideStatus(10, 'waitingForDriverAccept',);
-    //static waitingFor12Patient = new RideStatus(2, 'waitingForPatient',);//driver future ride
-    //static waitingFor18Match = new RideStatus(3, 'waitingForMatch',);
-    static waitingFor20UsherApproove = new RideStatus(20, 'waitingForUsherApproove',);
-    static waitingFor30Start = new RideStatus(30, 'waitingForStart',);
-    static waitingFor40Pickup = new RideStatus(40, 'waitingForPickup',);
-    static waitingFor50Arrived = new RideStatus(50, 'waitingForArrived',);
-    static waitingFor60End = new RideStatus(60, 'waitingForEnd',);
-    static succeeded = new RideStatus(100, 'succeeded',);
-    static failed = new RideStatus(101, 'failed',);
-    static rejected = new RideStatus(102, 'rejected',);
-    constructor(public id: number, public caption: string, public color = 'green') { }
-    // static isWaitingForUsherApproove(){return this.waitingFor20UsherApproove;}
+    static suggestedByUsher = new RideStatus();
+    static suggestedByDriver = new RideStatus();
+    static waitingForDriverAccept = new RideStatus();
+    static waitingForUsherApproove = new RideStatus();
+    static waitingForStart = new RideStatus();
+    static waitingForPickup = new RideStatus();
+    static waitingForArrived = new RideStatus();
+    static waitingForEnd = new RideStatus();
+    static succeeded = new RideStatus();
+    static failed = new RideStatus();
+    static rejected = new RideStatus();
+    constructor(public color = 'green') { }
+    id;
+    // caption;
 }
 
 //חולה ונהג יכולים להיות ריקים
 export class RideStatusColumn extends ValueListColumn<RideStatus>{
     constructor(options?: ColumnSettings<RideStatus>) {
         super(RideStatus, {
-            defaultValue: RideStatus.waitingFor10DriverAccept,
+            defaultValue: RideStatus.waitingForDriverAccept,
             ...options
         });
     }

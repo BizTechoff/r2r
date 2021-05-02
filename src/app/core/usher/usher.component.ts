@@ -43,7 +43,7 @@ export class UsherComponent implements OnInit {
   async assign(ride: Ride, driver: Driver, notify = false) {
 
     ride.driverId.value = driver.id.value;
-    ride.status.value = RideStatus.waitingFor30Start;
+    ride.status.value = RideStatus.waitingForStart;
     await ride.save();
 
     if (notify) {
