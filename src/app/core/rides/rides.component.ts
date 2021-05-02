@@ -1,4 +1,6 @@
+import { formatDate } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
+import { MatTableDataSource } from '@angular/material';
 import { SelectValueDialogComponent } from '@remult/angular';
 import { Context, NumberColumn, StringColumn, ValueListItem } from '@remult/core';
 import { DialogService } from '../../common/dialog';
@@ -7,8 +9,7 @@ import { InputAreaComponent } from '../../common/input-area/input-area.component
 import { SmsService } from '../../shared/smsService';
 import { Driver } from '../drivers/driver';
 import { DayPeriod } from '../drivers/driverPrefs';
-import { Patient } from '../patients/patient';
-import { ByDate, ByDateColumn, ridesNoPatient, ridesWaiting4Driver, Usher } from '../usher/usher';
+import { rides4Usher, ridesNoPatient, ridesWaiting4Driver, Usher } from '../usher/usher';
 import { Ride, RideStatus } from './ride';
 
 @Component({
@@ -23,9 +24,11 @@ export class RidesComponent implements OnInit {
   selectedGroupRideIds: string[] = [];
   suggestedByDrivers: ridesNoPatient[] = [];
 
-  selectedGroupTitle2: string = "";
-  selectedGroupRideIds2: string[] = [];
-  suggestedByDrivers2: ridesWaiting4Driver[] = [];
+  matTableDataSource = new MatTableDataSource<rides4Usher>();
+
+  selectedWaiting4DriverGroupTitle: string = "";
+  selectedWaiting4DriverIds: string[] = [];
+  waiting4Driver: ridesWaiting4Driver[] = [];
 
   suggestedByDriversSettings = this.context.for(Ride).gridSettings({
     where: r => r.id.isIn(...this.selectedGroupRideIds),
@@ -38,6 +41,7 @@ export class RidesComponent implements OnInit {
       },
       r.from,
       r.to,
+      r.patientId,
       {
         column: new NumberColumn({ caption: "passengers" }),
         value: r.passengers(),
@@ -46,6 +50,12 @@ export class RidesComponent implements OnInit {
       r.status,
     ],
     rowButtons: [{
+      textInMenu: "Suggest Patient",
+      click: async (r) => await this.openSuggestedPatientsForRideDialog(r),
+      icon: "travel_explore",
+      visible: (r) => !r.exsistPatient(),
+      showInLine: true,
+    }, {
       textInMenu: "Approove Suggestion",
       icon: "thumb_up_off_alt",
       //visible: (r) => r.isSuggestedByDriver() || r.isSuggestedByUsher(),
@@ -58,25 +68,27 @@ export class RidesComponent implements OnInit {
     },]
   });
 
-  ridesWaiting4DriverSettings = this.context.for(Ride).gridSettings({
-    where: r => r.id.isIn(...this.selectedGroupRideIds2),
+  waiting4DriverSettings = this.context.for(Ride).gridSettings({
+    where: r => r.id.isIn(...this.selectedWaiting4DriverIds),
     orderBy: r => [{ column: r.date, descending: true }, { column: r.dayPeriod, descending: false }],
     allowCRUD: false,
     numOfColumnsInGrid: 10,
     columnSettings: r => [
+      // r.date,
       {
-        column: r.date,//"HH:mm"
+        column: r.visitTime,
+        displayValue: r.hasVisitTime()? formatDate(r.visitTime.value.getTime(), "HH:mm", 'en-US'):"",
       },
       r.from,
       r.to,
-      r.patientId,
+      r.patientId, 
       {
         column: new NumberColumn({ caption: "age" }),
         value: 0,
       },
       {
         column: new NumberColumn({ caption: "passengers" }),
-        value: r.passengers(),
+        getValue: r => r.passengers(),
       },
       {
         column: new NumberColumn({ caption: "mobile" }),
@@ -118,11 +130,18 @@ export class RidesComponent implements OnInit {
     // await this.suggestedByDriversSettings.initOrigList();
   }
 
+  async waiting4DriverGroupExpanded(ride: ridesWaiting4Driver) {
+    this.selectedWaiting4DriverGroupTitle = ride.title;
+    this.selectedWaiting4DriverIds = this.waiting4Driver.find(grp => grp.title === this.selectedWaiting4DriverGroupTitle)
+      .rows.map(r => r.id) as string[];
+    // await this.suggestedByDriversSettings.initOrigList();
+  }
+ 
   async retrieve() {
 
     this.suggestedByDrivers = await Usher.getSuggestedRidesByDrivers();
-
-    // await this.suggestedByDriversSettings.reloadData();
+    
+    this.waiting4Driver = await Usher.getWaitingRides4Driver();
   }
 
 
@@ -209,7 +228,7 @@ export class RidesComponent implements OnInit {
     for (const d of drivers) {
       values.push({
         id: d.id,
-        caption: `${d.name} | ${d.mobile} | ${d.days} | ${d.lastStatus}`,
+        caption: `${d.name} | ${d.mobile} | ${d.days}`,// | ${d.lastStatus.id}`,
       });
     };
     // console.table(relevantDrivers);
@@ -228,10 +247,9 @@ export class RidesComponent implements OnInit {
     }));
   }
 
-  async openSuggestedPAtientsForRideDialog(r: Ride) {
+  async openSuggestedPatientsForRideDialog(r: Ride) {
 
     let values: ValueListItem[] = [];
-    // console.log(r.date);
     let patients = await Usher.getSuggestedPatientsForRide(r.id.value);
     for (const p of patients) {
       values.push({
@@ -241,15 +259,14 @@ export class RidesComponent implements OnInit {
     };
     // console.table(relevantDrivers);
     this.context.openDialog(SelectValueDialogComponent, x => x.args({
-      title: `Suggested Drivers (${patients.length})`,
+      title: `Suggested Patients (${patients.length})`,
       values: values,
-      // orderBy:r => [{ column: r.date, descending: true }]
+      // orderBy:r => [{ column: x.name, descending: true }]
       onSelect: async x => {
-        // let ride = await this.context.for(Ride).findId(x.item.id);
-        r.driverId.value = x.id;
-        r.status.value = RideStatus.waitingForStart,
-          await r.save();
-        this.snakebar.info(`Sending Sms To Driver: ${x.caption}`);
+        r.patientId.value = x.id;
+        r.status.value = RideStatus.waitingForUsherApproove;
+        await r.save();
+        this.snakebar.info(`Patient '${ x.caption }' successfully Set To Ride, Waiting for Approove`);
         // this.retrieveDrivers();
       },
     }));

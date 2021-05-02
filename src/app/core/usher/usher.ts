@@ -1,5 +1,5 @@
 import { formatDate } from "@angular/common";
-import { ColumnSettings, Context, DateColumn, Filter, ServerFunction, ValueListColumn } from "@remult/core";
+import { ColumnSettings, Context, DateColumn, Filter, Role, ServerFunction, ValueListColumn } from "@remult/core";
 import { Utils } from "../../shared/utils";
 import { Roles } from "../../users/roles";
 import { Driver } from "../drivers/driver";
@@ -13,19 +13,8 @@ export class Usher {
 
 
     @ServerFunction({ allowed: c => c.isSignedIn() })//allowed: Roles.matcher
-    static async getSuggestedRidesIdsByDrivers(context?: Context, groupByFromAndTo = false): Promise<string[]> {
-        let result: string[] = [];
-        for await (const group of await this.getSuggestedRidesByDrivers(context, groupByFromAndTo)) {
-            for (const ride of group.rows) {
-                result.push(ride.id);
-            }
-        }
-        return result;
-    }
-
-    @ServerFunction({ allowed: c => c.isSignedIn() })//allowed: Roles.matcher
-    static async getSuggestedRidesByDrivers(context?: Context, groupByFromAndTo = false): Promise<ridesNoPatient[]> {
-        let result: ridesNoPatient[] = [];
+    static async getWaitingRides4Driver(context?: Context, groupByFromAndTo = false): Promise<ridesWaiting4Driver[]> {
+        let result: ridesWaiting4Driver[] = [];
 
         let today = await Utils.getServerDate();
         let tomorrow = addDays(1);
@@ -33,8 +22,8 @@ export class Usher {
         let tomorrowDate = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());//T00:00:00
 
         for await (const ride of context.for(Ride).iterate({
-            where: r => (r.date.isGreaterOrEqualTo(todayDate)),
-            //.and(r.status.isEqualTo(RideStatus.suggestedByDriver)),
+            where: r => (r.date.isGreaterOrEqualTo(todayDate))
+                .and(r.status.isEqualTo(RideStatus.waitingForDriverAccept)),
             orderBy: r => [{ column: r.date, descending: false }, { column: r.dayPeriod, descending: true }],
         })) {
 
@@ -79,7 +68,107 @@ export class Usher {
                 ids: [],
                 icons: icons,
                 groupByLocation: groupByFromAndTo,
-                driverName: (await context.for(Driver).findId(ride.driverId.value)).name.value,
+                driverName: ride.exsistDriver()? (await context.for(Driver).findId(ride.driverId.value)).name.value:"",
+                id: ride.id.value,
+                date: ride.date.value,
+                status: ride.status.value.id,
+                statusDate: ride.statusDate.value,
+                from: (await context.for(Location).findId(ride.from.value)).name.value,
+                to: (await context.for(Location).findId(ride.to.value)).name.value,
+                passengers: ride.passengers(),
+            };
+
+            if (groupByFromAndTo) {
+                let key = `${ride.from}-${row.to}`;
+                let r = group.rows.find(r => key === `${r.from}-${r.to}`);
+                if (r) {
+                    r.ids.push(row.id);
+                    r.passengers += row.passengers;
+                }
+                else {
+                    r = row;
+                    r.ids.push(row.id);
+                    r.groupByLocation = true;
+                    r.icons = [];
+                    group.rows.push(r);
+                }
+            }
+            else {
+                group.rows.push(row);
+            }
+        }
+        console.log(result.length);
+        return result;
+    }
+
+    @ServerFunction({ allowed: c => c.isSignedIn() })//allowed: Roles.matcher
+    static async getSuggestedRidesIdsByDrivers(context?: Context, groupByFromAndTo = false): Promise<string[]> {
+        let result: string[] = [];
+        for await (const group of await this.getSuggestedRidesByDrivers(context, groupByFromAndTo)) {
+            for (const ride of group.rows) {
+                result.push(ride.id);
+            }
+        }
+        return result;
+    }
+
+    @ServerFunction({ allowed: c => c.isSignedIn() })//allowed: Roles.matcher
+    static async getSuggestedRidesByDrivers(context?: Context, groupByFromAndTo = false): Promise<ridesNoPatient[]> {
+        let result: ridesNoPatient[] = [];
+
+        let today = await Utils.getServerDate();
+        let tomorrow = addDays(1);
+        let todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());//T00:00:00
+        let tomorrowDate = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());//T00:00:00
+
+        for await (const ride of context.for(Ride).iterate({
+            where: r => (r.date.isGreaterOrEqualTo(todayDate))
+                .and(r.status.isEqualTo(RideStatus.suggestedByDriver)),
+            orderBy: r => [{ column: r.date, descending: false }, { column: r.dayPeriod, descending: true }],
+        })) {
+
+            // Build Row
+            let rDate = new Date(ride.date.value.getFullYear(), ride.date.value.getMonth(), ride.date.value.getDate());
+
+            let date = rDate.getTime() === todayDate.getTime()
+                ? "Today"
+                : rDate.getTime() === tomorrowDate.getTime()
+                    ? "Tomorrow"
+                    : formatDate(rDate.getTime(), "dd/MM/yyyy", 'en-US');//todo:'he-IL';
+            let period = ride.dayPeriod.value.id;
+
+            let icons: { name: string, desc: string }[] = [];
+            if (ride.isHasBabyChair.value) {
+                icons.push({ name: "child_friendly", desc: "Has Babychair" });
+            }
+            if (ride.isHasWheelchair.value) {
+                icons.push({ name: "accessible", desc: "Has Wheelchair" });
+            }
+            if (ride.isHasExtraEquipment.value) {
+                icons.push({ name: "home_repair_service", desc: "Has Extra Equipment" });
+            }
+
+            let phones = "";
+            let p = await context.for(Patient).findId(ride.patientId.value);
+            if (p && p.mobile && p.mobile.value) {
+                phones = p.mobile.value;
+            }
+
+            let title = `${date} - ${period}`;
+            let group = result.find(grp => grp.title === title);
+            if (!(group)) {
+                group = { title: title, rows: [] };
+                result.push(group);
+            }
+
+            let row: rides4Usher = {
+                patinetName: '',
+                patinetAge: 0,
+                patientMobile: '',
+                ids: [],
+                icons: icons,
+                groupByLocation: groupByFromAndTo,
+                driverName: ride.exsistDriver() ? (await context.for(Driver).findId(ride.driverId.value)).name.value : "",
                 id: ride.id.value,
                 date: ride.date.value,
                 status: ride.status.value.id,
@@ -433,11 +522,11 @@ export class Usher {
         return result;
     }
 
-    @ServerFunction({ allowed: Roles.driver })
+    @ServerFunction({ allowed: [Roles.driver, Roles.usher, Roles.admin] })
     static async getSuggestedRidesForDriver(driverId: string, context?: Context): Promise<rides4DriverRow[]> {
         let result: rides4DriverRow[] = [];
 
-        for await (const grp of await this.getSuggestedRidesForDriverGoupByDateAndPeriod(driverId, false, context)) {
+        for await (const grp of await Usher.getSuggestedRidesForDriverGoupByDateAndPeriod(driverId, false, context)) {
             result.push(...grp.rows);
         }
 

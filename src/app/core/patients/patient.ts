@@ -1,4 +1,4 @@
-import { Context, EntityClass, IdEntity, StringColumn } from "@remult/core";
+import { Context, DateColumn, EntityClass, IdEntity, StringColumn } from "@remult/core";
 import { DynamicServerSideSearchDialogComponent } from "../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component";
 import { LocationIdColumn } from "../locations/location";
 
@@ -10,6 +10,8 @@ export class Patient extends IdEntity {
   hebName = new StringColumn({});
   mobile = new StringColumn({});
   idNumber = new StringColumn({});
+  birthDate = new DateColumn({});
+
   defaultBorder?= new LocationIdColumn(this.context, "Default Border", "defaultBorder", true);
   defaultHospital?= new LocationIdColumn(this.context, "Default Hospital", "defaultHospital", true);
 
@@ -20,6 +22,10 @@ export class Patient extends IdEntity {
       allowApiRead: c => c.isSignedIn(),
       defaultOrderBy: () => this.name
     });
+  }
+
+  hasBirthDate() {
+      return this.birthDate && this.birthDate.value && this.birthDate.value.getFullYear() > 2000;
   }
 }
 

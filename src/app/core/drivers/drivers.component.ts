@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { BusyService, SelectValueDialogComponent } from '@remult/angular';
 import { Context, StringColumn, ValueListItem } from '@remult/core';
+import { DialogService } from '../../common/dialog';
 import { GridDialogComponent } from '../../common/grid-dialog/grid-dialog.component';
 import { InputAreaComponent } from '../../common/input-area/input-area.component';
 import { Ride } from '../rides/ride';
@@ -23,7 +24,7 @@ export class DriversComponent implements OnInit {
 
   // prefsCount = new NumberColumn({});
   driversSettings = this.context.for(Driver).gridSettings({
-    allowCRUD: true,
+    allowCRUD: false,
     rowButtons: [{
       name: "Preferences",
       click: async (d) => await this.openPreferencesDialog(d),
@@ -42,6 +43,25 @@ export class DriversComponent implements OnInit {
       icon: "tty",
       visible: (d) => !d.isNew(),
       //showInLine: (this.context.for(DriverPrefs).count(p => p.driverId.isEqualTo("")).then(() => { return true; })),
+    }, {
+      textInMenu: "______________________",//seperator
+    }, {
+      textInMenu: "Edit Driver",
+      icon: "edit",
+      visible: (p) => !p.isNew(),
+      click: async (p) => {
+        await this.editDriver(p);
+      },
+    }, {
+      textInMenu: "Delete Driver",
+      icon: "delete",
+      visible: (p) => !p.isNew(),
+      click: async (p) => {
+        let name = (await this.context.for(Driver).findId(p.id.value)).name.value;
+        if (await this.dialog.confirmDelete(name)) {
+          await p.delete();
+        }
+      },
     },],
     gridButtons: [{
       name: 'Add New Driver',
@@ -73,7 +93,7 @@ export class DriversComponent implements OnInit {
     ],
   });
 
-  constructor(private context: Context, private busy: BusyService) { }
+  constructor(private context: Context, private busy: BusyService, private dialog: DialogService) { }
 
 
   ngOnInit() {
@@ -85,6 +105,29 @@ export class DriversComponent implements OnInit {
     //   where:p=>this.search.value?p.name.isContains(this.search):undefined
     // });
   }
+
+  async editDriver(d: Driver) {
+    this.context.openDialog(
+      InputAreaComponent,
+      x => x.args = {
+        title: "Edit Driver",
+        columnSettings: () => [
+          [d.name, d.hebName],
+          [d.mobile, d.email],
+          [d.idNumber, d.birthDate],
+          [d.home, d.seats],
+          [d.city, d.address],
+        ],
+        ok: async () => {
+          if (d.wasChanged) {
+            await d.save();
+            this.retrieveDrivers();
+          }
+        }
+      },
+    )
+  }
+
   async addDriver() {
     var driver = this.context.for(Driver).create();
     this.context.openDialog(

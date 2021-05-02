@@ -1,4 +1,5 @@
-import { BoolColumn, ColumnSettings, Context, DateColumn, EntityClass, IdEntity, NumberColumn, StringColumn, ValueListColumn } from "@remult/core";
+import { formatDate } from "@angular/common";
+import { BoolColumn, ColumnSettings, Context, DateColumn, DateTimeColumn, EntityClass, IdEntity, NumberColumn, StringColumn, ValueListColumn } from "@remult/core";
 import { MessageType, ServerEventsService } from "../../server/server-events-service";
 import { ApplicationSettings } from "../application-settings/applicationSettings";
 import { DriverIdColumn } from "../drivers/driver";
@@ -18,9 +19,20 @@ export class Ride extends IdEntity {
     from = new LocationIdColumn(this.context, "From", 'from_');
     to = new LocationIdColumn(this.context, "To", 'to_');
     date = new DateColumn({
+        valueChange: () => {
+            if (this.hasDate() && this.hasVisitTime()) {
+                this.visitTime.value = new Date(
+                    this.date.value.getFullYear(),
+                    this.date.value.getMonth(),
+                    this.date.value.getDate(),
+                    this.visitTime.value.getHours(),
+                    this.visitTime.value.getMinutes());
+            }
+        },
         // valueChange: () => {this.dayOfWeek.value = Utils.getDayOfWeek(this.date.getDayOfWeek())},
 
     });
+    visitTime = new DateTimeColumn({});
     dayPeriod = new DayPeriodColumn();
     dayOfWeek = new DayOfWeekColumn({
         // return Utils.getDayOfWeek(this.date.getDayOfWeek());
@@ -36,6 +48,14 @@ export class Ride extends IdEntity {
 
     passengers() {
         return 1 /*patient*/ + (this.isHasEscort.value ? this.escortsCount.value : 0);
+    }
+
+    hasDate() {
+        return this.date && this.date.value && this.date.value.getFullYear() > 2000;
+    }
+
+    hasVisitTime() {
+        return this.visitTime && this.visitTime.value && this.visitTime.value.getHours() > 0;
     }
 
     constructor(private context: Context, private appSettings: ApplicationSettings) {
@@ -70,11 +90,11 @@ export class Ride extends IdEntity {
     }
 
     exsistPatient(): boolean {
-      return this.patientId && this.patientId.value && this.patientId.value.length > 0;
+        return this.patientId && this.patientId.value && this.patientId.value.length > 0;
     }
 
     exsistDriver(): boolean {
-      return this.driverId && this.driverId.value && this.driverId.value.length > 0;
+        return this.driverId && this.driverId.value && this.driverId.value.length > 0;
     }
 
     getDayOfWeek() {
@@ -117,6 +137,7 @@ export class Ride extends IdEntity {
         target.dayOfWeek.value = this.dayOfWeek.value;
         target.dayPeriod.value = this.dayPeriod.value;
         target.date.value = this.date.value;
+        target.visitTime.value = this.visitTime.value;
         target.isHasBabyChair.value = this.isHasBabyChair.value;
         target.isHasWheelchair.value = this.isHasWheelchair.value;
         target.isHasExtraEquipment.value = this.isHasExtraEquipment.value;
@@ -135,6 +156,7 @@ export class Ride extends IdEntity {
 export class RideStatus {
     static suggestedByUsher = new RideStatus();
     static suggestedByDriver = new RideStatus();
+    static waitingForUsherSelectDriver = new RideStatus();
     static waitingForDriverAccept = new RideStatus();
     static waitingForUsherApproove = new RideStatus();
     static waitingForStart = new RideStatus();

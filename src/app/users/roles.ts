@@ -39,6 +39,6 @@ export class MatcherGuard extends SignedInGuard {
 export class DriverGuard extends SignedInGuard {
 
     isAllowed() {
-        return Roles.driver;
+        return Roles.driver;// c => c.isAllowed(Roles.driver) || c.isAllowed(Roles.usher)  || c.isAllowed(Roles.admin);
     }
 }

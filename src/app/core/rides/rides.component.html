@@ -19,10 +19,10 @@
     </mat-accordion>
   </div>
   
-  <div class="grow-item" *ngIf="suggestedByDrivers2 && suggestedByDrivers2.length > 0">
+  <div class="grow-item" *ngIf="waiting4Driver && waiting4Driver.length > 0">
     <h3>Waitings For Driver</h3>
     <mat-accordion [multi]="false">
-      <mat-expansion-panel *ngFor="let group of suggestedByDrivers2" (afterExpand)="groupExpanded(group)">
+      <mat-expansion-panel *ngFor="let group of waiting4Driver" (afterExpand)="waiting4DriverGroupExpanded(group)">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <strong>{{ group.title | titlecase }}</strong>
@@ -31,8 +31,8 @@
             Count: {{ group.rows.length }} {{ groupSameLocations? "Rows" : "Rides" }}
           </mat-panel-description>
         </mat-expansion-panel-header>
-        <div *ngIf="group.title === this.selectedGroupTitle">
-          <data-grid class="grow-item" [settings]="ridesWaiting4DriverSettings"></data-grid>
+        <div *ngIf="group.title === this.selectedWaiting4DriverGroupTitle">
+          <data-grid class="grow-item" [settings]="waiting4DriverSettings"></data-grid>
         </div>
       </mat-expansion-panel>
     </mat-accordion>

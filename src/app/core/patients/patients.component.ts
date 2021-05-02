@@ -1,3 +1,4 @@
+import { formatDate } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { BusyService, SelectValueDialogComponent } from '@remult/angular';
 import { BoolColumn, Context, StringColumn, ValueListItem } from '@remult/core';
@@ -24,9 +25,19 @@ export class PatientsComponent implements OnInit {
   });
   // patients: Patient[];
   patientsSettings = this.context.for(Patient).gridSettings({
+    where: p => this.search.value ? p.name.isContains(this.search) : undefined,
     caption: "Patients",
     confirmDelete: (p) => this.dialog.confirmDelete(p.name.value),
-    allowCRUD: true,
+    allowCRUD: false,
+    numOfColumnsInGrid: 10,
+    columnSettings: p => [
+      p.name,
+      p.hebName,
+      p.mobile,
+      p.idNumber,
+      p.defaultBorder,
+      p.defaultHospital,
+    ],
     gridButtons: [{
       name: 'Add New Patient',
       icon: 'add',
@@ -35,12 +46,9 @@ export class PatientsComponent implements OnInit {
         await this.addPatient();
       }
     }],
-    numOfColumnsInGrid: 10,
-    columnSettings: p => [p.name, p.mobile, /*p.idNumber,*/ p.defaultBorder, p.defaultHospital],
-    where: p => this.search.value ? p.name.isContains(this.search) : undefined,
     rowButtons: [{
       textInMenu: "Add Ride",
-      click: async (p) => await this.openRideDialog(p),
+      click: async (p) => await this.openAddRideDialog(p),
       icon: "directions_bus_filled",
       visible: (d) => !d.isNew(),
       showInLine: true,
@@ -50,6 +58,25 @@ export class PatientsComponent implements OnInit {
       icon: "departure_board",
       visible: (d) => !d.isNew(),
       showInLine: true,
+    }, {
+      textInMenu: "______________________",//seperator
+    }, {
+      textInMenu: "Edit Patient",
+      icon: "edit",
+      visible: (p) => !p.isNew(),
+      click: async (p) => {
+        await this.editPatient(p);
+      },
+    }, {
+      textInMenu: "Delete Patient",
+      icon: "delete",
+      visible: (p) => !p.isNew(),
+      click: async (p) => {
+        let name = (await this.context.for(Patient).findId(p.id.value)).name.value;
+        if (await this.dialog.confirmDelete(name)) {
+          await p.delete();
+        }
+      },
     },],
   });
 
@@ -91,6 +118,27 @@ export class PatientsComponent implements OnInit {
     )
   }
 
+  async editPatient(p: Patient) {
+    this.context.openDialog(
+      InputAreaComponent,
+      x => x.args = {
+        title: "Edit Patient",
+        columnSettings: () => [
+          [p.name, p.hebName],
+          [p.mobile, p.idNumber],
+          [p.defaultBorder, p.defaultHospital],
+        ],
+        ok: async () => {
+          if (p.wasChanged()) {
+            await p.save();
+            // this.patientsSettings.items.push(patient);
+            this.retrievePatients();
+          }
+        }
+      },
+    )
+  }
+
   async openScheduleRides(p: Patient) {
 
     let values: ValueListItem[] = [];
@@ -118,13 +166,15 @@ export class PatientsComponent implements OnInit {
     }));
   }
 
-  async openRideDialog(p: Patient) {
+  async openAddRideDialog(p: Patient) {
     let today = new Date();
     let tomorrow = new Date();
     tomorrow.setDate(today.getDate() + 1);
+    let tomorrow10am = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate(), 10);
 
     var ride = this.context.for(Ride).create();
     ride.date.value = tomorrow;
+    ride.visitTime.value = tomorrow10am;
     ride.dayOfWeek.value = DriverPrefs.getDayOfWeek(ride.date.getDayOfWeek());
     ride.dayPeriod.value = DayPeriod.morning;
     ride.patientId.value = p.id.value;
@@ -134,17 +184,22 @@ export class PatientsComponent implements OnInit {
     this.context.openDialog(
       InputAreaComponent,
       x => x.args = {
-        title: "Ride For: " + p.name.value,
+        title: "Add Ride For: " + p.name.value,
         columnSettings: () => [
           ride.from,
           ride.to,
           ride.date, {
             column: ride.dayPeriod,
-            valueList: [DayPeriod.morning, DayPeriod.afternoon]
+            valueList: [DayPeriod.morning, DayPeriod.afternoon],
           },
           {
             column: isNeedReturnTrip,
             visible: (r) => ride.dayPeriod.value == DayPeriod.morning,
+          },
+          {
+            column: ride.visitTime,
+            visible: (r) => ride.dayPeriod.value == DayPeriod.morning,
+            displayValue: ride.hasVisitTime() ? formatDate(ride.visitTime.value, "HH:mm", 'en-US') : "",
           },
           ride.isHasBabyChair,
           ride.isHasWheelchair,
@@ -156,8 +211,6 @@ export class PatientsComponent implements OnInit {
           },
         ],
         ok: async () => {
-          //PromiseThrottle
-          // ride.driverId.value = undefined;
           await ride.save();
           if (isNeedReturnTrip.value && ride.dayPeriod.value == DayPeriod.morning) {
             var returnRide = this.context.for(Ride).create();

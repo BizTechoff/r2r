@@ -79,6 +79,10 @@ export class Driver extends IdEntity {
     })
   }
 
+  hasBirthDate() {
+      return this.birthDate && this.birthDate.value && this.birthDate.value.getFullYear() > 2000;
+  }
+
   isWaitingForDriverAccept() {
     return this.lastStatus.value === RideStatus.waitingForDriverAccept;
   }
