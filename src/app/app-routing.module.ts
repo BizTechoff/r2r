@@ -24,8 +24,8 @@ const routes: Routes = [
   { path: 'UsefulInformation', component: DriverUsefulInformationComponent, canActivate: [DriverGuard], data: { name: "Useful Information" } },
 
   // Usher
-  { path: 'Rides4Usher', component: UsherComponent, canActivate: [UsherGuard], data: { name: "Rides For Usher" } },
-  { path: 'Rides', component: RidesComponent, canActivate: [UsherGuard] },
+  { path: 'Rides4Usher', component: UsherComponent, canActivate: [UsherGuard], data: { name: "Rides" } },
+  // { path: 'Rides', component: RidesComponent, canActivate: [UsherGuard] },
   { path: 'Drivers', component: DriversComponent, canActivate: [UsherGuard] },
 
   // Matcher

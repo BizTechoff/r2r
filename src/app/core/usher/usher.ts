@@ -86,7 +86,7 @@ export interface Mabat {
 
 export class Usher {
 
-    static demoTodayMidnight: Date = new Date(2021, 3, 5);
+    static demoTodayMidnight: Date = new Date(2021, 3, 12);
     static todayMidnight;
     static tomorrowMidnight;
 
@@ -113,20 +113,21 @@ export class Usher {
         Usher.tomorrowMidnight = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());
 
         console.time("getRides4Usher");
-        // let rides = await context.for(Ride).find();
-        for await (const ride of await context.for(Ride).find({
+        let rides = await context.for(Ride).find({
             where: r => r.date.isGreaterOrEqualTo(Usher.demoTodayMidnight)//todo: change to todayMidnight
                 .and(r.status.isNotIn(...[RideStatus.succeeded])),
             orderBy: r => [
                 { column: r.date, descending: false },
                 { column: r.dayPeriod, descending: true },
-                { column: r.fromLocation, descending: false, },//todo: sort by fromLocation.getName()?
-                { column: r.toLocation, descending: false },
+                // { column: r.fromLocation, descending: false, },//todo: sort by fromLocation.getName()?
+                // { column: r.toLocation, descending: false },
             ],
-        })) {
-
-            console.timeStamp("getRides4Usher");
-            await Usher.addToGroup(result, ride, context);
+        });
+        console.log(`Found: ${rides.length} rows`);
+        for (const r of rides) {
+  
+            // console.timeStamp("getRides4Usher");
+            await Usher.addToGroup(result, r, context);
         }
         console.timeEnd("getRides4Usher");
         return result;
@@ -134,7 +135,7 @@ export class Usher {
 
     //recursive function
     private static async addToGroup(g: UsherRideGroup, r: Ride, context: Context) {
-
+// console.log(g.title);
         let current = g.field;
         let nextG = MabatGroupBy.nextGroupBy(g.field);
 
@@ -226,10 +227,10 @@ export class Usher {
         }
         let from = (await context.for(Location).findId(ride.fromLocation.value)).name.value;
         let to = (await context.for(Location).findId(ride.toLocation.value)).name.value;
-
+ 
         let result: UsherRideRow = {
             pName: p.name.value,
-            pAge: await p.age(),
+            pAge: p.age(),
             pMobile: p.mobile.value,
             icons: icons,
             dName: dName,

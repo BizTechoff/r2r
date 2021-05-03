@@ -29,18 +29,21 @@ export class Patient extends IdEntity {
       return this.birthDate && this.birthDate.value && this.birthDate.value.getFullYear() > 1900;
   }
 
-  async age(today?:Date): Promise<number> {
+  age(today?:Date) {
+    if(this.hasBirthDate())
+    return today.getFullYear() - this.birthDate.value.getFullYear();
+    return 0;
       if(!(this.hasBirthDate()))
       {
         return 0;
       }
       if(!(today)){
-       today = await Utils.getServerDate();
+      //  today = await Utils.getServerDate();
       }
       let age = today.getFullYear() - this.birthDate.value.getFullYear();
       return age;
   }
-}
+} 
 export class PatientIdColumn extends StringColumn {
 
   constructor(private context: Context) {

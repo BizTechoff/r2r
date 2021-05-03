@@ -1,3 +1,16 @@
+<style>
+    table {
+        width: 100%;
+    }
+    td {
+      border-bottom: 1px solid lightblue;
+    }
+    table.center {
+      margin-left: auto;
+      margin-right: auto;
+    }
+    </style>
+
 <div class="full-page">
 
     <table style="width: 100%;">
@@ -10,12 +23,12 @@
                 </button>
             </td>
         </tr>
-        <tr>
+        <!-- <tr>
             <td>
-                <!-- <mat-checkbox [checked]="groupSameLocations" (change)="onGroupSameLocations()">Group Same Locations
-          </mat-checkbox> -->
+                <mat-checkbox [checked]="groupSameLocations" (change)="onGroupSameLocations()">Group Same Locations
+          </mat-checkbox>
             </td>
-        </tr>
+        </tr> -->
     </table>
     <!-- groupRecords -->
     <mat-accordion [multi]="false" *ngIf="rides">
@@ -25,7 +38,7 @@
                     <strong>{{ g.title | titlecase }}</strong>
                 </mat-panel-title>
                 <mat-panel-description>
-                    Gorups: {{ g.groups.length }}
+                    <!-- Gorups: {{ g.groups.length }} -->
                 </mat-panel-description>
             </mat-expansion-panel-header>
             <!-- content -->
@@ -80,11 +93,11 @@
                                     </mat-expansion-panel-header>
                                     <!-- content -->
                                     <div *ngIf="g4.rows.length > 0">
-                                        <table style="width: 100%; text-align: start;">
+                                        <table style="width: 100%; text-align: start;border: 1px;">
                                             <tr>
                                                 <td><strong>time</strong></td>
-                                                <td><strong>from</strong></td>
-                                                <td><strong>to</strong></td>
+                                                <!-- <td><strong>from</strong></td>
+                                                <td><strong>to</strong></td> -->
                                                 <td><strong>name</strong></td>
                                                 <td><strong>age</strong></td>
                                                 <td><strong>passengers</strong></td>
@@ -104,12 +117,12 @@
                                             </tr>
                                             <tr *ngFor="let r of g4.rows">
                                                 <td>{{ r.visitTime | date: "HH:mm" }}</td>
-                                                <td>{{ r.from }}</td>
-                                                <td>{{ r.to }}</td>
+                                                <!-- <td>{{ r.from }}</td>
+                                                <td>{{ r.to }}</td> -->
                                                 <td>{{ r.pName }}</td>
                                                 <td>{{ r.pAge }}</td>
                                                 <td>{{ r.passengers }}</td>
-                                                <td><a href="tel:">{{ r.pMobile }}</a></td>
+                                                <td><a href="tel:{{ r.pMobile }}">{{ r.pMobile }}</a></td>
                                                 <td>{{ r.dName }}</td>
                                                 <td>{{ r.status }}</td>
                                             </tr>

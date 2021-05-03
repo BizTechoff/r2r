@@ -29,11 +29,11 @@ export class UsherComponent implements OnInit {
   }
 
   async refresh(){
-    this.rides = await UsherComponent.retrieve();
+    this.rides = await UsherComponent.retrieveUsherRides();
   }
 
   @ServerFunction({ allowed: [Roles.usher, Roles.admin] })
-  static async retrieve(fromDb = true, context?:Context): Promise<UsherRideGroup> {
+  static async retrieveUsherRides(fromDb = true, context?:Context): Promise<UsherRideGroup> {
     let result:UsherRideGroup = {title: "Not Found Rides", rows: [], groups: [], field: MabatGroupBy.none  };
     UsherComponent.lastRefreshDate = new Date();//server date
     if (fromDb) {
