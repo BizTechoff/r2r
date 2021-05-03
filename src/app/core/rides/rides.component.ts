@@ -2,14 +2,15 @@ import { formatDate } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { MatTableDataSource } from '@angular/material';
 import { SelectValueDialogComponent } from '@remult/angular';
-import { Context, NumberColumn, StringColumn, ValueListItem } from '@remult/core';
+import { Context, DataAreaSettings, NumberColumn, StringColumn, ValueListItem } from '@remult/core';
 import { DialogService } from '../../common/dialog';
 import { DynamicServerSideSearchDialogComponent } from '../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component';
 import { InputAreaComponent } from '../../common/input-area/input-area.component';
 import { SmsService } from '../../shared/smsService';
 import { Driver } from '../drivers/driver';
 import { DayPeriod } from '../drivers/driverPrefs';
-import { rides4Usher, ridesNoPatient, ridesWaiting4Driver, Usher } from '../usher/usher';
+import { MabatIdColumn } from '../usher/mabat';
+import { rides4Usher, rides4UsherGroup, ridesNoPatient, ridesWaiting4Driver, Usher, UsherRideGroup } from '../usher/usher';
 import { Ride, RideStatus } from './ride';
 
 @Component({
@@ -18,6 +19,30 @@ import { Ride, RideStatus } from './ride';
   styleUrls: ['./rides.component.scss']
 })
 export class RidesComponent implements OnInit {
+
+  rideSettings = this.context.for(Ride).gridSettings({
+    numOfColumnsInGrid: 10,
+    columnSettings: (r) => [
+      r.date,
+      r.fromLocation,
+      r.toLocation,
+      r.dayPeriod,
+      r.dayOfWeek,
+      r.visitTime,
+      r.status,
+      r.patientId,
+      r.driverId,
+    ],
+  });
+
+  mabatSettings = new DataAreaSettings({
+    columnSettings: () => [
+      {
+        column: new MabatIdColumn(this.context, {}),
+      },],
+  });
+
+  groupRecords:UsherRideGroup;
 
   groupSameLocations = false;
   selectedGroupTitle: string = "";
@@ -39,8 +64,8 @@ export class RidesComponent implements OnInit {
       {
         column: r.date,//"HH:mm"
       },
-      r.from,
-      r.to,
+      r.fromLocation,
+      r.toLocation,
       r.patientId,
       {
         column: new NumberColumn({ caption: "passengers" }),
@@ -77,11 +102,11 @@ export class RidesComponent implements OnInit {
       // r.date,
       {
         column: r.visitTime,
-        displayValue: r.hasVisitTime()? formatDate(r.visitTime.value.getTime(), "HH:mm", 'en-US'):"",
+        displayValue: r.hasVisitTime() ? formatDate(r.visitTime.value.getTime(), "HH:mm", 'en-US') : "",
       },
-      r.from,
-      r.to,
-      r.patientId, 
+      r.fromLocation,
+      r.toLocation,
+      r.patientId,
       {
         column: new NumberColumn({ caption: "age" }),
         value: 0,
@@ -110,6 +135,13 @@ export class RidesComponent implements OnInit {
       click: async (r) => {
         if (this.snakebar.confirmDelete("Are you sure remove driver")) {
           r.driverId.value = '';
+          r.status.value = RideStatus.waitingForDriver;
+          if (!(r.exsistPatient())) {
+            r.status.value = RideStatus.waitingForPatient;
+          }
+          if (!(r.exsistDriver())) {
+            r.status.value = RideStatus.waitingForPatientAndDriver;
+          } 
           await r.save();
         }
       },
@@ -136,12 +168,18 @@ export class RidesComponent implements OnInit {
       .rows.map(r => r.id) as string[];
     // await this.suggestedByDriversSettings.initOrigList();
   }
- 
+
   async retrieve() {
 
-    this.suggestedByDrivers = await Usher.getSuggestedRidesByDrivers();
-    
-    this.waiting4Driver = await Usher.getWaitingRides4Driver();
+
+    this.groupRecords = await Usher.getRides4Usher();
+
+
+    // this
+
+    // this.suggestedByDrivers = await Usher.getSuggestedRidesByDrivers();
+
+    // this.waiting4Driver = await Usher.getWaitingRides4Driver();
   }
 
 
@@ -175,8 +213,8 @@ export class RidesComponent implements OnInit {
       x => x.args = {
         title: "Edit Ride",
         columnSettings: () => [
-          ride.from,
-          ride.to,
+          ride.fromLocation,
+          ride.toLocation,
           ride.date, {
             column: ride.dayPeriod,
             valueList: [DayPeriod.morning, DayPeriod.afternoon]
@@ -266,7 +304,7 @@ export class RidesComponent implements OnInit {
         r.patientId.value = x.id;
         r.status.value = RideStatus.waitingForUsherApproove;
         await r.save();
-        this.snakebar.info(`Patient '${ x.caption }' successfully Set To Ride, Waiting for Approove`);
+        this.snakebar.info(`Patient '${x.caption}' successfully Set To Ride, Waiting for Approove`);
         // this.retrieveDrivers();
       },
     }));

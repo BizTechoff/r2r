@@ -26,12 +26,6 @@ export class DriversComponent implements OnInit {
   driversSettings = this.context.for(Driver).gridSettings({
     allowCRUD: false,
     rowButtons: [{
-      name: "Preferences",
-      click: async (d) => await this.openPreferencesDialog(d),
-      icon: "settings_suggest",
-      visible: (d) => !d.isNew(),
-      //showInLine: (this.context.for(DriverPrefs).count(p => p.driverId.isEqualTo("")).then(() => { return true; })),
-    }, {
       name: "Suggest Rides",
       click: async (d) => await this.openSuggestedRidesForDriverDialog(d),
       icon: "directions_bus_filled",
@@ -45,7 +39,15 @@ export class DriversComponent implements OnInit {
       //showInLine: (this.context.for(DriverPrefs).count(p => p.driverId.isEqualTo("")).then(() => { return true; })),
     }, {
       textInMenu: "______________________",//seperator
-    }, {
+    },  {
+      name: "Preferences",
+      click: async (d) => await this.openPreferencesDialog(d),
+      icon: "settings_suggest",
+      visible: (d) => !d.isNew(),
+      //showInLine: (this.context.for(DriverPrefs).count(p => p.driverId.isEqualTo("")).then(() => { return true; })),
+    },  {
+      textInMenu: "______________________",//seperator
+    },  {
       textInMenu: "Edit Driver",
       icon: "edit",
       visible: (p) => !p.isNew(),

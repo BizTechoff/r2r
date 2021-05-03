@@ -33,11 +33,9 @@ export class LocationTypeColumn extends ValueListColumn<LocationType>{
 
 export class LocationIdColumn extends StringColumn {
 
-  constructor(private context: Context, caption: string, dbName: string, allowNull = false, onlyBorders = false) {
+  constructor(private context: Context, allowNull = false, onlyBorders = false) {
     super({
       allowNull: allowNull,
-      caption: caption,
-      dbName: dbName,
       validate: () => {
         // console.log(this.defs.allowNull);
         if (this.defs.allowNull) { }

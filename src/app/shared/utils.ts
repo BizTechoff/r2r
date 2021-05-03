@@ -4,7 +4,7 @@ export class Utils {
 
     @ServerFunction({ allowed: true })
     static async getServerDate() {
-        return new Date(2020,1,1);
+        return new Date();//2020,1,1);
     }
 
     static fixMobile(value: string) {

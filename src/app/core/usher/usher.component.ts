@@ -1,9 +1,12 @@
 import { Component, OnInit } from '@angular/core';
-import { Context } from '@remult/core';
+import { Context, ServerFunction } from '@remult/core';
+import { Roles } from '../../users/roles';
 import { Driver } from '../drivers/driver';
 import { Location } from '../locations/location';
 import { Patient } from '../patients/patient';
 import { Ride, RideStatus } from '../rides/ride';
+import { MabatGroupBy } from './mabat';
+import { Usher, UsherRideGroup } from './usher';
 
 @Component({
   selector: 'app-usher',
@@ -12,28 +15,31 @@ import { Ride, RideStatus } from '../rides/ride';
 })
 export class UsherComponent implements OnInit {
 
-  drivers: Driver[] = [];
-  patients: Patient[] = [];
+  rides:UsherRideGroup;
+  clientLastRefreshDate: Date = new Date();
+  demoToday:Date;
+  static lastRefreshDate: Date = new Date();//client time
 
-  constructor(private context: Context) {
-    this.retrieve();
+  constructor(private context: Context) { }
+
+  async ngOnInit() {
+    this.clientLastRefreshDate = new Date();
+    this.demoToday = Usher.demoTodayMidnight;
+    await this.refresh();
   }
 
-  driversSettings = this.context.for(Driver).gridSettings({
-
-  });
-  ridesSettings = this.context.for(Patient).gridSettings({
-
-  });
-
-  ngOnInit() {
+  async refresh(){
+    this.rides = await UsherComponent.retrieve();
   }
 
-  async retrieve(fromDb = true) {
-    if (fromDb || this.drivers.length == 0) {
-      this.drivers = await this.context.for(Driver).find();
-      this.patients = await this.context.for(Patient).find();
+  @ServerFunction({ allowed: [Roles.usher, Roles.admin] })
+  static async retrieve(fromDb = true, context?:Context): Promise<UsherRideGroup> {
+    let result:UsherRideGroup = {title: "Not Found Rides", rows: [], groups: [], field: MabatGroupBy.none  };
+    UsherComponent.lastRefreshDate = new Date();//server date
+    if (fromDb) {
+      result = await Usher.getRides4Usher('',context);
     }
+    return result;
   }
 
   async assignSelected() {
@@ -49,8 +55,8 @@ export class UsherComponent implements OnInit {
     if (notify) {
       let mobile = driver.mobile.value;
       let patientName = this.context.for(Patient).findId(ride.patientId.value);
-      let fromName = this.context.for(Location).findId(ride.from.value);
-      let toName = this.context.for(Location).findId(ride.to.value);
+      let fromName = this.context.for(Location).findId(ride.fromLocation.value);
+      let toName = this.context.for(Location).findId(ride.toLocation.value);
 
       let message = `Hi, please 
         Collect-'${(patientName)}' 
@@ -63,7 +69,7 @@ export class UsherComponent implements OnInit {
       this.SendSms(mobile, message);
     }
 
-    this.retrieve();
+    //Usher.retrieve();
   }
 
   getSelectedDrivers(): Driver[] {

@@ -13,9 +13,9 @@ export class ApplicationSettings extends IdEntity {
         });
     }
 
-    //מספר הדקות לסטייה בין השעות של המתנדב לשעת הנסיעה - להצגת נסיעה אפשרית
-    matchingDiffMinutes = new NumberColumn({ defaultValue: 30 });
-
+    //מספר הדקות כמקדם לשעת ביקור בין השעות של המתנדב לשעת הביקור - להצגת נסיעה אפשרית
+    ridesCoefficientToVisitHour = new NumberColumn({ defaultValue: 120 });//2 hours
+    
     //מספר הימים להצגת סך נסיעות שביצע מתנדב - התאמת נהג בסדרן
     numOfDaysToRetrieveDriverRides = new NumberColumn({ defaultValue: 30 });
 
@@ -27,6 +27,9 @@ export class ApplicationSettings extends IdEntity {
 
     //השעה (מתוך 24) שמהוה גבול בין בוקר לצהריים 
     allowPublishMessages = new BoolColumn({ defaultValue: false });
+
+    //משפר מושבים שפנויים להסעה (לא כולל נהג)
+    defaultNumOfSeatsInDriver = new NumberColumn({ defaultValue: 3});
 
 }
  

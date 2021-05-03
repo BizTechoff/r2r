@@ -10,6 +10,7 @@ import { DriversComponent } from './core/drivers/drivers.component';
 import { LocationsComponent } from './core/locations/locations.component';
 import { PatientsComponent } from './core/patients/patients.component';
 import { RidesComponent } from './core/rides/rides.component';
+import { UsherComponent } from './core/usher/usher.component';
 import { HomeComponent } from './home/home.component';
 import { AdminGuard, DriverGuard, MatcherGuard, UsherGuard } from './users/roles';
 import { UsersComponent } from './users/users.component';
@@ -23,6 +24,7 @@ const routes: Routes = [
   { path: 'UsefulInformation', component: DriverUsefulInformationComponent, canActivate: [DriverGuard], data: { name: "Useful Information" } },
 
   // Usher
+  { path: 'Rides4Usher', component: UsherComponent, canActivate: [UsherGuard], data: { name: "Rides For Usher" } },
   { path: 'Rides', component: RidesComponent, canActivate: [UsherGuard] },
   { path: 'Drivers', component: DriversComponent, canActivate: [UsherGuard] },
 

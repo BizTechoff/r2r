@@ -1,5 +1,6 @@
 import { Context, DateColumn, EntityClass, IdEntity, StringColumn } from "@remult/core";
 import { DynamicServerSideSearchDialogComponent } from "../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component";
+import { Utils } from "../../shared/utils";
 import { LocationIdColumn } from "../locations/location";
 
 
@@ -12,8 +13,8 @@ export class Patient extends IdEntity {
   idNumber = new StringColumn({});
   birthDate = new DateColumn({});
 
-  defaultBorder?= new LocationIdColumn(this.context, "Default Border", "defaultBorder", true);
-  defaultHospital?= new LocationIdColumn(this.context, "Default Hospital", "defaultHospital", true);
+  defaultBorder?= new LocationIdColumn(this.context, true);
+  defaultHospital?= new LocationIdColumn(this.context, true);
 
   constructor(private context: Context) {
     super({
@@ -25,16 +26,25 @@ export class Patient extends IdEntity {
   }
 
   hasBirthDate() {
-      return this.birthDate && this.birthDate.value && this.birthDate.value.getFullYear() > 2000;
+      return this.birthDate && this.birthDate.value && this.birthDate.value.getFullYear() > 1900;
+  }
+
+  async age(today?:Date): Promise<number> {
+      if(!(this.hasBirthDate()))
+      {
+        return 0;
+      }
+      if(!(today)){
+       today = await Utils.getServerDate();
+      }
+      let age = today.getFullYear() - this.birthDate.value.getFullYear();
+      return age;
   }
 }
-
 export class PatientIdColumn extends StringColumn {
 
-  constructor(private context: Context, caption: string, dbName: string) {
+  constructor(private context: Context) {
     super({
-      caption: caption,
-      dbName: dbName,
       dataControlSettings: () => ({
         getValue: () => this.context.for(Patient).lookup(this).name.value,
         hideDataOnInput: true,

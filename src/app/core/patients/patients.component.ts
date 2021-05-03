@@ -178,16 +178,16 @@ export class PatientsComponent implements OnInit {
     ride.dayOfWeek.value = DriverPrefs.getDayOfWeek(ride.date.getDayOfWeek());
     ride.dayPeriod.value = DayPeriod.morning;
     ride.patientId.value = p.id.value;
-    ride.from.value = p.defaultBorder.value;
-    ride.to.value = p.defaultHospital.value;
+    ride.fromLocation.value = p.defaultBorder.value;
+    ride.toLocation.value = p.defaultHospital.value;
     var isNeedReturnTrip = new BoolColumn({ caption: "Need Return Ride" });
     this.context.openDialog(
       InputAreaComponent,
       x => x.args = {
         title: "Add Ride For: " + p.name.value,
         columnSettings: () => [
-          ride.from,
-          ride.to,
+          ride.fromLocation,
+          ride.toLocation,
           ride.date, {
             column: ride.dayPeriod,
             valueList: [DayPeriod.morning, DayPeriod.afternoon],
@@ -215,8 +215,8 @@ export class PatientsComponent implements OnInit {
           if (isNeedReturnTrip.value && ride.dayPeriod.value == DayPeriod.morning) {
             var returnRide = this.context.for(Ride).create();
             ride.copyTo(returnRide);
-            returnRide.from.value = ride.to.value;
-            returnRide.to.value = ride.from.value;
+            returnRide.fromLocation.value = ride.toLocation.value;
+            returnRide.toLocation.value = ride.fromLocation.value;
             returnRide.dayPeriod.value = DayPeriod.afternoon;
             await returnRide.save();
           }

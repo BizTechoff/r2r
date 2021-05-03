@@ -1,27 +1,46 @@
 <div class="full-page">
   
-  <div class="grow-item" *ngIf="suggestedByDrivers && suggestedByDrivers.length > 0">
-    <h3>Suggested By Drivers ( Future Rides )</h3>
-    <mat-accordion [multi]="false">
-      <mat-expansion-panel *ngFor="let group of suggestedByDrivers" (afterExpand)="groupExpanded(group)">
-        <mat-expansion-panel-header>
-          <mat-panel-title>
-            <strong>{{ group.title | titlecase }}</strong>
-          </mat-panel-title>
-          <mat-panel-description>
-            Count: {{ group.rows.length }} {{ groupSameLocations? "Rows" : "Rides" }}
-          </mat-panel-description>
-        </mat-expansion-panel-header>
-        <div *ngIf="group.title === this.selectedGroupTitle">
-          <data-grid class="grow-item" [settings]="suggestedByDriversSettings"></data-grid>
-        </div>
-      </mat-expansion-panel>
-    </mat-accordion>
-  </div>
-  
-  <div class="grow-item" *ngIf="waiting4Driver && waiting4Driver.length > 0">
-    <h3>Waitings For Driver</h3>
-    <mat-accordion [multi]="false">
+  <table style="width: 100%;">
+    <tr>
+      <!-- <td>Date Of Today: {{ serverToday | date: 'dd.MM.yyyy' }}</td> -->
+      <td rowspan="2"><button mat-mini-fab title="Refresh" (click)="retrieve()" color="primary">
+          <mat-icon>refresh</mat-icon>
+        </button></td>
+    </tr>
+    <tr>
+      <td>
+        <!-- <mat-checkbox [checked]="groupSameLocations" (change)="onGroupSameLocations()">Group Same Locations
+        </mat-checkbox> -->
+      </td>
+    </tr>
+  </table>
+  <!-- groupRecords -->
+  <mat-accordion [multi]="false">
+    <mat-expansion-panel *ngFor="let group of groupRecords.groups">
+      <mat-expansion-panel-header>
+        <mat-panel-title> 
+          <strong>{{ group.title | titlecase }}</strong>
+        </mat-panel-title>
+        <mat-panel-description>
+          Count: {{ group.rows.length }} {{ groupSameLocations? "Rows" : "Rides" }}
+        </mat-panel-description>
+      </mat-expansion-panel-header>
+      <div>
+        <span *ngFor="let row of group.rows">
+          {{ row.from }} | {{ row.to }}
+        </span>
+      </div>
+    </mat-expansion-panel>
+  </mat-accordion>
+
+
+
+  <data-grid class="grow-item" [settings]="rideSettings"></data-grid>
+  <!-- <data-area [settings]="mabatSettings"></data-area> -->
+
+  <div *ngIf="waiting4Driver && waiting4Driver.length > 0">
+    <h3>Waitings For Your Approval</h3>
+    <!-- <mat-accordion [multi]="false">
       <mat-expansion-panel *ngFor="let group of waiting4Driver" (afterExpand)="waiting4DriverGroupExpanded(group)">
         <mat-expansion-panel-header>
           <mat-panel-title>
@@ -35,7 +54,83 @@
           <data-grid class="grow-item" [settings]="waiting4DriverSettings"></data-grid>
         </div>
       </mat-expansion-panel>
+    </mat-accordion> -->
+  </div>
+ 
+  <div *ngIf="suggestedByDrivers && suggestedByDrivers.length > 0">
+    <h3>Suggested By Drivers ( Future Rides )</h3>
+    <!-- <mat-accordion [multi]="false">
+      <mat-expansion-panel *ngFor="let group of suggestedByDrivers" (afterExpand)="groupExpanded(group)">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <strong>{{ group.title | titlecase }}</strong>
+          </mat-panel-title>
+          <mat-panel-description>
+            Count: {{ group.rows.length }} {{ groupSameLocations? "Rows" : "Rides" }}
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+        <div *ngIf="group.title === this.selectedGroupTitle">
+          <data-grid class="grow-item" [settings]="suggestedByDriversSettings"></data-grid>
+        </div>
+      </mat-expansion-panel>
+    </mat-accordion> -->
+  </div>
+
+  <div *ngIf="waiting4Driver && waiting4Driver.length > 0">
+    <h3>Waitings For Driver Placement</h3>
+    <mat-accordion [multi]="false">
+      <mat-expansion-panel *ngFor="let group of waiting4Driver" (afterExpand)="waiting4DriverGroupExpanded(group)">
+        <mat-expansion-panel-header>
+          <mat-panel-title> 
+            <strong>{{ group.title | titlecase }}</strong>
+          </mat-panel-title>
+          <mat-panel-description>
+            Count: {{ group.rows.length }} {{ groupSameLocations? "Rows" : "Rides" }}
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+        <div *ngIf="group.title === this.selectedWaiting4DriverGroupTitle">
+          <data-grid class="grow-item" [settings]="waiting4DriverSettings"></data-grid>
+        </div>
+      </mat-expansion-panel>
     </mat-accordion>
+  </div>
+
+  <div *ngIf="waiting4Driver && waiting4Driver.length > 0">
+    <h3>Waitings For Patient Placement</h3>
+    <!-- <mat-accordion [multi]="false">
+      <mat-expansion-panel *ngFor="let group of waiting4Driver" (afterExpand)="waiting4DriverGroupExpanded(group)">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <strong>{{ group.title | titlecase }}</strong>
+          </mat-panel-title>
+          <mat-panel-description>
+            Count: {{ group.rows.length }} {{ groupSameLocations? "Rows" : "Rides" }}
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+        <div *ngIf="group.title === this.selectedWaiting4DriverGroupTitle">
+          <data-grid class="grow-item" [settings]="waiting4DriverSettings"></data-grid>
+        </div>
+      </mat-expansion-panel>
+    </mat-accordion> -->
+  </div>
+
+  <div *ngIf="waiting4Driver && waiting4Driver.length > 0">
+    <h3>Waitings For Driver Approval</h3>
+    <!-- <mat-accordion [multi]="false">
+      <mat-expansion-panel *ngFor="let group of waiting4Driver" (afterExpand)="waiting4DriverGroupExpanded(group)">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <strong>{{ group.title | titlecase }}</strong>
+          </mat-panel-title>
+          <mat-panel-description>
+            Count: {{ group.rows.length }} {{ groupSameLocations? "Rows" : "Rides" }}
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+        <div *ngIf="group.title === this.selectedWaiting4DriverGroupTitle">
+          <data-grid class="grow-item" [settings]="waiting4DriverSettings"></data-grid>
+        </div>
+      </mat-expansion-panel>
+    </mat-accordion> -->
   </div>
 
 </div>
@@ -55,7 +150,7 @@
 <!-- </div> -->
 
 
-          <!-- <table style="width: 100%;">
+<!-- <table style="width: 100%;">
             <tr>
               <th></th>
               <th>Date</th>

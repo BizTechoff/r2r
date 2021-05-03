@@ -241,18 +241,19 @@ async function findOrCreateRideNew(rideRecord: any, driverId: string, patientId:
     ride.importRideNum.value = rideRecord.RideNum;
     ride.driverId.value = driverId;
     ride.patientId.value = patientId;
-    ride.from.value = fromId;
-    ride.to.value = toId;
+    ride.fromLocation.value = fromId;
+    ride.toLocation.value = toId;
     ride.date.value = toDate(rideRecord.Date);
     ride.dayOfWeek.value = DriverPrefs.getDayOfWeek((ride.date.value.getDay() + 1));
     ride.dayPeriod.value = DriverPrefs.getDayPeriod(ride.date.value.getHours() > 12 ? "afternoon" : "morning");
-
-    ride.status.value = RideStatus.waitingForDriverAccept;
+ 
+    ride.status.value = RideStatus.waitingForDriver;
+    
     if (rideRecord.Statuses) {
         for (const st of rideRecord.Statuses) {
             switch (st) {
                 case "ממתינה לשיבוץ": {
-                    ride.status.value = RideStatus.waitingForDriverAccept;
+                    ride.status.value = RideStatus.waitingForDriver;
                     break;
                 }
                 case "שובץ נהג": {

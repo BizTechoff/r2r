@@ -187,8 +187,8 @@ export class DriverRidesComponent implements OnInit, OnDestroy {
           },
         ],
         ok: async () => {
-          ride.driverId.value = '';
-          ride.status.value = RideStatus.waitingForDriverAccept;
+          ride.driverId.value = ''; 
+          ride.status.value = RideStatus.waitingForDriver;
           await ride.save();
           this.snakebar.info("Thank You! Waiting To See You Again")
           await this.retrieve();

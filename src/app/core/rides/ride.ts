@@ -10,14 +10,14 @@ import { PatientIdColumn } from "../patients/patient";
 @EntityClass
 export class Ride extends IdEntity {
 
-    driverId = new DriverIdColumn(this.context, "Driver", "driverId");
-    patientId = new PatientIdColumn(this.context, "Patient", "patientId");
+    driverId = new DriverIdColumn(this.context);
+    patientId = new PatientIdColumn(this.context);
     status = new RideStatusColumn();
     statusDate = new DateColumn();
     importRideNum = new StringColumn();
 
-    from = new LocationIdColumn(this.context, "From", 'from_');
-    to = new LocationIdColumn(this.context, "To", 'to_');
+    fromLocation = new LocationIdColumn(this.context);
+    toLocation = new LocationIdColumn(this.context);
     date = new DateColumn({
         valueChange: () => {
             if (this.hasDate() && this.hasVisitTime()) {
@@ -29,34 +29,15 @@ export class Ride extends IdEntity {
                     this.visitTime.value.getMinutes());
             }
         },
-        // valueChange: () => {this.dayOfWeek.value = Utils.getDayOfWeek(this.date.getDayOfWeek())},
-
     });
     visitTime = new DateTimeColumn({});
     dayPeriod = new DayPeriodColumn();
-    dayOfWeek = new DayOfWeekColumn({
-        // return Utils.getDayOfWeek(this.date.getDayOfWeek());
-    });
-
-    assignDate = new DateColumn({});
+    dayOfWeek = new DayOfWeekColumn({});
     isHasBabyChair = new BoolColumn({ caption: 'Has Baby Chair' });
     isHasWheelchair = new BoolColumn({ caption: 'Has Wheel Chair' });
     isHasExtraEquipment = new BoolColumn({ caption: 'Has Extra Equipment' });
-
     isHasEscort = new BoolColumn({ caption: 'Has Escort', defaultValue: false });
     escortsCount = new NumberColumn({});
-
-    passengers() {
-        return 1 /*patient*/ + (this.isHasEscort.value ? this.escortsCount.value : 0);
-    }
-
-    hasDate() {
-        return this.date && this.date.value && this.date.value.getFullYear() > 2000;
-    }
-
-    hasVisitTime() {
-        return this.visitTime && this.visitTime.value && this.visitTime.value.getHours() > 0;
-    }
 
     constructor(private context: Context, private appSettings: ApplicationSettings) {
         super({
@@ -89,6 +70,18 @@ export class Ride extends IdEntity {
         });
     }
 
+    passengers() {
+        return 1 /*patient*/ + (this.isHasEscort.value ? this.escortsCount.value : 0);
+    }
+
+    hasDate() {
+        return this.date && this.date.value && this.date.value.getFullYear() > 1900;
+    }
+
+    hasVisitTime() {
+        return this.visitTime && this.visitTime.value && this.visitTime.value.getHours() > 0;
+    }
+
     exsistPatient(): boolean {
         return this.patientId && this.patientId.value && this.patientId.value.length > 0;
     }
@@ -101,6 +94,26 @@ export class Ride extends IdEntity {
         return DriverPrefs.getDayOfWeek(this.date.getDayOfWeek());
     }
 
+    isCanRemovewDriver(){
+        let waitings:RideStatus[] = [
+            RideStatus.suggestedByDriver, 
+            RideStatus.suggestedByUsher, 
+            RideStatus.waitingForPatient,
+            RideStatus.waitingForDriver,
+            RideStatus.waitingForPatientAndDriver];
+        return this.exsistDriver() && waitings.includes(this.status.value);
+    }
+
+    isCanRemovewPatient(){
+        let waitings:RideStatus[] = [
+            RideStatus.suggestedByDriver, 
+            RideStatus.suggestedByUsher, 
+            RideStatus.waitingForPatient,
+            RideStatus.waitingForDriver,
+            RideStatus.waitingForPatientAndDriver];
+        return waitings.includes(this.status.value);
+    } 
+
 
     isSuggestedByDriver() {
         return this.status.value === RideStatus.suggestedByDriver;
@@ -111,7 +124,7 @@ export class Ride extends IdEntity {
     }
 
     isWaitingForDriverAccept() {
-        return this.status.value === RideStatus.waitingForDriverAccept;
+        return this.status.value === RideStatus.waitingForDriver;
     }
 
     isWaitingForUsherApproove() {
@@ -132,8 +145,8 @@ export class Ride extends IdEntity {
 
 
     copyTo(target: Ride) {
-        target.from.value = this.from.value;
-        target.to.value = this.to.value;
+        target.fromLocation.value = this.fromLocation.value;
+        target.toLocation.value = this.toLocation.value;
         target.dayOfWeek.value = this.dayOfWeek.value;
         target.dayPeriod.value = this.dayPeriod.value;
         target.date.value = this.date.value;
@@ -149,15 +162,16 @@ export class Ride extends IdEntity {
     }
 
     toString() {
-        return `${this.date.value} | ${this.from.value} | ${this.to.value} | ${this.status.value} | ${this.statusDate.value} | ${this.passengers()}`
+        return `${this.date.value} | ${this.fromLocation.value} | ${this.toLocation.value} | ${this.status.value} | ${this.statusDate.value} | ${this.passengers()}`
     }
 }
 
 export class RideStatus {
     static suggestedByUsher = new RideStatus();
     static suggestedByDriver = new RideStatus();
-    static waitingForUsherSelectDriver = new RideStatus();
-    static waitingForDriverAccept = new RideStatus();
+    static waitingForDriver = new RideStatus();
+    static waitingForPatient = new RideStatus();
+    static waitingForPatientAndDriver = new RideStatus();
     static waitingForUsherApproove = new RideStatus();
     static waitingForStart = new RideStatus();
     static waitingForPickup = new RideStatus();
@@ -166,16 +180,16 @@ export class RideStatus {
     static succeeded = new RideStatus();
     static failed = new RideStatus();
     static rejected = new RideStatus();
+    static waitingForUsherSelectDriver = new RideStatus();
     constructor(public color = 'green') { }
     id;
-    // caption;
 }
 
 //חולה ונהג יכולים להיות ריקים
 export class RideStatusColumn extends ValueListColumn<RideStatus>{
     constructor(options?: ColumnSettings<RideStatus>) {
         super(RideStatus, {
-            defaultValue: RideStatus.waitingForDriverAccept,
+            defaultValue: RideStatus.waitingForDriver,
             ...options
         });
     }

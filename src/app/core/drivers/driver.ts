@@ -35,10 +35,10 @@ export class Driver extends IdEntity {
       }
     },
   });
-  home?= new LocationIdColumn(this.context, "Home", "home", true);
+  home?= new LocationIdColumn(this.context, true);
   email = new StringColumn({});
   seats = new NumberColumn({
-    defaultValue: 1,
+    defaultValue: 3,
     validate: () => {
       if (this.seats.value <= 0) {
         this.seats.value = 1;
@@ -80,11 +80,11 @@ export class Driver extends IdEntity {
   }
 
   hasBirthDate() {
-      return this.birthDate && this.birthDate.value && this.birthDate.value.getFullYear() > 2000;
+      return this.birthDate && this.birthDate.value && this.birthDate.value.getFullYear() > 1900;
   }
 
   isWaitingForDriverAccept() {
-    return this.lastStatus.value === RideStatus.waitingForDriverAccept;
+    return this.lastStatus.value === RideStatus.waitingForDriver;
   }
 
   isWaitingForUsherApproove() {
@@ -113,10 +113,8 @@ export class DriverIdColumn extends StringColumn {
   async getValueName() {
     return (await this.context.for(Driver).findId(this.value)).name.value;
   }
-  constructor(private context: Context, caption: string, dbName: string) {
+  constructor(private context: Context) {
     super({
-      caption: caption,
-      dbName: dbName,
       dataControlSettings: () => ({
         getValue: () => this.getName(),
         hideDataOnInput: true,
@@ -124,8 +122,8 @@ export class DriverIdColumn extends StringColumn {
         click: (d) => {
           this.context.openDialog(DynamicServerSideSearchDialogComponent,
             x => x.args(Driver, {
-              onSelect: l => this.value = l.id.value,
-              searchColumn: l => l.name
+              onSelect: d => this.value = d.id.value,
+              searchColumn: d => d.name
             }));
         }
       })

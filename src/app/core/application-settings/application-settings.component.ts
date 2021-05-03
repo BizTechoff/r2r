@@ -20,9 +20,9 @@ export class ApplicationSettingsComponent implements OnInit {
 
   appSettings = this.context.for(ApplicationSettings).gridSettings({
     allowCRUD: true,
-    numOfColumnsInGrid: 10,
+    numOfColumnsInGrid: 0,
     columnSettings: (a) => [
-      a.matchingDiffMinutes,
+      a.ridesCoefficientToVisitHour,
       a.numOfDaysToRetrieveDriverRides,
       a.numOfDaysToShowOnRides,
       a.delimiterAfternoonHour,
