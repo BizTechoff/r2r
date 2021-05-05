@@ -1,8 +1,9 @@
 import { Context, DateColumn, EntityClass, IdEntity, StringColumn } from "@remult/core";
 import { DynamicServerSideSearchDialogComponent } from "../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component";
+import { InputAreaComponent } from "../../common/input-area/input-area.component";
 import { Utils } from "../../shared/utils";
 import { LocationIdColumn } from "../locations/location";
-
+import { UsherRideRow } from "../usher/usher";
 
 @EntityClass
 export class Patient extends IdEntity {
@@ -26,24 +27,23 @@ export class Patient extends IdEntity {
   }
 
   hasBirthDate() {
-      return this.birthDate && this.birthDate.value && this.birthDate.value.getFullYear() > 1900;
+    return this.birthDate && this.birthDate.value && this.birthDate.value.getFullYear() > 1900;
   }
 
-  age(today?:Date) {
-    if(this.hasBirthDate())
-    return today.getFullYear() - this.birthDate.value.getFullYear();
+  age(today?: Date) {
+    if (this.hasBirthDate())
+      return today.getFullYear() - this.birthDate.value.getFullYear();
     return 0;
-      if(!(this.hasBirthDate()))
-      {
-        return 0;
-      }
-      if(!(today)){
+    if (!(this.hasBirthDate())) {
+      return 0;
+    }
+    if (!(today)) {
       //  today = await Utils.getServerDate();
-      }
-      let age = today.getFullYear() - this.birthDate.value.getFullYear();
-      return age;
+    }
+    let age = today.getFullYear() - this.birthDate.value.getFullYear();
+    return age;
   }
-} 
+}
 export class PatientIdColumn extends StringColumn {
 
   constructor(private context: Context) {
@@ -62,4 +62,33 @@ export class PatientIdColumn extends StringColumn {
       })
     });
   }
+}
+
+export async function openPatient(pid: string, context: Context) : Promise<boolean> {
+ 
+  //let result:UsherRideRow = {};
+  let p = await context.for(Patient).findId(pid);
+  if (p) {
+    context.openDialog(
+      InputAreaComponent,
+      x => x.args = {
+        title: `Edit Patient: ${p.name.value}`,
+        columnSettings: () => [
+          [p.name, p.hebName],
+          [p.mobile, p.idNumber],
+          [p.defaultBorder, p.defaultHospital],
+        ],
+        ok: async () => {
+          if (p.wasChanged()) {
+            await p.save();
+            // r.pName = p.name.value;
+            // r.pAge = p.age();
+            // r.pMobile = p.mobile.value;
+            return true;
+          }
+        }
+      },
+    )
+  }
+  return false;
 }

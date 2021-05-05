@@ -1,12 +1,13 @@
+import { formatDate } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { Context, ServerFunction } from '@remult/core';
 import { Roles } from '../../users/roles';
-import { Driver } from '../drivers/driver';
+import { Driver, openDriver } from '../drivers/driver';
 import { Location } from '../locations/location';
-import { Patient } from '../patients/patient';
+import { openPatient, Patient } from '../patients/patient';
 import { Ride, RideStatus } from '../rides/ride';
 import { MabatGroupBy } from './mabat';
-import { Usher, UsherRideGroup } from './usher';
+import { Usher, UsherRideGroup, UsherRideRow } from './usher';
 
 @Component({
   selector: 'app-usher',
@@ -17,14 +18,14 @@ export class UsherComponent implements OnInit {
 
   rides:UsherRideGroup;
   clientLastRefreshDate: Date = new Date();
-  demoToday:Date;
+  demoDates:string;
   static lastRefreshDate: Date = new Date();//client time
 
-  constructor(private context: Context) { }
+  constructor(public context: Context) { }
 
   async ngOnInit() {
     this.clientLastRefreshDate = new Date();
-    this.demoToday = Usher.demoTodayMidnight;
+    this.demoDates = `${formatDate(Usher.fromDemoTodayMidnight, "dd/MM/yyy", "en-US")} - ${formatDate(Usher.toDemoTodayMidnight, "dd/MM/yyy", "en-US")}`;
     await this.refresh();
   }
 
@@ -45,6 +46,19 @@ export class UsherComponent implements OnInit {
   async assignSelected() {
 
   }
+
+  async addPatient(r:UsherRideRow){}
+  async addDriver(r:UsherRideRow){}
+  async editPatient(r:UsherRideRow){
+    console.log(r);
+    let changed = await openPatient(r.pid, this.context);
+  }
+  async editDriver(r:UsherRideRow){
+    let changed = await openDriver(r.did, this.context);}
+  async approoveRide(r:UsherRideRow){}
+  async suggestPatient(r:UsherRideRow){}
+  async suggestDriver(r:UsherRideRow){}
+
 
   async assign(ride: Ride, driver: Driver, notify = false) {
 

@@ -2,21 +2,24 @@
     table {
         width: 100%;
     }
+
     td {
-      border-bottom: 1px solid lightblue;
+        border-bottom: 1px solid lightblue;
     }
+
     table.center {
-      margin-left: auto;
-      margin-right: auto;
+        margin-left: auto;
+        margin-right: auto;
     }
-    </style>
+</style>
 
 <div class="full-page">
 
     <table style="width: 100%;">
         <tr>
-            <td>LastRefresh: {{ clientLastRefreshDate | date: 'dd.MM.yyyy' }}</td>
-            <td>DemoToday: {{ demoToday | date: 'dd.MM.yyyy' }}</td>
+            <td>LastRefresh: {{ clientLastRefreshDate | date: 'HH:mm' }}</td>
+            <!-- <td>DemoToday: {{ demoToday | date: 'dd.MM.yyyy' }}</td> -->
+            <td>DemoDates: {{ demoDates }}</td>
             <td>
                 <button mat-mini-fab title="Refresh" (click)="refresh()" color="primary">
                     <mat-icon>refresh</mat-icon>
@@ -37,15 +40,67 @@
                 <mat-panel-title>
                     <strong>{{ g.title | titlecase }}</strong>
                 </mat-panel-title>
-                <mat-panel-description>
-                    <!-- Gorups: {{ g.groups.length }} -->
-                </mat-panel-description>
+                <div *ngIf="g.rows.length > 0">
+                    <mat-panel-description>
+                        Rows: {{ g.rows.length }}
+                    </mat-panel-description>
+                </div>
             </mat-expansion-panel-header>
             <!-- content -->
             <div *ngIf="g.rows.length > 0">
-                <div *ngFor="let r of g.rows">
-                    {{ r.from }} | {{ r.to }}
-                </div>
+                <table style="width: 100%; text-align: start;border: 1px;">
+                    <tr>
+                        <td>...</td>
+                        <td><strong>time</strong></td>
+                        <td><strong>name</strong></td>
+                        <td><strong>age</strong>
+                        <td><strong>passengers</strong></td>
+                        <!-- <td><strong>p-mobile</strong></td> -->
+                        <td><strong>driver</strong></td>
+                        <td><strong>status</strong></td>
+                    </tr>
+                    <tr *ngFor="let r of g.rows">
+                        <td>
+                            <div>
+                                <mat-menu #appMenu="matMenu">
+                                    <div style="align-content: center;background-color: lightblue;">
+                                        <label style="align-content: center;text-align: center;"><b><u>{{
+                                                    r.pName }}</u></b></label>
+                                    </div>
+                                    <button mat-menu-item style="color: blue;"
+                                        (click)="addPatient(r)">addPatient</button>
+                                    <button mat-menu-item style="color: blue;" (click)="addDriver(r)">addDriver</button>
+                                    <hr>
+                                    <button mat-menu-item style="color: blue;"
+                                        (click)="suggestPatient(r)">suggestPatient</button>
+                                    <button mat-menu-item style="color: blue;"
+                                        (click)="suggestDriver(r)">suggestDriver</button>
+                                    <button mat-menu-item style="color: blue;"
+                                        (click)="approoveRide(r)">approoveRide</button>
+                                    <hr>
+                                    <button mat-menu-item style="color: blue;"
+                                        (click)="editPatient(r)">editPatient</button>
+                                    <button mat-menu-item style="color: blue;"
+                                        (click)="editDriver(r)">editDriver</button>
+                                </mat-menu>
+                                <button mat-icon-button [matMenuTriggerFor]="appMenu">
+                                    <mat-icon>more_vert</mat-icon>
+                                </button>
+
+                            </div>
+                        </td>
+                        <td>{{ r.visitTime | date: "HH:mm" }}</td>
+                        <td><button mat-flat-button style="color: rgb(0, 0, 238);" (click)="editPatient(r)"
+                                title="mobile: {{r.pMobile}}&#10;age: {{r.pAge}}&#10;passengers: {{r.passengers}}"><u>{{
+                                    r.pName }}</u></button></td>
+                        <td>{{ r.pAge }}</td>
+                        <td>{{ r.passengers }}</td>
+                        <!-- <td><a href="tel:{{ r.pMobile }}">{{ r.pMobile }}</a></td> -->
+                        <td><button mat-flat-button style="color: rgb(0, 0, 238);" (click)="editDriver(r)"
+                                title="mobile: {{ r.dMobile }}"><u>{{ r.dName }}</u></button></td>
+                        <td>{{ r.status }}</td>
+                    </tr>
+                </table>
             </div>
             <div *ngIf="g.groups.length > 0">
 
@@ -55,83 +110,306 @@
                         <mat-panel-title>
                             <strong>{{ g2.title | titlecase }}</strong>
                         </mat-panel-title>
-                        <mat-panel-description>
-                            <!-- Gorups: {{ g2.groups.length }} -->
-                        </mat-panel-description>
+                        <div *ngIf="g2.rows.length > 0">
+                            <mat-panel-description>
+                                Rows: {{ g2.rows.length }}
+                            </mat-panel-description>
+                        </div>
                     </mat-expansion-panel-header>
                     <!-- content -->
                     <div *ngIf="g2.rows.length > 0">
-                        <div *ngFor="let r of g2.rows">
-                            {{ r.from }} | {{ r.to }}
-                        </div>
+
+                        <table style="width: 100%; text-align: start;border: 1px;">
+                            <tr>
+                                <td>...</td>
+                                <td><strong>time</strong></td>
+                                <td><strong>name</strong></td>
+                                <td><strong>age</strong></td>
+                                <td><strong>passengers</strong></td>
+                                <!-- <td><strong>p-mobile</strong></td> -->
+                                <td><strong>driver</strong></td>
+                                <td><strong>status</strong></td>
+                            </tr>
+                            <tr *ngFor="let r of g2.rows">
+                                <td>
+                                    <div>
+                                        <mat-menu #appMenu="matMenu">
+                                            <div style="align-content: center;background-color: lightblue;">
+                                                <label style="align-content: center;text-align: center;"><b><u>{{
+                                                            r.pName }}</u></b></label>
+                                            </div>
+                                            <button mat-menu-item style="color: blue;"
+                                                (click)="addPatient(r)">addPatient</button>
+                                            <button mat-menu-item style="color: blue;"
+                                                (click)="addDriver(r)">addDriver</button>
+                                            <hr>
+                                            <button mat-menu-item style="color: blue;"
+                                                (click)="suggestPatient(r)">suggestPatient</button>
+                                            <button mat-menu-item style="color: blue;"
+                                                (click)="suggestDriver(r)">suggestDriver</button>
+                                            <button mat-menu-item style="color: blue;"
+                                                (click)="approoveRide(r)">approoveRide</button>
+                                            <hr>
+                                            <button mat-menu-item style="color: blue;"
+                                                (click)="editPatient(r)">editPatient</button>
+                                            <button mat-menu-item style="color: blue;"
+                                                (click)="editDriver(r)">editDriver</button>
+                                        </mat-menu>
+                                        <button mat-icon-button [matMenuTriggerFor]="appMenu">
+                                            <mat-icon>more_vert</mat-icon>
+                                        </button>
+
+                                    </div>
+                                </td>
+                                <td>{{ r.visitTime | date: "HH:mm" }}</td>
+                                <td><button mat-flat-button style="color: rgb(0, 0, 238);" (click)="editPatient(r)"
+                                        title="mobile: {{r.pMobile}}&#10;age: {{r.pAge}}&#10;passengers: {{r.passengers}}"><u>{{
+                                            r.pName }}</u></button></td>
+                                <td>{{ r.pAge }}</td>
+                                <td>{{ r.passengers }}</td>
+                                <!-- <td><a href="tel:{{ r.pMobile }}">{{ r.pMobile }}</a></td> -->
+                                <td><button mat-flat-button style="color: rgb(0, 0, 238);" (click)="editDriver(r)"
+                                        title="mobile: {{ r.dMobile }}"><u>{{ r.dName }}</u></button></td>
+                                <td>{{ r.status }}</td>
+                            </tr>
+                        </table>
                     </div>
                     <div *ngIf="g2.groups.length > 0">
                         <mat-expansion-panel *ngFor="let g3 of g2.groups">
                             <mat-expansion-panel-header>
                                 <mat-panel-title>
-                                    <strong>{{ g3.title | titlecase }}</strong>->
+                                    <strong>{{ g3.title | titlecase }}</strong>
                                 </mat-panel-title>
-                                <mat-panel-description>
-                                    <!-- Gorups: {{ g3.groups.length }} -->
-                                </mat-panel-description>
+                                <div *ngIf="g3.rows.length > 0">
+                                    <mat-panel-description>
+                                        Rows: {{ g3.rows.length }}
+                                    </mat-panel-description>
+                                </div>
                             </mat-expansion-panel-header>
                             <!-- content -->
                             <div *ngIf="g3.rows.length > 0">
-                                <div *ngFor="let r of g3.rows">
-                                    {{ r.from }} | {{ r.to }}
-                                </div>
+
+                                <table style="width: 100%; text-align: start;border: 1px;">
+                                    <tr>
+                                        <td>...</td>
+                                        <td><strong>time</strong></td>
+                                        <td><strong>name</strong></td>
+                                        <td><strong>age</strong></td>
+                                        <td><strong>passengers</strong></td>
+                                        <!-- <td><strong>p-mobile</strong></td> -->
+                                        <td><strong>driver</strong></td>
+                                        <td><strong>status</strong></td>
+                                    </tr>
+                                    <tr *ngFor="let r of g3.rows">
+                                        <td>
+                                            <div>
+                                                <mat-menu #appMenu="matMenu">
+                                                    <div style="align-content: center;background-color: lightblue;">
+                                                        <label style="align-content: center;text-align: center;"><b><u>{{
+                                                                    r.pName }}</u></b></label>
+                                                    </div>
+                                                    <button mat-menu-item style="color: blue;"
+                                                        (click)="addPatient(r)">addPatient</button>
+                                                    <button mat-menu-item style="color: blue;"
+                                                        (click)="addDriver(r)">addDriver</button>
+                                                    <hr>
+                                                    <button mat-menu-item style="color: blue;"
+                                                        (click)="suggestPatient(r)">suggestPatient</button>
+                                                    <button mat-menu-item style="color: blue;"
+                                                        (click)="suggestDriver(r)">suggestDriver</button>
+                                                    <button mat-menu-item style="color: blue;"
+                                                        (click)="approoveRide(r)">approoveRide</button>
+                                                    <hr>
+                                                    <button mat-menu-item style="color: blue;"
+                                                        (click)="editPatient(r)">editPatient</button>
+                                                    <button mat-menu-item style="color: blue;"
+                                                        (click)="editDriver(r)">editDriver</button>
+                                                </mat-menu>
+                                                <button mat-icon-button [matMenuTriggerFor]="appMenu">
+                                                    <mat-icon>more_vert</mat-icon>
+                                                </button>
+
+                                            </div>
+                                        </td>
+                                        <td>{{ r.visitTime | date: "HH:mm" }}</td>
+                                        <td><button mat-flat-button style="color: rgb(0, 0, 238);"
+                                                (click)="editPatient(r)"
+                                                title="mobile: {{r.pMobile}}&#10;age: {{r.pAge}}&#10;passengers: {{r.passengers}}"><u>{{
+                                                    r.pName }}</u></button></td>
+                                        <td>{{ r.pAge }}</td>
+                                        <td>{{ r.passengers }}</td>
+                                        <!-- <td><a href="tel:{{ r.pMobile }}">{{ r.pMobile }}</a></td> -->
+                                        <td><button mat-flat-button style="color: rgb(0, 0, 238);"
+                                                (click)="editDriver(r)" title="mobile: {{ r.dMobile }}"><u>{{ r.dName
+                                                    }}</u></button></td>
+                                        <td>{{ r.status }}</td>
+                                    </tr>
+                                </table>
                             </div>
+
+
                             <div *ngIf="g3.groups.length > 0">
+
                                 <mat-expansion-panel *ngFor="let g4 of g3.groups">
                                     <mat-expansion-panel-header>
                                         <mat-panel-title>
-                                            -><strong>{{ g4.title | titlecase }}</strong>
+                                            <strong>{{ g4.title | titlecase }}</strong>
                                         </mat-panel-title>
                                         <mat-panel-description>
-                                            Rows: {{ g4.rows.length }}
+                                            <div *ngIf="g4.rows.length > 0">
+                                                <mat-panel-description>
+                                                    Rows: {{ g4.rows.length }}
+                                                </mat-panel-description>
+                                            </div>
                                         </mat-panel-description>
                                     </mat-expansion-panel-header>
                                     <!-- content -->
                                     <div *ngIf="g4.rows.length > 0">
                                         <table style="width: 100%; text-align: start;border: 1px;">
                                             <tr>
+                                                <td>...</td>
                                                 <td><strong>time</strong></td>
-                                                <!-- <td><strong>from</strong></td>
-                                                <td><strong>to</strong></td> -->
                                                 <td><strong>name</strong></td>
                                                 <td><strong>age</strong></td>
                                                 <td><strong>passengers</strong></td>
-                                                <td><strong>mobile</strong></td>
-                                                <!-- <td colspan="4">
-                                                    <table style="width: 100%;">
-                                                        <tr><td><strong>patient</strong></td></tr>
-                                                        <tr><td><strong>name</strong></td>
-                                                            <td><strong>age</strong></td>
-                                                            <td><strong>passengers</strong></td>
-                                                            <td><strong>mobile</strong></td>
-                                                        </tr>
-                                                    </table>
-                                                </td> -->
+                                                <!-- <td><strong>p-mobile</strong></td> -->
                                                 <td><strong>driver</strong></td>
                                                 <td><strong>status</strong></td>
                                             </tr>
                                             <tr *ngFor="let r of g4.rows">
+                                                <td>
+                                                    <div>
+                                                        <mat-menu #appMenu="matMenu">
+                                                            <div
+                                                                style="align-content: center;background-color: lightblue;">
+                                                                <label
+                                                                    style="align-content: center;text-align: center;"><b><u>{{
+                                                                            r.pName }}</u></b></label>
+                                                            </div>
+                                                            <button mat-menu-item style="color: blue;"
+                                                                (click)="addPatient(r)">addPatient</button>
+                                                            <button mat-menu-item style="color: blue;"
+                                                                (click)="addDriver(r)">addDriver</button>
+                                                            <hr>
+                                                            <button mat-menu-item style="color: blue;"
+                                                                (click)="suggestPatient(r)">suggestPatient</button>
+                                                            <button mat-menu-item style="color: blue;"
+                                                                (click)="suggestDriver(r)">suggestDriver</button>
+                                                            <button mat-menu-item style="color: blue;"
+                                                                (click)="approoveRide(r)">approoveRide</button>
+                                                            <hr>
+                                                            <button mat-menu-item style="color: blue;"
+                                                                (click)="editPatient(r)">editPatient</button>
+                                                            <button mat-menu-item style="color: blue;"
+                                                                (click)="editDriver(r)">editDriver</button>
+                                                        </mat-menu>
+                                                        <button mat-icon-button [matMenuTriggerFor]="appMenu">
+                                                            <mat-icon>more_vert</mat-icon>
+                                                        </button>
+
+                                                    </div>
+                                                </td>
                                                 <td>{{ r.visitTime | date: "HH:mm" }}</td>
-                                                <!-- <td>{{ r.from }}</td>
-                                                <td>{{ r.to }}</td> -->
-                                                <td>{{ r.pName }}</td>
+                                                <td><button mat-flat-button style="color: rgb(0, 0, 238);"
+                                                        (click)="editPatient(r)"
+                                                        title="mobile: {{r.pMobile}}&#10;age: {{r.pAge}}&#10;passengers: {{r.passengers}}"><u>{{
+                                                            r.pName }}</u></button></td>
                                                 <td>{{ r.pAge }}</td>
                                                 <td>{{ r.passengers }}</td>
-                                                <td><a href="tel:{{ r.pMobile }}">{{ r.pMobile }}</a></td>
-                                                <td>{{ r.dName }}</td>
+                                                <!-- <td><a href="tel:{{ r.pMobile }}">{{ r.pMobile }}</a></td> -->
+                                                <td><button mat-flat-button style="color: rgb(0, 0, 238);"
+                                                        (click)="editDriver(r)" title="mobile: {{ r.dMobile }}"><u>{{
+                                                            r.dName }}</u></button></td>
                                                 <td>{{ r.status }}</td>
                                             </tr>
                                         </table>
                                     </div>
+
+
+
                                     <div *ngIf="g4.groups.length > 0">
-                                        <div *ngFor="let inner of g4.groups">
-                                            --- Unknown Group ----
-                                        </div>
+                                        <mat-expansion-panel *ngFor="let g5 of g4.groups">
+                                            <mat-expansion-panel-header>
+                                                <mat-panel-title>
+                                                    <strong>{{ g5.title | titlecase }}</strong>
+                                                </mat-panel-title>
+                                                <div *ngIf="g5.rows.length > 0">
+                                                    <mat-panel-description>
+                                                        Rows: {{ g5.rows.length }}
+                                                    </mat-panel-description>
+                                                </div>
+                                            </mat-expansion-panel-header>
+                                            <!-- content -->
+                                            <div *ngIf="g5.rows.length > 0">
+                                                <table style="width: 100%; text-align: start;border: 1px;">
+                                                    <tr>
+                                                        <td>...</td>
+                                                        <td><strong>time</strong></td>
+                                                        <td><strong>name</strong></td>
+                                                        <td><strong>age</strong></td>
+                                                        <td><strong>passengers</strong></td>
+                                                        <!-- <td><strong>p-mobile</strong></td> -->
+                                                        <td><strong>driver</strong></td>
+                                                        <td><strong>status</strong></td>
+                                                    </tr>
+                                                    <tr *ngFor="let r of g5.rows">
+                                                        <td>
+                                                            <div>
+                                                                <mat-menu #appMenu="matMenu">
+                                                                    <div
+                                                                        style="align-content: center;background-color: lightblue;">
+                                                                        <label
+                                                                            style="align-content: center;text-align: center;"><b><u>{{
+                                                                                    r.pName }}</u></b></label>
+                                                                    </div>
+                                                                    <button mat-menu-item style="color: blue;"
+                                                                        (click)="addPatient()">addPatient</button>
+                                                                    <button mat-menu-item style="color: blue;"
+                                                                        (click)="addDriver()">addDriver</button>
+                                                                    <hr>
+                                                                    <button mat-menu-item style="color: blue;"
+                                                                        (click)="suggestPatient()">suggestPatient</button>
+                                                                    <button mat-menu-item style="color: blue;"
+                                                                        (click)="suggestDriver()">suggestDriver</button>
+                                                                    <button mat-menu-item style="color: blue;"
+                                                                        (click)="approoveRide()">approoveRide</button>
+                                                                    <hr>
+                                                                    <button mat-menu-item style="color: blue;"
+                                                                        (click)="editPatient()">editPatient</button>
+                                                                    <button mat-menu-item style="color: blue;"
+                                                                        (click)="editDriver()">editDriver</button>
+                                                                </mat-menu>
+
+
+
+                                                                <button mat-icon-button [matMenuTriggerFor]="appMenu">
+                                                                    <mat-icon>more_vert</mat-icon>
+                                                                </button>
+
+                                                            </div>
+                                                        </td>
+                                                        <td>{{ r.visitTime | date: "HH:mm" }}</td>
+                                                        <td><button mat-flat-button style="color: rgb(0, 0, 238);"
+                                                                (click)="editPatient(r)"
+                                                                title="mobile: {{r.pMobile}}&#10;age: {{r.pAge}}&#10;passengers: {{r.passengers}}"><u>{{
+                                                                    r.pName }}</u></button></td>
+                                                        <td>{{ r.pAge }}</td>
+                                                        <td>{{ r.passengers }}</td>
+                                                        <!-- <td><a href="tel:{{ r.pMobile }}">{{ r.pMobile }}</a></td> -->
+                                                        <td><button mat-flat-button style="color: rgb(0, 0, 238);"
+                                                                (click)="editDriver(r)"
+                                                                title="mobile: {{ r.dMobile }}"><u>{{ r.dName
+                                                                    }}</u></button></td>
+                                                        <td>{{ r.status }}</td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                            <div *ngIf="g5.groups.length > 0">
+                                                <div *ngFor="let inner of g5.groups">
+                                                    --- Unknown Group ----
+                                                </div>
+                                            </div>
+                                        </mat-expansion-panel>
                                     </div>
                                 </mat-expansion-panel>
                             </div>

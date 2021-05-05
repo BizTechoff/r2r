@@ -1,4 +1,3 @@
-import { formatDate } from "@angular/common";
 import { BoolColumn, ColumnSettings, Context, DateColumn, DateTimeColumn, EntityClass, IdEntity, NumberColumn, StringColumn, ValueListColumn } from "@remult/core";
 import { MessageType, ServerEventsService } from "../../server/server-events-service";
 import { ApplicationSettings } from "../application-settings/applicationSettings";
@@ -20,7 +19,7 @@ export class Ride extends IdEntity {
     toLocation = new LocationIdColumn(this.context);
     date = new DateColumn({
         valueChange: () => {
-            if (this.hasDate() && this.hasVisitTime()) {
+            if (this.isHasDate() && this.isHasVisitTime()) {
                 this.visitTime.value = new Date(
                     this.date.value.getFullYear(),
                     this.date.value.getMonth(),
@@ -73,20 +72,20 @@ export class Ride extends IdEntity {
     passengers() {
         return 1 /*patient*/ + (this.isHasEscort.value ? this.escortsCount.value : 0);
     }
-
-    hasDate() {
+ 
+    isHasDate() {
         return this.date && this.date.value && this.date.value.getFullYear() > 1900;
     }
 
-    hasVisitTime() {
+    isHasVisitTime() {
         return this.visitTime && this.visitTime.value && this.visitTime.value.getHours() > 0;
     }
 
-    exsistPatient(): boolean {
+    isExsistPatient(): boolean {
         return this.patientId && this.patientId.value && this.patientId.value.length > 0;
     }
 
-    exsistDriver(): boolean {
+    isExsistDriver(): boolean {
         return this.driverId && this.driverId.value && this.driverId.value.length > 0;
     }
 
@@ -94,25 +93,32 @@ export class Ride extends IdEntity {
         return DriverPrefs.getDayOfWeek(this.date.getDayOfWeek());
     }
 
-    isCanRemovewDriver(){
-        let waitings:RideStatus[] = [
-            RideStatus.suggestedByDriver, 
-            RideStatus.suggestedByUsher, 
+    isDriverCurrentlyDriving() {
+        let inRiding: RideStatus[] = [
+            RideStatus.waitingForPickup,
+            RideStatus.waitingForArrived,];
+        return this.isExsistDriver() && inRiding.includes(this.status.value);
+    }
+
+    isCanRemovewDriver() {
+        let waitings: RideStatus[] = [
+            RideStatus.suggestedByDriver,
+            RideStatus.suggestedByUsher,
             RideStatus.waitingForPatient,
             RideStatus.waitingForDriver,
             RideStatus.waitingForPatientAndDriver];
-        return this.exsistDriver() && waitings.includes(this.status.value);
+        return this.isExsistDriver() && waitings.includes(this.status.value);
     }
 
-    isCanRemovewPatient(){
-        let waitings:RideStatus[] = [
-            RideStatus.suggestedByDriver, 
-            RideStatus.suggestedByUsher, 
+    isCanRemovewPatient() {
+        let waitings: RideStatus[] = [
+            RideStatus.suggestedByDriver,
+            RideStatus.suggestedByUsher,
             RideStatus.waitingForPatient,
             RideStatus.waitingForDriver,
             RideStatus.waitingForPatientAndDriver];
         return waitings.includes(this.status.value);
-    } 
+    }
 
 
     isSuggestedByDriver() {

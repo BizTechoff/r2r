@@ -78,7 +78,7 @@ export class RidesComponent implements OnInit {
       textInMenu: "Suggest Patient",
       click: async (r) => await this.openSuggestedPatientsForRideDialog(r),
       icon: "travel_explore",
-      visible: (r) => !r.exsistPatient(),
+      visible: (r) => !r.isExsistPatient(),
       showInLine: true,
     }, {
       textInMenu: "Approove Suggestion",
@@ -102,7 +102,7 @@ export class RidesComponent implements OnInit {
       // r.date,
       {
         column: r.visitTime,
-        displayValue: r.hasVisitTime() ? formatDate(r.visitTime.value.getTime(), "HH:mm", 'en-US') : "",
+        displayValue: r.isHasVisitTime() ? formatDate(r.visitTime.value.getTime(), "HH:mm", 'en-US') : "",
       },
       r.fromLocation,
       r.toLocation,
@@ -126,20 +126,20 @@ export class RidesComponent implements OnInit {
       textInMenu: "Suggest Driver",
       click: async (r) => await this.openSuggestedDriversForRideDialog(r),
       icon: "person_search",
-      visible: (r) => !r.exsistDriver(),
+      visible: (r) => !r.isExsistDriver(),
       showInLine: true,
     }, {
       textInMenu: "Remove Driver",
       icon: "person_remove",
-      visible: (r) => r.exsistDriver(),
+      visible: (r) => r.isExsistDriver(),
       click: async (r) => {
         if (this.snakebar.confirmDelete("Are you sure remove driver")) {
           r.driverId.value = '';
           r.status.value = RideStatus.waitingForDriver;
-          if (!(r.exsistPatient())) {
+          if (!(r.isExsistPatient())) {
             r.status.value = RideStatus.waitingForPatient;
           }
-          if (!(r.exsistDriver())) {
+          if (!(r.isExsistDriver())) {
             r.status.value = RideStatus.waitingForPatientAndDriver;
           } 
           await r.save();

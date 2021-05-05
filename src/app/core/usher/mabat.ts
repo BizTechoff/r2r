@@ -69,11 +69,14 @@ export class MabatIdColumn extends StringColumn {
 export class MabatGroupBy {
 
     static root = new MabatGroupBy();
+    static dateperiod = new MabatGroupBy();
     static date = new MabatGroupBy();
     static period = new MabatGroupBy();
+    static fromto = new MabatGroupBy();
     static from = new MabatGroupBy();
     static to = new MabatGroupBy();
     static none = new MabatGroupBy();
+    static status = new MabatGroupBy();
     
     static passengers = new MabatGroupBy();
     static daysFromLastTime = new MabatGroupBy();
@@ -85,13 +88,18 @@ export class MabatGroupBy {
     id;
     private static priority: MabatGroupBy[] = [
         MabatGroupBy.root,
-        MabatGroupBy.date,
-        MabatGroupBy.period,
-        MabatGroupBy.from,
-        MabatGroupBy.to,
+        // MabatGroupBy.status,
+        MabatGroupBy.dateperiod,
+        // MabatGroupBy.date,
+        // MabatGroupBy.period,
+        MabatGroupBy.fromto, 
+        // MabatGroupBy.from, 
+        // MabatGroupBy.to,
+        // MabatGroupBy.patient,
+        // MabatGroupBy.driver,
         MabatGroupBy.none,
     ];
-
+  
     static nextGroupBy(current: MabatGroupBy) {
         let index = this.priority.indexOf(current);
         if (index >= 0) {

@@ -1,5 +1,6 @@
 import { Context, DateColumn, EntityClass, IdEntity, NumberColumn, StringColumn } from "@remult/core";
 import { DynamicServerSideSearchDialogComponent } from "../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component";
+import { InputAreaComponent } from "../../common/input-area/input-area.component";
 import { Utils } from "../../shared/utils";
 import { Roles } from "../../users/roles";
 import { LocationIdColumn } from "../locations/location";
@@ -129,4 +130,32 @@ export class DriverIdColumn extends StringColumn {
       })
     });
   }
+}
+
+export async function openDriver(id: string, context: Context) : Promise<boolean> {
+ 
+  let d = await context.for(Driver).findId(id);
+  if (d) {
+    
+    context.openDialog(
+      InputAreaComponent,
+      x => x.args = {
+        title: `Edit Driver: ${d.name.value}`,
+        columnSettings: () => [
+          [d.name, d.hebName],
+          [d.mobile, d.email],
+          [d.idNumber, d.birthDate],
+          [d.home, d.seats],
+          [d.city, d.address],
+        ],
+        ok: async () => {
+          if (d.wasChanged) {
+            await d.save();
+            return true;
+          }
+        }
+      },
+    )
+  }
+  return false;
 }

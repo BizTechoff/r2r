@@ -6,7 +6,7 @@ import { GridDialogComponent } from '../../common/grid-dialog/grid-dialog.compon
 import { InputAreaComponent } from '../../common/input-area/input-area.component';
 import { Ride } from '../rides/ride';
 import { Usher } from '../usher/usher';
-import { Driver } from './driver';
+import { Driver, openDriver } from './driver';
 import { DriverPrefs } from './driverPrefs';
 
 @Component({
@@ -109,25 +109,7 @@ export class DriversComponent implements OnInit {
   }
 
   async editDriver(d: Driver) {
-    this.context.openDialog(
-      InputAreaComponent,
-      x => x.args = {
-        title: "Edit Driver",
-        columnSettings: () => [
-          [d.name, d.hebName],
-          [d.mobile, d.email],
-          [d.idNumber, d.birthDate],
-          [d.home, d.seats],
-          [d.city, d.address],
-        ],
-        ok: async () => {
-          if (d.wasChanged) {
-            await d.save();
-            this.retrieveDrivers();
-          }
-        }
-      },
-    )
+    await openDriver(d.id.value, this.context);
   }
 
   async addDriver() {

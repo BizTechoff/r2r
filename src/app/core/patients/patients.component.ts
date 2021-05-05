@@ -7,7 +7,7 @@ import { InputAreaComponent } from '../../common/input-area/input-area.component
 import { DayPeriod, DriverPrefs } from '../drivers/driverPrefs';
 import { Ride } from '../rides/ride';
 import { Usher } from '../usher/usher';
-import { Patient } from './patient';
+import { openPatient, Patient } from './patient';
 
 
 @Component({
@@ -119,24 +119,7 @@ export class PatientsComponent implements OnInit {
   }
 
   async editPatient(p: Patient) {
-    this.context.openDialog(
-      InputAreaComponent,
-      x => x.args = {
-        title: "Edit Patient",
-        columnSettings: () => [
-          [p.name, p.hebName],
-          [p.mobile, p.idNumber],
-          [p.defaultBorder, p.defaultHospital],
-        ],
-        ok: async () => {
-          if (p.wasChanged()) {
-            await p.save();
-            // this.patientsSettings.items.push(patient);
-            this.retrievePatients();
-          }
-        }
-      },
-    )
+    let changed = await openPatient(p.id.value, this.context);
   }
 
   async openScheduleRides(p: Patient) {
@@ -199,7 +182,7 @@ export class PatientsComponent implements OnInit {
           {
             column: ride.visitTime,
             visible: (r) => ride.dayPeriod.value == DayPeriod.morning,
-            displayValue: ride.hasVisitTime() ? formatDate(ride.visitTime.value, "HH:mm", 'en-US') : "",
+            displayValue: ride.isHasVisitTime() ? formatDate(ride.visitTime.value, "HH:mm", 'en-US') : "",
           },
           ride.isHasBabyChair,
           ride.isHasWheelchair,

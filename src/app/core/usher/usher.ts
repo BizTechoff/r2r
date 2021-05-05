@@ -1,7 +1,5 @@
-import { group } from "@angular/animations";
-import { formatDate, formatNumber } from "@angular/common";
-import { RippleRenderer } from "@angular/material";
-import { ColumnSettings, Context, DateColumn, Filter, Role, ServerFunction, ValueListColumn } from "@remult/core";
+import { formatDate } from "@angular/common";
+import { ColumnSettings, Context, DateColumn, Filter, ServerFunction, ValueListColumn } from "@remult/core";
 import { Utils } from "../../shared/utils";
 import { Roles } from "../../users/roles";
 import { Driver } from "../drivers/driver";
@@ -46,9 +44,11 @@ export interface UsherRideRow {
     days: number,
     status: RideStatus,
     statusDate: Date,
+    pid: string,
     pName?: string,
     pAge?: number,
     pMobile?: string,
+    did: string,
     dName?: string,
     dMobile?: string,
     icons?: string[],
@@ -86,7 +86,8 @@ export interface Mabat {
 
 export class Usher {
 
-    static demoTodayMidnight: Date = new Date(2021, 3, 12);
+    static fromDemoTodayMidnight: Date = new Date(2021, 3, 12);
+    static toDemoTodayMidnight: Date = new Date(2021, 3, 13);
     static todayMidnight;
     static tomorrowMidnight;
 
@@ -95,17 +96,17 @@ export class Usher {
     @ServerFunction({ allowed: [Roles.usher, Roles.admin] })//allowed: Roles.matcher
     static async getRides4Usher(driverId: string = "", context?: Context): Promise<UsherRideGroup> {
 
-        if (!(context)) {
-            console.log("getRides4Usher: context = null");
-            return;
-        }
-
         let result: UsherRideGroup = {
             field: MabatGroupBy.root,
             title: "Driver Rides",
             rows: [],
             groups: []
         };
+
+        if (!(context)) {
+            console.log("getRides4Usher: context = null");
+            return result;
+        }
 
         let now = new Date();// server date
         Usher.todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -114,7 +115,7 @@ export class Usher {
 
         console.time("getRides4Usher");
         let rides = await context.for(Ride).find({
-            where: r => r.date.isGreaterOrEqualTo(Usher.demoTodayMidnight)//todo: change to todayMidnight
+            where: r => r.date.isGreaterOrEqualTo(Usher.fromDemoTodayMidnight).and(r.date.isLessOrEqualTo(Usher.toDemoTodayMidnight))//todo: change to todayMidnight
                 .and(r.status.isNotIn(...[RideStatus.succeeded])),
             orderBy: r => [
                 { column: r.date, descending: false },
@@ -125,7 +126,7 @@ export class Usher {
         });
         console.log(`Found: ${rides.length} rows`);
         for (const r of rides) {
-  
+
             // console.timeStamp("getRides4Usher");
             await Usher.addToGroup(result, r, context);
         }
@@ -135,13 +136,14 @@ export class Usher {
 
     //recursive function
     private static async addToGroup(g: UsherRideGroup, r: Ride, context: Context) {
-// console.log(g.title);
+        
         let current = g.field;
         let nextG = MabatGroupBy.nextGroupBy(g.field);
 
         if (nextG.id === MabatGroupBy.none.id) {
             let row = await Usher.buildUserRideRow(r, context);
             g.rows.push(row);
+            g.rows.sort( (r1,r2) => r1.pName.localeCompare(r2.pName));
             return;//break condition
         }
 
@@ -153,13 +155,14 @@ export class Usher {
                 g.groups.push(group);
             }
             await Usher.addToGroup(group, r, context);//recursive call
+            group.groups.sort( (g1,g2) => g1.title.localeCompare(g2.title));
         }
         else {
             console.log(`addToGroup: title empty`);
         }
     }
 
-    static async getTitle(groupBy: MabatGroupBy, r: Ride, context: Context) {
+    private static async getTitle(groupBy: MabatGroupBy, r: Ride, context: Context) {
         let result = '';
         switch (groupBy) {
             case MabatGroupBy.date: {
@@ -174,7 +177,23 @@ export class Usher {
             case MabatGroupBy.period: {
                 result = r.dayPeriod.value.id;
                 break;
+            } 
+            
+            case MabatGroupBy.dateperiod: {
+                result = `${await this.getTitle(MabatGroupBy.date, r, context)} - ${await this.getTitle(MabatGroupBy.period, r, context)}`;
+                break;
             }
+            
+            case MabatGroupBy.driver: {
+                result = (await context.for(Driver).findId(r.driverId.value)).name.value;
+                break;
+            }
+            
+            case MabatGroupBy.patient: {
+                result = (await context.for(Patient).findId(r.patientId.value)).name.value;
+                break;
+            }
+
             case MabatGroupBy.from: {
                 if (r.fromLocation.value) {
                     result = (await context.for(Location).findId(r.fromLocation.value)).name.value;
@@ -186,18 +205,27 @@ export class Usher {
             }
             case MabatGroupBy.to: {
                 if (r.toLocation.value) {
-                    result = (await context.for(Location).findId(r.toLocation.value)).name.value;
+                    result = "> " + (await context.for(Location).findId(r.toLocation.value)).name.value;
                 }
                 else {
-                    result = "No_From";
+                    result = "No_To";
                 }
+                break;
+            }
+            
+            case MabatGroupBy.fromto: {
+                result = `${await this.getTitle(MabatGroupBy.from, r, context)} ${await this.getTitle(MabatGroupBy.to, r, context)}`;
+                break;
+            }
+            case MabatGroupBy.status: {
+                result = r.status.value.id;
                 break;
             }
         }
         return result;
     }
 
-    static async buildUserRideRow(ride: Ride, context: Context): Promise<UsherRideRow> {
+    private static async buildUserRideRow(ride: Ride, context: Context): Promise<UsherRideRow> {
 
         let today = Usher.todayMidnight;
         let rDate = new Date(ride.date.value.getFullYear(), ride.date.value.getMonth(), ride.date.value.getDate());
@@ -227,17 +255,20 @@ export class Usher {
         }
         let from = (await context.for(Location).findId(ride.fromLocation.value)).name.value;
         let to = (await context.for(Location).findId(ride.toLocation.value)).name.value;
- 
+
         let result: UsherRideRow = {
+            pid: p.id.value,
             pName: p.name.value,
             pAge: p.age(),
             pMobile: p.mobile.value,
             icons: icons,
+            did: d.id.value,
             dName: dName,
+            dMobile: d.mobile.value,
             id: ride.id.value,
             date: ride.date.value,
             visitTime: ride.visitTime.value,
-            days: days,
+            days: days, 
             status: ride.status.value.id,
             statusDate: ride.statusDate.value,
             from: from,
@@ -247,164 +278,6 @@ export class Usher {
 
         return result;
     }
-
-    private static async buildRides4DriverRow(ride: Ride, today: Date, context: Context): Promise<rides4DriverRow> {
-
-        let rDate = new Date(ride.date.value.getFullYear(), ride.date.value.getMonth(), ride.date.value.getDate());
-        let diff = +today - +rDate;
-        let days = (-1 * (Math.ceil(diff / 1000 / 60 / 60 / 24) + 1));
-
-        let icons: { name: string, desc: string }[] = [];
-        if (ride.isHasBabyChair.value) {
-            icons.push({ name: "child_friendly", desc: "HasBabyChair" });
-        }
-        if (ride.isHasWheelchair.value) {
-            icons.push({ name: "accessible", desc: "HasWheelchair" });
-        }
-        if (ride.isHasExtraEquipment.value) {
-            icons.push({ name: "home_repair_service", desc: "HasExtraEquipment" });
-        }
-
-        let phones = "";
-        let p = await context.for(Patient).findId(ride.patientId.value);
-        if (p && p.mobile && p.mobile.value) {
-            phones = p.mobile.value;
-        }
-
-        let result: rides4DriverRow;
-
-
-        //     // pName: ride.exsistPatient() ? (await context.for(Patient).findId(ride.patientId.value)).name.value : "",
-        //     // pAge: ride.exsistPatient() ? (await (await context.for(Patient).findId(ride.patientId.value)).age()) : 0,
-        //     // pMobile: ride.exsistPatient() ? (await context.for(Patient).findId(ride.patientId.value)).mobile.value : "",
-        //     icons: icons,
-        //     // dName: ride.exsistDriver() ? (await context.for(Driver).findId(ride.driverId.value)).name.value : "",
-        //     id: ride.id.value,
-        //     date: ride.date.value,
-        //     // visitTime: ride.visitTime.value,
-        //     // days: days,
-        //     // status: ride.status.value.id,
-        //     // statusDate: ride.statusDate.value,
-        //     from: (await context.for(Location).findId(ride.from.value)).name.value,
-        //     to: (await context.for(Location).findId(ride.to.value)).name.value,
-        //     passengers: ride.passengers(),
-        // };
-
-        return result;
-    }
-
-    // @ServerFunction({ allowed: c => c.isSignedIn() })//allowed: Roles.matcher
-    // static async getRides4Driver(driverId: string, context?: Context): Promise<rides4DriverGroup> {
-    //     let result: rides4DriverGroup = { title: "Driver Rides", rows: [], groups: [] };
-    //     //let groupWaiting4Approval = "Your Registered Rides";
-    //     let groupRegistered = "Your Registered Rides";
-    //     let groupSuggested = "Suggested Rides For You";
-    //     let groupOther = "Other";
-
-    //     let today = await Utils.getServerDate();
-    //     let todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());//T00:00:00
-    //     let tomorrow = addDays(1);
-    //     let tomorrowMidnight = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());//T00:00:00
-
-    //     for await (const ride of context.for(Ride).iterate({
-    //         where: r => (r.date.isGreaterOrEqualTo(todayMidnight)),
-    //         orderBy: r => [{ column: r.date, descending: false }, { column: r.dayPeriod, descending: true }],
-    //     })) {
-
-    //         let title = '';
-    //         if (Usher.isDriverRegisteredToRide(ride)) {
-    //             title = groupRegistered;
-    //         }
-    //         else if (Usher.isDriverSuggestedToRide(ride)) {
-    //             title = groupSuggested;
-    //         }
-    //         else {
-    //             title = groupOther;
-    //         }
-
-    //         let group: rides4DriverGroup = result.groups.find(g => g.title === title);
-    //         if (!(group)) {
-    //             group = { title: title, rows: [], groups: [] };
-    //             result.groups.push(group);
-    //         }
-    //         Usher.addToGroup(group, ride);
-
-    //         if (groupByFromAndTo) {
-    //             let key = `${ride.from}-${row.to}`;
-    //             let r = group.rows.find(r => key === `${r.from}-${r.to}`);
-    //             if (r) {
-    //                 r.ids.push(row.id);
-    //                 r.passengers += row.passengers;
-    //             }
-    //             else {
-    //                 r = row;
-    //                 r.ids.push(row.id);
-    //                 r.groupByLocation = true;
-    //                 r.icons = [];
-    //                 group.rows.push(r);
-    //             }
-    //         }
-    //         else {
-    //             group.rows.push(row);
-    //         }
-    //     }
-    //     console.log(result.length);
-    //     return result;
-    // }
-    // static addToGroup(group: rides4DriverGroup, ride: Ride) {
-
-
-    //     // Build Row
-    //     let rDate = new Date(ride.date.value.getFullYear(), ride.date.value.getMonth(), ride.date.value.getDate());
-
-    //     let date = rDate.getTime() === todayMidnight.getTime()
-    //         ? "Today"
-    //         : rDate.getTime() === tomorrowMidnight.getTime()
-    //             ? "Tomorrow"
-    //             : formatDate(rDate.getTime(), "dd/MM/yyyy", 'en-US');//todo:'he-IL';
-    //     let period = ride.dayPeriod.value.id;
-
-    //     let icons: { name: string, desc: string }[] = [];
-    //     if (ride.isHasBabyChair.value) {
-    //         icons.push({ name: "child_friendly", desc: "Has Babychair" });
-    //     }
-    //     if (ride.isHasWheelchair.value) {
-    //         icons.push({ name: "accessible", desc: "Has Wheelchair" });
-    //     }
-    //     if (ride.isHasExtraEquipment.value) {
-    //         icons.push({ name: "home_repair_service", desc: "Has Extra Equipment" });
-    //     }
-
-    //     let phones = "";
-    //     let p = await context.for(Patient).findId(ride.patientId.value);
-    //     if (p && p.mobile && p.mobile.value) {
-    //         phones = p.mobile.value;
-    //     }
-
-    //     let title = `${date} - ${period}`;
-    //     let group = result.find(grp => grp.title === title);
-    //     if (!(group)) {
-    //         group = { title: title, rows: [] };
-    //         result.push(group);
-    //     }
-
-    //     let row: rides4Usher = {
-    //         patinetName: '',
-    //         patinetAge: 0,
-    //         patientMobile: '',
-    //         ids: [],
-    //         icons: icons,
-    //         groupByLocation: groupByFromAndTo,
-    //         driverName: ride.exsistDriver() ? (await context.for(Driver).findId(ride.driverId.value)).name.value : "",
-    //         id: ride.id.value,
-    //         date: ride.date.value,
-    //         status: ride.status.value.id,
-    //         statusDate: ride.statusDate.value,
-    //         from: (await context.for(Location).findId(ride.from.value)).name.value,
-    //         to: (await context.for(Location).findId(ride.to.value)).name.value,
-    //         passengers: ride.passengers(),
-    //     };
-    // }
 
     @ServerFunction({ allowed: c => c.isSignedIn() })//allowed: Roles.matcher
     static async getUsherRides(mabatId: string, context?: Context): Promise<UsherRideGroup[]> {
@@ -454,65 +327,6 @@ export class Usher {
         //     }
         // }
         return result;
-    }
-
-    private static async newMethod(mabat: Mabat, rDate: Date, todayDate: Date, tomorrowDate: Date, ride: Ride, title: string, row: UsherRideRow, context: Context) {
-        // switch (mabat.groupBy1Level.value) {
-
-        //     case MabatGroupBy.dateAndPeriod: {
-
-        //         // Build Row
-        //         let date = rDate.getTime() === todayDate.getTime()
-        //             ? "Today"
-        //             : rDate.getTime() === tomorrowDate.getTime()
-        //                 ? "Tomorrow"
-        //                 : formatDate(rDate.getTime(), "dd/MM/yyyy", 'en-US'); //todo:'he-IL';
-        //         let period = ride.dayPeriod.value.id;
-
-        //         title = `${date} - ${period}`;
-        //         break;
-        //     }
-
-        //     case MabatGroupBy.locations: {
-        //         title = `${ride.from}-${row.to}`;
-        //         break;
-        //     }
-
-        //     case MabatGroupBy.passengers: {
-        //         let pass = ride.passengers();
-        //         title = `${pass}-${"Passenger" + (pass == 1 ? "" : "s")}`;
-        //         break;
-        //     }
-
-        //     case MabatGroupBy.percentSucceededRidesCount: {
-        //         let count = await context.for(Ride).count();
-        //         let countDriverSucceeded = await context.for(Ride).count(r => r.driverId.isEqualTo(ride.driverId).and(r.status.isEqualTo(RideStatus.succeeded)));
-        //         let pcnt = formatNumber(countDriverSucceeded / count * 100, "0", "en-US");
-        //         title = `${pcnt}%`;
-        //         break;
-        //     }
-
-        //     case MabatGroupBy.patient: {
-        //         title = `${row.pName}`;
-        //         break;
-        //     }
-
-        //     case MabatGroupBy.driver: {
-        //         title = `${row.dName}`;
-        //         break;
-        //     }
-
-        //     case MabatGroupBy.daysFromLastTime: {
-        //         title = `${row.days}`;
-        //         break;
-        //     }
-
-        //     case MabatGroupBy.visitTime: {
-        //         title = `${row.visitTime}`;
-        //         break;
-        //     }
-        // }
-        return title;
     }
 
 
@@ -572,7 +386,7 @@ export class Usher {
                 ids: [],
                 icons: icons,
                 groupByLocation: groupByFromAndTo,
-                driverName: ride.exsistDriver() ? (await context.for(Driver).findId(ride.driverId.value)).name.value : "",
+                driverName: ride.isExsistDriver() ? (await context.for(Driver).findId(ride.driverId.value)).name.value : "",
                 id: ride.id.value,
                 date: ride.date.value,
                 status: ride.status.value.id,
@@ -672,7 +486,7 @@ export class Usher {
                 ids: [],
                 icons: icons,
                 groupByLocation: groupByFromAndTo,
-                driverName: ride.exsistDriver() ? (await context.for(Driver).findId(ride.driverId.value)).name.value : "",
+                driverName: ride.isExsistDriver() ? (await context.for(Driver).findId(ride.driverId.value)).name.value : "",
                 id: ride.id.value,
                 date: ride.date.value,
                 status: ride.status.value.id,
