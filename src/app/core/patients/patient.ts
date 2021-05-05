@@ -2,7 +2,9 @@ import { Context, DateColumn, EntityClass, IdEntity, StringColumn } from "@remul
 import { DynamicServerSideSearchDialogComponent } from "../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component";
 import { InputAreaComponent } from "../../common/input-area/input-area.component";
 import { Utils } from "../../shared/utils";
+import { DayPeriod } from "../drivers/driverPrefs";
 import { LocationIdColumn } from "../locations/location";
+import { Ride } from "../rides/ride";
 import { UsherRideRow } from "../usher/usher";
 
 @EntityClass
@@ -64,8 +66,8 @@ export class PatientIdColumn extends StringColumn {
   }
 }
 
-export async function openPatient(pid: string, context: Context) : Promise<boolean> {
- 
+export async function openPatient(pid: string, context: Context): Promise<boolean> {
+
   //let result:UsherRideRow = {};
   let p = await context.for(Patient).findId(pid);
   if (p) {

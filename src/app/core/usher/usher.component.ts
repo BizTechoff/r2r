@@ -5,7 +5,7 @@ import { Roles } from '../../users/roles';
 import { Driver, openDriver } from '../drivers/driver';
 import { Location } from '../locations/location';
 import { openPatient, Patient } from '../patients/patient';
-import { Ride, RideStatus } from '../rides/ride';
+import { openRide, Ride, RideStatus } from '../rides/ride';
 import { MabatGroupBy } from './mabat';
 import { Usher, UsherRideGroup, UsherRideRow } from './usher';
 
@@ -16,7 +16,7 @@ import { Usher, UsherRideGroup, UsherRideRow } from './usher';
 })
 export class UsherComponent implements OnInit {
 
-  rides:UsherRideGroup;
+  rides:UsherRideGroup; 
   clientLastRefreshDate: Date = new Date();
   demoDates:string;
   static lastRefreshDate: Date = new Date();//client time
@@ -49,6 +49,10 @@ export class UsherComponent implements OnInit {
 
   async addPatient(r:UsherRideRow){}
   async addDriver(r:UsherRideRow){}
+  async editRide(r:UsherRideRow){
+    console.log(r);
+    let changed = await openRide(r.id, this.context);
+  }
   async editPatient(r:UsherRideRow){
     console.log(r);
     let changed = await openPatient(r.pid, this.context);

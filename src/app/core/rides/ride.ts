@@ -1,8 +1,9 @@
 import { BoolColumn, ColumnSettings, Context, DateColumn, DateTimeColumn, EntityClass, IdEntity, NumberColumn, StringColumn, ValueListColumn } from "@remult/core";
+import { InputAreaComponent } from "../../common/input-area/input-area.component";
 import { MessageType, ServerEventsService } from "../../server/server-events-service";
 import { ApplicationSettings } from "../application-settings/applicationSettings";
 import { DriverIdColumn } from "../drivers/driver";
-import { DayOfWeekColumn, DayPeriodColumn, DriverPrefs } from "../drivers/driverPrefs";
+import { DayOfWeekColumn, DayPeriod, DayPeriodColumn, DriverPrefs } from "../drivers/driverPrefs";
 import { LocationIdColumn } from "../locations/location";
 import { PatientIdColumn } from "../patients/patient";
 
@@ -201,3 +202,51 @@ export class RideStatusColumn extends ValueListColumn<RideStatus>{
     }
 }
 
+
+
+export async function openRide(rid: string, context: Context): Promise<boolean> {
+
+    //let result:UsherRideRow = {};
+    let r = await context.for(Ride).findId(rid);
+    if (r) {
+      context.openDialog(
+        InputAreaComponent,
+        x => x.args = {
+          title: `Edit Ride:`,// ${r.name.value}`,
+          columnSettings: () => [
+            r.fromLocation,
+            r.toLocation,
+            r.date, {
+              column: r.dayPeriod,
+              valueList: [DayPeriod.morning, DayPeriod.afternoon]
+            },
+            r.isHasBabyChair,
+            r.isHasWheelchair,
+            r.isHasExtraEquipment,
+            r.isHasEscort,
+            // {
+            //   column: ride.isHasEscort,
+            //   allowClick: () => {return true;},
+            //   click: () => {// not trigger
+            //     console.log("clickclik");
+            //     if (ride.isHasEscort.value) {
+            //       ride.escortsCount.value = Math.max(1, ride.escortsCount.value);
+            //     }
+            //   },
+            // },
+            {
+              column: r.escortsCount,
+              visible: () => r.isHasEscort.value,
+            },
+          ],
+          ok: async () => {
+            //PromiseThrottle
+            // ride.driverId.value = undefined;
+            await r.save();
+            return true;
+          }
+        },
+      );
+    }
+    return false;
+  }

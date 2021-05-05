@@ -11,7 +11,7 @@ import { Driver } from '../drivers/driver';
 import { DayPeriod } from '../drivers/driverPrefs';
 import { MabatIdColumn } from '../usher/mabat';
 import { rides4Usher, rides4UsherGroup, ridesNoPatient, ridesWaiting4Driver, Usher, UsherRideGroup } from '../usher/usher';
-import { Ride, RideStatus } from './ride';
+import { openRide, Ride, RideStatus } from './ride';
 
 @Component({
   selector: 'app-rides',
@@ -208,43 +208,7 @@ export class RidesComponent implements OnInit {
   }
 
   async openRideDialog(ride: Ride) {
-    this.context.openDialog(
-      InputAreaComponent,
-      x => x.args = {
-        title: "Edit Ride",
-        columnSettings: () => [
-          ride.fromLocation,
-          ride.toLocation,
-          ride.date, {
-            column: ride.dayPeriod,
-            valueList: [DayPeriod.morning, DayPeriod.afternoon]
-          },
-          ride.isHasBabyChair,
-          ride.isHasWheelchair,
-          ride.isHasExtraEquipment,
-          ride.isHasEscort,
-          // {
-          //   column: ride.isHasEscort,
-          //   allowClick: () => {return true;},
-          //   click: () => {// not trigger
-          //     console.log("clickclik");
-          //     if (ride.isHasEscort.value) {
-          //       ride.escortsCount.value = Math.max(1, ride.escortsCount.value);
-          //     }
-          //   },
-          // },
-          {
-            column: ride.escortsCount,
-            visible: () => ride.isHasEscort.value,
-          },
-        ],
-        ok: async () => {
-          //PromiseThrottle
-          // ride.driverId.value = undefined;
-          await ride.save();
-        }
-      },
-    )
+    await openRide(ride.id.value, this.context);
   }
 
   async openDriversDialog(r: Ride) {
