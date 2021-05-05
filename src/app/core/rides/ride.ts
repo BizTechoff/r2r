@@ -1,3 +1,4 @@
+import { formatDate } from "@angular/common";
 import { BoolColumn, ColumnSettings, Context, DateColumn, DateTimeColumn, EntityClass, IdEntity, NumberColumn, StringColumn, ValueListColumn } from "@remult/core";
 import { InputAreaComponent } from "../../common/input-area/input-area.component";
 import { MessageType, ServerEventsService } from "../../server/server-events-service";
@@ -73,7 +74,7 @@ export class Ride extends IdEntity {
     passengers() {
         return 1 /*patient*/ + (this.isHasEscort.value ? this.escortsCount.value : 0);
     }
- 
+
     isHasDate() {
         return this.date && this.date.value && this.date.value.getFullYear() > 1900;
     }
@@ -209,44 +210,105 @@ export async function openRide(rid: string, context: Context): Promise<boolean> 
     //let result:UsherRideRow = {};
     let r = await context.for(Ride).findId(rid);
     if (r) {
-      context.openDialog(
-        InputAreaComponent,
-        x => x.args = {
-          title: `Edit Ride:`,// ${r.name.value}`,
-          columnSettings: () => [
-            r.fromLocation,
-            r.toLocation,
-            r.date, {
-              column: r.dayPeriod,
-              valueList: [DayPeriod.morning, DayPeriod.afternoon]
+        context.openDialog(
+            InputAreaComponent,
+            x => x.args = {
+                title: `Edit Ride:`,// ${r.name.value}`,
+                columnSettings: () => [
+                    r.fromLocation,
+                    r.toLocation,
+                    r.date, {
+                        column: r.dayPeriod,
+                        valueList: [DayPeriod.morning, DayPeriod.afternoon]
+                    },
+                    r.isHasBabyChair,
+                    r.isHasWheelchair,
+                    r.isHasExtraEquipment,
+                    r.isHasEscort,
+                    // {
+                    //   column: ride.isHasEscort,
+                    //   allowClick: () => {return true;},
+                    //   click: () => {// not trigger
+                    //     console.log("clickclik");
+                    //     if (ride.isHasEscort.value) {
+                    //       ride.escortsCount.value = Math.max(1, ride.escortsCount.value);
+                    //     }
+                    //   },
+                    // },
+                    {
+                        column: r.escortsCount,
+                        visible: () => r.isHasEscort.value,
+                    },
+                ],
+                ok: async () => {
+                    //PromiseThrottle
+                    // ride.driverId.value = undefined;
+                    await r.save();
+                    return true;
+                }
             },
-            r.isHasBabyChair,
-            r.isHasWheelchair,
-            r.isHasExtraEquipment,
-            r.isHasEscort,
-            // {
-            //   column: ride.isHasEscort,
-            //   allowClick: () => {return true;},
-            //   click: () => {// not trigger
-            //     console.log("clickclik");
-            //     if (ride.isHasEscort.value) {
-            //       ride.escortsCount.value = Math.max(1, ride.escortsCount.value);
-            //     }
-            //   },
-            // },
-            {
-              column: r.escortsCount,
-              visible: () => r.isHasEscort.value,
-            },
-          ],
-          ok: async () => {
-            //PromiseThrottle
-            // ride.driverId.value = undefined;
-            await r.save();
-            return true;
-          }
-        },
-      );
+        );
     }
     return false;
-  }
+}
+
+export async function addRide(rid: string, context: Context): Promise<boolean> {
+    let today = new Date();
+    let tomorrow = new Date();
+    tomorrow.setDate(today.getDate() + 1);
+    let tomorrow10am = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate(), 10);
+
+    var ride = context.for(Ride).create();
+    ride.date.value = tomorrow;
+    ride.visitTime.value = tomorrow10am;
+    ride.dayOfWeek.value = DriverPrefs.getDayOfWeek(ride.date.getDayOfWeek());
+    ride.dayPeriod.value = DayPeriod.morning;
+    // ride.patientId.value = p.id.value;
+    // ride.fromLocation.value = p.defaultBorder.value;
+    // ride.toLocation.value = p.defaultHospital.value;
+    var isNeedReturnTrip = new BoolColumn({ caption: "Need Return Ride" });
+    context.openDialog(
+        InputAreaComponent,
+        x => x.args = {
+            title: "Add Ride",// For: " + p.name.value,
+            columnSettings: () => [
+                ride.fromLocation,
+                ride.toLocation,
+                ride.date, {
+                    column: ride.dayPeriod,
+                    valueList: [DayPeriod.morning, DayPeriod.afternoon],
+                },
+                {
+                    column: isNeedReturnTrip,
+                    visible: (r) => ride.dayPeriod.value == DayPeriod.morning,
+                },
+                {
+                    column: ride.visitTime,
+                    visible: (r) => ride.dayPeriod.value == DayPeriod.morning,
+                    displayValue: ride.isHasVisitTime() ? formatDate(ride.visitTime.value, "HH:mm", 'en-US') : "",
+                },
+                ride.isHasBabyChair,
+                ride.isHasWheelchair,
+                ride.isHasExtraEquipment,
+                ride.isHasEscort,
+                {
+                    column: ride.escortsCount,
+                    visible: (r) => ride.isHasEscort.value
+                },
+            ],
+            ok: async () => {
+                await ride.save();
+                if (isNeedReturnTrip.value && ride.dayPeriod.value == DayPeriod.morning) {
+                    var returnRide = context.for(Ride).create();
+                    ride.copyTo(returnRide);
+                    returnRide.fromLocation.value = ride.toLocation.value;
+                    returnRide.toLocation.value = ride.fromLocation.value;
+                    returnRide.dayPeriod.value = DayPeriod.afternoon;
+                    await returnRide.save();
+                }
+                return true;
+            }
+        },
+    )
+    return false;
+}

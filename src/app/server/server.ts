@@ -49,11 +49,12 @@ app.use('/*', async (req, res) => {
         res.sendStatus(500);
     }
 });
- 
+  
 console.time('noam');
 if (process.env.IMPORT_DATA && process.env.IMPORT_DATA === "true")
 {
-    importDataNew(database).then(()=>console.timeEnd("noam"));
+    importDataNew(database, false).then(()=>console.timeEnd("noam"));
+    // importDataNew(database).then(()=>console.timeEnd("noam"));
 }
  
 let port = process.env.PORT || 3000;

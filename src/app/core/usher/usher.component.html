@@ -25,6 +25,11 @@
                     <mat-icon>refresh</mat-icon>
                 </button>
             </td>
+            <td>
+                <button mat-mini-fab title="Add Ride" (click)="addRide()" color="primary">
+                    <mat-icon>add</mat-icon>
+                </button>
+            </td>
         </tr>
         <!-- <tr>
             <td>
@@ -76,6 +81,7 @@
                                         (click)="suggestPatient(r)">suggestPatient</button>
                                     <button mat-menu-item style="color: blue;"
                                         (click)="suggestDriver(r)">suggestDriver</button>
+                                    <hr>
                                     <button mat-menu-item style="color: blue;"
                                         (click)="approoveRide(r)">approoveRide</button>
                                     <hr>
@@ -155,6 +161,7 @@
                                                 (click)="suggestPatient(r)">suggestPatient</button>
                                             <button mat-menu-item style="color: blue;"
                                                 (click)="suggestDriver(r)">suggestDriver</button>
+                                            <hr>
                                             <button mat-menu-item style="color: blue;"
                                                 (click)="approoveRide(r)">approoveRide</button>
                                             <hr>
@@ -233,6 +240,7 @@
                                                         (click)="suggestPatient(r)">suggestPatient</button>
                                                     <button mat-menu-item style="color: blue;"
                                                         (click)="suggestDriver(r)">suggestDriver</button>
+                                                    <hr>
                                                     <button mat-menu-item style="color: blue;"
                                                         (click)="approoveRide(r)">approoveRide</button>
                                                     <hr>
@@ -319,6 +327,7 @@
                                                                 (click)="suggestPatient(r)">suggestPatient</button>
                                                             <button mat-menu-item style="color: blue;"
                                                                 (click)="suggestDriver(r)">suggestDriver</button>
+                                                            <hr>
                                                             <button mat-menu-item style="color: blue;"
                                                                 (click)="approoveRide(r)">approoveRide</button>
                                                             <hr>
@@ -403,6 +412,7 @@
                                                                         (click)="suggestPatient()">suggestPatient</button>
                                                                     <button mat-menu-item style="color: blue;"
                                                                         (click)="suggestDriver()">suggestDriver</button>
+                                                                    <hr>
                                                                     <button mat-menu-item style="color: blue;"
                                                                         (click)="approoveRide()">approoveRide</button>
                                                                     <hr>

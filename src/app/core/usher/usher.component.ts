@@ -5,7 +5,7 @@ import { Roles } from '../../users/roles';
 import { Driver, openDriver } from '../drivers/driver';
 import { Location } from '../locations/location';
 import { openPatient, Patient } from '../patients/patient';
-import { openRide, Ride, RideStatus } from '../rides/ride';
+import { addRide, openRide, Ride, RideStatus } from '../rides/ride';
 import { MabatGroupBy } from './mabat';
 import { Usher, UsherRideGroup, UsherRideRow } from './usher';
 
@@ -32,7 +32,11 @@ export class UsherComponent implements OnInit {
   async refresh(){
     this.rides = await UsherComponent.retrieveUsherRides();
   }
-
+ 
+  async addRide(){
+    let changed = await addRide('', this.context);
+  }
+  
   @ServerFunction({ allowed: [Roles.usher, Roles.admin] })
   static async retrieveUsherRides(fromDb = true, context?:Context): Promise<UsherRideGroup> {
     let result:UsherRideGroup = {title: "Not Found Rides", rows: [], groups: [], field: MabatGroupBy.none  };
@@ -52,9 +56,17 @@ export class UsherComponent implements OnInit {
   async editRide(r:UsherRideRow){
     console.log(r);
     let changed = await openRide(r.id, this.context);
+    if(changed){
+      // let ride = await this.context.for(Ride).findId(r.id);
+      // r.pid = ride.patientId.value;
+      // // r.pAge = ride.age();
+      // r.passengers = ride.passengers();
+      // // r.icons = ride.patientId.value;
+      // r.did = ride.driverId.value;
+      // r.status = ride.status.value;
+    }
   }
   async editPatient(r:UsherRideRow){
-    console.log(r);
     let changed = await openPatient(r.pid, this.context);
   }
   async editDriver(r:UsherRideRow){

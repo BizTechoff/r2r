@@ -90,13 +90,13 @@ export class MabatGroupBy {
         MabatGroupBy.root,
         // MabatGroupBy.status,
         MabatGroupBy.dateperiod,
-        // MabatGroupBy.date,
-        // MabatGroupBy.period,
+        //  MabatGroupBy.date,
+        //  MabatGroupBy.period,
         MabatGroupBy.fromto, 
         // MabatGroupBy.from, 
         // MabatGroupBy.to,
         // MabatGroupBy.patient,
-        // MabatGroupBy.driver,
+        MabatGroupBy.driver,
         MabatGroupBy.none,
     ];
   

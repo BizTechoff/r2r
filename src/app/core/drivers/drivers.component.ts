@@ -128,7 +128,7 @@ export class DriversComponent implements OnInit {
         ok: async () => {
           await driver.save();
           this.retrieveDrivers();
-          //PromiseThrottle
+          //PromiseThrottle 
           // ride.driverId.value = undefined;
           // await driver.save();
           // // this.patientsSettings.items.push(patient);

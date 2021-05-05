@@ -11,27 +11,36 @@ import { Users } from '../users/users';
 
 let volunteersFolder = "c:/r2r/volunteers";
 let ridersFolder = "c:/r2r/rides";
+let daysToRetrieve = 90;//3 months
 
 var counter = 0;
 
 export async function importDataNew(db: SqlDatabase, fresh = false) {
 
+    console.time("starting import");
+
     if (fresh) {
-        await importRidesToFiles(ridersFolder);
-        await importDriversToFiles(volunteersFolder);
+        console.time("get data from old db");
+        await importRidesAndToFiles();
+        console.timeEnd("get data from old db");
     }
 
-    counter = 0;
     console.log("starting import");
     var context = new ServerContext(db);
 
     await seed(context);
 
     var rides = fs.readdirSync(ridersFolder);
-    console.log("rides.length=" + rides.length);
+    console.log("rides.length = " + rides.length);
 
+    let counter = 0;
+    console.time("insert data to new db");
     for (const id of rides) {
         ++counter;
+
+        if (counter % 25 == 0) {
+            console.log(counter);
+        }
 
         let fileName = `${ridersFolder}/${id}`;
         var r = JSON.parse(fs.readFileSync(fileName).toString());
@@ -43,8 +52,8 @@ export async function importDataNew(db: SqlDatabase, fresh = false) {
         }
 
         await createFromRideRecordNew(r, context);
-
     }
+    console.time("insert data to new db");
 
     //console.log("list tables with data");
     console.log(`settings: ${await context.for(ApplicationSettings).count()} rows`);
@@ -204,7 +213,7 @@ async function findOrCreateDriverPrefsNew(driverRecord: any, driverId: string, c
 
     let driverEntityRecord = await getDriverEntityRecord(
         driverRecord.DisplayName
-    ); 
+    );
 
     let result = [];
     if (driverEntityRecord.PrefTime && driverEntityRecord.PrefTime.length > 0) {
@@ -246,9 +255,9 @@ async function findOrCreateRideNew(rideRecord: any, driverId: string, patientId:
     ride.date.value = toDate(rideRecord.Date);
     ride.dayOfWeek.value = DriverPrefs.getDayOfWeek((ride.date.value.getDay() + 1));
     ride.dayPeriod.value = DriverPrefs.getDayPeriod(ride.date.value.getHours() > 12 ? "afternoon" : "morning");
- 
+
     ride.status.value = RideStatus.waitingForDriver;
-    
+
     if (rideRecord.Statuses) {
         for (const st of rideRecord.Statuses) {
             switch (st) {
@@ -297,26 +306,47 @@ async function getDriverEntityRecord(fileDriverHebName: string) {
     }
 }
 
-async function importRidesToFiles(folderName: string) {
-    let r = await get('GetRidePatViewByTimeFilter', { from: 7, until: 1 });
-    for (const v of r) {
-        let fileName = `${folderName}/${v.DisplayName}.json`;
-        if (fs.existsSync(fileName)) {
-            let one = await get('getVolunteer', { displayName: v.DisplayName });
-            fs.writeFileSync(fileName, JSON.stringify(one, undefined, 2));
-        }
-    }
-}
+async function importRidesAndToFiles(rewrite: boolean = false) {
 
-async function importDriversToFiles(folderName: string) {
-    let r = await get('GetRidePatViewByTimeFilter', { from: 7, until: 1 });
-    for (const v of r) {
-        let fileName = `${folderName}/${v.DisplayName}.json`;
-        if (!(fs.existsSync(fileName))) {
-            let one = await get('getVolunteer', { displayName: v.DisplayName });
-            fs.writeFileSync(fileName, JSON.stringify(one, undefined, 2));
+    let rides = await get('GetRidePatViewByTimeFilter', { from: daysToRetrieve, until: 1 });
+    console.log(`found ${rides.length} rides`);
+    // let rides = await get('GetRidePatViewByTimeFilter', { from: 0, until: 1 });
+    let rCounter = 0; let rWriteCounter = 0;
+    let vCounter = 0; let vWriteCounter = 0;
+    for (const r of rides) {
+
+        if (r.RideNum == '-1') {
+            // deleted-ride
+            continue;
+        }
+        ++rCounter;
+
+        if (vCounter % 25 == 0) {
+            console.log(vCounter);
+        }
+
+        let fileName = `${ridersFolder}/${r.RideNum}.json`;
+        if (rewrite || (!(fs.existsSync(fileName)))) {
+            fs.writeFileSync(fileName, JSON.stringify(r, undefined, 2));
+            ++rWriteCounter;
+        }
+
+        if (r.Drivers && r.Drivers.length > 0) {
+            let vName = r.Drivers[0].DisplayName;
+            if (vName && vName.length > 0) {
+                ++vCounter;
+                let one = await get('getVolunteer', { displayName: vName });
+
+                fileName = `${volunteersFolder}/${vName}.json`;
+                if (rewrite || (!(fs.existsSync(fileName)))) {
+                    fs.writeFileSync(fileName, JSON.stringify(one, undefined, 2));
+                    ++vWriteCounter;
+                }
+            }
         }
     }
+    console.log(`wrote ${rWriteCounter} from ${rCounter} rides`);
+    console.log(`wrote ${vWriteCounter} from ${vCounter} drivers`);
 }
 
 async function get(url: string, body: any) {
@@ -385,4 +415,5 @@ let borders: string[] = [];
     borders.push(`Na'alin`.trim().toLocaleLowerCase());
     borders.push(`Bethlehem`.trim().toLocaleLowerCase());
     borders.push(`Eyal`.trim().toLocaleLowerCase());
+    borders.push(`Jalame`.trim().toLocaleLowerCase());
 };
