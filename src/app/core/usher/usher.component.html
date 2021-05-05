@@ -68,10 +68,10 @@
                                         <label style="align-content: center;text-align: center;"><b><u>{{
                                                     r.pName }}</u></b></label>
                                     </div>
-                                    <button mat-menu-item style="color: blue;"
+                                    <!-- <button mat-menu-item style="color: blue;"
                                         (click)="addPatient(r)">addPatient</button>
                                     <button mat-menu-item style="color: blue;" (click)="addDriver(r)">addDriver</button>
-                                    <hr>
+                                    <hr> -->
                                     <button mat-menu-item style="color: blue;"
                                         (click)="suggestPatient(r)">suggestPatient</button>
                                     <button mat-menu-item style="color: blue;"
@@ -79,8 +79,7 @@
                                     <button mat-menu-item style="color: blue;"
                                         (click)="approoveRide(r)">approoveRide</button>
                                     <hr>
-                                    <button mat-menu-item style="color: blue;"
-                                        (click)="editRide(r)">editRide</button>
+                                    <button mat-menu-item style="color: blue;" (click)="editRide(r)">editRide</button>
                                     <button mat-menu-item style="color: blue;"
                                         (click)="editPatient(r)">editPatient</button>
                                     <button mat-menu-item style="color: blue;"
@@ -100,9 +99,9 @@
                         <td>{{ r.passengers }}</td>
                         <td>
                             <mat-icon *ngFor="let i of r.icons">
-                              {{ i }}
+                                {{ i }}
                             </mat-icon>
-                          </td>
+                        </td>
                         <!-- <td><a href="tel:{{ r.pMobile }}">{{ r.pMobile }}</a></td> -->
                         <td><button mat-flat-button style="color: rgb(0, 0, 238);" (click)="editDriver(r)"
                                 title="mobile: {{ r.dMobile }}"><u>{{ r.dName }}</u></button></td>
@@ -147,11 +146,11 @@
                                                 <label style="align-content: center;text-align: center;"><b><u>{{
                                                             r.pName }}</u></b></label>
                                             </div>
-                                            <button mat-menu-item style="color: blue;"
+                                            <!-- <button mat-menu-item style="color: blue;"
                                                 (click)="addPatient(r)">addPatient</button>
                                             <button mat-menu-item style="color: blue;"
                                                 (click)="addDriver(r)">addDriver</button>
-                                            <hr>
+                                            <hr> -->
                                             <button mat-menu-item style="color: blue;"
                                                 (click)="suggestPatient(r)">suggestPatient</button>
                                             <button mat-menu-item style="color: blue;"
@@ -180,9 +179,9 @@
                                 <td>{{ r.passengers }}</td>
                                 <td>
                                     <mat-icon *ngFor="let i of r.icons">
-                                      {{ i }}
+                                        {{ i }}
                                     </mat-icon>
-                                  </td>
+                                </td>
                                 <!-- <td><a href="tel:{{ r.pMobile }}">{{ r.pMobile }}</a></td> -->
                                 <td><button mat-flat-button style="color: rgb(0, 0, 238);" (click)="editDriver(r)"
                                         title="mobile: {{ r.dMobile }}"><u>{{ r.dName }}</u></button></td>
@@ -225,11 +224,11 @@
                                                         <label style="align-content: center;text-align: center;"><b><u>{{
                                                                     r.pName }}</u></b></label>
                                                     </div>
-                                                    <button mat-menu-item style="color: blue;"
+                                                    <!-- <button mat-menu-item style="color: blue;"
                                                         (click)="addPatient(r)">addPatient</button>
                                                     <button mat-menu-item style="color: blue;"
                                                         (click)="addDriver(r)">addDriver</button>
-                                                    <hr>
+                                                    <hr> -->
                                                     <button mat-menu-item style="color: blue;"
                                                         (click)="suggestPatient(r)">suggestPatient</button>
                                                     <button mat-menu-item style="color: blue;"
@@ -259,9 +258,9 @@
                                         <td>{{ r.passengers }}</td>
                                         <td>
                                             <mat-icon *ngFor="let i of r.icons">
-                                              {{ i }}
+                                                {{ i }}
                                             </mat-icon>
-                                          </td>
+                                        </td>
                                         <!-- <td><a href="tel:{{ r.pMobile }}">{{ r.pMobile }}</a></td> -->
                                         <td><button mat-flat-button style="color: rgb(0, 0, 238);"
                                                 (click)="editDriver(r)" title="mobile: {{ r.dMobile }}"><u>{{ r.dName
@@ -311,11 +310,11 @@
                                                                     style="align-content: center;text-align: center;"><b><u>{{
                                                                             r.pName }}</u></b></label>
                                                             </div>
-                                                            <button mat-menu-item style="color: blue;"
+                                                            <!-- <button mat-menu-item style="color: blue;"
                                                                 (click)="addPatient(r)">addPatient</button>
                                                             <button mat-menu-item style="color: blue;"
                                                                 (click)="addDriver(r)">addDriver</button>
-                                                            <hr>
+                                                            <hr> -->
                                                             <button mat-menu-item style="color: blue;"
                                                                 (click)="suggestPatient(r)">suggestPatient</button>
                                                             <button mat-menu-item style="color: blue;"
@@ -345,9 +344,9 @@
                                                 <td>{{ r.passengers }}</td>
                                                 <td>
                                                     <mat-icon *ngFor="let i of r.icons">
-                                                      {{ i }}
+                                                        {{ i }}
                                                     </mat-icon>
-                                                  </td>
+                                                </td>
                                                 <!-- <td><a href="tel:{{ r.pMobile }}">{{ r.pMobile }}</a></td> -->
                                                 <td><button mat-flat-button style="color: rgb(0, 0, 238);"
                                                         (click)="editDriver(r)" title="mobile: {{ r.dMobile }}"><u>{{
@@ -430,9 +429,9 @@
                                                         <td>{{ r.passengers }}</td>
                                                         <td>
                                                             <mat-icon *ngFor="let i of r.icons">
-                                                              {{ i }}
+                                                                {{ i }}
                                                             </mat-icon>
-                                                          </td>
+                                                        </td>
                                                         <!-- <td><a href="tel:{{ r.pMobile }}">{{ r.pMobile }}</a></td> -->
                                                         <td><button mat-flat-button style="color: rgb(0, 0, 238);"
                                                                 (click)="editDriver(r)"

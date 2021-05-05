@@ -20,7 +20,7 @@
 
     <div *ngFor="let group of driverRegistered">
       <mat-accordion [multi]="true">
-        <mat-expansion-panel>
+        <mat-expansion-panel [expanded]="true">
           <mat-expansion-panel-header>
             <mat-panel-title>
               <strong>{{ group.title | titlecase }}</strong>
@@ -65,6 +65,9 @@
                         </tr>
                         <tr *ngIf="!r.isWaitingForUsherApproove">
                           Phones:
+                        </tr>
+                        <tr *ngIf="!r.isWaitingForUsherApproove">
+                          Time:
                         </tr>
                       </table>
                     </td>

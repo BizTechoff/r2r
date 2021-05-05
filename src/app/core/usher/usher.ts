@@ -86,14 +86,18 @@ export interface Mabat {
 
 export class Usher {
 
-    static fromDemoTodayMidnight: Date = new Date(2021, 3, 12);
-    static toDemoTodayMidnight: Date = new Date(2021, 3, 13);
+    // static fromDemoTodayMidnight: Date = new Date(2021, 3, 12);
+    // static toDemoTodayMidnight: Date = new Date(2021, 3, 13);
+    // static fromDemoTodayMidnight: Date = new Date(2021, 0, 1);
+    // static toDemoTodayMidnight: Date = new Date(2021, 12, 31);
+    static fromDemoTodayMidnight: Date = new Date(2021, 3, 11);
+    static toDemoTodayMidnight: Date = new Date(2021, 3, 12);
     static todayMidnight;
     static tomorrowMidnight;
 
     static mabat: Mabat = { name: "root-default" };
 
-    @ServerFunction({ allowed: [Roles.usher, Roles.admin] })//allowed: Roles.matcher
+    @ServerFunction({ allowed: [Roles.usher, Roles.admin] })
     static async getRides4Usher(driverId: string = "", context?: Context): Promise<UsherRideGroup> {
 
         let result: UsherRideGroup = {
@@ -129,6 +133,8 @@ export class Usher {
 
             // console.timeStamp("getRides4Usher");
             await Usher.addToGroup(result, r, context);
+            result.rows.sort( (r1,r2) => r1.pName.localeCompare(r2.pName));
+            result.groups.sort( (g1,g2) => g1.title.localeCompare(g2.title));
         }
         console.timeEnd("getRides4Usher");
         return result;
@@ -599,16 +605,18 @@ export class Usher {
 
         let today = await Utils.getServerDate();
         let tomorrow = addDays(1);
-        let todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());//T00:00:00
-        let tomorrowDate = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());//T00:00:00
+        // let todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());//T00:00:00
+        // let tomorrowDate = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());//T00:00:00
+        let todayDate = Usher.fromDemoTodayMidnight;
+        let tomorrowDate = Usher.toDemoTodayMidnight;
 
         for await (const ride of context.for(Ride).iterate({
             where: r => (r.date.isGreaterOrEqualTo(todayDate))
-                .and(r.status.isDifferentFrom(RideStatus.waitingForDriver))
+                .and(r.status.isNotIn(...[RideStatus.waitingForDriver, RideStatus.succeeded]))
                 .and(r.driverId.isEqualTo(driverId)),
             orderBy: r => [{ column: r.date, descending: false }],
         })) {
-
+ 
             // Build Row
             let rDate = new Date(ride.date.value.getFullYear(), ride.date.value.getMonth(), ride.date.value.getDate());
 
