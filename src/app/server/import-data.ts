@@ -343,6 +343,9 @@ async function importRidesAndToFiles(rewrite: boolean = false) {
                     ++vWriteCounter;
                 }
             }
+            else{
+                console.log(`ride ${r.RideNum} has bo driver.DisplayName`);
+            }
         }
     }
     console.log(`wrote ${rWriteCounter} from ${rCounter} rides`);

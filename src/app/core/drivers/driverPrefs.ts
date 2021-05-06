@@ -6,7 +6,7 @@ import { DriverIdColumn } from "./driver";
 export class DriverPrefs extends IdEntity {
 
     driverId = new DriverIdColumn(this.context);
-    locationId = new LocationIdColumn(this.context, true /*onlyBorders*/);//todo:onlyBorders
+    locationId = new LocationIdColumn({},this.context, true /*onlyBorders*/);//todo:onlyBorders
 
     isAlsoBack = new BoolColumn({});
     dayOfWeek = new DayOfWeekColumn();

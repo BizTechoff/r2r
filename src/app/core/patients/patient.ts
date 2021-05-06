@@ -16,8 +16,8 @@ export class Patient extends IdEntity {
   idNumber = new StringColumn({});
   birthDate = new DateColumn({});
 
-  defaultBorder?= new LocationIdColumn(this.context, true);
-  defaultHospital?= new LocationIdColumn(this.context, true);
+  defaultBorder?= new LocationIdColumn({},this.context, true);
+  defaultHospital?= new LocationIdColumn({},this.context, true);
 
   constructor(private context: Context) {
     super({
@@ -33,7 +33,7 @@ export class Patient extends IdEntity {
   }
 
   age(today?: Date) {
-    if (this.hasBirthDate())
+    if (this.hasBirthDate() && today)
       return today.getFullYear() - this.birthDate.value.getFullYear();
     return 0;
     if (!(this.hasBirthDate())) {

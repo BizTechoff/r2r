@@ -1,4 +1,4 @@
-import { ColumnOptions, Context, EntityClass, IdEntity, StringColumn, ValueListColumn } from "@remult/core";
+import { ColumnOptions, ColumnSettings, Context, EntityClass, IdEntity, StringColumn, ValueListColumn } from "@remult/core";
 import { DynamicServerSideSearchDialogComponent } from "../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component";
 
 @EntityClass
@@ -33,7 +33,7 @@ export class LocationTypeColumn extends ValueListColumn<LocationType>{
 
 export class LocationIdColumn extends StringColumn {
 
-  constructor(private context: Context, allowNull = false, onlyBorders = false) {
+  constructor(options?: ColumnSettings<string>, private context?: Context, allowNull = false, onlyBorders = false) {
     super({
       allowNull: allowNull,
       validate: () => {
@@ -57,6 +57,7 @@ export class LocationIdColumn extends StringColumn {
             }));
         }
       })
-    });
+    },
+    options);
   }
 }

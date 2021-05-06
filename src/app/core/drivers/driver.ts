@@ -36,7 +36,7 @@ export class Driver extends IdEntity {
       }
     },
   });
-  home?= new LocationIdColumn(this.context, true);
+  home?= new LocationIdColumn({},this.context, true);
   email = new StringColumn({});
   seats = new NumberColumn({
     defaultValue: 3,

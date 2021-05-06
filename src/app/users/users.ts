@@ -6,6 +6,9 @@ import { Roles } from './roles';
 
 @EntityClass
 export class Users extends IdEntity {
+
+    
+
     name = new StringColumn({
         caption: "name",
         validate: () => {
@@ -33,7 +36,7 @@ export class Users extends IdEntity {
             allowApiRead: context.isSignedIn(),
             allowApiDelete: Roles.admin,
             allowApiUpdate: context.isSignedIn(),
-            allowApiInsert: false,//block user from creating by api-call
+            allowApiInsert: Roles.admin,
 
             saving: async () => {
                 if (context.onServer) {
@@ -133,6 +136,7 @@ export class Users extends IdEntity {
         }
     }
 
+    // to remove
     @ServerMethod({ allowed: true })//user can created only inside platform (the server)
     async create(password: string) {
         if (!this.isNew())
