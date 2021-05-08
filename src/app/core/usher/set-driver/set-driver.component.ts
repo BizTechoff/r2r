@@ -26,12 +26,21 @@ export interface rideRow {
   styleUrls: ['./set-driver.component.scss']
 })
 export class SetDriverComponent implements OnInit {
+  clearSelections() {
+    for (const row of this.rides) {
+      row.selected = false;
+    }
+    this.selectedPassengers = 0;
+  }
 
   driverSeats: number = 0;
   visitTime = "00:00";
   driverId = new DriverIdColumn({
     caption: "Select Driver", valueChange: async () => {
       this.driverSeats = (await this.context.for(Driver).findId(this.driverId.value)).seats.value;
+      if (this.selectedPassengers > this.driverSeats) {
+        this.clearSelections();
+      }
     }
   }, this.context);
   driverArea = new DataAreaSettings({
@@ -59,7 +68,7 @@ export class SetDriverComponent implements OnInit {
   }
 
   async retrieve() {
-    let rows:rideRow[] = [];
+    let rows: rideRow[] = [];
     if (this.args) {
       for await (const r of await this.context.for(Ride).find({
         where: (r) => r.date.isEqualTo(this.args.date)
@@ -72,9 +81,9 @@ export class SetDriverComponent implements OnInit {
         let driverName = '';
         let driverMobile = '';
         if (r.isHasDriver()) {
-          let d= (await this.context.for(Driver).findId(r.driverId.value));
-          driverName  = d.name.value;
-          driverMobile  = d.mobile.value;
+          let d = (await this.context.for(Driver).findId(r.driverId.value));
+          driverName = d.name.value;
+          driverMobile = d.mobile.value;
         }
         let patientName = '';
         if (r.isHasPatient()) {
