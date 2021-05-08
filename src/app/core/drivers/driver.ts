@@ -1,4 +1,4 @@
-import { Context, DateColumn, EntityClass, IdEntity, NumberColumn, StringColumn } from "@remult/core";
+import { ColumnSettings, Context, DateColumn, EntityClass, IdEntity, NumberColumn, StringColumn } from "@remult/core";
 import { DynamicServerSideSearchDialogComponent } from "../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component";
 import { InputAreaComponent } from "../../common/input-area/input-area.component";
 import { Utils } from "../../shared/utils";
@@ -114,7 +114,7 @@ export class DriverIdColumn extends StringColumn {
   async getValueName() {
     return (await this.context.for(Driver).findId(this.value)).name.value;
   }
-  constructor(private context: Context) {
+  constructor(options?: ColumnSettings<string>, private context?: Context) {
     super({
       dataControlSettings: () => ({
         getValue: () => this.getName(),
@@ -128,7 +128,7 @@ export class DriverIdColumn extends StringColumn {
             }));
         }
       })
-    });
+    },options);
   }
 }
 

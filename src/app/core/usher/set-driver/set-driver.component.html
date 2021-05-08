@@ -1,0 +1,44 @@
+<div class="full-page">
+    <div class="header">
+        <h2>Rides: {{ fromName }} to {{ toName }}</h2>
+    </div>
+    <div>
+        <data-area [settings]="driverArea"></data-area>
+        Selected Driver Seats: {{ driverSeats }} 
+    </div>
+    <div *ngIf="selectedPassengers > 0 && driverSeats > 0 && driverSeats >= selectedPassengers">
+        Pickup Time: <input required type="time" color="primary" >
+        <button color="primary" (click)="setDriver()">Set Driver</button>
+    </div>
+    <mat-divider></mat-divider>
+    <mat-label>Selected Paasengers: {{ selectedPassengers }}</mat-label>
+    <mat-divider></mat-divider>
+    <div class="grow-item">
+        <table *ngIf="rides && rides.length > 0">
+            <tr>
+                <td></td>
+                <!-- <td><mat-checkbox [checked]="false" onchange="selectionAllChanged()"></mat-checkbox></td> -->
+                <!-- <th>From</th>
+                <th>To</th> -->
+                <th>Driver</th>
+                <th>Visit Time</th>
+                <th>Passengers</th>
+                <th>Patient</th>
+            </tr>
+            <tr *ngFor="let r of rides">
+                <td>
+                    <mat-checkbox *ngIf="r.selected || driverSeats > selectedPassengers" [(ngModel)]="r.selected" (change)="selectionRowChanged(r)"></mat-checkbox>
+                    <!-- <mat-checkbox *ngIf="r.driver.length == 0" [(ngModel)]="r.selected" (change)="selectionRowChanged(r)"></mat-checkbox> -->
+                </td>
+                <!-- <td>{{ r.from }}</td>
+                <td>{{ r.to }}</td> -->
+                <td>{{ r.driver }}</td>
+                <td>{{ r.visitTime }}</td>
+                <td>{{ r.passengers }}</td>
+                <td>{{ r.patient }}</td>
+            </tr>
+        </table>
+    </div>
+    <div class="footer">
+    </div>
+</div>

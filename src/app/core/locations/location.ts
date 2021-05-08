@@ -56,7 +56,7 @@ export class LocationIdColumn extends StringColumn {
               searchColumn: l => l.name
             }));
         }
-      })
+      }),//...options
     },
     options);
   }

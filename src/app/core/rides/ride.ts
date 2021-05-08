@@ -11,7 +11,7 @@ import { PatientIdColumn } from "../patients/patient";
 @EntityClass
 export class Ride extends IdEntity {
 
-    driverId = new DriverIdColumn(this.context);
+    driverId = new DriverIdColumn({}, this.context);
     patientId = new PatientIdColumn(this.context);
     status = new RideStatusColumn();
     statusDate = new DateColumn();
@@ -77,6 +77,14 @@ export class Ride extends IdEntity {
 
     isHasDate() {
         return this.date && this.date.value && this.date.value.getFullYear() > 1900;
+    }
+
+    isHasDriver() {
+        return this.driverId && this.driverId.value && this.driverId.value.length > 0;
+    }
+
+    isHasPatient() {
+        return this.patientId && this.patientId.value && this.patientId.value.length > 0;
     }
 
     isHasVisitTime() {

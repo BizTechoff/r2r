@@ -40,11 +40,12 @@
         </table>
     </div>
     <div class="grow-item">
-        <data-grid *ngIf="ridesGrid && ridesGrid.items && ridesGrid.items.length > 0" [settings]="ridesGrid"></data-grid>
-        <div *ngIf="(!(ridesGrid && ridesGrid.items && ridesGrid.items.length > 0))">
+        <data-grid [settings]="ridesGrid"></data-grid>
+        <!-- <data-grid *ngIf="ridesGrid && ridesGrid.items && ridesGrid.items.length > 0" [settings]="ridesGrid"></data-grid> -->
+        <!-- <div *ngIf="(!(ridesGrid && ridesGrid.items && ridesGrid.items.length > 0))">
             <span style="text-align: center;">
                 <h3>Found: 0 Records</h3>
             </span>
-        </div>
+        </div> -->
 
     </div>

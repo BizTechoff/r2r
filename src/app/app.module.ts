@@ -1,4 +1,4 @@
-import { APP_INITIALIZER, NgModule } from '@angular/core';
+import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -15,8 +15,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { RemultModule, } from '@remult/angular';
-import { Context } from '@remult/core';
+import { RemultModule } from '@remult/angular';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { DialogService } from './common/dialog';
@@ -25,7 +24,6 @@ import { GridDialogComponent } from './common/grid-dialog/grid-dialog.component'
 import { InputAreaComponent } from './common/input-area/input-area.component';
 import { YesNoQuestionComponent } from './common/yes-no-question/yes-no-question.component';
 import { ApplicationSettingsComponent } from './core/application-settings/application-settings.component';
-import { ApplicationSettings, SettingsService } from './core/application-settings/applicationSettings';
 import { DriverRidesComponent } from './core/drivers/driver-rides/driver-rides.component';
 import { DriverSettingsComponent } from './core/drivers/driver-settings/driver-settings.component';
 import { DriverUsefulInformationComponent } from './core/drivers/driver-useful-information/driver-useful-information.component';
@@ -33,6 +31,7 @@ import { DriversComponent } from './core/drivers/drivers.component';
 import { LocationsComponent } from './core/locations/locations.component';
 import { PatientsComponent } from './core/patients/patients.component';
 import { RidesComponent } from './core/rides/rides.component';
+import { SetDriverComponent } from './core/usher/set-driver/set-driver.component';
 import { UsherComponent } from './core/usher/usher.component';
 import { HomeComponent } from './home/home.component';
 import { ReportWeeklyDriversComponent } from './reports/report-weekly-drivers/report-weekly-drivers.component';
@@ -41,6 +40,7 @@ import { ServerEventsService } from './server/server-events-service';
 import { Utils } from './shared/utils';
 import { AdminGuard, DriverGuard, MatcherGuard, UsherGuard } from './users/roles';
 import { UsersComponent } from './users/users.component';
+import { ApproveDriverComponent } from './core/usher/approve-driver/approve-driver.component';
 
 
 @NgModule({
@@ -63,6 +63,8 @@ import { UsersComponent } from './users/users.component';
     ReportWeeklyDriversComponent,
     ApplicationSettingsComponent,
     DriverSettingsComponent,
+    SetDriverComponent,
+    ApproveDriverComponent,
   ],
   imports: [
     BrowserModule,
@@ -103,7 +105,7 @@ import { UsersComponent } from './users/users.component';
   ],
   bootstrap: [AppComponent],
   entryComponents: [YesNoQuestionComponent, InputAreaComponent,
-    GridDialogComponent, DynamicServerSideSearchDialogComponent]
+    GridDialogComponent, DynamicServerSideSearchDialogComponent, SetDriverComponent, ApproveDriverComponent]
 })
 export class AppModule { }
 
