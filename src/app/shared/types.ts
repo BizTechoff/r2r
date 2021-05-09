@@ -22,6 +22,8 @@ export interface getRideList4UsherParams{
 export interface ride4Usher {
 
   key: string,
+  fromIsBorder:boolean;
+  toIsBorder:boolean;
   fromId: string,
   toId: string,
   from: string,

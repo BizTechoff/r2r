@@ -1,0 +1,27 @@
+<div class="full-page">
+    <div class="header">
+        <h2>Rides: {{ fromName }} to {{ toName }}</h2>
+    </div>
+    <div class="grow-item">
+        <table *ngIf="rides && rides.length > 0">
+            <tr>
+                <!-- <th></th> -->
+                <th>Driver</th>
+                <th>Mobile</th>
+                <th>Visit Time</th>
+                <th>Passengers</th>
+                <th>Patient</th>
+            </tr>
+            <tr *ngFor="let r of rides">
+                <!-- <td><button mat-raised-button (click)="approveDriver(r)">approve</button></td> -->
+                <td><button (click)="openDriver(r)"><u>{{ r.driver }}</u></button></td>
+                <td>{{ r.dMobile }}</td>
+                <td>{{ r.visitTime }}</td>
+                <td>{{ r.passengers }}</td>
+                <td><button (click)="openPatient(r)"><u>{{ r.patient }}</u></button></td>
+            </tr>
+        </table>
+    </div>
+    <div class="footer">
+    </div>
+</div>

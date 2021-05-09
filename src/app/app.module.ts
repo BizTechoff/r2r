@@ -41,6 +41,7 @@ import { Utils } from './shared/utils';
 import { AdminGuard, DriverGuard, MatcherGuard, UsherGuard } from './users/roles';
 import { UsersComponent } from './users/users.component';
 import { ApproveDriverComponent } from './core/usher/approve-driver/approve-driver.component';
+import { ShowRidesComponent } from './core/usher/show-rides/show-rides.component';
 
 
 @NgModule({
@@ -65,6 +66,7 @@ import { ApproveDriverComponent } from './core/usher/approve-driver/approve-driv
     DriverSettingsComponent,
     SetDriverComponent,
     ApproveDriverComponent,
+    ShowRidesComponent,
   ],
   imports: [
     BrowserModule,
@@ -105,7 +107,7 @@ import { ApproveDriverComponent } from './core/usher/approve-driver/approve-driv
   ],
   bootstrap: [AppComponent],
   entryComponents: [YesNoQuestionComponent, InputAreaComponent,
-    GridDialogComponent, DynamicServerSideSearchDialogComponent, SetDriverComponent, ApproveDriverComponent]
+    GridDialogComponent, DynamicServerSideSearchDialogComponent, SetDriverComponent, ApproveDriverComponent, ShowRidesComponent]
 })
 export class AppModule { }
 

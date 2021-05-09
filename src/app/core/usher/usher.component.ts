@@ -15,6 +15,7 @@ import { addRide, openRide, Ride, RideStatus } from '../rides/ride';
 import { ApproveDriverComponent } from './approve-driver/approve-driver.component';
 import { MabatGroupBy } from './mabat';
 import { SetDriverComponent } from './set-driver/set-driver.component';
+import { ShowRidesComponent } from './show-rides/show-rides.component';
 import { Usher, UsherRideGroup, UsherRideRow } from './usher';
 
 @Component({
@@ -184,6 +185,17 @@ export class UsherComponent implements OnInit {
       from: r.fromId,
       to: r.toId,
     });
+  }
+
+  
+
+  async openShowRides(r: ride4Usher) {
+    this.context.openDialog(ShowRidesComponent, sr => sr.args = {
+      date: this.selectedDate.value,
+      from: r.fromId,
+      to: r.toId,
+    });
+
   }
 
 

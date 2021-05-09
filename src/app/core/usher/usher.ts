@@ -7,7 +7,7 @@ import { Driver } from "../drivers/driver";
 import { DriverPrefs } from "../drivers/driverPrefs";
 import { Patient } from "../patients/patient";
 import { Ride, RideStatus, RideStatusColumn } from "../rides/ride";
-import { Location } from "./../locations/location";
+import { Location, LocationType } from "./../locations/location";
 import { MabatGroupBy } from "./mabat";
 
 
@@ -139,18 +139,24 @@ export class Usher {
             .and(params.fromId && (params.fromId.length > 0) ? r.fromLocation.isEqualTo(params.fromId) : new Filter(x => { /* true */ }))
             .and(params.toId && (params.toId.length > 0) ? r.toLocation.isEqualTo(params.toId) : new Filter(x => { /* true */ })),
         })) { 
-            let from = (await context.for(Location).findId(ride.fromLocation.value)).name.value;
-            let to = (await context.for(Location).findId(ride.toLocation.value)).name.value;
-            let key = `${from}-${to}`;
-
+            let from = (await context.for(Location).findId(ride.fromLocation.value));
+            let fromName = from.name.value;
+            let fromIsBorder = from.type.value == LocationType.border;
+            let to = (await context.for(Location).findId(ride.toLocation.value));
+            let toName = to.name.value;
+            let toIsBorder = to.type.value == LocationType.border;
+            let key = `${fromName}-${toName}`;
+ 
             let row = result.find(r => r.key === key);
             if (!(row)) {
                 row = {
                     key: key,
-                    fromId: ride.fromLocation.value,
-                    toId: ride.toLocation.value,
-                    from: from,
-                    to: to,
+                    fromIsBorder: fromIsBorder,
+                    toIsBorder: toIsBorder,
+                    fromId: from.id.value,
+                    toId: to.id.value,
+                    from: fromName,
+                    to: toName,
                     inProgress: 0,
                     needApprove: 0,
                     needDriver: 0,
@@ -169,7 +175,7 @@ export class Usher {
         }
 
         // console.log(result)
-        result.sort((r1, r2) => r1.from.localeCompare(r2.from));
+        result.sort((r1, r2) => (r1.from + '-' + r1.to).localeCompare(r2.from + '-' + r2.to));
 
         return result;
     }
