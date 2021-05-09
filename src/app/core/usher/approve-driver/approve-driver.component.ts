@@ -1,12 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { Context } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
-import { rideRow } from '../set-driver/set-driver.component';
+import { getRideList4UsherParams, ride4UsherApprove } from '../../../shared/types';
+import { openDriver } from '../../drivers/driver';
 import { Location } from '../../locations/location';
+import { openPatient } from '../../patients/patient';
 import { Ride, RideStatus } from '../../rides/ride';
-import { Driver } from '../../drivers/driver';
-import { Patient } from '../../patients/patient';
-import { formatDate } from '@angular/common';
+import { rideRow } from '../set-driver/set-driver.component';
+import { Usher } from '../usher';
 
 @Component({
   selector: 'app-approve-driver',
@@ -15,9 +16,11 @@ import { formatDate } from '@angular/common';
 })
 export class ApproveDriverComponent implements OnInit {
 
+
+
   protected fromName: string;
   protected toName: string;
-  protected rides: rideRow[];
+  protected rides: ride4UsherApprove[];
   args: {
     date: Date,
     from: string,
@@ -33,49 +36,25 @@ export class ApproveDriverComponent implements OnInit {
   }
 
   async retrieve() {
-    let rows:rideRow[] = [];
-    if (this.args) {
-      for await (const r of await this.context.for(Ride).find({
-        where: (r) => r.date.isEqualTo(this.args.date)
-          .and(r.status.isNotIn(...[RideStatus.succeeded]))
-          .and(r.fromLocation.isEqualTo(this.args.from))
-          .and(r.toLocation.isEqualTo(this.args.to)),
-        // .and(to && (to.trim().length > 0) ? r.toLocation.isEqualTo(to) : new Filter(x => { })),
-        orderBy: r => r.visitTime,
-      })) {
-        let driverName = '';
-        let driverMobile = '';
-        if (r.isHasDriver()) {
-          let d= (await this.context.for(Driver).findId(r.driverId.value));
-          driverName  = d.name.value;
-          driverMobile  = d.mobile.value;
-        }
-        let patientName = '';
-        if (r.isHasPatient()) {
-          patientName = (await this.context.for(Patient).findId(r.patientId.value)).name.value;
-        }
-        let visitTime = '';
-        if (r.isHasVisitTime()) {
-          visitTime = formatDate(r.visitTime.value, 'HH:mm', 'en-US');
-        }
-        rows.push({
-          id: r.id.value,
-          selected: false,
-          from: this.fromName,
-          to: this.toName,
-          driver: driverName,
-          dMobile: driverMobile,
-          visitTime: visitTime,
-          passengers: r.passengers(),
-          patient: patientName,
-        });
-      }
-    }
-    this.rides = rows;
+    let params: getRideList4UsherParams = {
+      date: this.args.date,
+      fromId: this.args.from,
+      toId: this.args.to,
+    };
+
+    this.rides = await Usher.getRideList4UsherApprove(params, this.context);
   }
 
-  async approveDriver(r:rideRow) {
-    
+  async openPatient(r: ride4UsherApprove) {
+    openPatient(r.patientId, this.context);
+  }
+
+  async openDriver(r: ride4UsherApprove) {
+    openDriver(r.driverId, this.context);
+  }
+
+  async approveDriver(r: rideRow) {
+
     let ride = await this.context.for(Ride).findId(r.id);
     ride.status.value = RideStatus.waitingForStart;
     await ride.save();

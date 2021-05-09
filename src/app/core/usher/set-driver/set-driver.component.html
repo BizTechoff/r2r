@@ -6,12 +6,12 @@
         <data-area [settings]="driverArea"></data-area>
         Selected Driver Seats: {{ driverSeats }} 
     </div>
+    <mat-label>Selected Paasengers: {{ selectedPassengers }}</mat-label>
+    <mat-divider></mat-divider>
     <div *ngIf="selectedPassengers > 0 && driverSeats > 0 && driverSeats >= selectedPassengers">
-        Pickup Time: <input required type="time" color="primary" >
+        Pickup Time: <input #pickup required type="time" color="primary" >
         <button color="primary" (click)="setDriver()">Set Driver</button>
     </div>
-    <mat-divider></mat-divider>
-    <mat-label>Selected Paasengers: {{ selectedPassengers }}</mat-label>
     <mat-divider></mat-divider>
     <div class="grow-item">
         <table *ngIf="rides && rides.length > 0">

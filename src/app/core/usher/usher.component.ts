@@ -5,6 +5,7 @@ import { settings } from 'cluster';
 import { DynamicServerSideSearchDialogComponent } from '../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component';
 import { GridDialogComponent } from '../../common/grid-dialog/grid-dialog.component';
 import { InputAreaComponent } from '../../common/input-area/input-area.component';
+import { getRideList4UsherParams, ride4Usher } from '../../shared/types';
 import { Utils } from '../../shared/utils';
 import { Roles } from '../../users/roles';
 import { Driver, openDriver } from '../drivers/driver';
@@ -32,8 +33,8 @@ export class UsherComponent implements OnInit {
 
   //for(UsherRideRow)
   //ridesGrid : DataList<Ride>{};
-  rides: UsherRideGroup;
-
+  rides2: UsherRideGroup;
+  rides: ride4Usher[];
   clientLastRefreshDate: Date = new Date();
   demoDates: string;
   static lastRefreshDate: Date = new Date();//client time
@@ -42,8 +43,8 @@ export class UsherComponent implements OnInit {
 
   async ngOnInit() {
 
-    let date = new Date(2021, 3, 7);
-    this.selectedFrom = new LocationIdColumn({ 
+    let date = new Date(2021, 2, 3);
+    this.selectedFrom = new LocationIdColumn({
       dataControlSettings: () => ({
         getValue: () => this.context.for(Location).lookup(this.selectedFrom).name.value,
         hideDataOnInput: true,
@@ -54,11 +55,12 @@ export class UsherComponent implements OnInit {
             x => x.args(Location, {
               onSelect: l => this.selectedFrom.value = l.id.value,
               searchColumn: l => l.name,
-              where: l => [l.id.isIn(...this.ridesGrid.items.map( r => r.fromLocation.value))],
+              where: l => [l.id.isIn(...this.rides.map(r => r.fromId))],
             }));
         }
       }),
-      caption: "From" }, this.context);
+      caption: "From"
+    }, this.context);
     this.selectedTo = new LocationIdColumn({ caption: "To" }, this.context);
     this.selectedDate = new DateColumn({ caption: "Date", defaultValue: new Date(date.getFullYear(), date.getMonth(), date.getDate()) });
     this.toolbar = new DataAreaSettings({
@@ -112,7 +114,7 @@ export class UsherComponent implements OnInit {
           column: new NumberColumn({}),
           caption: "no-driver",
           getValue: r => r.passengers(),
-          click: r => this.openSetDriver(r),
+          // click: r => this.openSetDriver(r),
         },
         {
           column: new NumberColumn({}),
@@ -128,25 +130,25 @@ export class UsherComponent implements OnInit {
       ],
       rowButtons: [{
         textInMenu: "Set Driver",
-        click: async (r) => await this.openSetDriver(r),
+        // click: async (r) => await this.openSetDriver(r),
         icon: "person_add",
         showInLine: true,
-        visible: (r) => {return true /*r.'no-driver' > 0*/;},
-      },{
+        visible: (r) => { return true /*r.'no-driver' > 0*/; },
+      }, {
         textInMenu: "Approve Driver",
-        click: async (r) => await this.openApproveDriver(r),
+        // click: async (r) => await this.openApproveDriver(r),
         icon: "how_to_reg",
         showInLine: true,
-        visible: (r) => {return true /*r.'no-driver' > 0*/;},
-      },{
+        visible: (r) => { return true /*r.'no-driver' > 0*/; },
+      }, {
         textInMenu: "Back Ride",
         click: async (r) => await this.openBackRide(r),
         icon: "arrow_back",
         showInLine: true,
-        visible: (r) => {return true /*r.'no-driver' > 0*/;},
+        visible: (r) => { return true /*r.'no-driver' > 0*/; },
       },],
     });
-    
+
 
     // this.clientLastRefreshDate = new Date();
     // this.demoDates = `${formatDate(Usher.fromDemoTodayMidnight, "dd/MM/yyy", "en-US")} - ${formatDate(Usher.toDemoTodayMidnight, "dd/MM/yyy", "en-US")}`;
@@ -165,35 +167,35 @@ export class UsherComponent implements OnInit {
     // let from = (await this.context.for(Location).findId(r.fromLocation.value)).name.value;
     // let to = (await this.context.for(Location).findId(r.toLocation.value)).name.value;
 
-    this.context.openDialog(ApproveDriverComponent, sr => sr.args ={
+    this.context.openDialog(ApproveDriverComponent, sr => sr.args = {
       date: this.selectedDate.value,
       from: r.fromLocation.value,
       to: r.toLocation.value,
     });
   }
 
-  async openApproveDriver(r: Ride): Promise<void> {
+  async openApproveDriver(r: ride4Usher) {
 
     // let from = (await this.context.for(Location).findId(r.fromLocation.value)).name.value;
     // let to = (await this.context.for(Location).findId(r.toLocation.value)).name.value;
 
-    this.context.openDialog(ApproveDriverComponent, sr => sr.args ={
+    this.context.openDialog(ApproveDriverComponent, sr => sr.args = {
       date: this.selectedDate.value,
-      from: r.fromLocation.value,
-      to: r.toLocation.value,
+      from: r.fromId,
+      to: r.toId,
     });
   }
 
 
-  async openSetDriver(r: Ride): Promise<void> {
+  async openSetDriver(r: ride4Usher) {
 
     // let from = (await this.context.for(Location).findId(r.fromLocation.value)).name.value;
     // let to = (await this.context.for(Location).findId(r.toLocation.value)).name.value;
 
-    this.context.openDialog(SetDriverComponent, sr => sr.args ={
+    this.context.openDialog(SetDriverComponent, sr => sr.args = {
       date: this.selectedDate.value,
-      from: r.fromLocation.value,
-      to: r.toLocation.value,
+      from: r.fromId,
+      to: r.toId,
     });
 
     // this.context.openDialog(GridDialogComponent, gd => gd.args = {
@@ -238,29 +240,14 @@ export class UsherComponent implements OnInit {
   items: Ride[];
   async refresh() {
     UsherComponent.lastRefreshDate = new Date();
-    await this.ridesGrid.reloadData();
-    // this.rides = await UsherComponent.retrieveUsherRides();
-
-    // this.items = this.rides.rows.map(r => {
-    //   return {
-    //     id:{value: r.id},
-    //     date:{value: r.date},
-
-    //     // date:{value: r.days},
-    //     // date:{value: r.date},
-    //     // date:{value: r.date},
-    //     // date:{value: r.date},
-    //     // date:{value: r.date},
-    //     // date:{value: r.date},
-    //     // date:{value: r.date},
-    //   } as Ride;
-    // }) as Ride[];
-
-
-    //let data: DataList<Ride> = {items: items};
-
-
-    //this.ridesGrid.origList
+    // await this.ridesGrid.reloadData();
+    let params: getRideList4UsherParams = {
+      date: this.selectedDate.value,
+      fromId: this.selectedFrom.value,
+      toId: this.selectedTo.value,
+    };
+    
+    this.rides = await Usher.getRideList4Usher(params);
   }
 
   async addRide() {

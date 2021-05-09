@@ -1,5 +1,6 @@
 import { formatDate } from "@angular/common";
 import { ColumnSettings, Context, DateColumn, Filter, ServerFunction, ValueListColumn } from "@remult/core";
+import { getRideList4UsherParams, ride4Usher, ride4UsherApprove, ride4UsherSetDriver } from "../../shared/types";
 import { Utils } from "../../shared/utils";
 import { Roles } from "../../users/roles";
 import { Driver } from "../drivers/driver";
@@ -16,7 +17,7 @@ export class GroupType {
     static other = new GroupType(s => new Filter(x => { }));
     constructor(public filter: (status: RideStatusColumn) => Filter) { }
     id;
-}
+} 
 
 export class GroupField4Usher {
     static date = new GroupField4Usher();
@@ -97,6 +98,172 @@ export class Usher {
 
     static mabat: Mabat = { name: "root-default" };
 
+    static getRideList4UsherQuery(r:Ride,params: getRideList4UsherParams){
+        // console.log(params)
+        //r.date.value.getTime() === params.date.getTime()?new Filter(x => { /* true */ }):Filter
+
+        return r.date.isEqualTo(params.date)
+        .and(r.status.isNotIn(...[RideStatus.succeeded]))
+        .and(params.fromId && (params.fromId.length > 0) ? r.fromLocation.isEqualTo(params.fromId) : new Filter(x => { /* true */ }))
+        .and(params.toId && (params.toId.length > 0) ? r.toLocation.isEqualTo(params.toId) : new Filter(x => { /* true */ }));
+    }
+
+    @ServerFunction({ allowed: [Roles.usher, Roles.admin] })
+    static async getRideList4Usher2(params: getRideList4UsherParams, context?: Context): Promise<ride4Usher[]> {
+        let result: ride4Usher[] = [];
+
+        let date = await Utils.getServerDate();//params.date;
+        for await (const ride of context.for(Ride).iterate({
+            where: r => (r.date.isEqualTo(date)),
+                // .and(r.status.isEqualTo(RideStatus.waitingForDriver)),
+            orderBy: r => [{ column: r.date, descending: false }, { column: r.dayPeriod, descending: true }],
+        })) {
+            // console.log("@@@@");
+        }
+        // console.log(result.length);
+        return result;
+    }
+
+    @ServerFunction({ allowed: [Roles.usher, Roles.admin] })
+    static async getRideList4Usher(params: getRideList4UsherParams, context?: Context): Promise<ride4Usher[]> {
+        var result: ride4Usher[] = [];
+        params = {
+           date: new Date(2021,2,3),// await Utils.getServerDate(),// params.date,
+           fromId: params.fromId,
+           toId: params.toId,  
+        };
+        
+        for await (const ride of context.for(Ride).iterate({
+            where: r => r.date.isEqualTo(params.date)
+            .and(r.status.isNotIn(...[RideStatus.succeeded]))
+            .and(params.fromId && (params.fromId.length > 0) ? r.fromLocation.isEqualTo(params.fromId) : new Filter(x => { /* true */ }))
+            .and(params.toId && (params.toId.length > 0) ? r.toLocation.isEqualTo(params.toId) : new Filter(x => { /* true */ })),
+        })) { 
+            let from = (await context.for(Location).findId(ride.fromLocation.value)).name.value;
+            let to = (await context.for(Location).findId(ride.toLocation.value)).name.value;
+            let key = `${from}-${to}`;
+
+            let row = result.find(r => r.key === key);
+            if (!(row)) {
+                row = {
+                    key: key,
+                    fromId: ride.fromLocation.value,
+                    toId: ride.toLocation.value,
+                    from: from,
+                    to: to,
+                    inProgress: 0,
+                    needApprove: 0,
+                    needDriver: 0,
+                    passengers: 0,
+                    ridesCount: 0,
+                    ids: [],
+                };
+                result.push(row);
+            }
+
+            row.inProgress += ([RideStatus.waitingForPickup, RideStatus.waitingForArrived].includes(ride.status.value) ? 1 : 0);
+            row.needApprove += (ride.status.value == RideStatus.waitingForUsherApproove ? 1 : 0);
+            row.needDriver += (ride.isHasDriver() ? 0 : 1);
+            row.passengers += ride.passengers();
+            row.ridesCount += 1;
+        }
+
+        // console.log(result)
+        result.sort((r1, r2) => r1.from.localeCompare(r2.from));
+
+        return result;
+    }
+
+    @ServerFunction({ allowed: [Roles.usher, Roles.admin] })
+    static async getRideList4UsherApprove(params: getRideList4UsherParams, context?: Context): Promise<ride4UsherApprove[]> {
+        var result: ride4UsherApprove[] = [];
+        params = {
+           date: new Date(2021,2,3),// params.date,
+           fromId: params.fromId,
+           toId: params.toId,  
+        };
+        
+        for await (const ride of context.for(Ride).iterate({
+            where: r => r.date.isEqualTo(params.date)
+            .and(r.status.isNotIn(...[RideStatus.succeeded]))
+            .and(params.fromId && (params.fromId.length > 0) ? r.fromLocation.isEqualTo(params.fromId) : new Filter(x => { /* true */ }))
+            .and(params.toId && (params.toId.length > 0) ? r.toLocation.isEqualTo(params.toId) : new Filter(x => { /* true */ })),
+        })) { 
+            let from = (await context.for(Location).findId(ride.fromLocation.value)).name.value;
+            let to = (await context.for(Location).findId(ride.toLocation.value)).name.value;
+            let driver= ride.isHasDriver()? (await context.for(Driver).findId(ride.driverId.value)).name.value : "";
+            let patient= ride.isHasPatient()? (await context.for(Patient).findId(ride.patientId.value)).name.value : "";
+
+            let row = result.find(r => r.id === ride.id.value);
+            if (!(row)) {
+                row = {
+                    id: ride.id.value,
+                    patientId: ride.patientId.value,
+                    driverId: ride.driverId.value,
+                    from: from,
+                    to: to,
+                    driver: driver,
+                    patient: patient,
+                    dMobile: "",
+                    passengers: ride.passengers(),
+                    selected: false,
+                    visitTime: ride.visitTime.value,
+                };
+                result.push(row);
+            }
+        }
+
+        // console.log(result)
+        result.sort((r1, r2) => r1.from.localeCompare(r2.from));
+
+        return result;
+    }
+
+    @ServerFunction({ allowed: [Roles.usher, Roles.admin] })
+    static async getRideList4UsherSetDriver(params: getRideList4UsherParams, context?: Context): Promise<ride4UsherSetDriver[]> {
+        var result: ride4UsherSetDriver[] = [];
+        params = {
+           date: new Date(2021,2,3),// params.date,
+           fromId: params.fromId,
+           toId: params.toId,  
+        };
+        
+        for await (const ride of context.for(Ride).iterate({
+            where: r => r.date.isEqualTo(params.date)
+            .and(r.status.isNotIn(...[RideStatus.succeeded]))
+            .and(params.fromId && (params.fromId.length > 0) ? r.fromLocation.isEqualTo(params.fromId) : new Filter(x => { /* true */ }))
+            .and(params.toId && (params.toId.length > 0) ? r.toLocation.isEqualTo(params.toId) : new Filter(x => { /* true */ })),
+        })) { 
+            let from = (await context.for(Location).findId(ride.fromLocation.value)).name.value;
+            let to = (await context.for(Location).findId(ride.toLocation.value)).name.value;
+            let driver= ride.isHasDriver()? (await context.for(Driver).findId(ride.driverId.value)).name.value : "";
+            let patient= ride.isHasPatient()? (await context.for(Patient).findId(ride.patientId.value)).name.value : "";
+
+            let row = result.find(r => r.id === ride.id.value);
+            if (!(row)) {
+                row = {
+                    id: ride.id.value,
+                    patientId: ride.patientId.value,
+                    driverId: ride.driverId.value,
+                    from: from,
+                    to: to,
+                    driver: driver,
+                    patient: patient,
+                    dMobile: "",
+                    passengers: ride.passengers(),
+                    selected: false,
+                    visitTime: ride.visitTime.value,
+                };
+                result.push(row);
+            }
+        }
+
+        console.log(result)
+        result.sort((r1, r2) => r1.from.localeCompare(r2.from));
+
+        return result;
+    }
+
     @ServerFunction({ allowed: [Roles.usher, Roles.admin] })
     static async getRides4Usher(driverId: string = "", context?: Context): Promise<UsherRideGroup> {
 
@@ -133,8 +300,8 @@ export class Usher {
 
             // console.timeStamp("getRides4Usher");
             await Usher.addToGroup(result, r, context);
-            result.rows.sort( (r1,r2) => r1.pName.localeCompare(r2.pName));
-            result.groups.sort( (g1,g2) => g1.title.localeCompare(g2.title));
+            result.rows.sort((r1, r2) => r1.pName.localeCompare(r2.pName));
+            result.groups.sort((g1, g2) => g1.title.localeCompare(g2.title));
         }
         console.timeEnd("getRides4Usher");
         return result;
@@ -142,14 +309,14 @@ export class Usher {
 
     //recursive function
     private static async addToGroup(g: UsherRideGroup, r: Ride, context: Context) {
-        
+
         let current = g.field;
         let nextG = MabatGroupBy.nextGroupBy(g.field);
 
         if (nextG.id === MabatGroupBy.none.id) {
             let row = await Usher.buildUserRideRow(r, context);
             g.rows.push(row);
-            g.rows.sort( (r1,r2) => r1.pName.localeCompare(r2.pName));
+            g.rows.sort((r1, r2) => r1.pName.localeCompare(r2.pName));
             return;//break condition
         }
 
@@ -161,7 +328,7 @@ export class Usher {
                 g.groups.push(group);
             }
             await Usher.addToGroup(group, r, context);//recursive call
-            group.groups.sort( (g1,g2) => g1.title.localeCompare(g2.title));
+            group.groups.sort((g1, g2) => g1.title.localeCompare(g2.title));
         }
         else {
             console.log(`addToGroup: title empty`);
@@ -183,18 +350,18 @@ export class Usher {
             case MabatGroupBy.period: {
                 result = r.dayPeriod.value.id;
                 break;
-            } 
-            
+            }
+
             case MabatGroupBy.dateperiod: {
                 result = `${await this.getTitle(MabatGroupBy.date, r, context)} - ${await this.getTitle(MabatGroupBy.period, r, context)}`;
                 break;
             }
-            
+
             case MabatGroupBy.driver: {
                 result = (await context.for(Driver).findId(r.driverId.value)).name.value;
                 break;
             }
-            
+
             case MabatGroupBy.patient: {
                 result = (await context.for(Patient).findId(r.patientId.value)).name.value;
                 break;
@@ -218,7 +385,7 @@ export class Usher {
                 }
                 break;
             }
-            
+
             case MabatGroupBy.fromto: {
                 result = `${await this.getTitle(MabatGroupBy.from, r, context)} ${await this.getTitle(MabatGroupBy.to, r, context)}`;
                 break;
@@ -274,7 +441,7 @@ export class Usher {
             id: ride.id.value,
             date: ride.date.value,
             visitTime: ride.visitTime.value,
-            days: days, 
+            days: days,
             status: ride.status.value.id,
             statusDate: ride.statusDate.value,
             from: from,
@@ -346,8 +513,8 @@ export class Usher {
         let tomorrowDate = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());//T00:00:00
 
         for await (const ride of context.for(Ride).iterate({
-            where: r => (r.date.isGreaterOrEqualTo(todayDate))
-                .and(r.status.isEqualTo(RideStatus.waitingForDriver)),
+            where: r => (r.date.isEqualTo(todayDate)),
+                // .and(r.status.isEqualTo(RideStatus.waitingForDriver)),
             orderBy: r => [{ column: r.date, descending: false }, { column: r.dayPeriod, descending: true }],
         })) {
 
@@ -616,7 +783,7 @@ export class Usher {
                 .and(r.driverId.isEqualTo(driverId)),
             orderBy: r => [{ column: r.date, descending: false }],
         })) {
- 
+
             // Build Row
             let rDate = new Date(ride.date.value.getFullYear(), ride.date.value.getMonth(), ride.date.value.getDate());
 

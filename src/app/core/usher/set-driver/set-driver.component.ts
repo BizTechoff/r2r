@@ -3,10 +3,12 @@ import { Component, OnInit } from '@angular/core';
 import { Context, DataAreaSettings, DateTimeColumn, StringColumn } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
 import { InputAreaComponent } from '../../../common/input-area/input-area.component';
+import { getRideList4UsherParams, ride4UsherSetDriver } from '../../../shared/types';
 import { Driver, DriverIdColumn } from '../../drivers/driver';
 import { Location } from '../../locations/location';
 import { Patient } from '../../patients/patient';
 import { Ride, RideStatus } from '../../rides/ride';
+import { Usher } from '../usher';
 
 export interface rideRow {
   id: string,
@@ -36,7 +38,7 @@ export class SetDriverComponent implements OnInit {
   driverSeats: number = 0;
   visitTime = "00:00";
   driverId = new DriverIdColumn({
-    caption: "Select Driver", valueChange: async () => {
+    caption: "Select Driver To Set", valueChange: async () => {
       this.driverSeats = (await this.context.for(Driver).findId(this.driverId.value)).seats.value;
       if (this.selectedPassengers > this.driverSeats) {
         this.clearSelections();
@@ -52,7 +54,7 @@ export class SetDriverComponent implements OnInit {
   protected selectedPassengers: number = 0;
   protected fromName: string;
   protected toName: string;
-  protected rides: rideRow[];
+  protected rides: ride4UsherSetDriver[];
   args: {
     date: Date,
     from: string,
@@ -68,45 +70,14 @@ export class SetDriverComponent implements OnInit {
   }
 
   async retrieve() {
-    let rows: rideRow[] = [];
-    if (this.args) {
-      for await (const r of await this.context.for(Ride).find({
-        where: (r) => r.date.isEqualTo(this.args.date)
-          .and(r.status.isNotIn(...[RideStatus.succeeded]))
-          .and(r.fromLocation.isEqualTo(this.args.from))
-          .and(r.toLocation.isEqualTo(this.args.to)),
-        // .and(to && (to.trim().length > 0) ? r.toLocation.isEqualTo(to) : new Filter(x => { })),
-        orderBy: r => r.visitTime,
-      })) {
-        let driverName = '';
-        let driverMobile = '';
-        if (r.isHasDriver()) {
-          let d = (await this.context.for(Driver).findId(r.driverId.value));
-          driverName = d.name.value;
-          driverMobile = d.mobile.value;
-        }
-        let patientName = '';
-        if (r.isHasPatient()) {
-          patientName = (await this.context.for(Patient).findId(r.patientId.value)).name.value;
-        }
-        let visitTime = '';
-        if (r.isHasVisitTime()) {
-          visitTime = formatDate(r.visitTime.value, 'HH:mm', 'en-US');
-        }
-        rows.push({
-          id: r.id.value,
-          selected: false,
-          from: this.fromName,
-          to: this.toName,
-          driver: driverName,
-          dMobile: driverMobile,
-          visitTime: visitTime,
-          passengers: r.passengers(),
-          patient: patientName,
-        });
-      }
-    }
-    this.rides = rows;
+    
+    let params: getRideList4UsherParams = {
+      date: this.args.date,
+      fromId: this.args.from,
+      toId: this.args.to,
+    };
+
+    this.rides = await Usher.getRideList4UsherSetDriver(params, this.context);
   }
 
   async setDriver() {

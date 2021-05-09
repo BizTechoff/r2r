@@ -199,6 +199,12 @@ export class RideStatus {
     static waitingForUsherSelectDriver = new RideStatus();
     constructor(public color = 'green') { }
     id;
+
+     isInProgress(): boolean{
+        return this == RideStatus.waitingForPickup
+        ||
+        this == RideStatus.waitingForArrived;
+    }
 }
 
 //חולה ונהג יכולים להיות ריקים

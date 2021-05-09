@@ -40,7 +40,28 @@
         </table>
     </div>
     <div class="grow-item">
-        <data-grid [settings]="ridesGrid"></data-grid>
+        <table style="width: 100%">
+            <tr>
+                <th>from</th>
+                <th>to</th>
+                <th>ridesCount</th>
+                <th>passengers</th>
+                <th>inProgress</th>
+                <th>needDriver</th>
+                <th>needApprove</th>
+            </tr>
+            <tr *ngFor="let r of rides">
+                <td>{{ r.from }}</td>
+                <td>{{ r.to }}</td>
+                <td>{{ r.ridesCount }}</td>
+                <td>{{ r.passengers }}</td>
+                <td>{{ r.inProgress }}</td>
+                <td><button (click)="openSetDriver(r)"><u>{{ r.needDriver }}</u></button>
+                </td>
+                <td><button (click)="openApproveDriver(r)"><u>{{ r.needApprove }}</u></button></td>
+            </tr>
+        </table>
+        <!-- <data-grid [settings]="ridesGrid"></data-grid> -->
         <!-- <data-grid *ngIf="ridesGrid && ridesGrid.items && ridesGrid.items.length > 0" [settings]="ridesGrid"></data-grid> -->
         <!-- <div *ngIf="(!(ridesGrid && ridesGrid.items && ridesGrid.items.length > 0))">
             <span style="text-align: center;">

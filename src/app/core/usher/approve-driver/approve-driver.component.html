@@ -14,11 +14,11 @@
             </tr>
             <tr *ngFor="let r of rides">
                 <td><button mat-raised-button (click)="approveDriver(r)">approve</button></td>
-                <td>{{ r.driver }}</td>
+                <td><button (click)="openDriver(r)"><u>{{ r.driver }}</u></button></td>
                 <td>{{ r.dMobile }}</td>
                 <td>{{ r.visitTime }}</td>
                 <td>{{ r.passengers }}</td>
-                <td>{{ r.patient }}</td>
+                <td><button (click)="openPatient(r)"><u>{{ r.patient }}</u></button></td>
             </tr>
         </table>
     </div>
