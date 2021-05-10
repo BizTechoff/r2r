@@ -10,18 +10,18 @@ import { Ride, RideStatus } from '../../rides/ride';
 import { Driver } from '../driver';
 
 @Component({
-  selector: 'app-driver-rides',
-  templateUrl: './driver-rides.component.html',
-  styleUrls: ['./driver-rides.component.scss']
+  selector: 'app-driver-history',
+  templateUrl: './driver-history.component.html',
+  styleUrls: ['./driver-history.component.scss']
 })
-export class DriverRidesComponent implements OnInit {
+export class DriverHistoryComponent implements OnInit {
 
   rides: ride4Driver[];
 
   constructor(private context: Context) { }
 
   async ngOnInit() {
-    this.rides = await DriverRidesComponent.retrieve(this.context);
+    this.rides = await DriverHistoryComponent.retrieve(this.context);
   }
 
   @ServerFunction({ allowed: Roles.driver })
@@ -37,7 +37,7 @@ export class DriverRidesComponent implements OnInit {
 
     for await (const ride of context.for(Ride).iterate({
       where: r => r.driverId.isEqualTo(driver.id)
-        .and(r.status.isIn(...RideStatus.driverWaitingStatuses)),
+        .and(r.status.isNotIn(...RideStatus.driverWaitingStatuses)),
     })) {
       let from = (await context.for(Location).findId(ride.fromLocation.value)).name.value;
       let to = (await context.for(Location).findId(ride.toLocation.value)).name.value;

@@ -3,6 +3,8 @@ import { RouterModule, Routes } from '@angular/router';
 import { NotSignedInGuard, RemultModule } from '@remult/angular';
 import { ShowDialogOnErrorErrorHandler } from './common/dialog';
 import { ApplicationSettingsComponent } from './core/application-settings/application-settings.component';
+import { DriverHistoryComponent } from './core/drivers/driver-history/driver-history.component';
+import { DriverRegisterComponent } from './core/drivers/driver-register/driver-register.component';
 import { DriverRidesComponent } from './core/drivers/driver-rides/driver-rides.component';
 import { DriverSettingsComponent } from './core/drivers/driver-settings/driver-settings.component';
 import { DriverUsefulInformationComponent } from './core/drivers/driver-useful-information/driver-useful-information.component';
@@ -19,8 +21,10 @@ import { UsersComponent } from './users/users.component';
 const routes: Routes = [
 
   // Driver
-  { path: 'Rides4Driver', component: DriverRidesComponent, canActivate: [DriverGuard], data: { name: "Rides" } },
+  { path: 'Rides4Driver', component: DriverRidesComponent, canActivate: [DriverGuard], data: { name: "My Rides" } },
   { path: 'Settings', component: DriverSettingsComponent, canActivate: [DriverGuard], data: { name: "Settings" } },
+  { path: 'My History Rides', component: DriverHistoryComponent, canActivate: [DriverGuard], data: { name: "History" } },
+  { path: 'Register New Rides', component: DriverRegisterComponent, canActivate: [DriverGuard], data: { name: "Register" } },
   { path: 'UsefulInformation', component: DriverUsefulInformationComponent, canActivate: [DriverGuard], data: { name: "Useful Information" } },
 
   // Usher

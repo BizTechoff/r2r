@@ -205,6 +205,15 @@ export class RideStatus {
         ||
         this == RideStatus.waitingForArrived;
     }
+
+    static driverWaitingStatuses =
+        [
+            RideStatus.waitingForDriver, 
+            RideStatus.waitingForStart, 
+            RideStatus.waitingForPickup,
+            RideStatus.waitingForArrived,
+            RideStatus.waitingForEnd,
+        ];
 }
 
 //חולה ונהג יכולים להיות ריקים

@@ -1,6 +1,6 @@
-<p>driver-rides works!</p>
 <div class="full-page">
     <div class="header">
+        <span *ngIf="!(rides && rides.length > 0)">Found: 0 Rides</span>
     </div>
     <div class="grow-item">
         <table *ngIf="rides && rides.length > 0">

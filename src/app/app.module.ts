@@ -42,6 +42,10 @@ import { AdminGuard, DriverGuard, MatcherGuard, UsherGuard } from './users/roles
 import { UsersComponent } from './users/users.component';
 import { ApproveDriverComponent } from './core/usher/approve-driver/approve-driver.component';
 import { ShowRidesComponent } from './core/usher/show-rides/show-rides.component';
+import { DriverRegisterComponent } from './core/drivers/driver-register/driver-register.component';
+import { DriverHistoryComponent } from './core/drivers/driver-history/driver-history.component';
+import { PatientContactsComponent } from './core/patients/patient-contacts/patient-contacts.component';
+import { RegisterRidesComponent } from './core/rides/register-rides/register-rides.component';
 
 
 @NgModule({
@@ -67,6 +71,10 @@ import { ShowRidesComponent } from './core/usher/show-rides/show-rides.component
     SetDriverComponent,
     ApproveDriverComponent,
     ShowRidesComponent,
+    DriverRegisterComponent,
+    DriverHistoryComponent,
+    PatientContactsComponent,
+    RegisterRidesComponent,
   ],
   imports: [
     BrowserModule,
@@ -107,7 +115,7 @@ import { ShowRidesComponent } from './core/usher/show-rides/show-rides.component
   ],
   bootstrap: [AppComponent],
   entryComponents: [YesNoQuestionComponent, InputAreaComponent,
-    GridDialogComponent, DynamicServerSideSearchDialogComponent, SetDriverComponent, ApproveDriverComponent, ShowRidesComponent]
+    GridDialogComponent, DynamicServerSideSearchDialogComponent, SetDriverComponent, ApproveDriverComponent, ShowRidesComponent, PatientContactsComponent]
 })
 export class AppModule { }
 
