@@ -11,6 +11,7 @@ import { DriverUsefulInformationComponent } from './core/drivers/driver-useful-i
 import { DriversComponent } from './core/drivers/drivers.component';
 import { LocationsComponent } from './core/locations/locations.component';
 import { PatientsComponent } from './core/patients/patients.component';
+import { RegisterRidesComponent } from './core/rides/register-rides/register-rides.component';
 import { RidesComponent } from './core/rides/rides.component';
 import { UsherComponent } from './core/usher/usher.component';
 import { HomeComponent } from './home/home.component';
@@ -24,7 +25,7 @@ const routes: Routes = [
   { path: 'Rides4Driver', component: DriverRidesComponent, canActivate: [DriverGuard], data: { name: "My Rides" } },
   { path: 'Settings', component: DriverSettingsComponent, canActivate: [DriverGuard], data: { name: "Settings" } },
   { path: 'My History Rides', component: DriverHistoryComponent, canActivate: [DriverGuard], data: { name: "History" } },
-  { path: 'Register New Rides', component: DriverRegisterComponent, canActivate: [DriverGuard], data: { name: "Register" } },
+  { path: 'Register New Rides', component: DriverRegisterComponent, canActivate: [DriverGuard], data: { name: "Registers" } },
   { path: 'UsefulInformation', component: DriverUsefulInformationComponent, canActivate: [DriverGuard], data: { name: "Useful Information" } },
 
   // Usher
@@ -36,6 +37,8 @@ const routes: Routes = [
   { path: 'PatientsMatcher', component: PatientsComponent, canActivate: [MatcherGuard], data: { name: "Patients" } },
 
   { path: 'Locations', component: LocationsComponent, canActivate: [UsherGuard] },
+  { path: 'Register Rides', component: RegisterRidesComponent, canActivate: [UsherGuard, AdminGuard], data: { name: "Register Rides" } },
+  
 
   // Admin
   { path: 'Reports', component: LocationsComponent, canActivate: [AdminGuard] },

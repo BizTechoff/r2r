@@ -21,11 +21,11 @@ export class DriverHistoryComponent implements OnInit {
   constructor(private context: Context) { }
 
   async ngOnInit() {
-    this.rides = await DriverHistoryComponent.retrieve(this.context);
+    this.rides = await DriverHistoryComponent.retrieveDriverHistory(this.context);
   }
 
   @ServerFunction({ allowed: Roles.driver })
-  static async retrieve(context?: Context) {
+  static async retrieveDriverHistory(context?: Context) {
     var result: ride4Driver[] = [];
  
     let driver = await context.for(Driver).findFirst({

@@ -8,14 +8,16 @@ export class RegisterDriver extends IdEntity {
 
     regRideId = new StringColumn({});
     driverId = new DriverIdColumn({});
-    seats = new NumberColumn({});
-    fromHour = new DateTimeColumn({});
-    toHour = new DateTimeColumn({});
+    seats = new NumberColumn({caption: 'Free Seats', validate: () => {if(!(this.seats.value >0)){
+        this.validationError = "Free Seats: at least 1";
+    } }});
+    fromHour = new DateTimeColumn({caption: 'Avaliable From Hour'});
+    toHour = new DateTimeColumn({caption: 'Avaliable Till Hour'});
 
     constructor() {
         super({
             name: "driversRegisters",
-            allowApiCRUD: Roles.usher,// todo: Manager only
+            allowApiCRUD: [Roles.usher, Roles.admin, Roles.driver],// todo: Manager only
             allowApiRead: c => c.isSignedIn(),
         });
     }

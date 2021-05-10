@@ -14,39 +14,66 @@ export class changeDate extends DateTimeColumn {
 // };
 
 
-export interface getRideList4UsherParams{
+export interface getRideList4UsherParams {
   date: Date,
-  fromId?:string,
-  toId?:string,
+  fromId?: string,
+  toId?: string,
+}
+export interface ride4UsherRideRegister {
+  rgId: string,
+  date: Date,
+  fId: string,
+  tId: string,
+  from: string,
+  to: string,
+  pass: number,
+  registeredCount: number,
+  dFromHour?: Date,
+  dToHour?: Date,
+  dPass?: number,
+}
+export interface ride4DriverRideRegister {
+  rgId: string,
+  dRegId?: string,
+  date: Date,
+  fId: string,
+  tId: string,
+  from: string,
+  to: string,
+  pass: number,
+  isRegistered: boolean,
+  dFromHour?: Date,
+  dToHour?: Date,
+  dPass?: number,
 }
 export interface ride4Driver {
-  rId:string,
-  pId:string,
-  dId:string,
-  fId:string,
+  rId: string,
+  pId: string,
+  dId: string,
+  fId: string,
   from: string,
   to: string,
   contactsCount: number,
-  date : Date,//+Time
-  time : Date,
-  visitTime : Date,
+  date: Date,//+Time
+  time: Date,
+  visitTime: Date,
   passengers: number,
-  age : number,
-  equipment : string[],
-  mobile : string,
-  shortCall : string,
-  whatsapp : string,
-  companyPhone : string,
-  companyShortCall : string,
-  companyWhatsapp : string,
-  status : RideStatus,
+  age: number,
+  equipment: string[],
+  mobile: string,
+  shortCall: string,
+  whatsapp: string,
+  companyPhone: string,
+  companyShortCall: string,
+  companyWhatsapp: string,
+  status: RideStatus,
 };
 
 export interface ride4Usher {
 
   key: string,
-  fromIsBorder:boolean;
-  toIsBorder:boolean;
+  fromIsBorder: boolean;
+  toIsBorder: boolean;
   fromId: string,
   toId: string,
   from: string,
