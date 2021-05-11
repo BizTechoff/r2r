@@ -7,7 +7,8 @@ import { InputAreaComponent } from '../../common/input-area/input-area.component
 import { DayPeriod, DriverPrefs } from '../drivers/driverPrefs';
 import { Ride } from '../rides/ride';
 import { Usher } from '../usher/usher';
-import { openPatient, Patient } from './patient';
+import { Patient } from './patient';
+import { PatientCrudComponent } from './patient-crud/patient-crud.component';
 
 
 @Component({
@@ -97,29 +98,36 @@ export class PatientsComponent implements OnInit {
   }
 
   async addPatient() {
-    var patient = this.context.for(Patient).create();
-    this.context.openDialog(
-      InputAreaComponent,
-      x => x.args = {
-        title: "Add New Patient",
-        columnSettings: () => [
-          [patient.name, patient.hebName],
-          [patient.mobile, patient.idNumber],
-          [patient.defaultBorder, patient.defaultHospital],
-        ],
-        ok: async () => {
-          //PromiseThrottle
-          // ride.driverId.value = undefined;
-          await patient.save();
-          // this.patientsSettings.items.push(patient);
-          this.retrievePatients();
-        }
-      },
-    )
+    await this.context.openDialog(PatientCrudComponent, thus => thus.args = {
+      pid: '', isNew: false,
+    });
+    // let changed = await openPatient('', this.context);
+    // var patient = this.context.for(Patient).create();
+    // this.context.openDialog(
+    //   InputAreaComponent,
+    //   x => x.args = {
+    //     title: "Add New Patient",
+    //     columnSettings: () => [
+    //       [patient.name, patient.hebName],
+    //       [patient.mobile, patient.idNumber],
+    //       [patient.defaultBorder, patient.defaultHospital],
+    //     ],
+    //     ok: async () => {
+    //       //PromiseThrottle
+    //       // ride.driverId.value = undefined;
+    //       await patient.save();
+    //       // this.patientsSettings.items.push(patient);
+    //       this.retrievePatients();
+    //     }
+    //   },
+    // )
   }
 
   async editPatient(p: Patient) {
-    let changed = await openPatient(p.id.value, this.context);
+    await this.context.openDialog(PatientCrudComponent, thus => thus.args = {
+      pid: p.id.value, isNew: false,
+    });
+    // let changed = await openPatient(p.id.value, this.context);
   }
 
   async openScheduleRides(p: Patient) {

@@ -14,7 +14,7 @@ export class Contact extends IdEntity {
     constructor(private context: Context) {
         super({
             name: "contacts",
-            allowApiCRUD: Roles.matcher,
+            allowApiCRUD:[Roles.admin, Roles.usher, Roles.admin],
             allowApiRead: c => c.isSignedIn(),
         });
     }

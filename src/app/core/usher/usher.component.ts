@@ -1,16 +1,12 @@
-import { formatDate } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { Context, DataAreaSettings, DataList, DateColumn, Filter, GridSettings, IdColumn, NumberColumn, ServerFunction, StringColumn, ValueListColumn, ValueListItem } from '@remult/core';
-import { settings } from 'cluster';
+import { Context, DataAreaSettings, DateColumn, Filter, GridSettings, NumberColumn, ServerFunction } from '@remult/core';
 import { DynamicServerSideSearchDialogComponent } from '../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component';
-import { GridDialogComponent } from '../../common/grid-dialog/grid-dialog.component';
-import { InputAreaComponent } from '../../common/input-area/input-area.component';
 import { getRideList4UsherParams, ride4Usher } from '../../shared/types';
-import { Utils } from '../../shared/utils';
 import { Roles } from '../../users/roles';
 import { Driver, openDriver } from '../drivers/driver';
 import { Location, LocationIdColumn } from '../locations/location';
-import { openPatient, Patient } from '../patients/patient';
+import { Patient } from '../patients/patient';
+import { PatientCrudComponent } from '../patients/patient-crud/patient-crud.component';
 import { addRide, openRide, Ride, RideStatus } from '../rides/ride';
 import { ApproveDriverComponent } from './approve-driver/approve-driver.component';
 import { MabatGroupBy } from './mabat';
@@ -187,7 +183,7 @@ export class UsherComponent implements OnInit {
     });
   }
 
-  
+
 
   async openShowRides(r: ride4Usher) {
     this.context.openDialog(ShowRidesComponent, sr => sr.args = {
@@ -258,7 +254,7 @@ export class UsherComponent implements OnInit {
       fromId: this.selectedFrom.value,
       toId: this.selectedTo.value,
     };
-    
+
     this.rides = await Usher.getRideList4Usher(params);
   }
 
@@ -296,7 +292,10 @@ export class UsherComponent implements OnInit {
     }
   }
   async editPatient(r: UsherRideRow) {
-    let changed = await openPatient(r.pid, this.context);
+    await this.context.openDialog(PatientCrudComponent, thus => thus.args = {
+      pid: r.pid, isNew: false,
+    });
+    // let changed = await openPatient(r.pid, this.context);
   }
   async editDriver(r: UsherRideRow) {
     let changed = await openDriver(r.did, this.context);

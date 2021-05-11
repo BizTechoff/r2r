@@ -2,6 +2,7 @@
 import { Allowed, BoolColumn, checkForDuplicateValue, ColumnOptions, ColumnSettings, Context, EntityClass, IdColumn, IdEntity, ServerMethod, StringColumn } from "@remult/core";
 import { Driver } from "../core/drivers/driver";
 import { changeDate } from '../shared/types';
+import { Utils } from "../shared/utils";
 import { Roles } from './roles';
 
 @EntityClass
@@ -11,11 +12,11 @@ export class Users extends IdEntity {
 
     name = new StringColumn({
         caption: "name",
-        validate: () => {
+        // validate: () => {
 
-            if (!this.name.value || this.name.value.length < 2)
-                this.name.validationError = 'Name is too short';
-        }
+        //     if (!this.name.value || this.name.value.length < 2)
+        //         this.name.validationError = 'Name is too short';
+        // }
     });
     password = new PasswordColumn({
         includeInApi: false
@@ -27,7 +28,12 @@ export class Users extends IdEntity {
     isMatcher = new BoolColumn({ allowApiUpdate: Roles.admin });
     isDriver = new BoolColumn({ allowApiUpdate: Roles.admin });
 
-    mobile?= new StringColumn();
+    mobile = new StringColumn({
+        validate: () => {
+            if (!this.mobile.value || this.mobile.value.length < 2)
+                this.mobile.validationError = ' Mobile is too short';
+        }
+    });
  
     constructor(private context: Context) {
 
@@ -50,7 +56,7 @@ export class Users extends IdEntity {
                             this.isDriver.value = true;
                         }
                     }
-                    await checkForDuplicateValue(this, this.name, this.context.for(Users));
+                    await checkForDuplicateValue(this, this.mobile, this.context.for(Users));
 
                 }
             },
@@ -137,10 +143,10 @@ export class Users extends IdEntity {
     }
 
     // to remove
-    @ServerMethod({ allowed: true })//user can created only inside platform (the server)
+    @ServerMethod({ allowed: Roles.admin })//user can created only inside platform (the server)
     async create(password: string) {
-        if (!this.isNew())
-            throw "Invalid Operation";
+        // if (!this.isNew())
+        //     throw "Invalid Operation";
         this.password.value = PasswordColumn.passwordHelper.generateHash(password);
         await this.save();
 

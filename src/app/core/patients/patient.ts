@@ -6,6 +6,7 @@ import { DayPeriod } from "../drivers/driverPrefs";
 import { LocationIdColumn } from "../locations/location";
 import { Ride } from "../rides/ride";
 import { UsherRideRow } from "../usher/usher";
+import { PatientCrudComponent } from "./patient-crud/patient-crud.component";
 
 @EntityClass
 export class Patient extends IdEntity {
@@ -66,31 +67,40 @@ export class PatientIdColumn extends StringColumn {
   }
 }
 
-export async function openPatient(pid: string, context: Context): Promise<boolean> {
+// export async function openPatient(pid: string, context: Context): Promise<boolean> {
+//   await context.openDialog(PatientCrudComponent, thus => thus.args = {
+//     pid: pid, isNew: false,
+//  });
+//  return true;
+//   //let result:UsherRideRow = {};
+//   // let p = await context.for(Patient).findId(pid);
+//   // if (p) {
 
-  //let result:UsherRideRow = {};
-  let p = await context.for(Patient).findId(pid);
-  if (p) {
-    context.openDialog(
-      InputAreaComponent,
-      x => x.args = {
-        title: `Edit Patient: ${p.name.value}`,
-        columnSettings: () => [
-          [p.name, p.hebName],
-          [p.mobile, p.idNumber],
-          [p.defaultBorder, p.defaultHospital],
-        ],
-        ok: async () => {
-          if (p.wasChanged()) {
-            await p.save();
-            // r.pName = p.name.value;
-            // r.pAge = p.age();
-            // r.pMobile = p.mobile.value;
-            return true;
-          }
-        }
-      },
-    )
-  }
-  return false;
-}
+
+//   //   await context.openDialog(PatientCrudComponent, thus => thus.args = {
+//   //      pid: pid, isNew: false,
+//   //   });
+
+//   //   // context.openDialog(
+//   //   //   InputAreaComponent,
+//   //   //   x => x.args = {
+//   //   //     title: `Edit Patient: ${p.name.value}`,
+//   //   //     columnSettings: () => [
+//   //   //       [p.name, p.hebName],
+//   //   //       [p.mobile, p.idNumber],
+//   //   //       [p.defaultBorder, p.defaultHospital],
+//   //   //     ],
+//   //   //     ok: async () => {
+//   //   //       if (p.wasChanged()) {
+//   //   //         await p.save();
+//   //   //         // r.pName = p.name.value;
+//   //   //         // r.pAge = p.age();
+//   //   //         // r.pMobile = p.mobile.value;
+//   //   //         return true;
+//   //   //       }
+//   //   //     }
+//   //   //   },
+//   //   // )
+//   // }
+//   // return false;
+// }

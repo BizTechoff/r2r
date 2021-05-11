@@ -7,6 +7,8 @@ export class Utils {
         return new Date(2021,3,7);
     }
 
+    static isLoginByMobile = true;
+
     static fixMobile(value: string) {
         if (!(value)) {
             return value;

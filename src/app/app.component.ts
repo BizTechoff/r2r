@@ -31,25 +31,55 @@ export class AppComponent {
   }
 
   async signIn() {
-    let user = new StringColumn("User Name");
-    let password = new PasswordColumn();
+    let mobile = new StringColumn({ caption: 'Mobile' });
     this.context.openDialog(InputAreaComponent, i => i.args = {
       title: "Sign In",
       columnSettings: () => [
-        user,
-        password
+        mobile,
       ],
       ok: async () => {
-        this.session.setToken(await AppComponent.signIn(user.value, password.value));
+        let needPw = await AppComponent.isNeedPassword(mobile.value);
+        if (needPw == undefined) {
+          this.dialogService.error("User not found, please contact Avishai");
+        }
+        else if(needPw == false){
+          this.session.setToken(await AppComponent.signIn(mobile.value, ''));
+        }
+        else {
+          let password = new PasswordColumn();
+          this.context.openDialog(InputAreaComponent, i => i.args = {
+            title: "Sign In",
+            columnSettings: () => [
+              password,
+            ],
+            ok: async () => {
+              this.session.setToken(await AppComponent.signIn(mobile.value, password.value));
+            },
+          });
+        }
       }
     });
   }
+
   @ServerFunction({ allowed: true })
-  static async signIn(user: string, password: string, context?: Context) {
+  static async isNeedPassword(mobile: string, context?: Context) {
+    let u = await context.for(Users).findFirst(usr => usr.mobile.isEqualTo(mobile));
+    if (u) {
+      if (u.isDriver.value) {
+        return false;
+      }
+      return true;
+    }
+    return undefined;
+  }
+
+  @ServerFunction({ allowed: true })
+  static async signIn(mobile: string, password: string, context?: Context) {
     let result: UserInfo;
-    let u = await context.for(Users).findFirst(h => h.name.isEqualTo(user));
-    if (u)
-      if (!u.password.value || PasswordColumn.passwordHelper.verify(password, u.password.value)) {
+    let u = await context.for(Users).findFirst(h => h.mobile.isEqualTo(mobile));
+    if (u) {
+      if (u.isDriver.value||  !u.password.value || PasswordColumn.passwordHelper.verify(password, u.password.value)) {
+      //if (u.isDriver ||  !u.password.value || PasswordColumn.passwordHelper.verify(password, u.password.value)) {
         result = {
           id: u.id.value,
           roles: [],
@@ -68,7 +98,7 @@ export class AppComponent {
           result.roles.push(Roles.driver);
         }
       }
-
+    }
     if (result) {
       return JwtSessionService.createTokenOnServer(result);
     }
@@ -161,7 +191,7 @@ export class AppComponent {
       return false;
     return this.routeHelper.canNavigateToRoute(route);
   }
-  
+
   //@ts-ignore ignoring this to match angular 7 and 8
   @ViewChild('sidenav') sidenav: MatSidenav;
   routeClicked() {

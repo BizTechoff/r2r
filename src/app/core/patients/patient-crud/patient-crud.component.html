@@ -1,0 +1,12 @@
+<div class="full-page">
+    <h3>Patient{{ args.isNew ?": "+patient.name.value:" (New)" }}</h3>
+    <div class="header">
+    </div>
+    <div class="grow-item">
+        <data-area [settings]="areaSettings"></data-area>
+    </div>
+    <div class="footer">
+        <button mat-raised-button color="accent" (click)="save()">Save</button>
+        <button mat-raised-button color="accent" (click)="contacts()">Contacts ({{ contactsCount }})</button>
+    </div>
+</div>

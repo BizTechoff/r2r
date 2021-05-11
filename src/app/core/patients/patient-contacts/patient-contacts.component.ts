@@ -10,23 +10,29 @@ import { Contact } from './contact';
 })
 export class PatientContactsComponent implements OnInit {
 
-  args:{
+  args: {
     pid: string,
   };
 
   contactsSettings = this.context.for(Contact).gridSettings({
     where: c => c.patientId.isEqualTo(this.args.pid),
-    orderBy: c=> c.name,
-    
-    allowCRUD:  this.context.isAllowed(Roles.matcher),
+    orderBy: c => c.name,
+    newRow: c => c.patientId.value = this.args.pid,
+    columnSettings: (c) => [
+      c.name,
+      c.mobile,
+      c.idNumber,
+    ],
+
+    allowCRUD: this.context.isAllowed([Roles.admin, Roles.usher, Roles.admin]),
   });
 
-  constructor(private context:Context) { }
+  constructor(private context: Context) { }
 
   ngOnInit() {
   }
 
-  async retrieve(){
+  async retrieve() {
     await this.contactsSettings.reloadData();
   }
 

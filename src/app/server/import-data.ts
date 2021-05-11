@@ -23,8 +23,8 @@ export async function importDataNew(db: SqlDatabase, fresh = false) {
         console.time("get data from old db");
         await importRidesAndToFiles();
         console.timeEnd("get data from old db");
-    }
-
+    } 
+ 
     console.log("starting import");
     var context = new ServerContext(db);
 
@@ -91,7 +91,6 @@ async function seed(context?: Context) {
 async function createFromRideRecordNew(record: any, context?: Context) {
     // console.log("createFromRideRecordNew called");
     let fromId = await findOrCreateLocationNew(record.Origin, context);
-    return;
     let toId = await findOrCreateLocationNew(record.Destination, context);
     let patientId = await findOrCreatePatientNew(record.Pat, context);
     let userId = await findOrCreateUserNew(record.Drivers[0], context);// user auto-create driver

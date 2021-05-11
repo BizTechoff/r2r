@@ -1,5 +1,6 @@
 import { ColumnOptions, ColumnSettings, Context, EntityClass, Filter, IdEntity, StringColumn, ValueListColumn } from "@remult/core";
 import { DynamicServerSideSearchDialogComponent } from "../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component";
+import { Roles } from "../../users/roles";
 
 @EntityClass
 export class Location extends IdEntity {
@@ -11,9 +12,10 @@ export class Location extends IdEntity {
   constructor(private context: Context) {
     super({
       name: "locations",
-      allowApiCRUD: c => c.isSignedIn(),
+      allowApiInsert: [Roles.matcher, Roles.usher, Roles.admin],
+      allowApiUpdate: [Roles.admin],
+      allowApiDelete: false,
       allowApiRead: c => c.isSignedIn(),
-
 
       saving: async () => {
         if (context.onServer) {

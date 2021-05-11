@@ -4,7 +4,7 @@ import { DialogService } from '../../../common/dialog';
 import { getRideList4UsherParams, ride4UsherApprove } from '../../../shared/types';
 import { openDriver } from '../../drivers/driver';
 import { Location } from '../../locations/location';
-import { openPatient } from '../../patients/patient';
+import { PatientCrudComponent } from '../../patients/patient-crud/patient-crud.component';
 import { Ride, RideStatus } from '../../rides/ride';
 import { rideRow } from '../set-driver/set-driver.component';
 import { Usher } from '../usher';
@@ -46,7 +46,10 @@ export class ApproveDriverComponent implements OnInit {
   }
 
   async openPatient(r: ride4UsherApprove) {
-    openPatient(r.patientId, this.context);
+    await this.context.openDialog(PatientCrudComponent, thus => thus.args = {
+      pid: r.patientId, isNew: false,
+    });
+    // openPatient(r.patientId, this.context);
   }
 
   async openDriver(r: ride4UsherApprove) {
