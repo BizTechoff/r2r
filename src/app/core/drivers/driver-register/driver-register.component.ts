@@ -92,7 +92,7 @@ export class DriverRegisterComponent implements OnInit {
       newregistered: ride4DriverRideRegister[]
     } = {
       registered: [],
-      newregistered: []
+      newregistered: [] 
     };
 
     for await (const reg of context.for(RegisterRide).iterate({//todo: display only records that not attach by usher

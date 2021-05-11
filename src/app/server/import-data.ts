@@ -4,7 +4,7 @@ import * as fetch from 'node-fetch';
 import { ApplicationSettings } from '../core/application-settings/applicationSettings';
 import { Driver } from '../core/drivers/driver';
 import { DriverPrefs } from '../core/drivers/driverPrefs';
-import { Location, LocationType } from '../core/locations/location';
+import { Location, LocationArea, LocationType } from '../core/locations/location';
 import { Patient } from '../core/patients/patient';
 import { Ride, RideStatus } from '../core/rides/ride';
 import { Users } from '../users/users';
@@ -91,6 +91,7 @@ async function seed(context?: Context) {
 async function createFromRideRecordNew(record: any, context?: Context) {
     // console.log("createFromRideRecordNew called");
     let fromId = await findOrCreateLocationNew(record.Origin, context);
+    return;
     let toId = await findOrCreateLocationNew(record.Destination, context);
     let patientId = await findOrCreatePatientNew(record.Pat, context);
     let userId = await findOrCreateUserNew(record.Drivers[0], context);// user auto-create driver
@@ -101,12 +102,12 @@ async function createFromRideRecordNew(record: any, context?: Context) {
     let driverId = await findOrCreateDriverNew(record.Drivers[0], userId, context);
     if (!(driverId && driverId.length > 0)) {
         console.log("driverId null");
-        return;
+        return; 
     }
     let driverPrefIds = await findOrCreateDriverPrefsNew(record.Drivers[0], driverId, context);
     let rideId = await findOrCreateRideNew(record, driverId, patientId, fromId, toId, context);
 }
-
+ 
 async function findOrCreateLocationNew(locationRecord: any, context: Context) {
     let name = locationRecord.EnglishName;
     if (name) {
@@ -116,6 +117,9 @@ async function findOrCreateLocationNew(locationRecord: any, context: Context) {
         where: l => l.name.isEqualTo(name),
     });
     location.type.value = isBorder(name) ? LocationType.border : LocationType.hospital;
+    if(location.type.value == LocationType.border){
+        location.area.value = LocationArea.get(name);
+    }
     await location.save();
     return location.id.value;
 }
@@ -420,3 +424,4 @@ let borders: string[] = [];
     borders.push(`Eyal`.trim().toLocaleLowerCase());
     borders.push(`Jalame`.trim().toLocaleLowerCase());
 };
+

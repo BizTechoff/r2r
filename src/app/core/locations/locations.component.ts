@@ -18,12 +18,13 @@ export class LocationsComponent implements OnInit {
   });
 
   locationsSettings = this.context.for(Location).gridSettings({
-    allowInsert: this.context.isAllowed(Roles.usher),
+    allowCRUD: this.context.isAllowed(Roles.admin),
     allowDelete: false,
     numOfColumnsInGrid: 10,
     columnSettings: (d) => [
       d.name,
       d.type,
+      d.area,
     ],
     where: l => this.search.value ? l.name.isContains(this.search) : undefined,
     orderBy: l => [{ column: l.type, descending: false }, { column: l.name, descending: false }],

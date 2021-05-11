@@ -1,4 +1,4 @@
-import { ColumnOptions, ColumnSettings, Context, EntityClass, IdEntity, StringColumn, ValueListColumn } from "@remult/core";
+import { ColumnOptions, ColumnSettings, Context, EntityClass, Filter, IdEntity, StringColumn, ValueListColumn } from "@remult/core";
 import { DynamicServerSideSearchDialogComponent } from "../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component";
 
 @EntityClass
@@ -90,7 +90,37 @@ export class LocationIdColumn extends StringColumn {
           this.context.openDialog(DynamicServerSideSearchDialogComponent,
             x => x.args(Location, {
               onSelect: l => this.value = l.id.value,
-              searchColumn: l => l.name
+              searchColumn: l => l.name,
+            }));
+        }
+      }),//...options
+    },
+      options);
+  }
+}
+export class BorderAreaIdColumn extends StringColumn {
+
+  constructor(options?: ColumnSettings<string>, private context?: Context) {
+    super({
+      validate: () => {
+        if (this.defs.allowNull) { }
+        else if (this.value && this.value.length > 0) { }
+        else {
+          this.validationError = " No Location Seleceted";
+        }
+      },
+      dataControlSettings: () => ({
+        getValue: () => this.context.for(Location).lookup(this).name.value,
+        hideDataOnInput: true,
+        clickIcon: 'search',
+        width: "150px",
+        click: () => {
+          // selected = new BorderAreaList({});
+          this.context.openDialog(DynamicServerSideSearchDialogComponent,
+            x => x.args(Location, {
+              onSelect: l => this.value = l.id.value,
+              searchColumn: l => l.name,
+              // where: l => selected?l.area.isEqualTo(selected):new Filter(() => {}),
             }));
         }
       }),//...options

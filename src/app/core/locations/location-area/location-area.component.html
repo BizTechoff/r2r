@@ -1,0 +1,23 @@
+<div class="full-page">
+    <h3>Select Your's Prefered Borders</h3>
+    <div class="header">
+        <data-area [settings]="areaSettings"></data-area>
+    </div>
+    <div class="grow-item">
+        <table style="width: 100%;">
+            <tr *ngFor="let b of borders">
+                <div *ngIf="b.visible">
+                <td>
+                    <mat-checkbox [(ngModel)]="b.selected" (change)="onSelection()"></mat-checkbox>
+                </td>
+                <td>{{ b.name }}</td>
+            </div>
+            </tr>
+        </table>
+    </div>
+    <div class="footer">
+        <mat-label style="padding: 5px; color:blue">selected: {{ selectedCount }}</mat-label>
+        <!-- <span>selected: {{ this.borders.filter(i =>i.selected).length }}</span> -->
+        <button mat-raised-button color="accent" (click)="saveSelected()">Save</button>
+    </div>
+</div>

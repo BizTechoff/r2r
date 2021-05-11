@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { RouteHelperService } from '@remult/angular';
 import { Context } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
-import { GridDialogComponent } from '../../../common/grid-dialog/grid-dialog.component';
+import { LocationAreaComponent } from '../../locations/location-area/location-area.component';
 import { Driver } from '../driver';
 import { DriverPrefs } from '../driverPrefs';
 
@@ -16,6 +16,7 @@ export class DriverSettingsComponent implements OnInit {
   args: {
     driverId: string,
   };
+  selectedCount = 0;
 
   constructor(
     private context: Context,
@@ -43,7 +44,8 @@ export class DriverSettingsComponent implements OnInit {
 
   driverLocations;
 
-  async preferedBorders() {
+
+  async openPreferedBorders() {
 
     // this.context.openDialog(GridDialogComponent, gd => gd.args = {
     //   title: "Prefered Borders",
@@ -55,32 +57,40 @@ export class DriverSettingsComponent implements OnInit {
     //   })
     // });
 
-    this.context.openDialog(GridDialogComponent, gd => gd.args = {
-      title: "Preferred Borders",
-      settings: this.context.for(DriverPrefs).gridSettings({
-        where: p => p.driverId.isEqualTo(this.driverId),
-        newRow: p => p.driverId.value = this.driverId,
-        allowCRUD: true,
-        columnSettings: p => [
-          {
-            column: p.locationId,
-            caption: "'From' Border"
-          },
-          {
-            column: p.isAlsoBack,
-            caption: "Also 'To' That Border"
-          },
-          // p.locationId,
-          // p.isAlsoBack,
-          // {column: p.locationId,
-          // caption: "B->"},
-          // {column:  p.isAlsoBack,
-          //   caption: "<-B"},
-          // p.dayOfWeek,
-          // p.dayPeriod,
-        ],
-      })
-    });
+    if (!(this.args)) {
+      this.args = { driverId: '' };
+    }
+    if (!(this.args.driverId && this.args.driverId.length > 0)) {
+      this.args.driverId = (await this.context.for(Driver).findFirst(d => d.userId.isEqualTo(this.context.user.id))).id.value;
+    }
+    await this.context.openDialog(LocationAreaComponent, thus => thus.args = { dId: this.args.driverId });
+
+    // await this.context.openDialog(GridDialogComponent, gd => gd.args = {
+    //   title: "Preferred Borders",
+    //   settings: this.context.for(DriverPrefs).gridSettings({
+    //     where: p => p.driverId.isEqualTo(this.driverId),
+    //     newRow: p => p.driverId.value = this.driverId,
+    //     allowCRUD: true,
+    //     columnSettings: p => [
+    //       {
+    //         column: p.locationId,
+    //         caption: "'From' Border"
+    //       },
+    //       {
+    //         column: p.isAlsoBack,
+    //         caption: "Also 'To' That Border"
+    //       },
+    //       // p.locationId,
+    //       // p.isAlsoBack,
+    //       // {column: p.locationId,
+    //       // caption: "B->"},
+    //       // {column:  p.isAlsoBack,
+    //       //   caption: "<-B"},
+    //       // p.dayOfWeek,
+    //       // p.dayPeriod,
+    //     ],
+    //   })
+    // });
   }
   driverId;
   async ngOnInit() {
@@ -90,6 +100,9 @@ export class DriverSettingsComponent implements OnInit {
     this.driverId = (await this.context.for(Driver).findFirst({
       where: d => d.userId.isEqualTo(this.context.user.id),
     })).id.value;
+
+    this.selectedCount = await this.context.for(DriverPrefs).count(
+      prf => prf.driverId.isEqualTo(this.driverId));
 
     // let driverId = (await this.context.for(Driver).findFirst({
     //   where: d=>d.userId.isEqualTo(this.context.user.id),

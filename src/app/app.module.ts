@@ -46,6 +46,7 @@ import { DriverRegisterComponent } from './core/drivers/driver-register/driver-r
 import { DriverHistoryComponent } from './core/drivers/driver-history/driver-history.component';
 import { PatientContactsComponent } from './core/patients/patient-contacts/patient-contacts.component';
 import { RegisterRidesComponent } from './core/rides/register-rides/register-rides.component';
+import { LocationAreaComponent } from './core/locations/location-area/location-area.component';
 
 
 @NgModule({
@@ -75,6 +76,7 @@ import { RegisterRidesComponent } from './core/rides/register-rides/register-rid
     DriverHistoryComponent,
     PatientContactsComponent,
     RegisterRidesComponent,
+    LocationAreaComponent,
   ],
   imports: [
     BrowserModule,
@@ -115,7 +117,7 @@ import { RegisterRidesComponent } from './core/rides/register-rides/register-rid
   ],
   bootstrap: [AppComponent],
   entryComponents: [YesNoQuestionComponent, InputAreaComponent,
-    GridDialogComponent, DynamicServerSideSearchDialogComponent, SetDriverComponent, ApproveDriverComponent, ShowRidesComponent, PatientContactsComponent]
+    GridDialogComponent, DynamicServerSideSearchDialogComponent, SetDriverComponent, ApproveDriverComponent, ShowRidesComponent, PatientContactsComponent, LocationAreaComponent]
 })
 export class AppModule { }
 
