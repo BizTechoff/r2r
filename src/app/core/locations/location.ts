@@ -19,8 +19,10 @@ export class Location extends IdEntity {
 
       saving: async () => {
         if (context.onServer) {
-          if (this.isNew() && this.type.isEqualTo(LocationType.border)) {
-            this.area.value = LocationArea.get(this.name.value);
+          if (!(this.area.value)) {
+            if (this.isNew() && (this.type.value == LocationType.border)) {
+              this.area.value = LocationArea.get(this.name.value);
+            }
           }
         }
       }
@@ -50,7 +52,7 @@ export class LocationArea {
       return LocationArea.center;
     }
   }
-  id;
+  id:string;
 }
 export class LocationAreaColumn extends ValueListColumn<LocationArea>{
   constructor(options: ColumnOptions) {
@@ -91,6 +93,7 @@ export class LocationIdColumn extends StringColumn {
         click: () => {
           this.context.openDialog(DynamicServerSideSearchDialogComponent,
             x => x.args(Location, {
+              onClear: () => this.value = '',
               onSelect: l => this.value = l.id.value,
               searchColumn: l => l.name,
             }));

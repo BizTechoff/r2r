@@ -26,7 +26,7 @@ import { AndFilter, Context, Entity, EntityType, EntityWhere, EntityWhereItem, S
 </div>
 <div mat-dialog-actions>
 
-    <button mat-icon-button mat-dialog-close>
+    <button mat-icon-button mat-dialog-close title="Clear Selection"  (click)="clear()">
         <mat-icon>clear</mat-icon>
     </button>
 </div>    `,
@@ -70,6 +70,10 @@ export class DynamicServerSideSearchDialogComponent implements OnInit {
     this.title = this.entityContext.create().defs.caption;
 
   }
+  clear(){
+    this._args.onClear();
+    this.dialogRef.close();
+  }
   select(p: Entity) {
     this._args.onSelect(p);
     this.dialogRef.close();
@@ -81,6 +85,7 @@ export class DynamicServerSideSearchDialogComponent implements OnInit {
 
 }
 export interface dynamicSearchDialog<T extends Entity> {
+  onClear?: () => void;
   onSelect: (item: T) => void;
   searchColumn: (item: T) => StringColumn;
   where?:EntityWhereItem<T>;

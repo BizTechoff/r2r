@@ -31,6 +31,7 @@ export interface ride4UsherRideRegister {
   dFromHour?: Date,
   dToHour?: Date,
   dPass?: number,
+  selected: boolean,
 }
 export interface ride4DriverRideRegister {
   rgId: string,
@@ -42,8 +43,8 @@ export interface ride4DriverRideRegister {
   to: string,
   pass: number,
   isRegistered: boolean,
-  dFromHour?: Date,
-  dToHour?: Date,
+  dFromHour?: string,
+  dToHour?: string,
   dPass?: number,
 }
 export interface ride4Driver {
@@ -51,6 +52,8 @@ export interface ride4Driver {
   pId: string,
   dId: string,
   fId: string,
+  pName: string,
+  pMobile: string,
   from: string,
   to: string,
   contactsCount: number,
@@ -60,13 +63,16 @@ export interface ride4Driver {
   passengers: number,
   age: number,
   equipment: string[],
-  mobile: string,
   shortCall: string,
   whatsapp: string,
   companyPhone: string,
   companyShortCall: string,
   companyWhatsapp: string,
-  status: RideStatus,
+  // status: RideStatus,
+  w4Start:boolean,
+  w4Pickup:boolean,
+  w4Arrived:boolean,
+  w4End:boolean,
 };
 
 export interface ride4Usher {

@@ -8,7 +8,7 @@ import { Roles } from './roles';
 @EntityClass
 export class Users extends IdEntity {
 
-    
+
 
     name = new StringColumn({
         caption: "name",
@@ -34,7 +34,7 @@ export class Users extends IdEntity {
                 this.mobile.validationError = ' Mobile is too short';
         }
     });
- 
+
     constructor(private context: Context) {
 
         super({
@@ -104,7 +104,7 @@ export class Users extends IdEntity {
                         d.userId.value = '';
                         await d.save();
                     }
- 
+
                     break;
                 }
             }

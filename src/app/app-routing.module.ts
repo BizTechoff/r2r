@@ -12,6 +12,7 @@ import { DriversComponent } from './core/drivers/drivers.component';
 import { LocationsComponent } from './core/locations/locations.component';
 import { PatientsComponent } from './core/patients/patients.component';
 import { RegisterRidesComponent } from './core/rides/register-rides/register-rides.component';
+import { ReturnRidesComponent } from './core/rides/return-rides/return-rides.component';
 import { RidesComponent } from './core/rides/rides.component';
 import { UsherComponent } from './core/usher/usher.component';
 import { HomeComponent } from './home/home.component';
@@ -38,12 +39,12 @@ const routes: Routes = [
 
   { path: 'Locations', component: LocationsComponent, canActivate: [UsherGuard] },
   { path: 'Register Rides', component: RegisterRidesComponent, canActivate: [UsherGuard, AdminGuard], data: { name: "Register Rides" } },
-  
+  { path: 'Return Rides', component: ReturnRidesComponent, canActivate: [UsherGuard, AdminGuard], data: { name: "Return Rides" } },
 
   // Admin
   { path: 'Reports', component: LocationsComponent, canActivate: [AdminGuard] },
+  // { path: 'AppSettings', component: ApplicationSettingsComponent, canActivate: [AdminGuard], data: { name: "App Settings" } },
   { path: 'User Accounts', component: UsersComponent, canActivate: [AdminGuard] },
-  { path: 'AppSettings', component: ApplicationSettingsComponent, canActivate: [AdminGuard], data: { name: "App Settings" } },
 
   { path: 'Home', component: HomeComponent, canActivate: [NotSignedInGuard], data: { name: "Welcome" } },
 

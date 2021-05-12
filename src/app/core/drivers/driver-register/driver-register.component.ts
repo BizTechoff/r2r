@@ -17,7 +17,7 @@ import { RegisterDriver } from './registerDriver';
 })
 export class DriverRegisterComponent implements OnInit {
 
-  driverId: string;
+  driver: Driver;
 
   selectedDate: DateColumn;
   selectedFrom: LocationIdColumn;
@@ -36,23 +36,7 @@ export class DriverRegisterComponent implements OnInit {
   async ngOnInit() {
 
     let date = new Date(2021, 2, 3);
-    this.selectedFrom = new LocationIdColumn({
-      dataControlSettings: () => ({
-        getValue: () => this.context.for(Location).lookup(this.selectedFrom).name.value,
-        hideDataOnInput: true,
-        clickIcon: 'search',
-        width: "150px",
-        click: () => {
-          this.context.openDialog(DynamicServerSideSearchDialogComponent,
-            x => x.args(Location, {
-              onSelect: l => this.selectedFrom.value = l.id.value,
-              searchColumn: l => l.name,
-              where: l => [l.id.isIn(...this.rides.map(r => r.fId))],
-            }));
-        }
-      }),
-      caption: "From"
-    }, this.context);
+    this.selectedFrom = new LocationIdColumn({ caption: "From" }, this.context),
     this.selectedTo = new LocationIdColumn({ caption: "To" }, this.context);
     this.selectedDate = new DateColumn({ caption: "Date", defaultValue: new Date(date.getFullYear(), date.getMonth(), date.getDate()) });
     this.toolbar = new DataAreaSettings({
@@ -60,21 +44,37 @@ export class DriverRegisterComponent implements OnInit {
         this.selectedDate, this.selectedFrom, this.selectedTo,
       ],
     });
+    this.driver = await this.context.for(Driver).findFirst({
+      where: d => d.userId.isEqualTo(this.context.user.id),
+    });
+    if (!(this.driver)) {
+      throw 'Error - You are not register to use app';
+    }
+    this.selectedFrom.value = this.driver.defaultFromLocation ? this.driver.defaultFromLocation.value : '';
+    this.selectedTo.value = this.driver.defaultToLocation ? this.driver.defaultToLocation.value : '';
 
     await this.refresh();
   }
 
   async refresh() {
-    let driver = await this.context.for(Driver).findFirst({
-      where: d => d.userId.isEqualTo(this.context.user.id),
-    });
-    if (!(driver)) {
-      throw 'Error - You are not register to use app';
+
+    if (this.driver) {
+      let changed = false;
+      if (this.driver.defaultFromLocation.value != this.selectedFrom.value) {
+        this.driver.defaultFromLocation.value = this.selectedFrom.value;
+        changed = true;
+      }
+      if (this.driver.defaultToLocation.value != this.selectedTo.value) {
+        this.driver.defaultToLocation.value = this.selectedTo.value;
+        changed = true;
+      }
+      if (changed) {
+        await this.driver.save();
+      }
     }
-    this.driverId = driver.id.value;
 
     let result = await DriverRegisterComponent.retrieveDriverRegister(
-      this.driverId,
+      this.driver.id.value,
       this.selectedDate.value,
       this.selectedFrom.value,
       this.selectedTo.value,
@@ -92,7 +92,7 @@ export class DriverRegisterComponent implements OnInit {
       newregistered: ride4DriverRideRegister[]
     } = {
       registered: [],
-      newregistered: [] 
+      newregistered: []
     };
 
     for await (const reg of context.for(RegisterRide).iterate({//todo: display only records that not attach by usher
@@ -157,27 +157,29 @@ export class DriverRegisterComponent implements OnInit {
   }
 
   async register(r: ride4DriverRideRegister) {
-    let date = new Date(2021, 2, 3);
+    // let date = new Date(2021, 2, 3);
     let reg = this.context.for(RegisterDriver).create();
     reg.regRideId.value = r.rgId;
-    reg.driverId.value = this.driverId;
-    reg.fromHour.value = date;// todo: r.date;
-    reg.toHour.value = date;// todo: r.date;
-
+    reg.driverId.value = this.driver.id.value;
+    reg.fromHour.value = this.driver.defaultFromTime.value;// todo: r.date;
+    reg.toHour.value = this.driver.defaultToTime.value;// todo: r.date;
+    // reg.toHour.value = date;// todo: r.date;
+  
     await this.context.openDialog(
       InputAreaComponent,
       x => x.args = {
         title: "Register To Ride",
         columnSettings: () => [
-          {
-            column: reg.fromHour,
-            cssClass: 'time',
-          },
+          reg.fromHour,
           reg.toHour,
           reg.seats,
         ],
         ok: async () => {
           await reg.save();
+          this.driver.defaultFromTime.value = reg.fromHour.value;
+          this.driver.defaultToTime.value = reg.toHour.value;
+          this.driver.defaultSeats.value = reg.seats.value;
+          await this.driver.save();
           await this.refresh();
         }
       },

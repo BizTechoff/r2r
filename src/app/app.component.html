@@ -7,7 +7,7 @@
     <span class="toolbar-title">{{currentTitle()}}</span>
     <ng-container *ngIf="!context.isSignedIn()">
       <button mat-flat-button color="primary" (click)="signIn()">Sign In</button>
-      <button mat-flat-button color="primary" (click)="signUp()">Sign Up</button>
+      <!-- <button mat-flat-button color="primary" (click)="signUp()">Sign Up</button> -->
     </ng-container>
     <ng-container *ngIf="context.isSignedIn()">
       <button mat-flat-button color="primary" [matMenuTriggerFor]="menu">{{context.user.name}}</button>
@@ -35,7 +35,7 @@
         <mat-divider></mat-divider> -->
         <ng-container *ngFor="let m of router.config">
         <mat-list-item *ngIf="shouldDisplayRoute(m)" routerLinkActive="active-route">
-          <mat-divider *ngIf="m.path === 'Locations'"></mat-divider>
+          <mat-divider *ngIf="m.path === 'Locations' || m.path === 'Return Rides'"></mat-divider>
           <a matLine [routerLink]="m.path" (click)="routeClicked()">{{routeName(m)}}</a>
         </mat-list-item>
 

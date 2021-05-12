@@ -39,13 +39,13 @@ export class UsersComponent implements OnInit {
 
     ],
     rowButtons: [{
-      name: 'Set Password',
+      name: 'Set New Password',
       click: async (u) => {
 
         let password = new PasswordColumn();
         let confirmPassword = new PasswordColumn({ caption: "Confirm Password" });
         this.context.openDialog(InputAreaComponent, i => i.args = {
-          title: `Set Password To: ${u.name.value}`,
+          title: `Set New Password To: ${u.name.value}`,
           columnSettings: () => [
             password,
             confirmPassword,
@@ -69,7 +69,7 @@ export class UsersComponent implements OnInit {
       return await this.dialog.confirmDelete(h.name.value)
     },
   });
-  
+
   @ServerFunction({ allowed: Roles.admin })
   static async resetPassword(userId: string, context?: Context) {
     let u = await context.for(Users).findId(userId);

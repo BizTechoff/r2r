@@ -1,5 +1,5 @@
 <div class="full-page">
-    <h3>Patient{{ args.isNew ?": "+patient.name.value:" (New)" }}</h3>
+    <h3>Patient{{ args.isNew ?" (New)" : ": "+patient.name.value }}</h3>
     <div class="header">
     </div>
     <div class="grow-item">

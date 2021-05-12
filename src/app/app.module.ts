@@ -48,6 +48,7 @@ import { PatientContactsComponent } from './core/patients/patient-contacts/patie
 import { RegisterRidesComponent } from './core/rides/register-rides/register-rides.component';
 import { LocationAreaComponent } from './core/locations/location-area/location-area.component';
 import { PatientCrudComponent } from './core/patients/patient-crud/patient-crud.component';
+import { ReturnRidesComponent } from './core/rides/return-rides/return-rides.component';
 
 
 @NgModule({
@@ -79,6 +80,7 @@ import { PatientCrudComponent } from './core/patients/patient-crud/patient-crud.
     RegisterRidesComponent,
     LocationAreaComponent,
     PatientCrudComponent,
+    ReturnRidesComponent,
   ],
   imports: [
     BrowserModule,

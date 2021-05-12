@@ -34,7 +34,8 @@ export class Patient extends IdEntity {
   }
 
   age(today?: Date) {
-    if (this.hasBirthDate() && today)
+    today = new Date();
+    if (this.hasBirthDate())
       return today.getFullYear() - this.birthDate.value.getFullYear();
     return 0;
     if (!(this.hasBirthDate())) {

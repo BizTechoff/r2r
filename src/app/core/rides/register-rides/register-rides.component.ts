@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Context, DateColumn, NumberColumn, ServerFunction } from '@remult/core';
 import { InputAreaComponent } from '../../../common/input-area/input-area.component';
 import { ride4UsherRideRegister } from '../../../shared/types';
+import { PromiseThrottle } from '../../../shared/utils';
 import { Roles } from '../../../users/roles';
 import { RegisterDriver } from '../../drivers/driver-register/registerDriver';
 import { Location } from '../../locations/location';
@@ -18,6 +19,8 @@ export class RegisterRidesComponent implements OnInit {
   clientLastRefreshDate: Date = new Date();
   demoDates: string;
   lastRefreshDate: Date = new Date();//client time
+  registerRidesCount = 0;
+  selectedCount = 0;
 
   constructor(private context: Context) { }
 
@@ -26,6 +29,7 @@ export class RegisterRidesComponent implements OnInit {
   }
 
   async refresh() {
+    this.clientLastRefreshDate = new Date();
     this.rides = await RegisterRidesComponent.retrieveRegisterRides(this.context);
     this.lastRefreshDate = new Date();
   }
@@ -51,6 +55,7 @@ export class RegisterRidesComponent implements OnInit {
         to: to,
         pass: reg.passengers.value,
         registeredCount: registeredCount,
+        selected: false,
       };
       result.push(row);
     }
@@ -61,10 +66,10 @@ export class RegisterRidesComponent implements OnInit {
   }
 
   async openAddRegisterRide() {
-    
+
     let reg = this.context.for(RegisterRide).create();
     reg.date.value = new Date();
-    let toDate = new DateColumn({defaultValue: new Date() });
+    let toDate = new DateColumn({ defaultValue: new Date() });
     await this.context.openDialog(
       InputAreaComponent,
       x => x.args = {
@@ -85,25 +90,27 @@ export class RegisterRidesComponent implements OnInit {
 
   private async openHowMany(reg: RegisterRide, toDate: Date) {
 
+    let diff = 1 + Math.floor((+toDate - +reg.date.value) / (1000 * 60 * 60 * 24));
+
     let count = new NumberColumn({
-      defaultValue: 1,
+      defaultValue: 5,
       validate: () => {
         if (count.value < 1) {
           count.validationError = " Count at least one";
         }
-      }
+      },
+      valueChange: () => { count.value > 0 ? this.registerRidesCount = count.value * diff : 0 },
     });
-    let diff = 1 + Math.floor((+toDate - +reg.date.value) / (1000 * 60 * 60 * 24));
-
     await this.context.openDialog(
       InputAreaComponent,
       x => x.args = {
-        title: `How many Ride(s) to create (${diff} days)`,
+        title: `How many Ride(s) to create for each day (${diff} days)`,
+        helpText: `${diff}(days) * ${count.value}(times) = ${this.registerRidesCount}(rides to create)`,
         columnSettings: () => [
           count,
         ],
         ok: async () => {
-          
+
           for (let i = 0; i < diff; ++i) {
             let date = reg.date.value;
             date.setDate(date.getDate() + i);
@@ -118,8 +125,36 @@ export class RegisterRidesComponent implements OnInit {
           }
 
           await this.refresh();
-        }, 
+        },
       });
+  }
+
+  onSelection() {
+    this.selectedCount = 0;
+    for (const r of this.rides) {
+      if (r.selected) {
+        ++this.selectedCount;
+      }
+    }
+    console.log("sc: " + this.selectedCount);
+  }
+
+  async deleteSelected(){
+
+    // let p = new PromiseThrottle(this.selectedCount);
+
+    for (let i = this.rides.length -1; i >= 0; --i) {
+      const r = this.rides[i];
+      if(r.selected){
+        let ride = await this.context.for(RegisterRide).findId(r.rgId);
+        await ride.delete();
+        this.rides.splice(
+          this.rides.indexOf(r),
+          1,
+        );
+      }
+    }
+    // await p.done();
   }
 
 }

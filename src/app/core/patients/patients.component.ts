@@ -203,14 +203,14 @@ export class PatientsComponent implements OnInit {
         ],
         ok: async () => {
           await ride.save();
-          if (isNeedReturnTrip.value && ride.dayPeriod.value == DayPeriod.morning) {
-            var returnRide = this.context.for(Ride).create();
-            ride.copyTo(returnRide);
-            returnRide.fromLocation.value = ride.toLocation.value;
-            returnRide.toLocation.value = ride.fromLocation.value;
-            returnRide.dayPeriod.value = DayPeriod.afternoon;
-            await returnRide.save();
-          }
+          // if (isNeedReturnTrip.value && ride.dayPeriod.value == DayPeriod.morning) {
+          //   var returnRide = this.context.for(Ride).create();
+          //   ride.copyTo(returnRide);
+          //   returnRide.fromLocation.value = ride.toLocation.value;
+          //   returnRide.toLocation.value = ride.fromLocation.value;
+          //   returnRide.dayPeriod.value = DayPeriod.afternoon;
+          //   await returnRide.save();
+          // }
         }
       },
     )

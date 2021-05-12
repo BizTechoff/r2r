@@ -36,7 +36,7 @@ export class Driver extends IdEntity {
       }
     },
   });
-  home?= new LocationIdColumn({},this.context, true);
+  home?= new LocationIdColumn({}, this.context, true);
   email = new StringColumn({});
   seats = new NumberColumn({
     defaultValue: 3,
@@ -50,12 +50,15 @@ export class Driver extends IdEntity {
   birthDate = new DateColumn({});
   city = new StringColumn({});
   address = new StringColumn({});
-  defaultFromTime = new StringColumn({ defaultValue: "00:00" });
-  defaultToTime = new StringColumn({ defaultValue: "00:00" });
 
   lastStatus = new RideStatusColumn({});
   lastStatusDate = new DateColumn({});
-
+  defaultFromLocation?= new LocationIdColumn({}, this.context, true);
+  defaultToLocation?= new LocationIdColumn({}, this.context, true);
+  defaultFromTime = new StringColumn({ defaultValue: "00:00", dataControlSettings: () => ({ inputType: 'time', width: '110' }) });
+  defaultToTime = new StringColumn({ defaultValue: "00:00", dataControlSettings: () => ({ inputType: 'time', width: '110' }) });
+  defaultSeats = new NumberColumn({});
+  
   constructor(private context: Context) {
     super({
       name: "drivers",
@@ -81,7 +84,7 @@ export class Driver extends IdEntity {
   }
 
   hasBirthDate() {
-      return this.birthDate && this.birthDate.value && this.birthDate.value.getFullYear() > 1900;
+    return this.birthDate && this.birthDate.value && this.birthDate.value.getFullYear() > 1900;
   }
 
   isWaitingForDriverAccept() {
@@ -128,15 +131,15 @@ export class DriverIdColumn extends StringColumn {
             }));
         }
       })
-    },options);
+    }, options);
   }
 }
 
-export async function openDriver(id: string, context: Context) : Promise<boolean> {
- 
+export async function openDriver(id: string, context: Context): Promise<boolean> {
+
   let d = await context.for(Driver).findId(id);
   if (d) {
-    
+
     context.openDialog(
       InputAreaComponent,
       x => x.args = {

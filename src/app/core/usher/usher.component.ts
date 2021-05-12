@@ -247,6 +247,7 @@ export class UsherComponent implements OnInit {
 
   items: Ride[];
   async refresh() {
+    this.clientLastRefreshDate = new Date();
     UsherComponent.lastRefreshDate = new Date();
     // await this.ridesGrid.reloadData();
     let params: getRideList4UsherParams = {

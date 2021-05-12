@@ -35,6 +35,7 @@ export class PatientCrudComponent implements OnInit {
       [this.patient.name, this.patient.hebName],
       [this.patient.mobile, this.patient.idNumber],
       [this.patient.defaultBorder, this.patient.defaultHospital],
+      this.patient.birthDate,
     ],});
   
   }

@@ -41,7 +41,7 @@ export class DriverHistoryComponent implements OnInit {
     })) {
       let from = (await context.for(Location).findId(ride.fromLocation.value)).name.value;
       let to = (await context.for(Location).findId(ride.toLocation.value)).name.value;
-      let patient = ride.isHasPatient() ? (await context.for(Patient).findId(ride.patientId.value)).name.value : "";
+      let pName = ride.isHasPatient() ? (await context.for(Patient).findId(ride.patientId.value)).name.value : "";
       let age = ride.isHasPatient() ? (await context.for(Patient).findId(ride.patientId.value)).age() : undefined;
       let mobile = ride.isHasPatient() ? (await context.for(Patient).findId(ride.patientId.value)).mobile.value : "";
       let contactsCount = await context.for(Contact).count(
@@ -65,6 +65,7 @@ export class DriverHistoryComponent implements OnInit {
           pId: ride.patientId.value,
           dId: ride.isHasDriver()? ride.driverId.value: '',
           fId: ride.fromLocation.value,
+          pName: pName,
           from: from,
           to: to,
           contactsCount: contactsCount,
@@ -74,13 +75,17 @@ export class DriverHistoryComponent implements OnInit {
           passengers: ride.passengers(),
           age: age,
           equipment: equipment,
-          mobile: mobile,
+          pMobile: mobile,
           shortCall: 's-call',
           whatsapp: 'wapp',
           companyPhone: 'c-phone',
           companyShortCall: 'c-s-call',
           companyWhatsapp: 'c-wapp',
-          status: ride.status.value,
+          // status: ride.status.value,
+          w4Start: ride.isWaitingForStart(),
+          w4Pickup: ride.isWaitingForPickup(),
+          w4Arrived: ride.isWaitingForArrived(),
+          w4End: ride.isEnd(),
         };
         result.push(row);
       }

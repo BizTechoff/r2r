@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
+import { RouteHelperService } from '@remult/angular';
 import { Context, ServerFunction } from '@remult/core';
+import { YesNoQuestionComponent } from '../../../common/yes-no-question/yes-no-question.component';
 import { ride4Driver } from '../../../shared/types';
 import { Roles } from '../../../users/roles';
 import { Location } from '../../locations/location';
@@ -21,9 +23,13 @@ export class DriverRidesComponent implements OnInit {
   constructor(private context: Context) { }
 
   async ngOnInit() {
-    this.rides = await DriverRidesComponent.retrieveDriverRides(this.context);
+    this.refresh();
   }
 
+  async refresh(){
+    this.rides = await DriverRidesComponent.retrieveDriverRides(this.context);
+  }
+ 
   @ServerFunction({ allowed: Roles.driver })
   static async retrieveDriverRides(context?: Context) {
     var result: ride4Driver[] = [];
@@ -41,21 +47,21 @@ export class DriverRidesComponent implements OnInit {
     })) {
       let from = (await context.for(Location).findId(ride.fromLocation.value)).name.value;
       let to = (await context.for(Location).findId(ride.toLocation.value)).name.value;
-      let patient = ride.isHasPatient() ? (await context.for(Patient).findId(ride.patientId.value)).name.value : "";
+      let pName = ride.isHasPatient() ? (await context.for(Patient).findId(ride.patientId.value)).name.value : "";
       let age = ride.isHasPatient() ? (await context.for(Patient).findId(ride.patientId.value)).age() : undefined;
-      let mobile = ride.isHasPatient() ? (await context.for(Patient).findId(ride.patientId.value)).mobile.value : "";
+      let pMobile = ride.isHasPatient() ? (await context.for(Patient).findId(ride.patientId.value)).mobile.value : "";
       let contactsCount = await context.for(Contact).count(
         c => c.patientId.isEqualTo(ride.patientId),
       );
       let equipment: string[] = [];
       if (ride.isHasBabyChair) {
-        equipment.push('');
+        equipment.push('child_friendly');
       }
       if (ride.isHasWheelchair) {
-        equipment.push('');
-      }
+        equipment.push('accessible');
+      } 
       if (ride.isHasExtraEquipment) {
-        equipment.push('');
+        equipment.push('home_repair_service');
       }
 
       let row = result.find(r => r.rId === ride.id.value);
@@ -65,23 +71,28 @@ export class DriverRidesComponent implements OnInit {
           pId: ride.patientId.value,
           dId: ride.isHasDriver()? ride.driverId.value: '',
           fId: ride.fromLocation.value,
+          pName: pName,
           from: from,
           to: to,
           contactsCount: contactsCount,
-          date: ride.visitTime.value,
+          date: ride.date.value,
           time: ride.visitTime.value,
           visitTime: ride.visitTime.value,
           passengers: ride.passengers(),
           age: age,
           equipment: equipment,
-          mobile: mobile,
+          pMobile: pMobile,
           shortCall: 's-call',
           whatsapp: 'wapp',
           companyPhone: 'c-phone',
           companyShortCall: 'c-s-call',
           companyWhatsapp: 'c-wapp',
-          status: ride.status.value,
-        };
+          w4Start: ride.isWaitingForStart(),
+          w4Pickup: ride.isWaitingForPickup(),
+          w4Arrived: ride.isWaitingForArrived(),
+          w4End: ride.isEnd(),
+          // status: ride.status.value,
+        }; 
         result.push(row);
       }
     }
@@ -92,11 +103,37 @@ export class DriverRidesComponent implements OnInit {
     return result;
   }
 
+  async openWaze(address:string){
+    console.log(`open waze to: ${address}`)
+    // this.context.openDialog(YesNoQuestionComponent);
+  }
+
   async openContacts(r:ride4Driver){
      
     this.context.openDialog(PatientContactsComponent, sr => sr.args = {
       pid: r.pId,
     });
+  }
+
+  async startDriving(rideId: string) {
+    let ride = await this.context.for(Ride).findId(rideId);
+    ride.status.value = RideStatus.waitingForPickup;
+    await ride.save();
+    await this.refresh();
+  }
+
+  async pickup(rideId: string) {
+    let ride = await this.context.for(Ride).findId(rideId);
+    ride.status.value = RideStatus.waitingForArrived;
+    await ride.save();
+    await this.refresh();
+  }
+
+  async arrived(rideId: string) {
+    let ride = await this.context.for(Ride).findId(rideId);
+    ride.status.value = RideStatus.succeeded;
+    await ride.save();
+    await this.refresh();
   }
 
 }

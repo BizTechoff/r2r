@@ -11,14 +11,15 @@ import { PatientIdColumn } from "../patients/patient";
 @EntityClass
 export class Ride extends IdEntity {
 
+    driverRemark = new StringColumn({});
     driverId = new DriverIdColumn({}, this.context);
     patientId = new PatientIdColumn(this.context);
     status = new RideStatusColumn();
     statusDate = new DateColumn();
     importRideNum = new StringColumn();
 
-    fromLocation = new LocationIdColumn({},this.context);
-    toLocation = new LocationIdColumn({},this.context);
+    fromLocation = new LocationIdColumn({}, this.context);
+    toLocation = new LocationIdColumn({}, this.context);
     date = new DateColumn({
         valueChange: () => {
             if (this.isHasDate() && this.isHasVisitTime()) {
@@ -39,12 +40,18 @@ export class Ride extends IdEntity {
     isHasExtraEquipment = new BoolColumn({ caption: 'Has Extra Equipment' });
     isHasEscort = new BoolColumn({ caption: 'Has Escort', defaultValue: false });
     escortsCount = new NumberColumn({});
+    backId = new StringColumn({});
 
     constructor(private context: Context, private appSettings: ApplicationSettings) {
         super({
             name: "rides",
             allowApiCRUD: c => c.isSignedIn(),
             allowApiRead: c => c.isSignedIn(),
+            saving: async () => {if (context.onServer) {
+                if (this.status.wasChanged()){
+                    this.statusDate.value = new Date();
+                }
+            }},
             saved: async () => {//trigger from db on status changed
                 if (context.onServer) {
                     if (this.status.wasChanged()) {
@@ -69,6 +76,9 @@ export class Ride extends IdEntity {
 
 
         });
+    }
+    hadBackId() {
+        return this.backId && this.backId.value && this.backId.value.length > 0;
     }
 
     passengers() {
@@ -159,22 +169,32 @@ export class Ride extends IdEntity {
         return this.status.value === RideStatus.waitingForArrived;
     }
 
+    isEnd() {
+        return this.status.value === RideStatus.succeeded;
+    }
 
-    copyTo(target: Ride) {
-        target.fromLocation.value = this.fromLocation.value;
-        target.toLocation.value = this.toLocation.value;
+
+    copyTo(target: Ride, forBackRide: boolean = false) {
         target.dayOfWeek.value = this.dayOfWeek.value;
         target.dayPeriod.value = this.dayPeriod.value;
         target.date.value = this.date.value;
-        target.visitTime.value = this.visitTime.value;
         target.isHasBabyChair.value = this.isHasBabyChair.value;
         target.isHasWheelchair.value = this.isHasWheelchair.value;
         target.isHasExtraEquipment.value = this.isHasExtraEquipment.value;
         target.isHasEscort.value = this.isHasEscort.value;
         target.escortsCount.value = this.escortsCount.value;
         target.patientId.value = this.patientId.value;
-        target.driverId.value = this.driverId.value;
-        target.status = this.status;
+        if (!(forBackRide)) {
+            target.fromLocation.value = this.fromLocation.value;
+            target.toLocation.value = this.toLocation.value;
+            target.visitTime.value = this.visitTime.value;
+            target.driverId.value = this.driverId.value;
+            target.backId.value = this.backId.value;
+            target.status = this.status;
+            target.statusDate.value = this.statusDate.value;
+            target.importRideNum.value = this.importRideNum.value;
+            target.driverRemark.value = this.driverRemark.value;
+        }
     }
 
     toString() {
@@ -200,20 +220,30 @@ export class RideStatus {
     constructor(public color = 'green') { }
     id;
 
-     isInProgress(): boolean{
+    isInProgress(): boolean {
         return this == RideStatus.waitingForPickup
-        ||
-        this == RideStatus.waitingForArrived;
+            ||
+            this == RideStatus.waitingForArrived;
     }
 
-    static driverWaitingStatuses =
-        [
-            RideStatus.waitingForDriver, 
-            RideStatus.waitingForStart, 
-            RideStatus.waitingForPickup,
-            RideStatus.waitingForArrived,
-            RideStatus.waitingForEnd,
-        ];
+    static isCanBackRide = [
+        RideStatus.waitingForArrived,
+    ];
+
+    static driverWaitingStatuses = [
+        RideStatus.waitingForDriver,
+        RideStatus.waitingForStart,
+        RideStatus.waitingForPickup,
+        RideStatus.waitingForArrived,
+        RideStatus.waitingForEnd,
+    ];
+
+    static driverFinishedStatuses = [
+        RideStatus.failed,
+        RideStatus.rejected,
+        RideStatus.succeeded,
+        RideStatus.waitingForDriver,
+    ];
 }
 
 //חולה ונהג יכולים להיות ריקים
@@ -321,14 +351,14 @@ export async function addRide(rid: string, context: Context): Promise<boolean> {
             ],
             ok: async () => {
                 await ride.save();
-                if (isNeedReturnTrip.value && ride.dayPeriod.value == DayPeriod.morning) {
-                    var returnRide = context.for(Ride).create();
-                    ride.copyTo(returnRide);
-                    returnRide.fromLocation.value = ride.toLocation.value;
-                    returnRide.toLocation.value = ride.fromLocation.value;
-                    returnRide.dayPeriod.value = DayPeriod.afternoon;
-                    await returnRide.save();
-                }
+                // if (isNeedReturnTrip.value && ride.dayPeriod.value == DayPeriod.morning) {
+                //     var returnRide = context.for(Ride).create();
+                //     ride.copyTo(returnRide);
+                //     returnRide.fromLocation.value = ride.toLocation.value;
+                //     returnRide.toLocation.value = ride.fromLocation.value;
+                //     returnRide.dayPeriod.value = DayPeriod.afternoon;
+                //     await returnRide.save();
+                // }
                 return true;
             }
         },

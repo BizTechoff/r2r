@@ -26,8 +26,6 @@ export class AppComponent {
     private session: JwtSessionService,
     public context: Context) {
     session.loadUserInfo();
-
-
   }
 
   async signIn() {
@@ -38,7 +36,7 @@ export class AppComponent {
         mobile,
       ],
       ok: async () => {
-        let needPw = await AppComponent.isNeedPassword(mobile.value);
+        let needPw = await AppComponent.isSpecial(mobile.value);
         if (needPw == undefined) {
           this.dialogService.error("User not found, please contact Avishai");
         }
@@ -62,7 +60,7 @@ export class AppComponent {
   }
 
   @ServerFunction({ allowed: true })
-  static async isNeedPassword(mobile: string, context?: Context) {
+  static async isSpecial(mobile: string, context?: Context) {
     let u = await context.for(Users).findFirst(usr => usr.mobile.isEqualTo(mobile));
     if (u) {
       if (u.isDriver.value) {
@@ -76,7 +74,7 @@ export class AppComponent {
   @ServerFunction({ allowed: true })
   static async signIn(mobile: string, password: string, context?: Context) {
     let result: UserInfo;
-    let u = await context.for(Users).findFirst(h => h.mobile.isEqualTo(mobile));
+    let u = await context.for(Users).findFirst(usr => usr.mobile.isEqualTo(mobile));
     if (u) {
       if (u.isDriver.value||  !u.password.value || PasswordColumn.passwordHelper.verify(password, u.password.value)) {
       //if (u.isDriver ||  !u.password.value || PasswordColumn.passwordHelper.verify(password, u.password.value)) {
