@@ -244,6 +244,11 @@ export class RideStatus {
         RideStatus.succeeded,
         RideStatus.waitingForDriver,
     ];
+
+    static driverAvailable = [
+        RideStatus.waitingForStart,
+        RideStatus.waitingForUsherApproove,
+    ];
 }
 
 //חולה ונהג יכולים להיות ריקים

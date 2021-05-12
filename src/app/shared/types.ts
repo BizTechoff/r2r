@@ -1,24 +1,25 @@
 import { DateTimeColumn } from "@remult/core";
-import { RideStatus } from "../core/rides/ride";
 
 export class changeDate extends DateTimeColumn {
   readonly = true;
-}
-
-// export interface usherDriversRequest{
-//   rideId:string,
-//   locationId:string,
-//   dayOfWeek:DayOfWeek,
-//   dayPeriod:DayPeriod,
-//   date: Date
-// };
-
+};
 
 export interface getRideList4UsherParams {
   date: Date,
   fromId?: string,
   toId?: string,
-}
+};
+
+export interface driver4UsherSuggest {
+  id: string,
+  name: string,
+  mobile: string,
+  home: string,
+  lastRideDays: number,
+  reason: string,
+  lastCallDays: number,
+};
+
 export interface ride4UsherRideRegister {
   rgId: string,
   date: Date,
@@ -32,7 +33,8 @@ export interface ride4UsherRideRegister {
   dToHour?: Date,
   dPass?: number,
   selected: boolean,
-}
+};
+
 export interface ride4DriverRideRegister {
   rgId: string,
   dRegId?: string,
@@ -46,7 +48,8 @@ export interface ride4DriverRideRegister {
   dFromHour?: string,
   dToHour?: string,
   dPass?: number,
-}
+};
+
 export interface ride4Driver {
   rId: string,
   pId: string,
@@ -69,10 +72,10 @@ export interface ride4Driver {
   companyShortCall: string,
   companyWhatsapp: string,
   // status: RideStatus,
-  w4Start:boolean,
-  w4Pickup:boolean,
-  w4Arrived:boolean,
-  w4End:boolean,
+  w4Start: boolean,
+  w4Pickup: boolean,
+  w4Arrived: boolean,
+  w4End: boolean,
 };
 
 export interface ride4Usher {
@@ -90,7 +93,7 @@ export interface ride4Usher {
   needDriver: number,
   needApprove: number,
   ids?: string[],
-}
+};
 
 export interface ride4UsherApprove {
   id: string,
@@ -104,7 +107,7 @@ export interface ride4UsherApprove {
   visitTime: Date,
   passengers: number,
   patient: string,
-}
+};
 
 export interface ride4UsherSetDriver {
   id: string,
@@ -118,10 +121,9 @@ export interface ride4UsherSetDriver {
   visitTime: Date,
   passengers: number,
   patient: string,
-}
+};
 
 export interface usherDriversResponse {
   driverId: string,
   display: string,
 };
-
