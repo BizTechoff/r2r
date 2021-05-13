@@ -15,9 +15,12 @@ export interface driver4UsherSuggest {
   name: string,
   mobile: string,
   home: string,
+  seats: number,
+  freeSeats: number,
   lastRideDays: number,
-  reason: string,
   lastCallDays: number,
+  isMatchPrefs: boolean,
+  reason: string,
 };
 
 export interface ride4UsherRideRegister {
@@ -36,6 +39,7 @@ export interface ride4UsherRideRegister {
 };
 
 export interface ride4DriverRideRegister {
+  rId: string,
   rgId: string,
   dRegId?: string,
   date: Date,
@@ -46,7 +50,7 @@ export interface ride4DriverRideRegister {
   pass: number,
   isRegistered: boolean,
   dFromHour?: string,
-  dToHour?: string,
+  dToHour?: string, 
   dPass?: number,
 };
 

@@ -6,6 +6,7 @@ import { DriverIdColumn } from "../driver";
 @EntityClass
 export class RegisterDriver extends IdEntity {
 
+    rId = new StringColumn({});
     regRideId = new StringColumn({});
     driverId = new DriverIdColumn({});
     seats = new NumberColumn({caption: 'Free Seats', validate: () => {if(!(this.seats.value >0)){
@@ -18,7 +19,7 @@ export class RegisterDriver extends IdEntity {
         super({
             name: "driversRegisters",
             allowApiCRUD: [Roles.usher, Roles.admin, Roles.driver],// todo: Manager only
-            allowApiRead: c => c.isSignedIn(),
+            allowApiRead: c => c.isSignedIn(), 
         });
     }
 }

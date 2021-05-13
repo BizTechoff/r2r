@@ -1,3 +1,4 @@
+import { formatDate } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { Context, DataAreaSettings, DateColumn, Filter, ServerFunction } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
@@ -7,9 +8,10 @@ import { ride4DriverRideRegister } from '../../../shared/types';
 import { Roles } from '../../../users/roles';
 import { Location, LocationIdColumn } from '../../locations/location';
 import { RegisterRide } from '../../rides/register-rides/registerRide';
+import { Ride, RideStatus } from '../../rides/ride';
 import { Driver } from '../driver';
 import { RegisterDriver } from './registerDriver';
-
+ 
 @Component({
   selector: 'app-driver-register',
   templateUrl: './driver-register.component.html',
@@ -95,6 +97,7 @@ export class DriverRegisterComponent implements OnInit {
       newregistered: []
     };
 
+    let rideIds: string[] = [];
     for await (const reg of context.for(RegisterRide).iterate({//todo: display only records that not attach by usher
       where: rg => rg.date.isEqualTo(date)
         .and(fid && (fid.trim().length > 0) ? rg.fromLoc.isEqualTo(fid) : new Filter(x => { /*true*/ }))
@@ -111,6 +114,7 @@ export class DriverRegisterComponent implements OnInit {
       if (registereds && registereds.length > 0) {
         for (const nreg of registereds) {
           let row: ride4DriverRideRegister = {
+            rId: '',
             rgId: reg.id.value,
             dRegId: nreg.id.value,
             date: reg.date.value,
@@ -125,10 +129,12 @@ export class DriverRegisterComponent implements OnInit {
             dPass: nreg.seats.value,
           };
           result.registered.push(row);
+          //rideIds.push(row.i)
         }
       }
       else {
         let row: ride4DriverRideRegister = {
+          rId: '',
           rgId: reg.id.value,
           date: reg.date.value,
           fId: reg.fromLoc.value,
@@ -142,6 +148,28 @@ export class DriverRegisterComponent implements OnInit {
       }
     }
 
+    for await (const ride of context.for(Ride).iterate({//todo: display only records that not attach by usher
+      where: r => r.date.isEqualTo(date)
+        .and(fid && (fid.trim().length > 0) ? r.fromLocation.isEqualTo(fid) : new Filter(x => { /*true*/ }))
+        .and(tid && (tid.trim().length > 0) ? r.toLocation.isEqualTo(tid) : new Filter(x => { /*true*/ }))
+        .and(r.status.isEqualTo(RideStatus.waitingForDriver)),
+    })) {
+      let from = (await context.for(Location).findId(ride.fromLocation)).name.value;
+      let to = (await context.for(Location).findId(ride.toLocation)).name.value;
+      let row: ride4DriverRideRegister = {
+        rId: ride.id.value,
+        rgId: ride.id.value,
+        date: ride.date.value,
+        fId: ride.fromLocation.value,
+        tId: ride.toLocation.value,
+        from: from,
+        to: to,
+        pass: ride.passengers(),
+        isRegistered: false,
+      };
+      result.newregistered.push(row);
+    }
+
     result.registered.sort((r1, r2) => r1.from.localeCompare(r2.from));
     result.newregistered.sort((r1, r2) => r1.from.localeCompare(r2.from));
 
@@ -150,7 +178,7 @@ export class DriverRegisterComponent implements OnInit {
 
   async unregister(r: ride4DriverRideRegister) {
     let reg = await this.context.for(RegisterDriver).findId(r.dRegId);
-    if (await this.dialog.confirmDelete(`Your Registration (${r.from} to ${r.to} with ${r.dPass} avaliable seats)`)) {
+    if (await this.dialog.confirmDelete(`Your Registration (${r.from} to ${r.to} at ${formatDate(r.date, 'dd.MM.yyyy', 'en-US')})`)) {
       await reg.delete();
       await this.refresh();
     }
@@ -159,6 +187,7 @@ export class DriverRegisterComponent implements OnInit {
   async register(r: ride4DriverRideRegister) {
     // let date = new Date(2021, 2, 3);
     let reg = this.context.for(RegisterDriver).create();
+    reg.rId.value = r.rId;
     reg.regRideId.value = r.rgId;
     reg.driverId.value = this.driver.id.value;
     reg.fromHour.value = this.driver.defaultFromTime.value;// todo: r.date;
@@ -176,10 +205,12 @@ export class DriverRegisterComponent implements OnInit {
         ],
         ok: async () => {
           await reg.save();
+          console.log(1);
           this.driver.defaultFromTime.value = reg.fromHour.value;
           this.driver.defaultToTime.value = reg.toHour.value;
           this.driver.defaultSeats.value = reg.seats.value;
           await this.driver.save();
+          console.log(2);
           await this.refresh();
         }
       },

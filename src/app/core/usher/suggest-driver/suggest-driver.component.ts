@@ -50,6 +50,9 @@ export class SuggestDriverComponent implements OnInit {
         mobile: '',
         name: '',
         reason: '',
+        freeSeats: 0,
+        isMatchPrefs: false,
+        seats: 0,
       };
       drivers.push(row);
     };
@@ -63,7 +66,7 @@ export class SuggestDriverComponent implements OnInit {
     //5. drivers not did ride for last 7 days.
 
     for await (const d of context.for(Driver).iterate({
-      
+
     })) {
 
     }

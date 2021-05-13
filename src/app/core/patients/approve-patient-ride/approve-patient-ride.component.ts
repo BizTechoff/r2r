@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Context, Filter } from '@remult/core';
+import { YesNoQuestionComponent } from '../../../common/yes-no-question/yes-no-question.component';
 import { Ride, RideStatus } from '../../rides/ride';
+import { Patient } from '../patient';
 
 @Component({
   selector: 'app-approve-patient-ride',
@@ -22,7 +24,7 @@ export class ApprovePatientRideComponent implements OnInit {
     rowButtons: [
       {
         textInMenu: 'Approve',
-        icon: '',
+        icon: 'how_to_reg',
         click: async (r) => { await this.approve(r); },
       },
     ],
@@ -44,7 +46,14 @@ export class ApprovePatientRideComponent implements OnInit {
   }
 
   async approve(r: Ride) {
-
+    let pName = await this.context.for(Patient).findId(r.patientId);
+    let answer = await this.context.openDialog(YesNoQuestionComponent, ynq => ynq.args = {
+      message: `You approved ride, Send message to patient? (${pName})`,
+      isAQuestion: true,
+    });
+    if(answer && answer == true){
+      console.log(`Send Message To: ${pName}, Hi found a ride for you: driver, Please be at 'place' on time 'HH:mm', TX.`);
+    }
   }
 
 }
