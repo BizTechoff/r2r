@@ -41,6 +41,9 @@ export class Ride extends IdEntity {
     isHasEscort = new BoolColumn({ caption: 'Has Escort', defaultValue: false });
     escortsCount = new NumberColumn({});
     backId = new StringColumn({});
+    pMobile = new StringColumn({});
+    dRemark = new StringColumn({});
+    rRemark = new StringColumn({});
 
     constructor(private context: Context, private appSettings: ApplicationSettings) {
         super({

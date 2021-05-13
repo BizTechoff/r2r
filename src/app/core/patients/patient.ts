@@ -16,6 +16,7 @@ export class Patient extends IdEntity {
   mobile = new StringColumn({});
   idNumber = new StringColumn({});
   birthDate = new DateColumn({});
+  remark = new StringColumn({});
 
   defaultBorder?= new LocationIdColumn({},this.context, true);
   defaultHospital?= new LocationIdColumn({},this.context, true);

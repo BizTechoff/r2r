@@ -2,7 +2,6 @@
 import { Allowed, BoolColumn, checkForDuplicateValue, ColumnOptions, ColumnSettings, Context, EntityClass, IdColumn, IdEntity, ServerMethod, StringColumn } from "@remult/core";
 import { Driver } from "../core/drivers/driver";
 import { changeDate } from '../shared/types';
-import { Utils } from "../shared/utils";
 import { Roles } from './roles';
 
 @EntityClass
@@ -46,15 +45,15 @@ export class Users extends IdEntity {
 
             saving: async () => {
                 if (context.onServer) {
-
                     if (this.isNew()) {
                         this.createDate.value = new Date();
                         if ((await context.for(Users).count()) == 0) {
                             this.isAdmin.value = true;// If it's the first user, make it an admin
                         }
-                        else {
-                            this.isDriver.value = true;
-                        }
+                        this.password.value = PasswordColumn.passwordHelper.generateHash('Q1w2e3r4');
+                        // else {
+                        //     this.isDriver.value = true;
+                        // }
                     }
                     await checkForDuplicateValue(this, this.mobile, this.context.for(Users));
 

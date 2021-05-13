@@ -10,6 +10,7 @@ import { DriverSettingsComponent } from './core/drivers/driver-settings/driver-s
 import { DriverUsefulInformationComponent } from './core/drivers/driver-useful-information/driver-useful-information.component';
 import { DriversComponent } from './core/drivers/drivers.component';
 import { LocationsComponent } from './core/locations/locations.component';
+import { ApprovePatientRideComponent } from './core/patients/approve-patient-ride/approve-patient-ride.component';
 import { PatientsComponent } from './core/patients/patients.component';
 import { RegisterRidesComponent } from './core/rides/register-rides/register-rides.component';
 import { ReturnRidesComponent } from './core/rides/return-rides/return-rides.component';
@@ -36,6 +37,7 @@ const routes: Routes = [
 
   // Matcher
   { path: 'PatientsMatcher', component: PatientsComponent, canActivate: [MatcherGuard], data: { name: "Patients" } },
+  { path: 'PatientsApproveMatcher', component: ApprovePatientRideComponent, canActivate: [MatcherGuard], data: { name: "Patients Rides" } },
 
   { path: 'Locations', component: LocationsComponent, canActivate: [UsherGuard] },
   { path: 'Register Rides', component: RegisterRidesComponent, canActivate: [UsherGuard, AdminGuard], data: { name: "Register Rides" } },

@@ -1,8 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { Context, DateColumn, NumberColumn, ServerFunction } from '@remult/core';
+import { Context, DateColumn, GridSettings, NumberColumn, ServerFunction } from '@remult/core';
 import { InputAreaComponent } from '../../../common/input-area/input-area.component';
 import { ride4UsherRideRegister } from '../../../shared/types';
-import { PromiseThrottle } from '../../../shared/utils';
 import { Roles } from '../../../users/roles';
 import { RegisterDriver } from '../../drivers/driver-register/registerDriver';
 import { Location } from '../../locations/location';
@@ -15,6 +14,28 @@ import { RegisterRide } from './registerRide';
 })
 export class RegisterRidesComponent implements OnInit {
 
+  count = new NumberColumn({ caption: 'registeredCount', defaultValue: 0 });
+  registerSettings = this.context.for(RegisterRide).gridSettings({
+    orderBy: regR => [{column: regR.date, descending: false}, {column: regR.fromLoc, descending: false},],
+    allowSelection: true,
+    numOfColumnsInGrid: 10,
+    columnSettings: (regR) => [
+      regR.date,
+      regR.fromLoc,
+      regR.toLoc,
+      regR.passengers,
+      this.count,
+      // {
+      //   column: this.count,
+        // getValue: async r => {
+        //   let count = (await this.context.for(RegisterDriver).count(
+        //     regD => regD.regRideId.isEqualTo(regR.id)));
+        //   return count;
+        // },
+      // },
+    ],
+  });
+
   rides: ride4UsherRideRegister[];
   clientLastRefreshDate: Date = new Date();
   demoDates: string;
@@ -25,13 +46,30 @@ export class RegisterRidesComponent implements OnInit {
   constructor(private context: Context) { }
 
   async ngOnInit() {
-    await this.refresh();
+    // await this.refresh();
+    // this.registerSettings = this.context.for(RegisterRide).gridSettings({
+    //   numOfColumnsInGrid: 10,
+    //   columnSettings: (reg) => [
+    //     reg.date,
+    //     reg.fromLoc,
+    //     reg.toLoc,
+    //     reg.passengers,
+    //     {
+    //       caption: 'registeredCount',
+    //       column: new NumberColumn({}),
+    //       getValue: async r => {
+    //         (await this.context.for(RegisterDriver).count(
+    //           rg => rg.regRideId.isEqualTo(reg.id)));},
+    //     }
+    //   ],
+    // });
   }
 
   async refresh() {
     this.clientLastRefreshDate = new Date();
-    this.rides = await RegisterRidesComponent.retrieveRegisterRides(this.context);
-    this.lastRefreshDate = new Date();
+    this.registerSettings.reloadData();
+    // this.rides = await RegisterRidesComponent.retrieveRegisterRides(this.context);
+    // this.lastRefreshDate = new Date();
   }
 
   @ServerFunction({ allowed: [Roles.usher, Roles.admin] })
@@ -129,31 +167,35 @@ export class RegisterRidesComponent implements OnInit {
       });
   }
 
-  onSelection() {
-    this.selectedCount = 0;
-    for (const r of this.rides) {
-      if (r.selected) {
-        ++this.selectedCount;
-      }
+  // onSelection() {
+  //   this.selectedCount = 0;
+  //   for (const r of this.rides) {
+  //     if (r.selected) {
+  //       ++this.selectedCount;
+  //     }
+  //   }
+  //   console.log("sc: " + this.selectedCount);
+  // }
+
+  async deleteSelected() {
+
+    for (const reg of this.registerSettings.selectedRows) {
+      await reg.delete();
     }
-    console.log("sc: " + this.selectedCount);
-  }
-
-  async deleteSelected(){
-
+    await this.refresh();
     // let p = new PromiseThrottle(this.selectedCount);
 
-    for (let i = this.rides.length -1; i >= 0; --i) {
-      const r = this.rides[i];
-      if(r.selected){
-        let ride = await this.context.for(RegisterRide).findId(r.rgId);
-        await ride.delete();
-        this.rides.splice(
-          this.rides.indexOf(r),
-          1,
-        );
-      }
-    }
+    // for (let i = this.rides.length -1; i >= 0; --i) {
+    //   const r = this.rides[i];
+    //   if(r.selected){
+    //     let ride = await this.context.for(RegisterRide).findId(r.rgId);
+    //     await ride.delete();
+    //     this.rides.splice(
+    //       this.rides.indexOf(r),
+    //       1,
+    //     );
+    //   }
+    // }
     // await p.done();
   }
 

@@ -171,11 +171,12 @@ export class PatientsComponent implements OnInit {
     ride.patientId.value = p.id.value;
     ride.fromLocation.value = p.defaultBorder.value;
     ride.toLocation.value = p.defaultHospital.value;
-    var isNeedReturnTrip = new BoolColumn({ caption: "Need Return Ride" });
+    ride.pMobile.value = p.mobile.value;
+    // var isNeedReturnTrip = new BoolColumn({ caption: "Need Return Ride" });
     this.context.openDialog(
       InputAreaComponent,
       x => x.args = {
-        title: "Add Ride For: " + p.name.value,
+        title: `Add Ride For: ${p.name.value} (age: ${p.age()})`,
         columnSettings: () => [
           ride.fromLocation,
           ride.toLocation,
@@ -183,10 +184,10 @@ export class PatientsComponent implements OnInit {
             column: ride.dayPeriod,
             valueList: [DayPeriod.morning, DayPeriod.afternoon],
           },
-          {
-            column: isNeedReturnTrip,
-            visible: (r) => ride.dayPeriod.value == DayPeriod.morning,
-          },
+          // {
+          //   column: isNeedReturnTrip,
+          //   visible: (r) => ride.dayPeriod.value == DayPeriod.morning,
+          // },
           {
             column: ride.visitTime,
             visible: (r) => ride.dayPeriod.value == DayPeriod.morning,
@@ -194,12 +195,21 @@ export class PatientsComponent implements OnInit {
           },
           ride.isHasBabyChair,
           ride.isHasWheelchair,
-          ride.isHasExtraEquipment,
-          ride.isHasEscort,
+          // ride.isHasExtraEquipment,
+          ride.escortsCount,
           {
-            column: ride.escortsCount,
-            visible: (r) => ride.isHasEscort.value
+            column: ride.dRemark,
+            caption: 'Remark For Driver',
           },
+          {
+            column: ride.rRemark,
+            caption: 'Remark For Ride',
+          },
+        ],
+        buttons: [{
+          text: 'Patient Details',
+          click: async () => { await this.editPatient(p); }
+        }
         ],
         ok: async () => {
           await ride.save();

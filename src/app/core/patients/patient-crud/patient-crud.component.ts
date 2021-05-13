@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
+import { MatDialogRef } from '@angular/material/dialog';
 import { Context, DataAreaSettings } from '@remult/core';
 import { Patient } from '../patient';
-import { MatDialogRef } from '@angular/material/dialog';
 import { Contact } from '../patient-contacts/contact';
 import { PatientContactsComponent } from '../patient-contacts/patient-contacts.component';
 
@@ -18,7 +18,7 @@ export class PatientCrudComponent implements OnInit {
     isNew: boolean,
   } = { pid: '', isNew: true };
   patient = this.context.for(Patient).create();
-  areaSettings:DataAreaSettings=new DataAreaSettings({});
+  areaSettings: DataAreaSettings = new DataAreaSettings({});
   contactsCount = 0;
 
   constructor(private context: Context, private dialogRef: MatDialogRef<any>) { }
@@ -30,14 +30,17 @@ export class PatientCrudComponent implements OnInit {
       this.patient = res.p;
       this.contactsCount = res.c;
     }
-    
-  this.areaSettings = new DataAreaSettings({  columnSettings: () => [
-      [this.patient.name, this.patient.hebName],
-      [this.patient.mobile, this.patient.idNumber],
-      [this.patient.defaultBorder, this.patient.defaultHospital],
-      this.patient.birthDate,
-    ],});
-  
+
+    this.areaSettings = new DataAreaSettings({
+      columnSettings: () => [
+        [this.patient.name, this.patient.hebName],
+        [this.patient.mobile, this.patient.idNumber],
+        [this.patient.defaultBorder, this.patient.defaultHospital],
+        this.patient.birthDate,
+        this.patient.remark,
+      ],
+    });
+
   }
 
   async retrieve(pid: string) {
@@ -53,6 +56,11 @@ export class PatientCrudComponent implements OnInit {
   async save() {
     await this.patient.save();
     this.select();
+  }
+
+  async sendMessage() {
+    let message = 'תואמה לך נסיעה מחר ממחסום, בית חולים שעה וכו...';
+    console.log(`Send message to patient: ${message}`);
   }
 
   async contacts() {

@@ -31,7 +31,8 @@
     </div>
 
     <div class="grow-item">
-        <span *ngIf="(!(rides)) || (rides.length == 0)">No regsiterations found</span>
+        <data-grid [settings]="registerSettings"></data-grid>
+        <!-- <span *ngIf="(!(rides)) || (rides.length == 0)">No regsiterations found</span>
         <table *ngIf="rides && (rides.length > 0)" style="width: 100%">
             <table style="width: 100%;">
                 <tr>
@@ -53,13 +54,13 @@
                     <td>{{ r.registeredCount }}</td>
                 </tr>
             </table>
-        </table>
+        </table> -->
     </div>
 
     <div class="footer">
         <hr>
-        <mat-label style="padding: 5px; color:blue">selected: {{ selectedCount }}</mat-label>
+        <mat-label style="padding: 5px; color:blue">selected: {{ registerSettings.selectedRows.length }}</mat-label>
         <!-- <span>selected: {{ this.borders.filter(i =>i.selected).length }}</span> -->
-        <button *ngIf="selectedCount > 0" mat-raised-button color="accent" (click)="deleteSelected()">Delete Selected</button>
+        <button *ngIf="registerSettings.selectedRows.length > 0" mat-raised-button color="accent" (click)="deleteSelected()">Delete Selected</button>
     </div>
 </div>

@@ -39,7 +39,7 @@ export class Driver extends IdEntity {
   home?= new LocationIdColumn({}, this.context, true);
   email = new StringColumn({});
   seats = new NumberColumn({
-    defaultValue: 3,
+    defaultValue: 4,
     validate: () => {
       if (this.seats.value <= 0) {
         this.seats.value = 1;
@@ -58,7 +58,7 @@ export class Driver extends IdEntity {
   defaultFromTime = new StringColumn({ defaultValue: "00:00", dataControlSettings: () => ({ inputType: 'time', width: '110' }) });
   defaultToTime = new StringColumn({ defaultValue: "00:00", dataControlSettings: () => ({ inputType: 'time', width: '110' }) });
   defaultSeats = new NumberColumn({});
-  
+
   constructor(private context: Context) {
     super({
       name: "drivers",
@@ -107,6 +107,12 @@ export class Driver extends IdEntity {
     return this.lastStatus.value === RideStatus.waitingForArrived;
   }
 
+  async sendMessage() {
+    let message = 'הי משה – כאן X ממרכז התאום, צוותה לך נסיעה היום חמישי לחמשי שמונה בבקר מתרקומיה לשיבא, 4 נוסעים, אחמד ויסמין. טלפון של החולים – הכל מחכה לך במערכת, לחץ כאן.';
+    console.log(`Send message to patient: ${message}`);
+  }
+
+
 }
 
 
@@ -150,6 +156,12 @@ export async function openDriver(id: string, context: Context): Promise<boolean>
           [d.idNumber, d.birthDate],
           [d.home, d.seats],
           [d.city, d.address],
+        ],
+        buttons: [
+          {
+            text: 'Send Message',
+            click: async () => { await d.sendMessage(); }
+          },
         ],
         ok: async () => {
           if (d.wasChanged) {

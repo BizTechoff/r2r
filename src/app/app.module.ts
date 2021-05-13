@@ -50,6 +50,7 @@ import { LocationAreaComponent } from './core/locations/location-area/location-a
 import { PatientCrudComponent } from './core/patients/patient-crud/patient-crud.component';
 import { ReturnRidesComponent } from './core/rides/return-rides/return-rides.component';
 import { SuggestDriverComponent } from './core/usher/suggest-driver/suggest-driver.component';
+import { ApprovePatientRideComponent } from './core/patients/approve-patient-ride/approve-patient-ride.component';
 
 
 @NgModule({
@@ -83,6 +84,7 @@ import { SuggestDriverComponent } from './core/usher/suggest-driver/suggest-driv
     PatientCrudComponent,
     ReturnRidesComponent,
     SuggestDriverComponent,
+    ApprovePatientRideComponent,
   ],
   imports: [
     BrowserModule,
