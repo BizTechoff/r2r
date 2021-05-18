@@ -14,6 +14,7 @@
 </style>
 
 <div class="full-page">
+    <!-- <div style="border-width: 2px; border-style: solid;"> -->
     <div>
         <table style="width: 100%;">
             <tr>
@@ -31,7 +32,8 @@
                         </tr>
                         <tr>
                             <td>
-                                <span style="padding-left: 15px;">Refreshed: {{ clientLastRefreshDate | date: 'HH:mm'
+                                <span style="padding-left: 15px;">Refreshed: {{ clientLastRefreshDate | date:
+                                    'HH:mm'
                                     }}</span>
                             </td>
                         </tr>
@@ -47,7 +49,7 @@
         </tr> -->
         </table>
     </div>
-    
+
     <div class="grow-item">
         <h3>Register to new rides</h3>
         <span *ngIf="(!(ridesToRegister)) || (ridesToRegister.length == 0)">No rides for now</span>
@@ -70,11 +72,19 @@
                     <tr>
                         <td>pass(s): {{ r.pass }}</td>
                     </tr>
+                    <tr>
+                        <td>rid: {{ r.rId }}</td>
+                    </tr>
+                    <tr>
+                        <td>rgid: {{ r.rgId }}</td>
+                    </tr>
                 </table>
             </tr>
         </table>
     </div>
-
+    <!-- </div> -->
+    <!-- <div style="padding: 2px;"></div>
+    <div style="border-width: 2px; border-style: solid;"> -->
     <div class="grow-item">
         <h3>Rides You Registered {{ rides && (rides.length > 0)? "(contact u soon)" :"" }}</h3>
         <span *ngIf="(!(rides)) || (rides.length == 0)">You didn't registered yet</span>
@@ -82,7 +92,8 @@
             <tr *ngFor="let r of rides">
                 <table style="width: 100%;padding: 10px;">
                     <tr>
-                        <td>date: {{ r.date | date: 'dd/MM/yyyy' }}</td></tr>
+                        <td>date: {{ r.date | date: 'dd/MM/yyyy' }}</td>
+                    </tr>
                     <tr>
                         <td>from: {{ r.from }}</td>
                         <td rowspan="3">
@@ -100,11 +111,13 @@
                         <td>seats(s): {{ r.dPass }}</td>
                     </tr>
                     <tr>
-                        <td>avaliable: {{ r.dFromHour | date: 'HH:mm' }} - {{ r.dToHour | date: 'HH:mm' }}</td></tr>
+                        <td>avaliable: {{ r.dFromHour | date: 'HH:mm' }} - {{ r.dToHour | date: 'HH:mm' }}</td>
+                    </tr>
                     <tr>
                 </table>
             </tr>
         </table>
     </div>
+    <!-- </div> -->
 
 </div>

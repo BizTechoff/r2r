@@ -56,6 +56,22 @@ export class ShowRidesComponent implements OnInit {
     openDriver(r.driverId, this.context);
   }
 
+  async removeDriver(r: ride4UsherApprove){
+    let ride = await this.context.for(Ride).findId(r.id);
+    ride.driverId.value = '';
+    await ride.save();
+    r.driver = '';
+    r.driverId = '';
+  }
+
+  async attachDriver(r: ride4UsherApprove){
+    // let ride = await this.context.for(Ride).findId(r.id);
+    // ride.driverId.value = '';
+    // await ride.save();
+    // r.driver = '';
+    // r.driverId = '';
+  }
+
   async approveDriver(r: rideRow) {
 
     let ride = await this.context.for(Ride).findId(r.id);

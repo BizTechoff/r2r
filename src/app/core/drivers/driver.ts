@@ -1,4 +1,4 @@
-import { BoolColumn, ColumnSettings, Context, DateColumn, EntityClass, IdEntity, NumberColumn, StringColumn } from "@remult/core";
+import { BoolColumn, ColumnSettings, Context, DateColumn, DateTimeColumn, EntityClass, IdEntity, NumberColumn, StringColumn } from "@remult/core";
 import { DynamicServerSideSearchDialogComponent } from "../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component";
 import { InputAreaComponent } from "../../common/input-area/input-area.component";
 import { Utils } from "../../shared/utils";
@@ -55,8 +55,8 @@ export class Driver extends IdEntity {
   lastStatusDate = new DateColumn({});
   defaultFromLocation?= new LocationIdColumn({}, this.context, true);
   defaultToLocation?= new LocationIdColumn({}, this.context, true);
-  defaultFromTime = new StringColumn({ defaultValue: "00:00", dataControlSettings: () => ({ inputType: 'time', width: '110' }) });
-  defaultToTime = new StringColumn({ defaultValue: "00:00", dataControlSettings: () => ({ inputType: 'time', width: '110' }) });
+  defaultFromTime = new DateTimeColumn({});//{ defaultValue: "00:00", dataControlSettings: () => ({ inputType: 'time', width: '110' }) });
+  defaultToTime = new DateTimeColumn({});//{ defaultValue: "00:00", dataControlSettings: () => ({ inputType: 'time', width: '110' }) });
   defaultSeats = new NumberColumn({});
   isFreeze = new BoolColumn({});
   freezeTillDate = new DateColumn({});

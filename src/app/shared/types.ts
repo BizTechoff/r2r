@@ -41,19 +41,19 @@ export interface ride4UsherRideRegister {
 export interface ride4DriverRideRegister {
   rId: string,
   rgId: string,
-  dRegId?: string,
-  date: Date,
+  dId?: string,
+  date: Date, 
   fId: string,
   tId: string,
   from: string,
   to: string,
   pass: number,
   isRegistered: boolean,
-  dFromHour?: string,
-  dToHour?: string, 
+  dFromHour?: Date,
+  dToHour?: Date, 
   dPass?: number,
 };
-
+ 
 export interface ride4Driver {
   rId: string,
   pId: string,

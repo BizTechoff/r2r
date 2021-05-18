@@ -33,11 +33,11 @@ export class PatientsComponent implements OnInit {
     numOfColumnsInGrid: 10,
     columnSettings: p => [
       p.name,
-      p.hebName,
+      // p.hebName,
       p.mobile,
-      p.idNumber,
-      p.defaultBorder,
-      p.defaultHospital,
+      // p.idNumber,
+      // p.defaultBorder,
+      // p.defaultHospital,
     ],
     gridButtons: [{
       name: 'Add New Patient',

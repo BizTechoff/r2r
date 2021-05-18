@@ -34,14 +34,15 @@ const routes: Routes = [
   { path: 'Rides4Usher', component: UsherComponent, canActivate: [UsherGuard], data: { name: "Rides" } },
   // { path: 'Rides', component: RidesComponent, canActivate: [UsherGuard] },
   { path: 'Drivers', component: DriversComponent, canActivate: [UsherGuard] },
+  { path: 'PatientsMatcher', component: PatientsComponent, canActivate: [UsherGuard], data: { name: "Patients" } },
 
   // Matcher
   { path: 'PatientsMatcher', component: PatientsComponent, canActivate: [MatcherGuard], data: { name: "Patients" } },
   { path: 'PatientsApproveMatcher', component: ApprovePatientRideComponent, canActivate: [MatcherGuard], data: { name: "Patients Rides" } },
 
   { path: 'Locations', component: LocationsComponent, canActivate: [UsherGuard] },
-  { path: 'Register Rides', component: RegisterRidesComponent, canActivate: [UsherGuard, AdminGuard], data: { name: "Register Rides" } },
-  { path: 'Return Rides', component: ReturnRidesComponent, canActivate: [UsherGuard, AdminGuard], data: { name: "Return Rides" } },
+  { path: 'Register Rides', component: RegisterRidesComponent, canActivate: [UsherGuard], data: { name: "Register Rides" } },
+  { path: 'Return Rides', component: ReturnRidesComponent, canActivate: [UsherGuard], data: { name: "Return Rides" } },
 
   // Admin
   { path: 'Reports', component: LocationsComponent, canActivate: [AdminGuard] },

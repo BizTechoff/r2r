@@ -1,5 +1,5 @@
-import { SignedInGuard } from '@remult/angular';
 import { Injectable } from '@angular/core';
+import { SignedInGuard } from '@remult/angular';
 
 
 
@@ -23,6 +23,7 @@ export class AdminGuard extends SignedInGuard {
 export class UsherGuard extends SignedInGuard {
 
     isAllowed() {
+        return [Roles.usher, Roles.admin];
         return c => c.isAllowed(Roles.usher) || c.isAllowed(Roles.admin);
     }
 }
@@ -31,7 +32,8 @@ export class UsherGuard extends SignedInGuard {
 export class MatcherGuard extends SignedInGuard {
 
     isAllowed() {
-        return c => c.isAllowed(Roles.matcher) || c.isAllowed(Roles.usher)  || c.isAllowed(Roles.admin);
+        return Roles.matcher;
+        return c => c.isAllowed(Roles.matcher) || c.isAllowed(Roles.usher) || c.isAllowed(Roles.admin);
     }
 }
 
@@ -39,6 +41,7 @@ export class MatcherGuard extends SignedInGuard {
 export class DriverGuard extends SignedInGuard {
 
     isAllowed() {
+        return Roles.driver;
         return Roles.driver;// c => c.isAllowed(Roles.driver) || c.isAllowed(Roles.usher)  || c.isAllowed(Roles.admin);
     }
 }

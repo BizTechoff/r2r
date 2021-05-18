@@ -38,7 +38,7 @@ export class Ride extends IdEntity {
     isHasBabyChair = new BoolColumn({ caption: 'Has Baby Chair' });
     isHasWheelchair = new BoolColumn({ caption: 'Has Wheel Chair' });
     isHasExtraEquipment = new BoolColumn({ caption: 'Has Extra Equipment' });
-    isHasEscort = new BoolColumn({ caption: 'Has Escort', defaultValue: false });
+    // isHasEscort = new BoolColumn({ caption: 'Has Escort', defaultValue: false });
     escortsCount = new NumberColumn({});
     backId = new StringColumn({});
     pMobile = new StringColumn({});
@@ -85,7 +85,7 @@ export class Ride extends IdEntity {
     }
 
     passengers() {
-        return 1 /*patient*/ + (this.isHasEscort.value ? this.escortsCount.value : 0);
+        return 1 /*patient*/ + this.escortsCount.value;
     }
 
     isHasDate() {
@@ -184,7 +184,7 @@ export class Ride extends IdEntity {
         target.isHasBabyChair.value = this.isHasBabyChair.value;
         target.isHasWheelchair.value = this.isHasWheelchair.value;
         target.isHasExtraEquipment.value = this.isHasExtraEquipment.value;
-        target.isHasEscort.value = this.isHasEscort.value;
+        // target.isHasEscort.value = this.isHasEscort.value;
         target.escortsCount.value = this.escortsCount.value;
         target.patientId.value = this.patientId.value;
         if (!(forBackRide)) {
@@ -285,7 +285,8 @@ export async function openRide(rid: string, context: Context): Promise<boolean> 
                     r.isHasBabyChair,
                     r.isHasWheelchair,
                     r.isHasExtraEquipment,
-                    r.isHasEscort,
+                    r.escortsCount,
+                    // r.isHasEscort,
                     // {
                     //   column: ride.isHasEscort,
                     //   allowClick: () => {return true;},
@@ -296,10 +297,10 @@ export async function openRide(rid: string, context: Context): Promise<boolean> 
                     //     }
                     //   },
                     // },
-                    {
-                        column: r.escortsCount,
-                        visible: () => r.isHasEscort.value,
-                    },
+                    // {
+                    //     column: r.escortsCount,
+                    //     visible: () => r.isHasEscort.value,
+                    // },
                 ],
                 ok: async () => {
                     //PromiseThrottle
@@ -351,11 +352,12 @@ export async function addRide(rid: string, context: Context): Promise<boolean> {
                 ride.isHasBabyChair,
                 ride.isHasWheelchair,
                 ride.isHasExtraEquipment,
-                ride.isHasEscort,
-                {
-                    column: ride.escortsCount,
-                    visible: (r) => ride.isHasEscort.value
-                },
+                ride.escortsCount,
+                // ride.isHasEscort,
+                // {
+                //     column: ride.escortsCount,
+                //     visible: (r) => ride.isHasEscort.value
+                // },
             ],
             ok: async () => {
                 await ride.save();

@@ -197,7 +197,13 @@ export class Usher {
         })) { 
             let from = (await context.for(Location).findId(ride.fromLocation.value)).name.value;
             let to = (await context.for(Location).findId(ride.toLocation.value)).name.value;
-            let driver= ride.isHasDriver()? (await context.for(Driver).findId(ride.driverId.value)).name.value : "";
+            let dName= '';
+            let dMobile = '';
+            if(ride.isHasDriver()){
+                let driver = await context.for(Driver).findId(ride.driverId.value);
+                dName = driver.name.value;
+                dMobile =driver.mobile.value;
+            }
             let patient= ride.isHasPatient()? (await context.for(Patient).findId(ride.patientId.value)).name.value : "";
 
             let row = result.find(r => r.id === ride.id.value);
@@ -208,9 +214,9 @@ export class Usher {
                     driverId: ride.driverId.value,
                     from: from,
                     to: to,
-                    driver: driver,
+                    driver: dName,
                     patient: patient,
-                    dMobile: "",
+                    dMobile: dMobile,
                     passengers: ride.passengers(),
                     selected: false,
                     visitTime: ride.visitTime.value,

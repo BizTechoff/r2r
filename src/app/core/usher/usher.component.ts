@@ -41,23 +41,25 @@ export class UsherComponent implements OnInit {
   async ngOnInit() {
 
     let date = new Date(2021, 2, 3);
-    this.selectedFrom = new LocationIdColumn({
-      dataControlSettings: () => ({
-        getValue: () => this.context.for(Location).lookup(this.selectedFrom).name.value,
-        hideDataOnInput: true,
-        clickIcon: 'search',
-        width: "150px",
-        click: () => {
-          this.context.openDialog(DynamicServerSideSearchDialogComponent,
-            x => x.args(Location, {
-              onSelect: l => this.selectedFrom.value = l.id.value,
-              searchColumn: l => l.name,
-              where: l => [l.id.isIn(...this.rides.map(r => r.fromId))],
-            }));
-        }
-      }),
-      caption: "From"
-    }, this.context);
+    this.selectedFrom = new LocationIdColumn({ caption: "From" }, this.context);
+    // this.selectedFrom = new LocationIdColumn({
+    //   dataControlSettings: () => ({
+    //     getValue: () => this.context.for(Location).lookup(this.selectedFrom).name.value,
+    //     hideDataOnInput: true,
+    //     clickIcon: 'search',
+    //     width: "150px",
+    //     click: () => {
+    //       this.context.openDialog(DynamicServerSideSearchDialogComponent,
+    //         x => x.args(Location, {
+    //           onClear: () => this.selectedFrom.value = '',
+    //           onSelect: l => this.selectedFrom.value = l.id.value,
+    //           searchColumn: l => l.name,
+    //           where: l => [l.id.isIn(...this.rides.map(r => r.fromId))],
+    //         }));
+    //     }
+    //   }),
+    //   caption: "From"
+    // }, this.context);
     this.selectedTo = new LocationIdColumn({ caption: "To" }, this.context);
     this.selectedDate = new DateColumn({ caption: "Date", defaultValue: new Date(date.getFullYear(), date.getMonth(), date.getDate()) });
     this.toolbar = new DataAreaSettings({
@@ -68,83 +70,83 @@ export class UsherComponent implements OnInit {
 
     // this.userOptions = 
 
-    this.ridesGrid = this.context.for(Ride).gridSettings({
-      where: r => this.filter(r,
-        this.selectedFrom.value ? this.selectedFrom.value : "",
-        this.selectedTo.value ? this.selectedTo.value : ""),
-      orderBy: r => [
-        { column: r.date, descending: false },
-        { column: r.dayPeriod, descending: true },
-        // { column: r.fromLocation, descending: false, },//todo: sort by fromLocation.getName()?
-        // { column: r.toLocation, descending: false },
-      ],
+    // this.ridesGrid = this.context.for(Ride).gridSettings({
+    //   where: r => this.filter(r,
+    //     this.selectedFrom.value ? this.selectedFrom.value : "",
+    //     this.selectedTo.value ? this.selectedTo.value : ""),
+    //   orderBy: r => [
+    //     { column: r.date, descending: false },
+    //     { column: r.dayPeriod, descending: true },
+    //     // { column: r.fromLocation, descending: false, },//todo: sort by fromLocation.getName()?
+    //     // { column: r.toLocation, descending: false },
+    //   ],
 
-      allowCRUD: false,
-      numOfColumnsInGrid: 10,
-      columnSettings: r => [
-        r.fromLocation,
-        r.toLocation,
-        // r.driverId,
-        // r.visitTime,
-        // r.patientId,
-        // {
-        //   column: new NumberColumn({}),
-        //   caption: "age",
-        //   getValue: r => 0,// async r => (await this.context.for(Patient).findId(r.patientId.value)).age(this.selectedDate),
-        // },
-        {
-          column: new NumberColumn({}),
-          caption: "pass",
-          getValue: r => r.passengers(),
-        },
-        {
-          column: new NumberColumn({}),
-          caption: "rides",
-          getValue: r => r.passengers(),
-        },
-        {
-          column: new NumberColumn({}),
-          caption: "open",
-          getValue: r => r.passengers(),
-        },
-        {
-          column: new NumberColumn({}),
-          caption: "no-driver",
-          getValue: r => r.passengers(),
-          // click: r => this.openSetDriver(r),
-        },
-        {
-          column: new NumberColumn({}),
-          caption: "need-approved",
-          getValue: r => r.passengers(),
-        },
-        // {
-        //   column: new StringColumn({}),
-        //   caption: "",
-        //   clickIcon: r.isHasWheelchair.value ? "" : "",//Equipment
-        // },
-        // r.status,
-      ],
-      rowButtons: [{
-        textInMenu: "Set Driver",
-        // click: async (r) => await this.openSetDriver(r),
-        icon: "person_add",
-        showInLine: true,
-        visible: (r) => { return true /*r.'no-driver' > 0*/; },
-      }, {
-        textInMenu: "Approve Driver",
-        // click: async (r) => await this.openApproveDriver(r),
-        icon: "how_to_reg",
-        showInLine: true,
-        visible: (r) => { return true /*r.'no-driver' > 0*/; },
-      }, {
-        textInMenu: "Back Ride",
-        click: async (r) => await this.openBackRide(r),
-        icon: "arrow_back",
-        showInLine: true,
-        visible: (r) => { return true /*r.'no-driver' > 0*/; },
-      },],
-    });
+    //   allowCRUD: false,
+    //   numOfColumnsInGrid: 10,
+    //   columnSettings: r => [
+    //     r.fromLocation,
+    //     r.toLocation,
+    //     // r.driverId,
+    //     // r.visitTime,
+    //     // r.patientId,
+    //     // {
+    //     //   column: new NumberColumn({}),
+    //     //   caption: "age",
+    //     //   getValue: r => 0,// async r => (await this.context.for(Patient).findId(r.patientId.value)).age(this.selectedDate),
+    //     // },
+    //     {
+    //       column: new NumberColumn({}),
+    //       caption: "pass",
+    //       getValue: r => r.passengers(),
+    //     },
+    //     {
+    //       column: new NumberColumn({}),
+    //       caption: "rides",
+    //       getValue: r => r.passengers(),
+    //     },
+    //     {
+    //       column: new NumberColumn({}),
+    //       caption: "open",
+    //       getValue: r => r.passengers(),
+    //     },
+    //     {
+    //       column: new NumberColumn({}),
+    //       caption: "no-driver",
+    //       getValue: r => r.passengers(),
+    //       // click: r => this.openSetDriver(r),
+    //     },
+    //     {
+    //       column: new NumberColumn({}),
+    //       caption: "need-approved",
+    //       getValue: r => r.passengers(),
+    //     },
+    //     // {
+    //     //   column: new StringColumn({}),
+    //     //   caption: "",
+    //     //   clickIcon: r.isHasWheelchair.value ? "" : "",//Equipment
+    //     // },
+    //     // r.status,
+    //   ],
+    //   rowButtons: [{
+    //     textInMenu: "Set Driver",
+    //     // click: async (r) => await this.openSetDriver(r),
+    //     icon: "person_add",
+    //     showInLine: true,
+    //     visible: (r) => { return true /*r.'no-driver' > 0*/; },
+    //   }, {
+    //     textInMenu: "Approve Driver",
+    //     // click: async (r) => await this.openApproveDriver(r),
+    //     icon: "how_to_reg",
+    //     showInLine: true,
+    //     visible: (r) => { return true /*r.'no-driver' > 0*/; },
+    //   }, {
+    //     textInMenu: "Back Ride",
+    //     click: async (r) => await this.openBackRide(r),
+    //     icon: "arrow_back",
+    //     showInLine: true,
+    //     visible: (r) => { return true /*r.'no-driver' > 0*/; },
+    //   },],
+    // });
 
 
     // this.clientLastRefreshDate = new Date();

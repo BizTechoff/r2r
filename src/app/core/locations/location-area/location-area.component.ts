@@ -63,7 +63,7 @@ export class LocationAreaComponent implements OnInit {
   async retrieve() {
 
     this.existsBordersIds = [];
-    console.log(this.args.dId);
+    // console.log(this.args.dId);
     for await (const pref of this.context.for(DriverPrefs).iterate({
       where: prf => prf.driverId.isEqualTo(this.args.dId),
     })) {
@@ -99,7 +99,7 @@ export class LocationAreaComponent implements OnInit {
 
   async saveSelected() {
 
-    console.log(this.borders);
+    // console.log(this.borders);
     if (this.borders.length > 0) {
       for (const loc of this.borders) {
         if (this.existsBordersIds.includes(loc.id)) {

@@ -12,9 +12,9 @@ export class RegisterDriver extends IdEntity {
     seats = new NumberColumn({caption: 'Free Seats', validate: () => {if(!(this.seats.value >0)){
         this.validationError = "Free Seats: at least 1";
     } }});
-    fromHour = new StringColumn({caption: 'Avaliable From Hour'});
-    toHour = new StringColumn({caption: 'Avaliable Till Hour'});
-
+    fromHour = new DateTimeColumn({caption: 'Avaliable From Hour'});
+    toHour = new DateTimeColumn({caption: 'Avaliable Till Hour'});
+ 
     constructor() {
         super({
             name: "driversRegisters",

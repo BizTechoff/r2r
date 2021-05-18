@@ -4,6 +4,7 @@ import { Context, StringColumn, ValueListItem } from '@remult/core';
 import { DialogService } from '../../common/dialog';
 import { GridDialogComponent } from '../../common/grid-dialog/grid-dialog.component';
 import { InputAreaComponent } from '../../common/input-area/input-area.component';
+import { LocationAreaComponent } from '../locations/location-area/location-area.component';
 import { Ride } from '../rides/ride';
 import { Usher } from '../usher/usher';
 import { Driver, openDriver } from './driver';
@@ -40,7 +41,7 @@ export class DriversComponent implements OnInit {
     }, {
       textInMenu: "______________________",//seperator
     },  {
-      name: "Preferences",
+      name: "Prefered Borders",
       click: async (d) => await this.openPreferencesDialog(d),
       icon: "settings_suggest",
       visible: (d) => !d.isNew(),
@@ -146,19 +147,21 @@ export class DriversComponent implements OnInit {
 
   async openPreferencesDialog(d: Driver) {
 
-    this.context.openDialog(GridDialogComponent, gd => gd.args = {
-      title: "Preferenses",
-      settings: this.context.for(DriverPrefs).gridSettings({
-        where: p => p.driverId.isEqualTo(d.id),
-        newRow: p => p.driverId.value = d.id.value,
-        allowCRUD: true,
-        columnSettings: p => [
-          p.locationId,
-          p.dayOfWeek,
-          p.dayPeriod,
-        ],
-      })
-    });
+    await this.context.openDialog(LocationAreaComponent, thus => thus.args = { dId: d.id.value });
+
+    // this.context.openDialog(GridDialogComponent, gd => gd.args = {
+    //   title: "Preferenses",
+    //   settings: this.context.for(DriverPrefs).gridSettings({
+    //     where: p => p.driverId.isEqualTo(d.id),
+    //     newRow: p => p.driverId.value = d.id.value,
+    //     allowCRUD: true,
+    //     columnSettings: p => [
+    //       p.locationId,
+    //       p.dayOfWeek,
+    //       p.dayPeriod,
+    //     ],
+    //   })
+    // });
   }
 
   async openSuggestedRidesForDriverDialog(d: Driver) {

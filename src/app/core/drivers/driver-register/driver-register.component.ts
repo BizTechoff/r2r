@@ -1,8 +1,7 @@
 import { formatDate } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { Context, DataAreaSettings, DateColumn, Filter, ServerFunction } from '@remult/core';
+import { Context, DataAreaSettings, DateColumn, ServerFunction } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
-import { DynamicServerSideSearchDialogComponent } from '../../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component';
 import { InputAreaComponent } from '../../../common/input-area/input-area.component';
 import { ride4DriverRideRegister } from '../../../shared/types';
 import { Roles } from '../../../users/roles';
@@ -10,8 +9,9 @@ import { Location, LocationIdColumn } from '../../locations/location';
 import { RegisterRide } from '../../rides/register-rides/registerRide';
 import { Ride, RideStatus } from '../../rides/ride';
 import { Driver } from '../driver';
+import { DriverPrefs } from '../driverPrefs';
 import { RegisterDriver } from './registerDriver';
- 
+
 @Component({
   selector: 'app-driver-register',
   templateUrl: './driver-register.component.html',
@@ -39,7 +39,7 @@ export class DriverRegisterComponent implements OnInit {
 
     let date = new Date(2021, 2, 3);
     this.selectedFrom = new LocationIdColumn({ caption: "From" }, this.context),
-    this.selectedTo = new LocationIdColumn({ caption: "To" }, this.context);
+      this.selectedTo = new LocationIdColumn({ caption: "To" }, this.context);
     this.selectedDate = new DateColumn({ caption: "Date", defaultValue: new Date(date.getFullYear(), date.getMonth(), date.getDate()) });
     this.toolbar = new DataAreaSettings({
       columnSettings: () => [
@@ -77,6 +77,7 @@ export class DriverRegisterComponent implements OnInit {
 
     let result = await DriverRegisterComponent.retrieveDriverRegister(
       this.driver.id.value,
+      this.driver.seats.value,
       this.selectedDate.value,
       this.selectedFrom.value,
       this.selectedTo.value,
@@ -84,10 +85,12 @@ export class DriverRegisterComponent implements OnInit {
 
     this.rides = result.registered;
     this.ridesToRegister = result.newregistered;
+
+    this.clientLastRefreshDate = new Date();
   }
 
   @ServerFunction({ allowed: Roles.driver })
-  static async retrieveDriverRegister(driverId: string, date: Date, fid: string, tid: string, context?: Context) {
+  static async retrieveDriverRegister(driverId: string, dSeats: number, date: Date, fid: string, tid: string, context?: Context) {
     date = new Date(2021, 2, 3);
     var result: {
       registered: ride4DriverRideRegister[],
@@ -97,14 +100,43 @@ export class DriverRegisterComponent implements OnInit {
       newregistered: []
     };
 
-    let rideIds: string[] = [];
-    for await (const reg of context.for(RegisterRide).iterate({//todo: display only records that not attach by usher
-      where: rg => rg.date.isEqualTo(date)
-        .and(fid && (fid.trim().length > 0) ? rg.fromLoc.isEqualTo(fid) : new Filter(x => { /*true*/ }))
-        .and(tid && (tid.trim().length > 0) ? rg.toLoc.isEqualTo(tid) : new Filter(x => { /*true*/ })),
+    let dLocs: string[] = [];
+    for await (const pref of context.for(DriverPrefs).iterate({
+      where: pf => pf.driverId.isEqualTo(driverId),
     })) {
-      let from = (await context.for(Location).findId(reg.fromLoc)).name.value;
-      let to = (await context.for(Location).findId(reg.toLoc)).name.value;
+      dLocs.push(pref.locationId.value);
+    }
+
+    for await (const reg of context.for(RegisterRide).iterate({//todo: display only records that not attach by usher
+      where: rg => rg.date.isEqualTo(date),
+      // .and(fid && (fid.trim().length > 0) ? rg.fromLoc.isEqualTo(fid) : rg.fromLoc.isIn(...dLocs))// new Filter(x => { /*true*/ }))
+      // .and(tid && (tid.trim().length > 0) ? rg.toLoc.isEqualTo(tid) : rg.toLoc.isIn(...dLocs)),// new Filter(x => { /*true*/ })),
+    })) {
+
+
+      let isok = true;
+      if ((fid && fid.length > 0) || (tid && tid.length > 0)) {
+        if (fid && fid.length > 0) {
+          if (!(reg.fromLoc.value == fid)) {
+            isok = false;
+          }
+        }
+        if (tid && tid.length > 0) {
+          if (!(reg.toLoc.value == tid)) {
+            isok = false;
+          }
+        }
+      }
+      else if (!(dLocs.includes(reg.fromLoc.value) || dLocs.includes(reg.toLoc.value))) {
+        isok = false;
+      }
+
+      if (!(isok)) {
+        continue;
+      }
+
+      let from = (await context.for(Location).findId(reg.fromLoc.value)).name.value;
+      let to = (await context.for(Location).findId(reg.toLoc.value)).name.value;
       let registereds = (await context.for(RegisterDriver).find(
         {
           where: rg => rg.regRideId.isEqualTo(reg.id)
@@ -116,58 +148,131 @@ export class DriverRegisterComponent implements OnInit {
           let row: ride4DriverRideRegister = {
             rId: '',
             rgId: reg.id.value,
-            dRegId: nreg.id.value,
+            dId: nreg.driverId.value,
+            date: reg.date.value,
+            fId: reg.fromLoc.value,
+            tId: reg.toLoc.value,
+            from: from,
+            to: to,
+            pass: nreg.seats.value,
+            isRegistered: true,// (registereds && registereds.length > 0),
+            dFromHour: nreg.fromHour.value,
+            dToHour: nreg.toHour.value,
+            dPass: dSeats,
+          };
+          result.registered.push(row);
+        }
+      }
+      else {
+        if (reg.passengers.value <= dSeats) {
+          let row: ride4DriverRideRegister = {
+            rId: '',
+            rgId: reg.id.value,
+            // dId: nreg.driverId.value,
             date: reg.date.value,
             fId: reg.fromLoc.value,
             tId: reg.toLoc.value,
             from: from,
             to: to,
             pass: reg.passengers.value,
-            isRegistered: (registereds && registereds.length > 0),
-            dFromHour: nreg.fromHour.value,
-            dToHour: nreg.toHour.value,
-            dPass: nreg.seats.value,
+            isRegistered: false,// (registereds && registereds.length > 0),
+            dPass: dSeats,
           };
-          result.registered.push(row);
-          //rideIds.push(row.i)
+          result.newregistered.push(row);
         }
-      }
-      else {
-        let row: ride4DriverRideRegister = {
-          rId: '',
-          rgId: reg.id.value,
-          date: reg.date.value,
-          fId: reg.fromLoc.value,
-          tId: reg.toLoc.value,
-          from: from,
-          to: to,
-          pass: reg.passengers.value,
-          isRegistered: (registereds && registereds.length > 0),
-        };
-        result.newregistered.push(row);
       }
     }
 
     for await (const ride of context.for(Ride).iterate({//todo: display only records that not attach by usher
       where: r => r.date.isEqualTo(date)
-        .and(fid && (fid.trim().length > 0) ? r.fromLocation.isEqualTo(fid) : new Filter(x => { /*true*/ }))
-        .and(tid && (tid.trim().length > 0) ? r.toLocation.isEqualTo(tid) : new Filter(x => { /*true*/ }))
+        // .and(fid && (fid.trim().length > 0) ? r.fromLocation.isEqualTo(fid) : r.fromLocation.isIn(...dLocs))// new Filter(x => { /*true*/ }))
+        // .and(tid && (tid.trim().length > 0) ? r.toLocation.isEqualTo(tid) : new Filter(x => { /*true*/ }))
         .and(r.status.isEqualTo(RideStatus.waitingForDriver)),
     })) {
-      let from = (await context.for(Location).findId(ride.fromLocation)).name.value;
-      let to = (await context.for(Location).findId(ride.toLocation)).name.value;
-      let row: ride4DriverRideRegister = {
-        rId: ride.id.value,
-        rgId: ride.id.value,
-        date: ride.date.value,
-        fId: ride.fromLocation.value,
-        tId: ride.toLocation.value,
-        from: from,
-        to: to,
-        pass: ride.passengers(),
-        isRegistered: false,
-      };
-      result.newregistered.push(row);
+
+      let isok = true;
+      if ((fid && fid.length > 0) || (tid && tid.length > 0)) {
+        if (fid && fid.length > 0) {
+          if (!(ride.fromLocation.value == fid)) {
+            isok = false;
+          }
+        }
+        if (tid && tid.length > 0) {
+          if (!(ride.toLocation.value == tid)) {
+            isok = false;
+          }
+        }
+      }
+      else if (!(dLocs.includes(ride.fromLocation.value) || dLocs.includes(ride.toLocation.value))) {
+        isok = false;
+      }
+
+      if (!(isok)) {
+        continue;
+      }
+
+      let from = (await context.for(Location).findId(ride.fromLocation.value)).name.value;
+      let to = (await context.for(Location).findId(ride.toLocation.value)).name.value;
+
+      let registereds = (await context.for(RegisterDriver).find(
+        {
+          where: rg => rg.rId.isEqualTo(ride.id)
+            .and(rg.driverId.isEqualTo(driverId)),
+        }));
+
+      if (registereds && registereds.length > 0) {
+        for (const nreg of registereds) {
+          let row: ride4DriverRideRegister = {
+            rId: ride.id.value,
+            rgId: '',// ride.id.value,
+            dId: nreg.driverId.value,
+            date: ride.date.value,
+            fId: ride.fromLocation.value,
+            tId: ride.toLocation.value,
+            from: from,
+            to: to,
+            pass: nreg.seats.value,// ride.passengers(),
+            isRegistered: true,// (registereds && registereds.length > 0),
+            dFromHour: nreg.fromHour.value,
+            dToHour: nreg.toHour.value,
+            dPass: dSeats,
+          };
+          result.registered.push(row);
+        }
+      }
+      else {
+        if (ride.passengers() <= dSeats) {
+          let row: ride4DriverRideRegister = {
+            rId: ride.id.value,
+            rgId: '',// ride.id.value,
+            // dId: nreg.driverId.value,
+            date: ride.date.value,
+            fId: ride.fromLocation.value,
+            tId: ride.toLocation.value,
+            from: from,
+            to: to,
+            pass: ride.passengers(),
+            dPass: dSeats,
+            isRegistered: false,// (registereds && registereds.length > 0),
+          };
+          result.newregistered.push(row);
+        }
+      }
+
+
+
+      // let row: ride4DriverRideRegister = {
+      //   rId: ride.id.value,
+      //   rgId: '',// ride.id.value,
+      //   date: ride.date.value,
+      //   fId: ride.fromLocation.value,
+      //   tId: ride.toLocation.value,
+      //   from: from,
+      //   to: to,
+      //   pass: ride.passengers(),
+      //   isRegistered: false,
+      // };
+      // result.newregistered.push(row);
     }
 
     result.registered.sort((r1, r2) => r1.from.localeCompare(r2.from));
@@ -177,7 +282,21 @@ export class DriverRegisterComponent implements OnInit {
   }
 
   async unregister(r: ride4DriverRideRegister) {
-    let reg = await this.context.for(RegisterDriver).findId(r.dRegId);
+    let reg = undefined;
+    if (r.rId && r.rId.length > 0) {
+      reg = await this.context.for(RegisterDriver).findFirst({
+        where: rd => rd.driverId.isEqualTo(r.dId)
+          .and(rd.rId.isEqualTo(r.rId)),
+      });
+    }
+    else (r.rgId && r.rgId.length > 0)
+    {
+      reg = await this.context.for(RegisterDriver).findFirst({
+        where: rd => rd.driverId.isEqualTo(r.dId)
+          .and(rd.regRideId.isEqualTo(r.rgId)),
+      });
+    }
+
     if (await this.dialog.confirmDelete(`Your Registration (${r.from} to ${r.to} at ${formatDate(r.date, 'dd.MM.yyyy', 'en-US')})`)) {
       await reg.delete();
       await this.refresh();
@@ -193,7 +312,10 @@ export class DriverRegisterComponent implements OnInit {
     reg.fromHour.value = this.driver.defaultFromTime.value;// todo: r.date;
     reg.toHour.value = this.driver.defaultToTime.value;// todo: r.date;
     // reg.toHour.value = date;// todo: r.date;
-  
+
+    let seats = Math.min(r.pass, r.dPass);
+    reg.seats.value = seats;
+
     await this.context.openDialog(
       InputAreaComponent,
       x => x.args = {
@@ -205,12 +327,10 @@ export class DriverRegisterComponent implements OnInit {
         ],
         ok: async () => {
           await reg.save();
-          console.log(1);
           this.driver.defaultFromTime.value = reg.fromHour.value;
           this.driver.defaultToTime.value = reg.toHour.value;
           this.driver.defaultSeats.value = reg.seats.value;
           await this.driver.save();
-          console.log(2);
           await this.refresh();
         }
       },
