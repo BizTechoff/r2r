@@ -83,10 +83,11 @@ export class SetDriverComponent implements OnInit {
   async setDriver() {
     let setStatusToApproved = this.dialog.yesNoQuestion("Set status To approved-by-driver");
     for (const r of this.rides) {
-      if (r.selected) {
+      if (r.selected) { 
         let ride = await this.context.for(Ride).findId(r.id);
         // ride.visitTime.value = 
         ride.driverId.value = this.driverId.value;
+        ride.status.value = RideStatus.waitingForAccept;
         if (setStatusToApproved) {
           ride.status.value = RideStatus.waitingForStart;
         }

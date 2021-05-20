@@ -87,6 +87,7 @@ export class DriverRidesComponent implements OnInit {
           companyPhone: 'c-phone',
           companyShortCall: 'c-s-call',
           companyWhatsapp: 'c-wapp',
+          w4Accept: ride.isWaitingForAccept(),
           w4Start: ride.isWaitingForStart(),
           w4Pickup: ride.isWaitingForPickup(),
           w4Arrived: ride.isWaitingForArrived(),

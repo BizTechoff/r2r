@@ -25,6 +25,25 @@ export class DriversComponent implements OnInit {
 
   // prefsCount = new NumberColumn({});
   driversSettings = this.context.for(Driver).gridSettings({
+    where: p => this.search.value ? p.name.isContains(this.search) : undefined,
+    numOfColumnsInGrid: 10,
+    // allowSelection: true,
+    columnSettings: (d) => [
+      // d.name,
+      // {
+      //   column: this.prefsCount,
+      //   // getValue:async() => await this.context.for(DriverPrefs).count(p=>p.driverId.isEqualTo(d.id)),
+      // },
+      d.name,
+      d.idNumber,
+      d.birthDate,
+      d.seats,
+      d.mobile,
+      d.email,
+      d.defaultFromTime,
+      d.defaultToTime,
+      //prefsCount, await this.context.for(DriverPrefs).count(p=>p.driverId.isEqualTo(d.id));
+    ],
     allowCRUD: false,
     rowButtons: [{
       name: "Suggest Rides",
@@ -75,25 +94,6 @@ export class DriversComponent implements OnInit {
       }
 
     },],
-    where: p => this.search.value ? p.name.isContains(this.search) : undefined,
-    numOfColumnsInGrid: 10,
-    // allowSelection: true,
-    columnSettings: (d) => [
-      // d.name,
-      // {
-      //   column: this.prefsCount,
-      //   // getValue:async() => await this.context.for(DriverPrefs).count(p=>p.driverId.isEqualTo(d.id)),
-      // },
-      d.name,
-      d.idNumber,
-      d.birthDate,
-      d.seats,
-      d.mobile,
-      d.email,
-      d.defaultFromTime,
-      d.defaultToTime,
-      //prefsCount, await this.context.for(DriverPrefs).count(p=>p.driverId.isEqualTo(d.id));
-    ],
   });
 
   constructor(private context: Context, private busy: BusyService, private dialog: DialogService) { }

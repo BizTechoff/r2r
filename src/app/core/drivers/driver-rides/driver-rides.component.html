@@ -68,14 +68,17 @@
                     </table>
                 </td>
                 <td>
+                    <button *ngIf="r.w4Accept" mat-raised-button color="primary" (click)="startDriving(r.rId)">
+                        Accept
+                    </button>
                     <button *ngIf="r.w4Start" mat-raised-button color="primary" (click)="startDriving(r.rId)">
-                        Start..
+                        Start
                     </button>
                     <button *ngIf="r.w4Pickup" mat-raised-button color="primary" (click)="pickup(r.rId)">
-                        Pickup..
+                        Pickup
                     </button>
                     <button *ngIf="r.w4Arrived" mat-raised-button color="primary" (click)="arrived(r.rId)">
-                        Arrived..
+                        Arrived
                     </button>
                 </td>
             </tr>

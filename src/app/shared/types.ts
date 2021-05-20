@@ -76,6 +76,7 @@ export interface ride4Driver {
   companyShortCall: string,
   companyWhatsapp: string,
   // status: RideStatus,
+  w4Accept: boolean,
   w4Start: boolean,
   w4Pickup: boolean,
   w4Arrived: boolean,
@@ -89,6 +90,23 @@ export interface ride4Usher {
   toIsBorder: boolean;
   fromId: string,
   toId: string,
+  from: string,
+  to: string,
+  passengers: number,
+  ridesCount: number,
+  inProgress: number,
+  needDriver: number,
+  needApprove: number,
+  ids?: string[],
+};
+
+export interface driver4Usher {
+
+  id: string,
+  name: boolean;
+  mobile: boolean;
+  home: string,
+  last: string,
   from: string,
   to: string,
   passengers: number,

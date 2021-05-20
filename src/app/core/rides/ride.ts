@@ -160,6 +160,10 @@ export class Ride extends IdEntity {
         return this.status.value === RideStatus.waitingForUsherApproove;
     }
 
+    isWaitingForAccept() {
+        return this.status.value === RideStatus.waitingForAccept;
+    }
+
     isWaitingForStart() {
         return this.status.value === RideStatus.waitingForStart;
     }
@@ -212,6 +216,7 @@ export class RideStatus {
     static waitingForPatient = new RideStatus();
     static waitingForPatientAndDriver = new RideStatus();
     static waitingForUsherApproove = new RideStatus();
+    static waitingForAccept = new RideStatus();
     static waitingForStart = new RideStatus();
     static waitingForPickup = new RideStatus();
     static waitingForArrived = new RideStatus();
@@ -222,7 +227,7 @@ export class RideStatus {
     static waitingForUsherSelectDriver = new RideStatus();
     constructor(public color = 'green') { }
     id;
-
+ 
     isInProgress(): boolean {
         return this == RideStatus.waitingForPickup
             ||

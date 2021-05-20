@@ -8,7 +8,7 @@ import { Contact } from '../../patients/patient-contacts/contact';
 import { PatientContactsComponent } from '../../patients/patient-contacts/patient-contacts.component';
 import { Ride, RideStatus } from '../../rides/ride';
 import { Driver } from '../driver';
-
+ 
 @Component({
   selector: 'app-driver-history',
   templateUrl: './driver-history.component.html',
@@ -82,6 +82,7 @@ export class DriverHistoryComponent implements OnInit {
           companyShortCall: 'c-s-call',
           companyWhatsapp: 'c-wapp',
           // status: ride.status.value,
+          w4Accept: ride.isWaitingForAccept(),
           w4Start: ride.isWaitingForStart(),
           w4Pickup: ride.isWaitingForPickup(),
           w4Arrived: ride.isWaitingForArrived(),

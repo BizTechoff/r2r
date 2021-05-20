@@ -1,1 +1,38 @@
-<p>suggest-driver works!</p>
+<div class="full-page">
+    <div class="header">
+        <h3>Suggested Drivers</h3>
+        <!-- <table style="width: 100%;">
+            <tr>
+                <th>name</th>
+                <th>mobile</th>
+                <th>home</th>
+                <th>lastRideDays</th>
+                <th>lastCallDays</th>
+                <th>reason</th>
+            </tr>
+        </table> -->
+    </div>
+    <div class="grow-item">
+        <table style="width: 100%;">
+            <tr>
+                <th>name</th>
+                <th>mobile</th>
+                <th>home</th>
+                <th>lastRideDays</th>
+                <th>lastCallDays</th>
+                <th>reason</th>
+            </tr>
+            <tr *ngFor="let d of drivers">
+                <td>{{ d.name }}</td>
+                <td>{{ d.mobile }}</td>
+                <td>{{ d.home }}</td>
+                <td>{{ d.lastRideDays }}</td>
+                <td>{{ d.lastCallDays}}</td>
+                <td>{{ d.reason }}</td>
+            </tr>
+        </table>
+    </div>
+    <div class="footer">
+        <span>Found: {{ drivers.length }}</span>
+    </div>
+</div>

@@ -124,9 +124,11 @@ export class PatientsComponent implements OnInit {
   }
 
   async editPatient(p: Patient) {
-    await this.context.openDialog(PatientCrudComponent, thus => thus.args = {
+    if(await this.context.openDialog(PatientCrudComponent, thus => thus.args = {
       pid: p.id.value, isNew: false,
-    });
+    })){
+      await p.reload();
+    }
     // let changed = await openPatient(p.id.value, this.context);
   }
 

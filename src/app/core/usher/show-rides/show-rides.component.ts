@@ -7,6 +7,7 @@ import { Location } from '../../locations/location';
 import { PatientCrudComponent } from '../../patients/patient-crud/patient-crud.component';
 import { Ride, RideStatus } from '../../rides/ride';
 import { rideRow } from '../set-driver/set-driver.component';
+import { SuggestDriverComponent } from '../suggest-driver/suggest-driver.component';
 import { Usher } from '../usher';
 
 @Component({
@@ -65,11 +66,9 @@ export class ShowRidesComponent implements OnInit {
   }
 
   async attachDriver(r: ride4UsherApprove){
-    // let ride = await this.context.for(Ride).findId(r.id);
-    // ride.driverId.value = '';
-    // await ride.save();
-    // r.driver = '';
-    // r.driverId = '';
+    await this.context.openDialog(SuggestDriverComponent, sd => sd.args={
+      rId: r.id,
+    });
   }
 
   async approveDriver(r: rideRow) {
