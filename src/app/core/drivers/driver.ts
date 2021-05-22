@@ -36,7 +36,7 @@ export class Driver extends IdEntity {
       }
     },
   });
-  home?= new LocationIdColumn({}, this.context, true);
+  home?= new StringColumn({});
   email = new StringColumn({});
   seats = new NumberColumn({
     defaultValue: 4,
@@ -83,6 +83,12 @@ export class Driver extends IdEntity {
       // },
       // deleting:async()=>{}
     })
+  }
+
+  hasHome() {
+    return this.home && this.home.value && this.home.value.length > 0
+    ? true
+    : false;
   }
 
   hasBirthDate() {

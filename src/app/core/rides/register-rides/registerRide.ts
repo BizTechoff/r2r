@@ -1,5 +1,6 @@
-import { Context, DateColumn, EntityClass, IdEntity, NumberColumn } from "@remult/core";
+import { Context, DateColumn, DateTimeColumn, EntityClass, IdEntity, NumberColumn } from "@remult/core";
 import { Roles } from "../../../users/roles";
+import { DriverIdColumn } from "../../drivers/driver";
 import { LocationIdColumn } from "../../locations/location";
 
 @EntityClass
@@ -21,20 +22,14 @@ export class RegisterRide extends IdEntity {
             }
         } 
     });
+    approvedDId? = new DriverIdColumn({caption: 'Approved Driver'}, this.context);
+    approvedDate? = new DateTimeColumn({});
 
     constructor(private context: Context) {
         super({
             name: "ridesRegisters",
-            allowApiCRUD: [Roles.usher, Roles.admin],// todo: Manager only
+            allowApiCRUD: [Roles.usher, Roles.admin],// todo: admin only
             allowApiRead: c => c.isSignedIn(),
-
-            // saving: async () => {
-            //     if (context.onServer) {
-            //         if (this.isNew()) {
-            //             await openHowManyToCreate()
-            //          }
-            //     }
-            // },
         });
     }
 }

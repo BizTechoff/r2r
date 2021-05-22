@@ -139,8 +139,8 @@ export class DriverRegisterComponent implements OnInit {
       let to = (await context.for(Location).findId(reg.toLoc.value)).name.value;
       let registereds = (await context.for(RegisterDriver).find(
         {
-          where: rg => rg.regRideId.isEqualTo(reg.id)
-            .and(rg.driverId.isEqualTo(driverId)),
+          where: rg => rg.rgId.isEqualTo(reg.id)
+            .and(rg.dId.isEqualTo(driverId)),
         }));
 
       if (registereds && registereds.length > 0) {
@@ -148,7 +148,7 @@ export class DriverRegisterComponent implements OnInit {
           let row: ride4DriverRideRegister = {
             rId: '',
             rgId: reg.id.value,
-            dId: nreg.driverId.value,
+            dId: nreg.dId.value,
             date: reg.date.value,
             fId: reg.fromLoc.value,
             tId: reg.toLoc.value,
@@ -217,7 +217,7 @@ export class DriverRegisterComponent implements OnInit {
       let registereds = (await context.for(RegisterDriver).find(
         {
           where: rg => rg.rId.isEqualTo(ride.id)
-            .and(rg.driverId.isEqualTo(driverId)),
+            .and(rg.dId.isEqualTo(driverId)),
         }));
 
       if (registereds && registereds.length > 0) {
@@ -225,7 +225,7 @@ export class DriverRegisterComponent implements OnInit {
           let row: ride4DriverRideRegister = {
             rId: ride.id.value,
             rgId: '',// ride.id.value,
-            dId: nreg.driverId.value,
+            dId: nreg.dId.value,
             date: ride.date.value,
             fId: ride.fromLocation.value,
             tId: ride.toLocation.value,
@@ -285,15 +285,15 @@ export class DriverRegisterComponent implements OnInit {
     let reg = undefined;
     if (r.rId && r.rId.length > 0) {
       reg = await this.context.for(RegisterDriver).findFirst({
-        where: rd => rd.driverId.isEqualTo(r.dId)
+        where: rd => rd.dId.isEqualTo(r.dId)
           .and(rd.rId.isEqualTo(r.rId)),
       });
     }
     else (r.rgId && r.rgId.length > 0)
     {
       reg = await this.context.for(RegisterDriver).findFirst({
-        where: rd => rd.driverId.isEqualTo(r.dId)
-          .and(rd.regRideId.isEqualTo(r.rgId)),
+        where: rd => rd.dId.isEqualTo(r.dId)
+          .and(rd.rgId.isEqualTo(r.rgId)),
       });
     }
 
@@ -307,8 +307,8 @@ export class DriverRegisterComponent implements OnInit {
     // let date = new Date(2021, 2, 3);
     let reg = this.context.for(RegisterDriver).create();
     reg.rId.value = r.rId;
-    reg.regRideId.value = r.rgId;
-    reg.driverId.value = this.driver.id.value;
+    reg.rgId.value = r.rgId;
+    reg.dId.value = this.driver.id.value;
     reg.fromHour.value = this.driver.defaultFromTime.value;// todo: r.date;
     reg.toHour.value = this.driver.defaultToTime.value;// todo: r.date;
     // reg.toHour.value = date;// todo: r.date;

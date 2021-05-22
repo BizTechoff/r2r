@@ -36,10 +36,10 @@ export class SuggestDriverComponent implements OnInit {
   @ServerFunction({ allowed: Roles.admin })
   static async retrieveSuggestedDrivers(rId: string, context?: Context) {
     let drivers: driver4UsherSuggest[] = [];
-    
+
     let ride = await context.for(Ride).findId(rId);
     //0. drivers registered to same locations
-    drivers.push(...(await SuggestDriverComponent.driversRegisteredSameLocations(ride, context)));
+    drivers.push(...(await SuggestDriverComponent.driversRegistered(ride, context)));
     //1. drivers with same locations
     drivers.push(...(await SuggestDriverComponent.driversWithSameLocations(ride, context)));
 
@@ -60,43 +60,141 @@ export class SuggestDriverComponent implements OnInit {
     return drivers;
   }
 
-  static async driversRegisteredSameLocations(ride: Ride, context: Context): Promise<driver4UsherSuggest[]> {
+  static async driversRegistered(ride: Ride, context: Context): Promise<driver4UsherSuggest[]> {
     let drivers: driver4UsherSuggest[] = [];
-    
+
+
+    // for await (const rgD of context.for(RegisterDriver).iterate({
+    //   where: d => d.rgId.isEqualTo(same.id),
+    // })) {
+    // };
+
+
+
     for await (const same of context.for(RegisterRide).iterate({
       where: r => r.fromLoc.isEqualTo(ride.fromLocation)
-      .and(r.toLoc.isEqualTo(ride.toLocation))
-      .and(r.date.isEqualTo(ride.date))
-    })){
-      // if(same.)
-      for await (const regDriver of context.for(RegisterDriver).iterate({
-        where: d => d.regRideId.isEqualTo(same.id),
-      })){
-        
+        .and(r.toLoc.isEqualTo(ride.toLocation))
+        .and(r.date.isEqualTo(ride.date))
+    })) {
+      for await (const rgD of context.for(RegisterDriver).iterate({
+        where: d => d.rgId.isEqualTo(same.id),
+      })) {
+        //(same.passengers || rgD.seats)
+        let d = await context.for(Driver).findId(rgD.dId);
+        let lastRideDays = 0;
+        let lastRide = await context.for(Ride).findFirst({
+          where: r => r.driverId.isEqualTo(rgD.dId),
+          orderBy: r => [{ column: r.date, descending: true }],
+        });
+        if (lastRide) {
+          lastRideDays = +(new Date()) - +lastRide.date;
+        }
+        let takenSeats = 0;
+        for await (const taken of context.for(Ride).iterate({
+          where: r => r.fromLocation.isEqualTo(ride.fromLocation)
+            .and(r.toLocation.isEqualTo(ride.toLocation))
+            .and(r.date.isEqualTo(ride.date))
+            .and(r.driverId.isEqualTo(rgD.dId))
+        })) {
+          takenSeats += taken.passengers();
+        }
+        let row: driver4UsherSuggest = {
+          home: d.home.value,
+          id: d.id.value,
+          lastCallDays: 0,
+          lastRideDays: lastRideDays,
+          mobile: d.mobile.value,
+          name: d.name.value,
+          reason: '1. registered(future): same locations&date',
+          freeSeats: d.seats.value - takenSeats,
+          isMatchPrefs: false,
+          seats: d.seats.value,
+        };
+        drivers.push(row);
       };
     };
 
-    for await (const same of context.for(Ride).iterate({
-      where: r => r.fromLocation.isEqualTo(ride.fromLocation)
-        .and(r.toLocation.isEqualTo(ride.toLocation))
-        .and(r.date.isEqualTo(ride.date))
-        .and(r.status.isIn(RideStatus.waitingForStart))
-        .and(r.isHasDriver() ? new Filter(() => { true }) : new Filter(() => { false }))
+    for await (const rgD of context.for(RegisterDriver).iterate({
+      where: d => d.rId.isEqualTo(ride.id),
     })) {
+      //(same.passengers || rgD.seats)
+      let d = await context.for(Driver).findId(rgD.dId);
+      let lastRideDays = 0;
+      let lastRide = await context.for(Ride).findFirst({
+        where: r => r.driverId.isEqualTo(rgD.dId),
+        orderBy: r => [{ column: r.date, descending: true }],
+      });
+      if (lastRide) {
+        lastRideDays = +(new Date()) - +lastRide.date;
+      }
+      let takenSeats = 0;
+      for await (const taken of context.for(Ride).iterate({
+        where: r => r.fromLocation.isEqualTo(ride.fromLocation)
+          .and(r.toLocation.isEqualTo(ride.toLocation))
+          .and(r.date.isEqualTo(ride.date))
+          .and(r.driverId.isEqualTo(rgD.dId))
+      })) {
+        takenSeats += taken.passengers();
+      }
       let row: driver4UsherSuggest = {
-        home: '',
-        id: '',
+        home: d.home.value,
+        id: d.id.value,
         lastCallDays: 0,
-        lastRideDays: 0,
-        mobile: '',
-        name: '',
-        reason: '',
-        freeSeats: 0,
+        lastRideDays: lastRideDays,
+        mobile: d.mobile.value,
+        name: d.name.value,
+        reason: '1. registered(ride): same locations&date',
+        freeSeats: d.seats.value - takenSeats,
         isMatchPrefs: false,
-        seats: 0,
+        seats: d.seats.value,
       };
       drivers.push(row);
     };
+
+    // for await (const same of context.for(Ride).iterate({
+    //   where: r => r.fromLocation.isEqualTo(ride.fromLocation)
+    //     .and(r.toLocation.isEqualTo(ride.toLocation))
+    //     .and(r.date.isEqualTo(ride.date))
+    //     .and(r.status.isIn(RideStatus.waitingForStart))
+    //     .and(r.isHasDriver() ? new Filter(() => { return true; }) : new Filter(() => { return false; }))
+    // })) {
+    //   for await (const rgD of context.for(RegisterDriver).iterate({
+    //     where: d => d.rgId.isEqualTo(same.id),
+    //   })) {
+    //     //(same.passengers || rgD.seats)
+    //     let d = await context.for(Driver).findId(rgD.dId);
+    //     let lastRideDays = 0;
+    //     let lastRide = await context.for(Ride).findFirst({
+    //       where: r => r.driverId.isEqualTo(rgD.dId),
+    //       orderBy: r => [{ column: r.date, descending: true }],
+    //     });
+    //     if (lastRide) {
+    //       lastRideDays = +(new Date()) - +lastRide.date;
+    //     }
+    //     let takenSeats = 0;
+    //     for await (const taken of context.for(Ride).iterate({
+    //       where: r => r.fromLocation.isEqualTo(ride.fromLocation)
+    //         .and(r.toLocation.isEqualTo(ride.toLocation))
+    //         .and(r.date.isEqualTo(ride.date))
+    //         .and(r.driverId.isEqualTo(rgD.dId))
+    //     })) {
+    //       takenSeats += taken.passengers();
+    //     }
+    //     let row: driver4UsherSuggest = {
+    //       home: d.home.value,
+    //       id: d.id.value,
+    //       lastCallDays: 0,
+    //       lastRideDays: lastRideDays,
+    //       mobile: d.mobile.value,
+    //       name: d.name.value,
+    //       reason: 'registered(ride): same locations&date',
+    //       freeSeats: d.seats.value - takenSeats,
+    //       isMatchPrefs: false,
+    //       seats: d.seats.value,
+    //     };
+    //     drivers.push(row);
+    //   };
+    // };
     return drivers;
   }
 
@@ -110,17 +208,37 @@ export class SuggestDriverComponent implements OnInit {
         .and(r.status.isIn(RideStatus.waitingForStart))
         .and(r.isHasDriver() ? new Filter(() => { true }) : new Filter(() => { false }))
     })) {
+      let driverId = same.driverId.value;
+      let d = await context.for(Driver).findId(driverId);
+      let lastRideDays = 0;
+      let lastRide = await context.for(Ride).findFirst({
+        where: r => r.driverId.isEqualTo(driverId),
+        orderBy: r => [{ column: r.date, descending: true }],
+      });
+      if (lastRide) {
+        lastRideDays = +(new Date()) - +lastRide.date;
+      }
+      let takenSeats = 0;
+      for await (const taken of context.for(Ride).iterate({
+        where: r => r.fromLocation.isEqualTo(ride.fromLocation)
+          .and(r.toLocation.isEqualTo(ride.toLocation))
+          .and(r.date.isEqualTo(ride.date))
+          .and(r.driverId.isEqualTo(driverId))
+      })) {
+        takenSeats += taken.passengers();
+      }
+
       let row: driver4UsherSuggest = {
-        home: '',
-        id: '',
+        home: d.home.value,
+        id: d.id.value,
         lastCallDays: 0,
-        lastRideDays: 0,
-        mobile: '',
-        name: '',
-        reason: '',
-        freeSeats: 0,
+        lastRideDays: lastRideDays,
+        mobile: d.mobile.value,
+        name: d.name.value,
+        reason: '2. same locations(ride)',
+        freeSeats: d.seats.value - takenSeats,
         isMatchPrefs: false,
-        seats: 0,
+        seats: d.seats.value,
       };
       drivers.push(row);
     }

@@ -14,7 +14,6 @@
 </style>
 
 <div class="full-page">
-    <!-- <div style="border-width: 2px; border-style: solid;"> -->
     <div>
         <table style="width: 100%;">
             <tr>
@@ -39,14 +38,7 @@
                         </tr>
                     </table>
                 </td>
-
             </tr>
-            <!-- <tr>
-            <td>
-                <mat-checkbox [checked]="groupSameLocations" (change)="onGroupSameLocations()">Group Same Locations
-          </mat-checkbox>
-            </td>
-        </tr> -->
         </table>
     </div>
 
@@ -82,9 +74,7 @@
             </tr>
         </table>
     </div>
-    <!-- </div> -->
-    <!-- <div style="padding: 2px;"></div>
-    <div style="border-width: 2px; border-style: solid;"> -->
+
     <div class="grow-item">
         <h3>Rides You Registered {{ rides && (rides.length > 0)? "(contact u soon)" :"" }}</h3>
         <span *ngIf="(!(rides)) || (rides.length == 0)">You didn't registered yet</span>
@@ -96,7 +86,7 @@
                     </tr>
                     <tr>
                         <td>from: {{ r.from }}</td>
-                        <td rowspan="3">
+                        <td rowspan="4">
                             <table *ngIf="r.isRegistered" style="width: 100%;">
                                 <tr>
                                     <button class="mat-raised-button" (click)="unregister(r)">Unregister</button>
@@ -118,6 +108,5 @@
             </tr>
         </table>
     </div>
-    <!-- </div> -->
 
 </div>
