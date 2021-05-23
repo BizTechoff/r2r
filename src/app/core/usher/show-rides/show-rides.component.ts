@@ -54,14 +54,14 @@ export class ShowRidesComponent implements OnInit {
       switch (this.args.status) {
         case UsherRowStatus.noDriver:
           {
-            if(r.driverId && r.driverId.length){
+            if (r.driverId && r.driverId.length) {
               this.rides.push(r);
             }
             break;
           }
         case UsherRowStatus.approve4Driver:
           {
-            if(r.status === 'waitingForAccept'){
+            if (r.status === 'waitingForAccept') {
               this.rides.push(r);
             }
             break;
@@ -92,31 +92,83 @@ export class ShowRidesComponent implements OnInit {
   }
 
   async accept4Driver(r: ride4UsherApprove) {
-    let ride = await this.context.for(Ride).findId(r.id);
-    ride.status.value = RideStatus.waitingForStart;
-    await ride.save();
-    r.status = RideStatus.waitingForStart.id;
+    let setStatusToApproved = await this.dialog.yesNoQuestion(`Set ${r.driver} Has approved`);
+    if (setStatusToApproved) {
+      let ride = await this.context.for(Ride).findId(r.id);
+      ride.status.value = RideStatus.waitingForStart;
+      await ride.save();
+      r.status = RideStatus.waitingForStart.id;
+    }
+  }
+
+  async start4Driver(r: ride4UsherApprove) {
+    let setStatusToApproved = await this.dialog.yesNoQuestion(`Set ${r.driver} Has start`);
+    if (setStatusToApproved) {
+      let ride = await this.context.for(Ride).findId(r.id);
+      ride.status.value = RideStatus.waitingForPickup;
+      await ride.save();
+      r.status = RideStatus.waitingForPickup.id;
+    }
+  }
+
+  async pickup4Driver(r: ride4UsherApprove) {
+    let setStatusToApproved = await this.dialog.yesNoQuestion(`Set ${r.driver} Has pickup`);
+    if (setStatusToApproved) {
+      let ride = await this.context.for(Ride).findId(r.id);
+      ride.status.value = RideStatus.waitingForArrived;
+      await ride.save();
+      r.status = RideStatus.waitingForArrived.id;
+    }
+  }
+
+  async arrived4Driver(r: ride4UsherApprove) {
+    let setStatusToApproved = await this.dialog.yesNoQuestion(`Set ${r.driver} Has Arrived`);
+    if (setStatusToApproved) {
+      let ride = await this.context.for(Ride).findId(r.id);
+      ride.status.value = RideStatus.waitingForEnd;
+      await ride.save();
+      r.status = RideStatus.waitingForEnd.id;
+    }
+  }
+
+  async end4Driver(r: ride4UsherApprove) {
+    let setStatusToApproved = await this.dialog.yesNoQuestion(`Set ${r.driver} Has succeeded`);
+    if (setStatusToApproved) {
+      let ride = await this.context.for(Ride).findId(r.id);
+      ride.status.value = RideStatus.succeeded;
+      await ride.save();
+      //r.status = RideStatus.succeeded.id;
+      let i = this.rides.indexOf(r);
+      if (i >= 0) {
+        this.rides.splice(i, 1);
+      } 
+    }
   }
 
   async removeDriver(r: ride4UsherApprove) {
-    let ride = await this.context.for(Ride).findId(r.id);
-    ride.driverId.value = '';
-    ride.status.value = RideStatus.waitingForDriver;
-    await ride.save();
-    r.driver = '';
-    r.driverId = '';
+    let setStatusToApproved = await this.dialog.confirmDelete(r.driver + ' from selected ride');
+    if (setStatusToApproved) {
+      let ride = await this.context.for(Ride).findId(r.id);
+      ride.driverId.value = '';
+      ride.status.value = RideStatus.waitingForDriver;
+      await ride.save();
+      r.driver = '';
+      r.driverId = '';
+      r.status = RideStatus.waitingForDriver.id;
+    }
   }
 
-  async attachDriver(r: ride4UsherApprove) {
-    let did = await this.context.openDialog(SuggestDriverComponent,
+  async setDriver(r: ride4UsherApprove) {
+    let selected = await this.context.openDialog(SuggestDriverComponent,
       sd => sd.args = { rId: r.id, },
-      d => d.selectedId);
-    if (did.length > 0) {
-      let d = await this.context.for(Driver).findId(did);
+      d => d.selected);
+    if (selected.did.length > 0) {
+      let d = await this.context.for(Driver).findId(selected.did);
       if (d) {
-        r.driverId = did;
+        r.driverId = d.id.value;
         r.driver = d.name.value;
         r.dMobile = d.mobile.value;
+        r.status = selected.status;
       }
     }
   }

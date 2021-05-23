@@ -20,8 +20,12 @@
                     </button>
                     <mat-menu #menu="matMenu">
                         <button *ngIf="r.driverId && r.driverId.length > 0" mat-menu-item (click)="removeDriver(r)">Remove Driver</button>
-                        <button *ngIf="!(r.driverId && r.driverId.length > 0)" mat-menu-item (click)="attachDriver(r)">Set Driver</button>
+                        <button *ngIf="!(r.driverId && r.driverId.length > 0)" mat-menu-item (click)="setDriver(r)">Set Driver</button>
                         <button *ngIf="(r.status === 'waitingForAccept')" mat-menu-item (click)="accept4Driver(r)">Accept For Driver</button>
+                        <button *ngIf="(r.status === 'waitingForStart')" mat-menu-item (click)="start4Driver(r)">Start For Driver</button>
+                        <button *ngIf="(r.status === 'waitingForPickup')" mat-menu-item (click)="pickup4Driver(r)">Pickup For Driver</button>
+                        <button *ngIf="(r.status === 'waitingForArrived')" mat-menu-item (click)="arrived4Driver(r)">Arrived For Driver</button>
+                        <button *ngIf="(r.status === 'waitingForEnd')" mat-menu-item (click)="end4Driver(r)">End For Driver</button>
                     </mat-menu>
                 </td>
                 <!-- <td><button mat-raised-button (click)="approveDriver(r)">approve</button></td> -->

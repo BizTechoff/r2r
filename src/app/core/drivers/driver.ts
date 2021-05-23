@@ -22,7 +22,7 @@ export class Driver extends IdEntity {
       // getValue: (r => Utils.fixMobile(r.mobile.value)),
     }),
     inputType: "tel",
-
+   
     validate: () => {
       if (!this.mobile.value) {
         // this.mobile.value = "0"

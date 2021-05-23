@@ -17,7 +17,7 @@ export class RegisterDriver extends IdEntity {
                 this.validationError = "Free Seats: at least 1";
             }
         },
-    });
+    }); 
     created = new DateTimeColumn({});
     modified = new DateTimeColumn({});
 

@@ -11,7 +11,7 @@ import { Location } from '../../locations/location';
 import { RegisterRide } from '../../rides/register-rides/registerRide';
 import { Ride, RideStatus } from '../../rides/ride';
 import { addDays } from '../usher';
- 
+
 @Component({
   selector: 'app-suggest-driver',
   templateUrl: './suggest-driver.component.html',
@@ -27,30 +27,31 @@ export class SuggestDriverComponent implements OnInit {
   }
 
   drivers: driver4UsherSuggest[] = [];
-  selectedId = '';
-
-  constructor(private context: Context, private dialogRef: MatDialogRef<any>, private dialog: DialogService) { }
+  selected:{did:string, status:string} = {did: '', status: ''};
  
+  constructor(private context: Context, private dialogRef: MatDialogRef<any>, private dialog: DialogService) { }
+  
   async ngOnInit() {
     await this.refresh();
   }
 
   async onDriverSelected(r: driver4UsherSuggest) {
-    
-    let setStatusToApproved = this.dialog.yesNoQuestion("Set status To approved-by-driver");
+
+    let setStatusToApproved = await this.dialog.yesNoQuestion("Set status To approved-by-driver");
     let ride = await this.context.for(Ride).findId(this.args.rId);
     if (ride) {
       ride.driverId.value = r.did;
       ride.status.value = RideStatus.waitingForAccept;
-      if(setStatusToApproved){
+      if (setStatusToApproved) {
         ride.status.value = RideStatus.waitingForStart;
       }
       await ride.save();
-      this.selectedId = r.did;
+      this.selected.did = r.did;
+      this.selected.status = ride.status.value.id;
       this.select();
     }
   }
- 
+
   select() {
     this.dialogRef.close();
   }
@@ -136,7 +137,6 @@ export class SuggestDriverComponent implements OnInit {
     for await (const rgD of context.for(RegisterDriver).iterate({
       where: d => d.rId.isEqualTo(ride.id),
     })) {
-
       let dRow: driver4UsherSuggest = await SuggestDriverComponent.createDriverRow(
         1,
         rgD.dId.value,
@@ -225,7 +225,9 @@ export class SuggestDriverComponent implements OnInit {
     let dIds: string[] = [];
     for await (const same of context.for(Ride).iterate({
       where: r => r.fromLocation.isIn(ride.fromLocation)
-        .and(r.date.isGreaterOrEqualTo(threeMonthsAgo)),
+        .and(r.date.isGreaterOrEqualTo(threeMonthsAgo))
+        .and(new Filter(f => f.isNotNull(r.driverId)))
+        .and(new Filter(f => f.isDifferentFrom(r.driverId, ''))),
     })) {
       if (!(dIds.includes(same.driverId.value))) {
         dIds.push(same.driverId.value);
@@ -258,7 +260,9 @@ export class SuggestDriverComponent implements OnInit {
       lIds.push(loc.id.value);
     }
     for await (const same of context.for(Ride).iterate({
-      where: r => r.fromLocation.isIn(...lIds),
+      where: r => r.fromLocation.isIn(...lIds)
+      .and(new Filter(f => f.isNotNull(r.driverId)))
+      .and(new Filter(f => f.isDifferentFrom(r.driverId, ''))),
     })) {
       if (!(dIds.includes(same.driverId.value))) {
         dIds.push(same.driverId.value);
@@ -340,9 +344,11 @@ export class SuggestDriverComponent implements OnInit {
     if (d) {
       name = d.name.value;
     }
-    // if((!(name)) || (name.length == 0)){
-    //   name = 'no-name';
-    // }
+    if ((!(name)) || (name.length == 0)) {
+      console.log(did);
+      name = 'no-name';
+      console.log(name);
+    }
     let seats = 0;
     if (d) {
       seats = d.seats.value;

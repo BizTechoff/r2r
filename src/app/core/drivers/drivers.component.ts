@@ -2,12 +2,14 @@ import { Component, OnInit } from '@angular/core';
 import { BusyService, SelectValueDialogComponent } from '@remult/angular';
 import { Context, ServerFunction, StringColumn, ValueListItem } from '@remult/core';
 import { DialogService } from '../../common/dialog';
+import { GridDialogComponent } from '../../common/grid-dialog/grid-dialog.component';
 import { InputAreaComponent } from '../../common/input-area/input-area.component';
 import { Roles } from '../../users/roles';
 import { LocationAreaComponent } from '../locations/location-area/location-area.component';
 import { Ride, RideStatus } from '../rides/ride';
 import { Usher } from '../usher/usher';
 import { Driver, openDriver } from './driver';
+import { DriverCall } from './driverCall';
 import { DriverPrefs } from './driverPrefs';
 
 @Component({
@@ -40,6 +42,7 @@ export class DriversComponent implements OnInit {
       d.seats,
       d.mobile,
       d.email,
+      d.home,
       d.defaultFromTime,
       d.defaultToTime,
       //prefsCount, await this.context.for(DriverPrefs).count(p=>p.driverId.isEqualTo(d.id));
@@ -139,7 +142,23 @@ export class DriversComponent implements OnInit {
     )
   }
 
-  async openCallDocumentationDialog(p: Driver) {
+  async openCallDocumentationDialog(d: Driver) {
+    await this.context.openDialog(GridDialogComponent, gd => gd.args = {
+      title: `Call Documentation For ${d.name.value}`,
+      settings: this.context.for(DriverCall).gridSettings({
+        where: c => c.dId.isEqualTo(d.id),
+        orderBy: c => [{ column: c.modified.value ? c.modified : c.created, descending: true }, { column: c.created.value ? c.created : c.modified, descending: true }],
+        newRow: c => { c.dId.value = d.id.value; },
+        allowCRUD: this.context.isAllowed([Roles.admin, Roles.usher]),
+        allowDelete: false,
+        numOfColumnsInGrid: 10,
+        columnSettings: c => [
+          c.doc,
+          { column: c.created, readOnly: true },
+          { column: c.modified, readOnly: true },
+        ],
+      }),
+    })
   }
 
   async openScheduleDialog(p: Driver) {
@@ -166,16 +185,16 @@ export class DriversComponent implements OnInit {
 
   async openSuggestedRidesForDriverDialog(d: Driver) {
     let suggestedRides = await Usher.getSuggestedRidesForDriver(d.id.value);
-    suggestedRides=[];
+    suggestedRides = [];
     let rIds = await DriversComponent.suggestRidesForMe(d.id.value, this.context);
     for await (const row of this.context.for(Ride).iterate({
-      where: r=> r.id.isIn(...rIds.map(itm => itm.rid)),
+      where: r => r.id.isIn(...rIds.map(itm => itm.rid)),
     })) {
       suggestedRides.push({
         id: row.id.value,
         date: row.date.value,
-        from:row.fromLocation.value,
-        to:row.toLocation.value,
+        from: row.fromLocation.value,
+        to: row.toLocation.value,
         passengers: row.passengers(),
         phones: '',
         groupByLocation: false,
@@ -206,36 +225,7 @@ export class DriversComponent implements OnInit {
         await ride.save();
         // this.retrieveDrivers();
       },
-    }))
-
-    // this.context.openDialog(GridDialogComponent, gd => gd.args = {
-    //   title: "Suggested Rides",
-    //   buttons: [{
-    //     text: 'select',
-    //     click: async () => { 
-    //       gd.
-    //       // getSelection().
-    //       // await this.mergeFamilies(x); }
-    //     }
-    //   }],
-    //   settings: this.context.for(Ride).gridSettings({
-    //     where: r => r.id.isIn(...relevantRides),
-    //     //where: p => p.id.isEqualTo(d.id),
-    //     // newRow: p => p.driverId.value = d.id.value,
-    //     // allowCRUD: true,
-    //     numOfColumnsInGrid: 10,
-    //     columnSettings: r => [
-    //       r.driverId,
-    //       r.dayOfWeek,
-    //       r.dayPeriod,
-    //       r.patientId,
-    //       r.from,
-    //       r.to,
-    //     ],
-    //     allowSelection: true,
-    //   }),
-
-    // });
+    }));
   }
 
   static async getBordersIds(did: string, context?: Context): Promise<string[]> {

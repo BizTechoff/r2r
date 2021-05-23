@@ -15,7 +15,7 @@ export class Ride extends IdEntity {
     driverId = new DriverIdColumn({}, this.context);
     patientId = new PatientIdColumn(this.context);
     status = new RideStatusColumn();
-    statusDate = new DateColumn();
+    statusDate = new DateTimeColumn();
     importRideNum = new StringColumn();
 
     fromLocation = new LocationIdColumn({}, this.context);
@@ -30,7 +30,7 @@ export class Ride extends IdEntity {
                     this.visitTime.value.getHours(),
                     this.visitTime.value.getMinutes());
             }
-        },
+        }, 
     });
     visitTime = new DateTimeColumn({});
     dayPeriod = new DayPeriodColumn();
