@@ -11,7 +11,7 @@ import { addRide, openRide, Ride, RideStatus } from '../rides/ride';
 import { ApproveDriverComponent } from './approve-driver/approve-driver.component';
 import { MabatGroupBy } from './mabat';
 import { SetDriverComponent } from './set-driver/set-driver.component';
-import { ShowRidesComponent } from './show-rides/show-rides.component';
+import { ShowRidesComponent, UsherRowStatus } from './show-rides/show-rides.component';
 import { Usher, UsherRideGroup, UsherRideRow } from './usher';
 
 @Component({
@@ -163,25 +163,21 @@ export class UsherComponent implements OnInit {
 
   async openBackRide(r: Ride): Promise<void> {
 
-    // let from = (await this.context.for(Location).findId(r.fromLocation.value)).name.value;
-    // let to = (await this.context.for(Location).findId(r.toLocation.value)).name.value;
-
-    this.context.openDialog(ApproveDriverComponent, sr => sr.args = {
+    this.context.openDialog(ShowRidesComponent, sr => sr.args = {
       date: this.selectedDate.value,
       from: r.fromLocation.value,
       to: r.toLocation.value,
+      status: UsherRowStatus.backRide,
     });
   }
 
   async openApproveDriver(r: ride4Usher) {
-
-    // let from = (await this.context.for(Location).findId(r.fromLocation.value)).name.value;
-    // let to = (await this.context.for(Location).findId(r.toLocation.value)).name.value;
-
-    this.context.openDialog(ApproveDriverComponent, sr => sr.args = {
+    
+    this.context.openDialog(ShowRidesComponent, sr => sr.args = {
       date: this.selectedDate.value,
       from: r.fromId,
       to: r.toId,
+      status: UsherRowStatus.approve4Driver,
     });
   }
 
@@ -192,16 +188,20 @@ export class UsherComponent implements OnInit {
       date: this.selectedDate.value,
       from: r.fromId,
       to: r.toId,
+      status: UsherRowStatus.all,
     });
 
   }
-
+ 
 
   async openSetDriver(r: ride4Usher) {
-
-    // let from = (await this.context.for(Location).findId(r.fromLocation.value)).name.value;
-    // let to = (await this.context.for(Location).findId(r.toLocation.value)).name.value;
-
+    
+  //   this.context.openDialog(ShowRidesComponent, sr => sr.args = {
+  //   date: this.selectedDate.value,
+  //   from: r.fromId,
+  //   to: r.toId,
+  //   status: UsherRowStatus.noDriver,
+  // });
     this.context.openDialog(SetDriverComponent, sr => sr.args = {
       date: this.selectedDate.value,
       from: r.fromId,

@@ -10,14 +10,19 @@ import { rideRow } from '../set-driver/set-driver.component';
 import { SuggestDriverComponent } from '../suggest-driver/suggest-driver.component';
 import { Usher } from '../usher';
 
+export class UsherRowStatus {
+  static noDriver = new UsherRowStatus();
+  static approve4Driver = new UsherRowStatus();
+  static backRide = new UsherRowStatus();
+  static all = new UsherRowStatus();
+}
+
 @Component({
   selector: 'app-show-rides',
   templateUrl: './show-rides.component.html',
   styleUrls: ['./show-rides.component.scss']
 })
 export class ShowRidesComponent implements OnInit {
-
-
 
   protected fromName: string;
   protected toName: string;
@@ -26,6 +31,7 @@ export class ShowRidesComponent implements OnInit {
     date: Date,
     from: string,
     to: string,
+    status: UsherRowStatus,
   };
   constructor(protected context: Context, private dialog: DialogService) { }
 
@@ -43,7 +49,35 @@ export class ShowRidesComponent implements OnInit {
       toId: this.args.to,
     };
 
-    this.rides = await Usher.getRideList4UsherApprove(params, this.context);
+    this.rides = [];
+    for await (const r of await Usher.getRideList4UsherApprove(params, this.context)) {
+      switch (this.args.status) {
+        case UsherRowStatus.noDriver:
+          {
+            if(r.driverId && r.driverId.length){
+              this.rides.push(r);
+            }
+            break;
+          }
+        case UsherRowStatus.approve4Driver:
+          {
+            if(r.status === 'waitingForAccept'){
+              this.rides.push(r);
+            }
+            break;
+          }
+        case UsherRowStatus.backRide:
+          {
+
+            break;
+          }
+        default:
+          {
+            this.rides.push(r);
+            break;
+          }
+      }
+    };
   }
 
   async openPatient(r: ride4UsherApprove) {
