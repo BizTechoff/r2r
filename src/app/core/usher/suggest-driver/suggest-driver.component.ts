@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
 import { Context, Filter, ServerFunction } from '@remult/core';
+import { DialogService } from '../../../common/dialog';
 import { driver4UsherSuggest } from '../../../shared/types';
 import { Roles } from '../../../users/roles';
 import { Driver } from '../../drivers/driver';
@@ -28,17 +29,22 @@ export class SuggestDriverComponent implements OnInit {
   drivers: driver4UsherSuggest[] = [];
   selectedId = '';
 
-  constructor(private context: Context, private dialogRef: MatDialogRef<any>) { }
+  constructor(private context: Context, private dialogRef: MatDialogRef<any>, , private dialog: DialogService) { }
 
   async ngOnInit() {
     await this.refresh();
   }
 
   async onDriverSelected(r: driver4UsherSuggest) {
+    
+    let setStatusToApproved = this.dialog.yesNoQuestion("Set status To approved-by-driver");
     let ride = await this.context.for(Ride).findId(this.args.rId);
     if (ride) {
       ride.driverId.value = r.did;
       ride.status.value = RideStatus.waitingForAccept;
+      if(setStatusToApproved){
+        ride.status.value = RideStatus.waitingForStart;
+      }
       await ride.save();
       this.selectedId = r.did;
       this.select();

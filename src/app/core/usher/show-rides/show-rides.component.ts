@@ -101,6 +101,7 @@ export class ShowRidesComponent implements OnInit {
   async removeDriver(r: ride4UsherApprove) {
     let ride = await this.context.for(Ride).findId(r.id);
     ride.driverId.value = '';
+    ride.status.value = RideStatus.waitingForDriver;
     await ride.save();
     r.driver = '';
     r.driverId = '';
