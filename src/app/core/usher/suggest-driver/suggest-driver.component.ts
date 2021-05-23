@@ -11,7 +11,7 @@ import { Location } from '../../locations/location';
 import { RegisterRide } from '../../rides/register-rides/registerRide';
 import { Ride, RideStatus } from '../../rides/ride';
 import { addDays } from '../usher';
-
+ 
 @Component({
   selector: 'app-suggest-driver',
   templateUrl: './suggest-driver.component.html',
@@ -29,8 +29,8 @@ export class SuggestDriverComponent implements OnInit {
   drivers: driver4UsherSuggest[] = [];
   selectedId = '';
 
-  constructor(private context: Context, private dialogRef: MatDialogRef<any>, , private dialog: DialogService) { }
-
+  constructor(private context: Context, private dialogRef: MatDialogRef<any>, private dialog: DialogService) { }
+ 
   async ngOnInit() {
     await this.refresh();
   }
