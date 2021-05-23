@@ -239,6 +239,7 @@ export class RideStatus {
     ];
 
     static driverWaitingStatuses = [
+        RideStatus.waitingForAccept,
         RideStatus.waitingForDriver,
         RideStatus.waitingForStart,
         RideStatus.waitingForPickup,

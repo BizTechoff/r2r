@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { MatDialogRef } from '@angular/material/dialog';
 import { Context, Filter, ServerFunction } from '@remult/core';
 import { driver4UsherSuggest } from '../../../shared/types';
 import { Roles } from '../../../users/roles';
@@ -18,17 +19,34 @@ import { addDays } from '../usher';
 export class SuggestDriverComponent implements OnInit {
 
   static readonly ONE_DAY_MS = 24 * 60 * 60 * 1000;
+  static readonly STOP_AFTER_FIRST_REASON = true;
 
   args: {
     rId: string,
   }
 
   drivers: driver4UsherSuggest[] = [];
+  selectedId = '';
 
-  constructor(private context: Context) { }
+  constructor(private context: Context, private dialogRef: MatDialogRef<any>) { }
 
   async ngOnInit() {
     await this.refresh();
+  }
+
+  async onDriverSelected(r: driver4UsherSuggest) {
+    let ride = await this.context.for(Ride).findId(this.args.rId);
+    if (ride) {
+      ride.driverId.value = r.did;
+      ride.status.value = RideStatus.waitingForAccept;
+      await ride.save();
+      this.selectedId = r.did;
+      this.select();
+    }
+  }
+ 
+  select() {
+    this.dialogRef.close();
   }
 
   async refresh() {
@@ -73,29 +91,33 @@ export class SuggestDriverComponent implements OnInit {
     if (add.length > 0) {
       for (const row of add) {
         if (source.length > 0) {
-          // console.log('new: ' + row.did);
           let d = source.find(r => {
-            // console.log('old: ' + r.did);
             return r.did === row.did
           });
           if (d) {
-            for (const rsn of row.reasons) {
-              if (d.reasons.length > 0) {
-                let d2 = d.reasons.find(r => r.includes(rsn));
-                if (!(d2)) {
+            if (!(SuggestDriverComponent.STOP_AFTER_FIRST_REASON)) {
+              for (const rsn of row.reasons) {
+                if (d.reasons.length > 0) {
+                  let d2 = d.reasons.find(r => r.includes(rsn));
+                  if (!(d2)) {
+                    // priority not changed.
+                    d.reasons.push(rsn);
+                  }
+                }
+                else {
+                  // priority not changed.
                   d.reasons.push(rsn);
                 }
-              }
-              else {
-                d.reasons.push(rsn);
               }
             }
           }
           else {
+            // The most-importent priority set once.
             source.push(row);
           }
         }
         else {
+          // The most-importent priority set once.
           source.push(row);
         }
       }

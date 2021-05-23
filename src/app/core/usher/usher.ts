@@ -18,7 +18,7 @@ export class GroupType {
     constructor(public filter: (status: RideStatusColumn) => Filter) { }
     id;
 } 
-
+ 
 export class GroupField4Usher {
     static date = new GroupField4Usher();
     static dayPeriod = new GroupField4Usher();
@@ -168,7 +168,7 @@ export class Usher {
             }
 
             row.inProgress += ([RideStatus.waitingForPickup, RideStatus.waitingForArrived].includes(ride.status.value) ? 1 : 0);
-            row.needApprove += (ride.status.value == RideStatus.waitingForUsherApproove ? 1 : 0);
+            row.needApprove += (ride.status.value == RideStatus.waitingForAccept ? 1 : 0);
             row.needDriver += (ride.isHasDriver() ? 0 : 1);
             row.passengers += ride.passengers();
             row.ridesCount += 1;
@@ -220,7 +220,8 @@ export class Usher {
                     passengers: ride.passengers(),
                     selected: false,
                     visitTime: ride.visitTime.value,
-                };
+                    status: ride.status.value.id,
+                }; 
                 result.push(row);
             }
         }

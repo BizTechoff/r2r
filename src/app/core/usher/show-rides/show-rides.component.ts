@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Context } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
 import { getRideList4UsherParams, ride4UsherApprove } from '../../../shared/types';
-import { openDriver } from '../../drivers/driver';
+import { Driver, openDriver } from '../../drivers/driver';
 import { Location } from '../../locations/location';
 import { PatientCrudComponent } from '../../patients/patient-crud/patient-crud.component';
 import { Ride, RideStatus } from '../../rides/ride';
@@ -57,7 +57,14 @@ export class ShowRidesComponent implements OnInit {
     openDriver(r.driverId, this.context);
   }
 
-  async removeDriver(r: ride4UsherApprove){
+  async accept4Driver(r: ride4UsherApprove) {
+    let ride = await this.context.for(Ride).findId(r.id);
+    ride.status.value = RideStatus.waitingForStart;
+    await ride.save();
+    r.status = RideStatus.waitingForStart.id;
+  }
+
+  async removeDriver(r: ride4UsherApprove) {
     let ride = await this.context.for(Ride).findId(r.id);
     ride.driverId.value = '';
     await ride.save();
@@ -65,10 +72,18 @@ export class ShowRidesComponent implements OnInit {
     r.driverId = '';
   }
 
-  async attachDriver(r: ride4UsherApprove){
-    await this.context.openDialog(SuggestDriverComponent, sd => sd.args={
-      rId: r.id,
-    });
+  async attachDriver(r: ride4UsherApprove) {
+    let did = await this.context.openDialog(SuggestDriverComponent,
+      sd => sd.args = { rId: r.id, },
+      d => d.selectedId);
+    if (did.length > 0) {
+      let d = await this.context.for(Driver).findId(did);
+      if (d) {
+        r.driverId = did;
+        r.driver = d.name.value;
+        r.dMobile = d.mobile.value;
+      }
+    }
   }
 
   async approveDriver(r: rideRow) {

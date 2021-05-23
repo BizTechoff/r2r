@@ -116,7 +116,14 @@ export class DriverRidesComponent implements OnInit {
     });
   }
 
-  async startDriving(rideId: string) {
+  async accept(rideId: string) {
+    let ride = await this.context.for(Ride).findId(rideId);
+    ride.status.value = RideStatus.waitingForStart;
+    await ride.save();
+    await this.refresh();
+  }
+
+  async drive(rideId: string) {
     let ride = await this.context.for(Ride).findId(rideId);
     ride.status.value = RideStatus.waitingForPickup;
     await ride.save();

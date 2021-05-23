@@ -1,11 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { BusyService, SelectValueDialogComponent } from '@remult/angular';
-import { Context, StringColumn, ValueListItem } from '@remult/core';
+import { Context, ServerFunction, StringColumn, ValueListItem } from '@remult/core';
 import { DialogService } from '../../common/dialog';
-import { GridDialogComponent } from '../../common/grid-dialog/grid-dialog.component';
 import { InputAreaComponent } from '../../common/input-area/input-area.component';
+import { Roles } from '../../users/roles';
 import { LocationAreaComponent } from '../locations/location-area/location-area.component';
-import { Ride } from '../rides/ride';
+import { Ride, RideStatus } from '../rides/ride';
 import { Usher } from '../usher/usher';
 import { Driver, openDriver } from './driver';
 import { DriverPrefs } from './driverPrefs';
@@ -59,15 +59,15 @@ export class DriversComponent implements OnInit {
       //showInLine: (this.context.for(DriverPrefs).count(p => p.driverId.isEqualTo("")).then(() => { return true; })),
     }, {
       textInMenu: "______________________",//seperator
-    },  {
+    }, {
       name: "Prefered Borders",
       click: async (d) => await this.openPreferencesDialog(d),
       icon: "settings_suggest",
       visible: (d) => !d.isNew(),
       //showInLine: (this.context.for(DriverPrefs).count(p => p.driverId.isEqualTo("")).then(() => { return true; })),
-    },  {
+    }, {
       textInMenu: "______________________",//seperator
-    },  {
+    }, {
       textInMenu: "Edit Driver",
       icon: "edit",
       visible: (p) => !p.isNew(),
@@ -166,6 +166,27 @@ export class DriversComponent implements OnInit {
 
   async openSuggestedRidesForDriverDialog(d: Driver) {
     let suggestedRides = await Usher.getSuggestedRidesForDriver(d.id.value);
+    suggestedRides=[];
+    let rIds = await DriversComponent.suggestRidesForMe(d.id.value, this.context);
+    for await (const row of this.context.for(Ride).iterate({
+      where: r=> r.id.isIn(...rIds.map(itm => itm.rid)),
+    })) {
+      suggestedRides.push({
+        id: row.id.value,
+        date: row.date.value,
+        from:row.fromLocation.value,
+        to:row.toLocation.value,
+        passengers: row.passengers(),
+        phones: '',
+        groupByLocation: false,
+        icons: [],
+        ids: [],
+        isWaitingForArrived: row.isWaitingForArrived(),
+        isWaitingForPickup: row.isWaitingForPickup(),
+        isWaitingForStart: row.isWaitingForStart(),
+        isWaitingForUsherApproove: row.isWaitingForUsherApproove(),
+      });
+    }
 
     let values: ValueListItem[] = [];
     for (const ride of suggestedRides) {
@@ -215,6 +236,33 @@ export class DriversComponent implements OnInit {
     //   }),
 
     // });
+  }
+
+  static async getBordersIds(did: string, context?: Context): Promise<string[]> {
+    let borders: string[] = [];
+    for await (const pref of await context.for(DriverPrefs).iterate({
+      where: pf => pf.driverId.isEqualTo(did),
+    })) {
+      borders.push(pref.locationId.value);
+    }
+    return borders;
+  }
+
+  @ServerFunction({ allowed: [Roles.admin, Roles.usher] })
+  static async suggestRidesForMe(did: string, context?: Context) {
+    let result: {
+      rid: string,
+    }[] = [];
+
+    let borders = await DriversComponent.getBordersIds(did, context);
+    for await (const ride of context.for(Ride).iterate({
+      where: r => r.fromLocation.isIn(...borders)
+        .and(r.status.isIn(RideStatus.waitingForDriver)),
+    })) {
+      result.push({ rid: ride.id.value });
+    }
+
+    return result;
   }
 
 }

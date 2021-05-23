@@ -91,6 +91,12 @@ export class Driver extends IdEntity {
     : false;
   }
 
+  hasMobile() {
+    return this.mobile && this.mobile.value && this.mobile.value.length > 0
+    ? true
+    : false;
+  }
+
   hasBirthDate() {
     return this.birthDate && this.birthDate.value && this.birthDate.value.getFullYear() > 1900
     ? true

@@ -1,4 +1,5 @@
 import { DateTimeColumn } from "@remult/core";
+import { RideStatus } from "../core/rides/ride";
 
 export class changeDate extends DateTimeColumn {
   readonly = true;
@@ -11,7 +12,7 @@ export interface getRideList4UsherParams {
 };
 
 export interface driver4UsherSuggest {
-  id: string,
+  did: string,
   name: string,
   mobile: string,
   home: string,
@@ -20,9 +21,10 @@ export interface driver4UsherSuggest {
   lastRideDays: number,
   lastCallDays: number,
   isMatchPrefs: boolean,
-  reason: string,
+  reasons: string[],
+  priority: number,
 };
-
+ 
 export interface ride4UsherRideRegister {
   rgId: string,
   date: Date,
@@ -129,6 +131,7 @@ export interface ride4UsherApprove {
   visitTime: Date,
   passengers: number,
   patient: string,
+  status: string,
 };
 
 export interface ride4UsherSetDriver {

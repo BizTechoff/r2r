@@ -1,6 +1,8 @@
 <div class="full-page">
     <div class="header">
-        <h3>Suggested Drivers</h3>
+        <u>
+            <h3>Set Driver</h3>
+        </u>
         <!-- <table style="width: 100%;">
             <tr>
                 <th>name</th>
@@ -11,6 +13,7 @@
                 <th>reason</th>
             </tr>
         </table> -->
+        <!-- <hr> -->
     </div>
     <div class="grow-item">
         <table style="width: 100%;">
@@ -22,17 +25,22 @@
                 <th>lastCallDays</th>
                 <th>reason</th>
             </tr>
-            <tr *ngFor="let d of drivers">
+            <tr *ngFor="let d of drivers" (click)="onDriverSelected(d)">
                 <td>{{ d.name }}</td>
                 <td>{{ d.mobile }}</td>
                 <td>{{ d.home }}</td>
                 <td>{{ d.lastRideDays }}</td>
                 <td>{{ d.lastCallDays}}</td>
-                <td>{{ d.reason }}</td>
+                <td>
+                    <tr *ngFor="let rsn of d.reasons">
+                        <td>{{ rsn }}</td>
+                    </tr>
+                </td>
             </tr>
         </table>
     </div>
     <div class="footer">
+        <hr>
         <span>Found: {{ drivers.length }}</span>
     </div>
 </div>
