@@ -76,7 +76,7 @@ export class DriverRidesComponent implements OnInit {
           to: to,
           contactsCount: contactsCount,
           date: ride.date.value,
-          time: ride.visitTime.value,
+          // pickupTime: ride.pickupTime.value,
           visitTime: ride.visitTime.value,
           passengers: ride.passengers(),
           age: age,

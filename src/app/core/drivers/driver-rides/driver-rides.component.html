@@ -33,11 +33,12 @@
                             <td>
                                 <button (click)="openWaze(r.from)"
                                     style="color: blue;background-color: transparent;border: transparent;">
-                                    <u>{{ r.from + (r.time?' (' + (r.time | date: "HH:mm") + ')' : "")}}</u>
+                                    <u>{{ r.from + ' (' + (r.visitTime)+ ')' }}</u>
+                                    <!-- <u>{{ r.from + (r.time?' (' + (r.time | date: "HH:mm") + ')' : "")}}</u> -->
                                 </button>
                                 {{ ' -> ' }}
                                 <button mat-flat-button style="color: blue;background-color: transparent;">
-                                    <u>{{ r.to + ' (' + (r.visitTime | date: "HH:mm")+ ')'}}</u>
+                                    <u>{{ r.to + ' (' + (r.visitTime)+ ')'}}</u>
                                 </button>
                             </td>
                         </tr>

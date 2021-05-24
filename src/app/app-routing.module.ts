@@ -16,13 +16,14 @@ import { RegisterRidesComponent } from './core/rides/register-rides/register-rid
 import { ReturnRidesComponent } from './core/rides/return-rides/return-rides.component';
 import { RidesComponent } from './core/rides/rides.component';
 import { UsherComponent } from './core/usher/usher.component';
+import { DemoComponent } from './demo/demo.component';
 import { HomeComponent } from './home/home.component';
 import { AdminGuard, DriverGuard, MatcherGuard, UsherGuard } from './users/roles';
 import { UsersComponent } from './users/users.component';
 
 
 const routes: Routes = [
-
+{path:'demo',component: DemoComponent},
   // Driver
   { path: 'Rides4Driver', component: DriverRidesComponent, canActivate: [DriverGuard], data: { name: "My Rides" } },
   { path: 'Settings', component: DriverSettingsComponent, canActivate: [DriverGuard], data: { name: "Settings" } },
@@ -30,15 +31,15 @@ const routes: Routes = [
   { path: 'Register New Rides', component: DriverRegisterComponent, canActivate: [DriverGuard], data: { name: "Registers" } },
   { path: 'UsefulInformation', component: DriverUsefulInformationComponent, canActivate: [DriverGuard], data: { name: "Useful Information" } },
 
+  // Matcher
+  { path: 'PatientsMatcher', component: PatientsComponent, canActivate: [MatcherGuard], data: { name: "Patients" } },
+  { path: 'PatientsApproveMatcher', component: ApprovePatientRideComponent, canActivate: [MatcherGuard], data: { name: "Patients Rides" } },
+
   // Usher
   { path: 'Rides4Usher', component: UsherComponent, canActivate: [UsherGuard], data: { name: "Rides" } },
   // { path: 'Rides', component: RidesComponent, canActivate: [UsherGuard] },
   { path: 'Drivers', component: DriversComponent, canActivate: [UsherGuard] },
-  { path: 'PatientsMatcher', component: PatientsComponent, canActivate: [UsherGuard], data: { name: "Patients" } },
-
-  // Matcher
-  { path: 'PatientsMatcher', component: PatientsComponent, canActivate: [MatcherGuard], data: { name: "Patients" } },
-  { path: 'PatientsApproveMatcher', component: ApprovePatientRideComponent, canActivate: [MatcherGuard], data: { name: "Patients Rides" } },
+  { path: 'PatientsUsher', component: PatientsComponent, canActivate: [UsherGuard], data: { name: "Patients" } },
 
   { path: 'Locations', component: LocationsComponent, canActivate: [UsherGuard] },
   { path: 'Register Rides', component: RegisterRidesComponent, canActivate: [UsherGuard], data: { name: "Register Rides" } },

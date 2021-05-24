@@ -13,13 +13,14 @@ export class ApprovePatientRideComponent implements OnInit {
 
   today = new Date();
   ridesSettings = this.context.for(Ride).gridSettings({
-    where: r => r.date.isGreaterOrEqualTo(this.today)
-      .and(r.isHasDriver() ? new Filter(() => { true }) : new Filter(() => { false }))
+    where: r => new Filter(f => f.isNotNull(r.driverId))
+      .and(new Filter(f => f.isDifferentFrom(r.driverId, '')))
       .and(r.status.isIn(RideStatus.waitingForStart)),
     numOfColumnsInGrid: 10,
     columnSettings: (r) => [
       r.patientId,
       r.driverId,
+      r.status,
     ],
     rowButtons: [
       {
@@ -46,12 +47,12 @@ export class ApprovePatientRideComponent implements OnInit {
   }
 
   async approve(r: Ride) {
-    let pName = await this.context.for(Patient).findId(r.patientId);
+    let pName = await (await this.context.for(Patient).findId(r.patientId)).name.value;
     let answer = await this.context.openDialog(YesNoQuestionComponent, ynq => ynq.args = {
-      message: `You approved ride, Send message to patient? (${pName})`,
+      message: `You approved ride! Send message to patient? (${pName})`,
       isAQuestion: true,
     });
-    if(answer && answer == true){
+    if (answer && answer == true) {
       console.log(`Send Message To: ${pName}, Hi found a ride for you: driver, Please be at 'place' on time 'HH:mm', TX.`);
     }
   }

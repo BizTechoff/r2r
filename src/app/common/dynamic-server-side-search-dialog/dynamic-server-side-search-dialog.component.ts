@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
 import { BusyService } from '@remult/angular';
-import { AndFilter, Context, Entity, EntityType, EntityWhere, EntityWhereItem, SpecificEntityHelper, StringColumn } from '@remult/core';
+import { Context, Entity, EntityWhereItem, SpecificEntityHelper, StringColumn } from '@remult/core';
 
 @Component({
   selector: 'app-dynamic-server-side-search-dialog',
@@ -42,12 +42,14 @@ export class DynamicServerSideSearchDialogComponent implements OnInit {
   }
   async loadProducts() {
     this.items = await this.entityContext.find({
-      where:[ p =>
+      where: [p =>
         // if there is a search value, search by it
-        
+
         this.searchString.value ? this._args.searchColumn(p).isContains(this.searchString)
           : undefined
-    ]}); 
+      ],
+      orderBy: p => [{ column: this._args.searchColumn(p) }],
+    });
   }
 
   searchString = new StringColumn({
@@ -70,7 +72,7 @@ export class DynamicServerSideSearchDialogComponent implements OnInit {
     this.title = this.entityContext.create().defs.caption;
 
   }
-  clear(){
+  clear() {
     this._args.onClear();
     this.dialogRef.close();
   }
@@ -88,6 +90,6 @@ export interface dynamicSearchDialog<T extends Entity> {
   onClear?: () => void;
   onSelect: (item: T) => void;
   searchColumn: (item: T) => StringColumn;
-  where?:EntityWhereItem<T>;
+  where?: EntityWhereItem<T>;
 
 }

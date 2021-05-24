@@ -51,6 +51,7 @@ import { PatientCrudComponent } from './core/patients/patient-crud/patient-crud.
 import { ReturnRidesComponent } from './core/rides/return-rides/return-rides.component';
 import { SuggestDriverComponent } from './core/usher/suggest-driver/suggest-driver.component';
 import { ApprovePatientRideComponent } from './core/patients/approve-patient-ride/approve-patient-ride.component';
+import { DemoComponent } from './demo/demo.component';
 
 
 @NgModule({
@@ -85,6 +86,7 @@ import { ApprovePatientRideComponent } from './core/patients/approve-patient-rid
     ReturnRidesComponent,
     SuggestDriverComponent,
     ApprovePatientRideComponent,
+    DemoComponent,
   ],
   imports: [
     BrowserModule,

@@ -25,7 +25,7 @@
                 <th>lastCallDays</th>
                 <th>reason</th>
             </tr>
-            <tr *ngFor="let d of drivers" (click)="onDriverSelected(d)">
+            <tr *ngFor="let d of drivers" (dblclick)="onDriverSelected(d)">
                 <td>{{ d.name }}</td>
                 <td>{{ d.mobile }}</td>
                 <td>{{ d.home }}</td>

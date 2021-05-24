@@ -21,18 +21,19 @@ export class Ride extends IdEntity {
     fromLocation = new LocationIdColumn({}, this.context);
     toLocation = new LocationIdColumn({}, this.context);
     date = new DateColumn({
-        valueChange: () => {
-            if (this.isHasDate() && this.isHasVisitTime()) {
-                this.visitTime.value = new Date(
-                    this.date.value.getFullYear(),
-                    this.date.value.getMonth(),
-                    this.date.value.getDate(),
-                    this.visitTime.value.getHours(),
-                    this.visitTime.value.getMinutes());
-            }
-        }, 
+        // valueChange: () => {
+        //     if (this.isHasDate() && this.isHasVisitTime()) {
+        //         this.visitTime.value = new Date(
+        //             this.date.value.getFullYear(),
+        //             this.date.value.getMonth(),
+        //             this.date.value.getDate(),
+        //             this.visitTime.value.getHours(),
+        //             this.visitTime.value.getMinutes());
+        //     }
+        // }, 
     });
-    visitTime = new DateTimeColumn({});
+    visitTime = new StringColumn({defaultValue: '00:00'});
+    pickupTime = new StringColumn({defaultValue: '00:00'});
     dayPeriod = new DayPeriodColumn();
     dayOfWeek = new DayOfWeekColumn({});
     isHasBabyChair = new BoolColumn({ caption: 'Has Baby Chair' });
@@ -101,7 +102,7 @@ export class Ride extends IdEntity {
     }
 
     isHasVisitTime() {
-        return this.visitTime && this.visitTime.value && this.visitTime.value.getHours() > 0;
+        return this.visitTime && this.visitTime.value && this.visitTime.value.length > 0 && (!(this.visitTime.value === '00:00'));
     }
 
     isExsistPatient(): boolean {
@@ -328,7 +329,7 @@ export async function addRide(rid: string, context: Context): Promise<boolean> {
 
     var ride = context.for(Ride).create();
     ride.date.value = tomorrow;
-    ride.visitTime.value = tomorrow10am;
+    // ride.visitTime.value = tomorrow10am;
     ride.dayOfWeek.value = DriverPrefs.getDayOfWeek(ride.date.getDayOfWeek());
     ride.dayPeriod.value = DayPeriod.morning;
     // ride.patientId.value = p.id.value;
@@ -353,7 +354,7 @@ export async function addRide(rid: string, context: Context): Promise<boolean> {
                 {
                     column: ride.visitTime,
                     visible: (r) => ride.dayPeriod.value == DayPeriod.morning,
-                    displayValue: ride.isHasVisitTime() ? formatDate(ride.visitTime.value, "HH:mm", 'en-US') : "",
+                    inputType: 'time',
                 },
                 ride.isHasBabyChair,
                 ride.isHasWheelchair,

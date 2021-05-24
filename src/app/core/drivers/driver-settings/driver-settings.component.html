@@ -1,32 +1,14 @@
 <mat-card>
     <data-area [settings]="driverSettings"></data-area>
-    <!-- <table style="width: 100%;">
-        <tr>
-            <td>
-                <data-area [settings]="driverSettings"></data-area>
-            </td>
-            <td class="grow-item">
-                <table style="width: 100%; height: 100%;">
-                    <tr *ngFor="let pf of driverLocations">
-                        <td><mat-checkbox></mat-checkbox></td>
-                        <td>{{ pf.id.value }}</td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table> -->
-  
     <div style="display:flex; justify-content: space-between;">
-        
-      <button mat-raised-button color="accent" (click)="update()">
-        Update
-      </button>
-      
-      <button mat-raised-button color="accent" (click)="openPreferedBorders()">
-        Prefered Borders ({{ selectedCount }})
-      </button>
-      
-      </div>
-  
-  </mat-card>
-  
+
+        <button mat-raised-button color="accent" (click)="update()">
+            Update
+        </button>
+
+        <button mat-raised-button color="accent" (click)="openPreferedBorders()">
+            Prefered Borders ({{ selectedCount }})
+        </button>
+
+    </div>
+</mat-card>

@@ -17,8 +17,13 @@
     <div>
         <table style="width: 100%;">
             <tr>
-                <td>
-                    <data-area [settings]="toolbar"></data-area>
+                <td style="display:flex;">
+                    <button style="height: 40px;" mat-raised-button color="primary" (click)="prevDay()">-</button>
+                    <data-control [column]="params.date"></data-control>
+                    <button style="height: 40px;" mat-raised-button color="primary" (click)="nextDay()">+</button>
+                    <data-control [column]="params.fid"></data-control>
+                    <data-control [column]="params.tid"></data-control>
+                    <!-- <data-area [settings]="toolbar"></data-area> -->
                 </td>
                 <td style="padding-left: 15px;">
                     <table style="width: 100%;">

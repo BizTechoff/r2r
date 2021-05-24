@@ -102,7 +102,7 @@ export class RidesComponent implements OnInit {
       // r.date,
       {
         column: r.visitTime,
-        displayValue: r.isHasVisitTime() ? formatDate(r.visitTime.value.getTime(), "HH:mm", 'en-US') : "",
+        inputType: 'time',
       },
       r.fromLocation,
       r.toLocation,

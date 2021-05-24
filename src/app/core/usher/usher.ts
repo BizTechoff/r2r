@@ -1,5 +1,5 @@
 import { formatDate } from "@angular/common";
-import { ColumnSettings, Context, DateColumn, Filter, ServerFunction, ValueListColumn } from "@remult/core";
+import { ColumnSettings, Context, DateColumn, DateTimeColumn, Filter, ServerController, ServerFunction, StringColumn, ValueListColumn } from "@remult/core";
 import { getRideList4UsherParams, ride4Usher, ride4UsherApprove, ride4UsherSetDriver } from "../../shared/types";
 import { Utils } from "../../shared/utils";
 import { Roles } from "../../users/roles";
@@ -38,7 +38,7 @@ export interface UsherRideGroup {
 export interface UsherRideRow {
     id: string,
     date: Date,
-    visitTime: Date,
+    visitTime: string,
     from: string,
     to: string,
     passengers: number,
@@ -128,10 +128,11 @@ export class Usher {
     static async getRideList4Usher(params: getRideList4UsherParams, context?: Context): Promise<ride4Usher[]> {
         var result: ride4Usher[] = [];
         params = {
-           date: new Date(2021,2,3),// await Utils.getServerDate(),// params.date,
-           fromId: params.fromId,
+           date:  await Utils.getServerDate(),// params.date,// DateTimeColumn.stringToDate(params.date.toISOString()),//
+           fromId: params.fromId, 
            toId: params.toId,  
         };
+        console.log('received: ' + params.date);
         
         for await (const ride of context.for(Ride).iterate({
             where: r => r.date.isEqualTo(params.date)
@@ -710,14 +711,15 @@ export class Usher {
     static async getRegisteredRidesForPatient(patientId: string, context?: Context) {
         let result: rides4PatientRow[] = [];
 
-        let today = await Utils.getServerDate();
+        let today = new Date(2021,2,3);
         // let tomorrow = addDays(1);
         let todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());//T00:00:00
         // let tomorrowDate = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());//T00:00:00
 
         for await (const ride of context.for(Ride).iterate({
-            where: r => (r.date.isGreaterOrEqualTo(todayDate))
-                .and(r.patientId.isEqualTo(patientId)),
+            // where: r => (r.date.isGreaterOrEqualTo(todayDate))
+            //     .and(r.patientId.isEqualTo(patientId)),
+            where: r=> r.patientId.isEqualTo(patientId),
             orderBy: r => [{ column: r.date, descending: false }],
         })) {
 
@@ -1040,8 +1042,8 @@ export class Usher {
     }
 }
 
-export function addDays(days: number) {
-    var x = new Date();
+export function addDays(days: number, date?:Date ) {
+    var x = date? date: new Date();
     x.setDate(x.getDate() + days);
     return x;
 }
@@ -1155,3 +1157,5 @@ export interface ridesWaiting4Driver {
     title: string,
     rows: rides4Usher[],
 };
+
+

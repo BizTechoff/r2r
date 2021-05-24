@@ -17,6 +17,18 @@ export class ReturnRidesComponent implements OnInit {
     where: r => r.date.isEqualTo(this.today)
       .and(r.status.isIn(...RideStatus.isCanBackRide))
       .and(r.hadBackId() ? new Filter(() => false) : new Filter(() => { })),
+      numOfColumnsInGrid: 10,
+      columnSettings: r => [
+        r.fromLocation,
+        r.toLocation,
+        r.date,
+        r.driverId,
+        r.status,
+        r.statusDate,
+        r.driverRemark,
+        r.patientId,
+        r.visitTime,
+      ],
     rowButtons: [
       {
         textInMenu: 'Create Back Ride',
@@ -41,7 +53,7 @@ export class ReturnRidesComponent implements OnInit {
   @ServerFunction({ allowed: [Roles.usher, Roles.admin] })
   static async retrieve(context?: Context) {
 
-  }
+  } 
 
   async addBackRide(r: Ride) {
 

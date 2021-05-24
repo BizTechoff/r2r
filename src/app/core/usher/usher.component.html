@@ -17,8 +17,13 @@
     <div>
         <table style="width: 100%;">
             <tr>
-                <td>
-                    <data-area [settings]="toolbar"></data-area>
+                <td style="display:flex;">
+                    <button style="height: 40px;" mat-raised-button color="primary" (click)="prevDay()">-</button>
+                    <data-control [column]="params.date"></data-control>
+                    <button style="height: 40px;" mat-raised-button color="primary" (click)="nextDay()">+</button>
+                    <data-control [column]="params.fid"></data-control>
+                    <data-control [column]="params.tid"></data-control>
+                    <!-- <data-area [settings]="toolbar"></data-area> -->
                 </td>
                 <td style="padding-left: 15px;">
                     <button mat-mini-fab title="Refresh" (click)="refresh()" color="primary">
@@ -64,16 +69,10 @@
                 <td *ngIf="r.needDriver == 0">{{ r.needDriver }}</td>
                 <td *ngIf="r.needDriver > 0"><button (click)="openSetDriver(r)"><u>{{ r.needDriver }}</u></button> </td>
                 <td *ngIf="r.needApprove == 0">{{ r.needApprove }}</td>
-                <td *ngIf="r.needApprove > 0"><button (click)="openApproveDriver(r)"><u>{{ r.needApprove }}</u></button> </td>
+                <td *ngIf="r.needApprove > 0"><button (click)="openApproveDriver(r)"><u>{{ r.needApprove }}</u></button>
+                </td>
                 <!-- <td><button (click)="openApproveDriver(r)"><u>{{ r.needApprove }}</u></button></td> -->
             </tr>
         </table>
-        <!-- <data-grid [settings]="ridesGrid"></data-grid> -->
-        <!-- <data-grid *ngIf="ridesGrid && ridesGrid.items && ridesGrid.items.length > 0" [settings]="ridesGrid"></data-grid> -->
-        <!-- <div *ngIf="(!(ridesGrid && ridesGrid.items && ridesGrid.items.length > 0))">
-            <span style="text-align: center;">
-                <h3>Found: 0 Records</h3>
-            </span>
-        </div> -->
 
     </div>

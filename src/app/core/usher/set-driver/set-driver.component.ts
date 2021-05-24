@@ -1,14 +1,62 @@
 import { formatDate } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { Context, DataAreaSettings, DateTimeColumn, StringColumn } from '@remult/core';
+import { Context, DataAreaSettings, DateColumn, Filter, ServerController, ServerMethod, StringColumn } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
-import { InputAreaComponent } from '../../../common/input-area/input-area.component';
 import { getRideList4UsherParams, ride4UsherSetDriver } from '../../../shared/types';
 import { Driver, DriverIdColumn } from '../../drivers/driver';
 import { Location } from '../../locations/location';
 import { Patient } from '../../patients/patient';
 import { Ride, RideStatus } from '../../rides/ride';
 import { Usher } from '../usher';
+
+
+@ServerController({ key: 'usherSerDriver', allowed: true })
+class usherSerDriver {
+  date = new DateColumn();
+  fid = new StringColumn();
+  tid = new StringColumn();
+  constructor(private context: Context){}
+
+  @ServerMethod()
+  async retrieveRideList4UsherSetDriver(): Promise<ride4UsherSetDriver[]> {
+    var result: ride4UsherSetDriver[] = [];
+
+    for await (const ride of this.context.for(Ride).iterate({
+      where: r => r.date.isEqualTo(this.date)
+        .and(r.status.isNotIn(...[RideStatus.succeeded]))
+        .and(this.fid.value ? r.fromLocation.isEqualTo(this.fid) : new Filter(x => { /* true */ }))
+        .and(this.tid.value ? r.toLocation.isEqualTo(this.tid) : new Filter(x => { /* true */ })),
+    })) {
+      let from = (await this.context.for(Location).findId(ride.fromLocation.value)).name.value;
+      let to = (await this.context.for(Location).findId(ride.toLocation.value)).name.value;
+      let driver = ride.isHasDriver() ? (await this.context.for(Driver).findId(ride.driverId.value)).name.value : "";
+      let patient = ride.isHasPatient() ? (await this.context.for(Patient).findId(ride.patientId.value)).name.value : "";
+
+      let row = result.find(r => r.id === ride.id.value);
+      if (!(row)) {
+        row = {
+          id: ride.id.value,
+          patientId: ride.patientId.value,
+          driverId: ride.driverId.value,
+          from: from,
+          to: to,
+          driver: driver,
+          patient: patient,
+          dMobile: "",
+          passengers: ride.passengers(),
+          selected: false,
+          visitTime: ride.visitTime.value,
+        };
+        result.push(row);
+      }
+    }
+
+    console.log(result)
+    result.sort((r1, r2) => r1.from.localeCompare(r2.from));
+
+    return result;
+  }
+}
 
 export interface rideRow {
   id: string,
@@ -28,6 +76,9 @@ export interface rideRow {
   styleUrls: ['./set-driver.component.scss']
 })
 export class SetDriverComponent implements OnInit {
+  
+  params = new usherSerDriver(this.context);
+
   clearSelections() {
     for (const row of this.rides) {
       row.selected = false;
@@ -36,9 +87,11 @@ export class SetDriverComponent implements OnInit {
   }
 
   driverSeats: number = 0;
-  visitTime = "00:00";
+  //selectedVisitTime = "12:00";
+  selectedPickupTime = "00:00";
   driverId = new DriverIdColumn({
-    caption: "Select Driver To Set", valueChange: async () => {
+    caption: "Select Driver To Set",
+    valueChange: async () => {
       this.driverSeats = (await this.context.for(Driver).findId(this.driverId.value)).seats.value;
       if (this.selectedPassengers > this.driverSeats) {
         this.clearSelections();
@@ -63,46 +116,68 @@ export class SetDriverComponent implements OnInit {
   constructor(protected context: Context, private dialog: DialogService) { }
 
   async ngOnInit() {
+    this.params.date.value = this.args.date;
+    this.params.fid.value = this.args.from;
+    this.params.tid.value = this.args.to;
+
     this.fromName = (await this.context.for(Location).findId(this.args.from)).name.value;
     this.toName = (await this.context.for(Location).findId(this.args.to)).name.value;
-
+    console.log(this.args);
     await this.retrieve();
   }
 
   async retrieve() {
-    
-    let params: getRideList4UsherParams = {
-      date: this.args.date,
-      fromId: this.args.from,
-      toId: this.args.to,
-    };
 
-    this.rides = await Usher.getRideList4UsherSetDriver(params, this.context);
+    this.rides = await this.params.retrieveRideList4UsherSetDriver();
   }
 
   async setDriver() {
-    let setStatusToApproved = this.dialog.yesNoQuestion("Set status To approved-by-driver");
+    let setStatusToApproved = await this.dialog.yesNoQuestion("Set status To approved-by-driver");
     for (const r of this.rides) {
-      if (r.selected) { 
+      if (r.selected) {
         let ride = await this.context.for(Ride).findId(r.id);
-        // ride.visitTime.value = 
+        ride.pickupTime.value = this.selectedPickupTime;
         ride.driverId.value = this.driverId.value;
         ride.status.value = RideStatus.waitingForAccept;
         if (setStatusToApproved) {
           ride.status.value = RideStatus.waitingForStart;
         }
         await ride.save();
+        let d = await this.context.for(Driver).findId(this.driverId.value);
+        r.driver = d.name.value;
+        r.driverId = this.driverId.value;
       }
     }
+    this.clearSelections();
   }
 
   selectionRowChanged(r: rideRow) {
+    let min:string = '23:59';
+    //  console.log(min);
+    let minChanged = false;
     this.selectedPassengers = 0;
     for (const row of this.rides) {
+      // console.log(row.visitTime);
+      // console.log(row.visitTime > min);
+      // console.log(row.visitTime <= min);
       if (row.selected) {
         this.selectedPassengers += row.passengers;
+        if (row.visitTime  < min) {
+          min = row.visitTime;
+          minChanged = true;
+        }
       }
     }
+    if (minChanged) {
+      let hour = min.split(':');
+      if(hour.length > 1)
+      {
+        min = ('' + (parseInt( hour[0]) - 2)).padStart(2, "0") + ":" + hour[1];
+      }
+      this.selectedPickupTime = min;
+    }
+    // console.log(min);
+    // console.log(this.selectedPickupTime);
   }
   selectionAllChanged() {
 

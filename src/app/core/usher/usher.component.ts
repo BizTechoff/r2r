@@ -1,18 +1,81 @@
 import { Component, OnInit } from '@angular/core';
-import { Context, DataAreaSettings, DateColumn, Filter, GridSettings, NumberColumn, ServerFunction } from '@remult/core';
-import { DynamicServerSideSearchDialogComponent } from '../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component';
+import { Context, DataAreaSettings, DateColumn, Filter, GridSettings, ServerController, ServerFunction, ServerMethod } from '@remult/core';
 import { getRideList4UsherParams, ride4Usher } from '../../shared/types';
 import { Roles } from '../../users/roles';
 import { Driver, openDriver } from '../drivers/driver';
-import { Location, LocationIdColumn } from '../locations/location';
+import { Location, LocationIdColumn, LocationType } from '../locations/location';
 import { Patient } from '../patients/patient';
 import { PatientCrudComponent } from '../patients/patient-crud/patient-crud.component';
 import { addRide, openRide, Ride, RideStatus } from '../rides/ride';
-import { ApproveDriverComponent } from './approve-driver/approve-driver.component';
 import { MabatGroupBy } from './mabat';
 import { SetDriverComponent } from './set-driver/set-driver.component';
 import { ShowRidesComponent, UsherRowStatus } from './show-rides/show-rides.component';
-import { Usher, UsherRideGroup, UsherRideRow } from './usher';
+import { addDays, Usher, UsherRideGroup, UsherRideRow } from './usher';
+
+
+
+@ServerController({ key: 'usherParams', allowed: true })
+class usherParams {//dataControlSettings: () => ({width: '150px'}), 
+  date = new DateColumn({ defaultValue: new Date(2021,2,3), valueChange: async () => { await this.onChanged(); } });
+  fid = new LocationIdColumn({ valueChange: async () => { await this.onChanged(); } }, this.context);
+  tid = new LocationIdColumn({ valueChange: async () => { await this.onChanged(); } }, this.context);
+  // date = new DateColumn({ defaultValue: new Date(), valueChange: async () => { if(this.ready) await this.retrieveRideList4Usher(1); } });
+  // fid = new LocationIdColumn({ valueChange: async () => { if(this.ready) await this.retrieveRideList4Usher(2); } }, this.context);
+  // tid = new LocationIdColumn({ valueChange: async () => { if(this.ready) await this.retrieveRideList4Usher(3); } }, this.context);
+  constructor(private context: Context) { }
+  ready = false;
+  onChanged = async () => {};
+  
+  @ServerMethod()
+  async retrieveRideList4Usher(id:number): Promise<ride4Usher[]> {
+    var result: ride4Usher[] = [];
+// console.log(id);
+    for await (const ride of this.context.for(Ride).iterate({
+      where: r => r.date.isEqualTo(this.date)
+        .and(r.status.isNotIn(...[RideStatus.succeeded]))
+        .and(this.fid.value ? r.fromLocation.isEqualTo(this.fid) : new Filter(x => { /* true */ }))
+        .and(this.tid.value ? r.toLocation.isEqualTo(this.tid) : new Filter(x => { /* true */ })),
+    })) {
+      let from = (await this.context.for(Location).findId(ride.fromLocation.value));
+      let fromName = from.name.value;
+      let fromIsBorder = from.type.value == LocationType.border;
+      let to = (await this.context.for(Location).findId(ride.toLocation.value));
+      let toName = to.name.value;
+      let toIsBorder = to.type.value == LocationType.border;
+      let key = `${fromName}-${toName}`;
+
+      let row = result.find(r => r.key === key);
+      if (!(row)) {
+        row = {
+          key: key,
+          fromIsBorder: fromIsBorder,
+          toIsBorder: toIsBorder,
+          fromId: from.id.value,
+          toId: to.id.value,
+          from: fromName,
+          to: toName,
+          inProgress: 0,
+          needApprove: 0,
+          needDriver: 0,
+          passengers: 0,
+          ridesCount: 0,
+          ids: [],
+        };
+        result.push(row);
+      }
+
+      row.inProgress += ([RideStatus.waitingForPickup, RideStatus.waitingForArrived].includes(ride.status.value) ? 1 : 0);
+      row.needApprove += (ride.status.value == RideStatus.waitingForAccept ? 1 : 0);
+      row.needDriver += (ride.isHasDriver() ? 0 : 1);
+      row.passengers += ride.passengers();
+      row.ridesCount += 1;
+    }
+    
+    result.sort((r1, r2) => (r1.from + '-' + r1.to).localeCompare(r2.from + '-' + r2.to));
+
+    return result;
+  }
+}
 
 @Component({
   selector: 'app-usher',
@@ -21,11 +84,7 @@ import { Usher, UsherRideGroup, UsherRideRow } from './usher';
 })
 export class UsherComponent implements OnInit {
 
-  selectedDate: DateColumn;
-  selectedFrom: LocationIdColumn;
-  selectedTo: LocationIdColumn;
-  toolbar: DataAreaSettings;
-
+  params = new usherParams(this.context);
   ridesGrid: GridSettings<Ride>;
 
   //for(UsherRideRow)
@@ -36,33 +95,37 @@ export class UsherComponent implements OnInit {
   demoDates: string;
   static lastRefreshDate: Date = new Date();//client time
 
-  constructor(public context: Context) { }
+  constructor(public context: Context) {
+  }
 
   async ngOnInit() {
-
     let date = new Date(2021, 2, 3);
-    this.selectedFrom = new LocationIdColumn({ caption: "From" }, this.context);
-    this.selectedTo = new LocationIdColumn({ caption: "To" }, this.context);
-    this.selectedDate = new DateColumn({ caption: "Date", defaultValue: new Date(date.getFullYear(), date.getMonth(), date.getDate()) });
-    this.toolbar = new DataAreaSettings({
-      columnSettings: () => [
-        [this.selectedDate, this.selectedFrom, this.selectedTo]
-      ],
-    });
     await this.refresh();
+    this.params.ready = true;
+    this.params.onChanged =  async() => {await this.refresh();};
   }
 
   filter(r: Ride, from: string, to: string): Filter {
-    return r.date.isEqualTo(this.selectedDate)
+    return r.date.isEqualTo(this.params.date)
       .and(r.status.isNotIn(...[RideStatus.succeeded]))
       .and(from && (from.trim().length > 0) ? r.fromLocation.isEqualTo(from) : new Filter(x => { }))
       .and(to && (to.trim().length > 0) ? r.toLocation.isEqualTo(to) : new Filter(x => { }));
   }
 
+  async prevDay() {
+    this.params.date.value = addDays(-1, this.params.date.value);
+    console.log(this.params.date.value);
+  }
+
+  async nextDay() {
+    this.params.date.value = addDays(+1, this.params.date.value);
+    console.log(this.params.date.value);
+  }
+
   async openBackRide(r: Ride): Promise<void> {
 
     this.context.openDialog(ShowRidesComponent, sr => sr.args = {
-      date: this.selectedDate.value,
+      date: this.params.date.value,
       from: r.fromLocation.value,
       to: r.toLocation.value,
       status: UsherRowStatus.backRide,
@@ -70,9 +133,9 @@ export class UsherComponent implements OnInit {
   }
 
   async openApproveDriver(r: ride4Usher) {
-    
+
     this.context.openDialog(ShowRidesComponent, sr => sr.args = {
-      date: this.selectedDate.value,
+      date: this.params.date.value,
       from: r.fromId,
       to: r.toId,
       status: UsherRowStatus.approve4Driver,
@@ -83,18 +146,18 @@ export class UsherComponent implements OnInit {
 
   async openShowRides(r: ride4Usher) {
     this.context.openDialog(ShowRidesComponent, sr => sr.args = {
-      date: this.selectedDate.value,
+      date: this.params.date.value,
       from: r.fromId,
       to: r.toId,
       status: UsherRowStatus.all,
     });
 
   }
- 
+
 
   async openSetDriver(r: ride4Usher) {
     this.context.openDialog(SetDriverComponent, sr => sr.args = {
-      date: this.selectedDate.value,
+      date: this.params.date.value,
       from: r.fromId,
       to: r.toId,
     });
@@ -103,26 +166,20 @@ export class UsherComponent implements OnInit {
   attachToDriver() {
   }
 
-  async selectedFromChanged() {
-    console.log(this.selectedFrom.value);
-  }
-
-
-  async selectedDateChanged() { 
-    console.log(this.selectedDate.value); }
-
   items: Ride[];
   async refresh() {
+    // console.log('refresh, ' + this.params.date.value);
     this.clientLastRefreshDate = new Date();
     UsherComponent.lastRefreshDate = new Date();
     // await this.ridesGrid.reloadData();
-    let params: getRideList4UsherParams = {
-      date: this.selectedDate.value,
-      fromId: this.selectedFrom.value,
-      toId: this.selectedTo.value,
-    };
-
-    this.rides = await Usher.getRideList4Usher(params);
+    // let params: getRideList4UsherParams = {
+    //   date: this.selectedDate.value,
+    //   fromId: this.selectedFrom.value,
+    //   toId: this.selectedTo.value,
+    // };
+    this.params.onChanged = async () => {};
+    this.rides = await this.params.retrieveRideList4Usher(0);// await UsherComponent.retrueveRideList4Usher(this.params);
+    this.params.onChanged =  async() => {await this.refresh();};
   }
 
   async addRide() {
@@ -136,6 +193,58 @@ export class UsherComponent implements OnInit {
     if (fromDb) {
       result = await Usher.getRides4Usher('', context);
     }
+    return result;
+  }
+
+  @ServerFunction({ allowed: [Roles.usher, Roles.admin] })
+  static async retrueveRideList4Usher(params: usherParams, context?: Context): Promise<ride4Usher[]> {
+    var result: ride4Usher[] = [];
+    console.log('received: ' + params.date);
+
+    for await (const ride of context.for(Ride).iterate({
+      where: r => r.date.isEqualTo(params.date)
+        .and(r.status.isNotIn(...[RideStatus.succeeded]))
+        .and(params.fid.value ? r.fromLocation.isEqualTo(params.fid) : new Filter(x => { /* true */ }))
+        .and(params.tid.value ? r.toLocation.isEqualTo(params.tid) : new Filter(x => { /* true */ })),
+    })) {
+      let from = (await context.for(Location).findId(ride.fromLocation.value));
+      let fromName = from.name.value;
+      let fromIsBorder = from.type.value == LocationType.border;
+      let to = (await context.for(Location).findId(ride.toLocation.value));
+      let toName = to.name.value;
+      let toIsBorder = to.type.value == LocationType.border;
+      let key = `${fromName}-${toName}`;
+
+      let row = result.find(r => r.key === key);
+      if (!(row)) {
+        row = {
+          key: key,
+          fromIsBorder: fromIsBorder,
+          toIsBorder: toIsBorder,
+          fromId: from.id.value,
+          toId: to.id.value,
+          from: fromName,
+          to: toName,
+          inProgress: 0,
+          needApprove: 0,
+          needDriver: 0,
+          passengers: 0,
+          ridesCount: 0,
+          ids: [],
+        };
+        result.push(row);
+      }
+
+      row.inProgress += ([RideStatus.waitingForPickup, RideStatus.waitingForArrived].includes(ride.status.value) ? 1 : 0);
+      row.needApprove += (ride.status.value == RideStatus.waitingForAccept ? 1 : 0);
+      row.needDriver += (ride.isHasDriver() ? 0 : 1);
+      row.passengers += ride.passengers();
+      row.ridesCount += 1;
+    }
+
+    // console.log(result)
+    result.sort((r1, r2) => (r1.from + '-' + r1.to).localeCompare(r2.from + '-' + r2.to));
+
     return result;
   }
 

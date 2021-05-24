@@ -8,9 +8,9 @@
     </div>
     <mat-label>Selected Paasengers: {{ selectedPassengers }}</mat-label>
     <mat-divider></mat-divider>
-    <div *ngIf="selectedPassengers > 0 && driverSeats > 0 && driverSeats >= selectedPassengers">
-        Pickup Time: <input #pickup required type="time" color="primary" >
-        <button color="primary" (click)="setDriver()">Set Driver</button>
+    <div style="color: red;" *ngIf="selectedPassengers > 0 && driverSeats > 0 && driverSeats >= selectedPassengers">
+        Pickup Time: <input [(ngModel)]="selectedPickupTime" #pickup required type="time" >
+        <button mat-raised-button color="accent" *ngIf="selectedPickupTime && selectedPickupTime.length > 0 && (!(selectedPickupTime === '00:00'))" (click)="setDriver()">Set Driver</button>
     </div>
     <mat-divider></mat-divider>
     <div class="grow-item">
@@ -27,7 +27,7 @@
             </tr>
             <tr *ngFor="let r of rides">
                 <td>
-                    <mat-checkbox *ngIf="r.selected || driverSeats > selectedPassengers" [(ngModel)]="r.selected" (change)="selectionRowChanged(r)"></mat-checkbox>
+                    <mat-checkbox *ngIf="(!(r.driverId && r.driverId.length > 0)) &&  (r.selected || (driverSeats > selectedPassengers && driverSeats >= r.passengers))" [(ngModel)]="r.selected" (change)="selectionRowChanged(r)"></mat-checkbox>
                     <!-- <mat-checkbox *ngIf="r.driver.length == 0" [(ngModel)]="r.selected" (change)="selectionRowChanged(r)"></mat-checkbox> -->
                 </td>
                 <!-- <td>{{ r.from }}</td>

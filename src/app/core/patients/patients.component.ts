@@ -1,7 +1,7 @@
 import { formatDate } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { BusyService, SelectValueDialogComponent } from '@remult/angular';
-import { BoolColumn, Context, StringColumn, ValueListItem } from '@remult/core';
+import { Context, StringColumn, ValueListItem } from '@remult/core';
 import { DialogService } from '../../common/dialog';
 import { InputAreaComponent } from '../../common/input-area/input-area.component';
 import { DayPeriod, DriverPrefs } from '../drivers/driverPrefs';
@@ -85,6 +85,7 @@ export class PatientsComponent implements OnInit {
   }
 
   ngOnInit() {
+    console.log("ngOnInit");
     this.retrievePatients();
   }
 
@@ -124,9 +125,9 @@ export class PatientsComponent implements OnInit {
   }
 
   async editPatient(p: Patient) {
-    if(await this.context.openDialog(PatientCrudComponent, thus => thus.args = {
+    if (await this.context.openDialog(PatientCrudComponent, thus => thus.args = {
       pid: p.id.value, isNew: false,
-    })){
+    })) {
       await p.reload();
     }
     // let changed = await openPatient(p.id.value, this.context);
@@ -140,7 +141,7 @@ export class PatientsComponent implements OnInit {
     for (const r of rides) {
       values.push({
         id: r.id,
-        caption: r.toString(),
+        caption: r.from + '|' + r.to + '|' + formatDate(r.date, 'dd.MM.yyyy', 'en-US') + '|' + r.status.id,
       });
     };
     // console.table(relevantDrivers);
@@ -167,7 +168,7 @@ export class PatientsComponent implements OnInit {
 
     var ride = this.context.for(Ride).create();
     ride.date.value = tomorrow;
-    ride.visitTime.value = tomorrow10am;
+    // ride.visitTime.value = tomorrow10am;
     ride.dayOfWeek.value = DriverPrefs.getDayOfWeek(ride.date.getDayOfWeek());
     ride.dayPeriod.value = DayPeriod.morning;
     ride.patientId.value = p.id.value;
@@ -192,8 +193,9 @@ export class PatientsComponent implements OnInit {
           // },
           {
             column: ride.visitTime,
+            inputType: 'time',
             visible: (r) => ride.dayPeriod.value == DayPeriod.morning,
-            displayValue: ride.isHasVisitTime() ? formatDate(ride.visitTime.value, "HH:mm", 'en-US') : "",
+            // displayValue: ride.isHasVisitTime() ? formatDate(ride.visitTime.value, "HH:mm", 'en-US') : "",
           },
           ride.isHasBabyChair,
           ride.isHasWheelchair,

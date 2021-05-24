@@ -79,11 +79,11 @@ export class LocationIdColumn extends StringColumn {
       allowNull: allowNull,
       validate: () => {
         // console.log(this.defs.allowNull);
-        if (this.defs.allowNull) { }
-        else if (this.value && this.value.length > 0) { }
-        else {
-          this.validationError = " No Location Seleceted";
-        }
+        // if (this.defs.allowNull) { }
+        // else if (this.value && this.value.length > 0) { }
+        // else {
+        //   this.validationError = " No Location Seleceted";
+        // }
       },
       dataControlSettings: () => ({
         getValue: () => this.context.for(Location).lookup(this).name.value,
