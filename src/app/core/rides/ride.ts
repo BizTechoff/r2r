@@ -32,8 +32,8 @@ export class Ride extends IdEntity {
         //     }
         // }, 
     });
-    visitTime = new StringColumn({defaultValue: '00:00'});
-    pickupTime = new StringColumn({defaultValue: '00:00'});
+    visitTime = new StringColumn({defaultValue: '00:00', inputType:'time'});
+    pickupTime = new StringColumn({defaultValue: '00:00', inputType:'time'});
     dayPeriod = new DayPeriodColumn();
     dayOfWeek = new DayOfWeekColumn({});
     isHasBabyChair = new BoolColumn({ caption: 'Has Baby Chair' });

@@ -16,7 +16,7 @@ class usherSerDriver {
   fid = new StringColumn();
   tid = new StringColumn();
   constructor(private context: Context){}
-
+ 
   @ServerMethod()
   async retrieveRideList4UsherSetDriver(): Promise<ride4UsherSetDriver[]> {
     var result: ride4UsherSetDriver[] = [];

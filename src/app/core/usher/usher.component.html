@@ -14,7 +14,7 @@
 </style>
 
 <div class="full-page">
-    <div>
+    <div class="header">
         <table style="width: 100%;">
             <tr>
                 <td style="display:flex;">
@@ -75,4 +75,8 @@
             </tr>
         </table>
 
+    </div>
+    <div class="footer">
+        <hr>
+        Found: {{ rides && rides.length > 0? rides.length : 0 }} rows
     </div>
