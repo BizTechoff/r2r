@@ -18,8 +18,8 @@ export class Ride extends IdEntity {
     statusDate = new DateTimeColumn();
     importRideNum = new StringColumn();
 
-    fromLocation = new LocationIdColumn({}, this.context);
-    toLocation = new LocationIdColumn({}, this.context);
+    fromLocation = new LocationIdColumn({allowNull: false}, this.context);
+    toLocation = new LocationIdColumn({allowNull: false}, this.context);
     date = new DateColumn({
         // valueChange: () => {
         //     if (this.isHasDate() && this.isHasVisitTime()) {

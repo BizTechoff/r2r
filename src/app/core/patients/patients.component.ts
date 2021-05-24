@@ -215,8 +215,23 @@ export class PatientsComponent implements OnInit {
           click: async () => { await this.editPatient(p); }
         }
         ],
+        // validate: async () => {
+        //   if (!(ride.fromLocation.value && ride.fromLocation.value.length > 0)) {
+        //     ride.fromLocation.validationError = 'Required';
+        //   }
+        //   if (!(ride.toLocation.value && ride.toLocation.value.length > 0)) {
+        //     ride.toLocation.validationError = 'Required';
+        //   }
+        // },
         ok: async () => {
           await ride.save();
+          // if (!(ride.fromLocation.value && ride.fromLocation.value.length > 0)) {
+          //   ride.fromLocation.validationError = 'Required';
+          // }
+          // else if (!(ride.toLocation.value && ride.toLocation.value.length > 0)) {
+          //   ride.toLocation.validationError = 'Required';
+          // }
+          // else await ride.save();
           // if (isNeedReturnTrip.value && ride.dayPeriod.value == DayPeriod.morning) {
           //   var returnRide = this.context.for(Ride).create();
           //   ride.copyTo(returnRide);

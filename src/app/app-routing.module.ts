@@ -23,7 +23,7 @@ import { UsersComponent } from './users/users.component';
 
 
 const routes: Routes = [
-{path:'demo',component: DemoComponent},
+// {path:'demo',component: DemoComponent},
   // Driver
   { path: 'Rides4Driver', component: DriverRidesComponent, canActivate: [DriverGuard], data: { name: "My Rides" } },
   { path: 'Settings', component: DriverSettingsComponent, canActivate: [DriverGuard], data: { name: "Settings" } },
