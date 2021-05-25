@@ -1044,8 +1044,9 @@ export class Usher {
 
 export function addDays(days: number, date?:Date ) {
     var x = date? date: new Date();
-    x.setDate(x.getDate() + days);
-    return x;
+    var xnotime = new Date(x.getFullYear(), x.getMonth(), x.getDate());
+    xnotime.setDate(xnotime.getDate() + days);
+    return xnotime;
 }
 
 

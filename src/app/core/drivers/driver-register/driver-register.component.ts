@@ -522,7 +522,7 @@ export class DriverRegisterComponent implements OnInit {
     reg.fromHour.value = this.driver.defaultFromTime.value;// todo: r.date;
     reg.toHour.value = this.driver.defaultToTime.value;// todo: r.date;
     // reg.toHour.value = date;// todo: r.date;
-
+ 
     let seats = Math.min(r.pass, r.dPass);
     reg.seats.value = seats;
 
@@ -531,10 +531,21 @@ export class DriverRegisterComponent implements OnInit {
       x => x.args = {
         title: "Register To Ride",
         columnSettings: () => [
-          reg.fromHour,
-          reg.toHour,
+          { column: reg.fromHour, inputType: 'time' },
+          { column: reg.toHour, inputType: 'time' },
           reg.seats,
         ],
+        validate :async () => {
+          console.log(reg.fromHour.value);
+          if (!(reg.isHasFromHour())) {
+            reg.fromHour.validationError = 'Required';
+            throw reg.fromHour.defs.caption + ' ' + reg.fromHour.validationError;
+          }
+          if (!(reg.isHasToHour())) {
+            reg.toHour.validationError = 'Required';
+            throw reg.toHour.defs.caption + ' ' + reg.toHour.validationError;
+          }
+        },
         ok: async () => {
           await reg.save();
           this.driver.defaultFromTime.value = reg.fromHour.value;
@@ -542,7 +553,7 @@ export class DriverRegisterComponent implements OnInit {
           this.driver.defaultSeats.value = reg.seats.value;
           await this.driver.save();
           await this.refresh();
-        }
+        } 
       },
     );
 

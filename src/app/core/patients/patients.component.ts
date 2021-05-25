@@ -6,7 +6,7 @@ import { DialogService } from '../../common/dialog';
 import { InputAreaComponent } from '../../common/input-area/input-area.component';
 import { DayPeriod, DriverPrefs } from '../drivers/driverPrefs';
 import { Ride } from '../rides/ride';
-import { Usher } from '../usher/usher';
+import { addDays, Usher } from '../usher/usher';
 import { Patient } from './patient';
 import { PatientCrudComponent } from './patient-crud/patient-crud.component';
 
@@ -215,34 +215,33 @@ export class PatientsComponent implements OnInit {
           click: async () => { await this.editPatient(p); }
         }
         ],
-        // validate: async () => {
-        //   if (!(ride.fromLocation.value && ride.fromLocation.value.length > 0)) {
-        //     ride.fromLocation.validationError = 'Required';
-        //   }
-        //   if (!(ride.toLocation.value && ride.toLocation.value.length > 0)) {
-        //     ride.toLocation.validationError = 'Required';
-        //   }
-        // },
+        validate: async () => {
+          if (!(ride.fromLocation.value && ride.fromLocation.value.length > 0)) {
+            ride.fromLocation.validationError = 'Required';
+            throw ride.fromLocation.defs.caption + ' ' + ride.fromLocation.validationError;
+          }
+          if (!(ride.toLocation.value && ride.toLocation.value.length > 0)) {
+            ride.toLocation.validationError = 'Required';
+            throw ride.toLocation.defs.caption + ' ' + ride.toLocation.validationError;
+          }
+          if (!(ride.isHasDate())) {
+            ride.date.validationError = 'Required';
+            throw ride.date.defs.caption + ' ' + ride.date.validationError;
+          }
+          if (ride.date.value < addDays(0)) {
+            ride.date.validationError = 'Must be greater or equals today';
+            throw ride.date.defs.caption + ' ' + ride.date.validationError;
+          }
+          if (!(ride.isHasVisitTime())) {
+            ride.visitTime.validationError = 'Required';
+            throw ride.visitTime.defs.caption + ' ' + ride.visitTime.validationError;
+          }
+        },
         ok: async () => {
           await ride.save();
-          // if (!(ride.fromLocation.value && ride.fromLocation.value.length > 0)) {
-          //   ride.fromLocation.validationError = 'Required';
-          // }
-          // else if (!(ride.toLocation.value && ride.toLocation.value.length > 0)) {
-          //   ride.toLocation.validationError = 'Required';
-          // }
-          // else await ride.save();
-          // if (isNeedReturnTrip.value && ride.dayPeriod.value == DayPeriod.morning) {
-          //   var returnRide = this.context.for(Ride).create();
-          //   ride.copyTo(returnRide);
-          //   returnRide.fromLocation.value = ride.toLocation.value;
-          //   returnRide.toLocation.value = ride.fromLocation.value;
-          //   returnRide.dayPeriod.value = DayPeriod.afternoon;
-          //   await returnRide.save();
-          // }
         }
       },
     )
   }
-}
 
+}

@@ -8,8 +8,8 @@ export class RegisterDriver extends IdEntity {
     rId = new StringColumn({});
     rgId = new StringColumn({});
     dId = new DriverIdColumn({});
-    fromHour = new DateTimeColumn({ caption: 'Avaliable From Hour' });
-    toHour = new DateTimeColumn({ caption: 'Avaliable Till Hour' });
+    fromHour = new StringColumn({ caption: 'Avaliable From Hour' });
+    toHour = new StringColumn({ caption: 'Avaliable Till Hour' });
     seats = new NumberColumn({
         caption: 'Free Seats',
         validate: () => {
@@ -38,5 +38,13 @@ export class RegisterDriver extends IdEntity {
             },
         });
     };
+
+    isHasFromHour() {
+        return this.fromHour && this.fromHour.value && this.fromHour.value.length > 0 && (!(this.fromHour.value === '00:00' || this.fromHour.value === '--:--'));
+    }
+
+    isHasToHour() {
+        return this.toHour && this.toHour.value && this.toHour.value.length > 0 && (!(this.toHour.value === '00:00'));
+    }
     
 }

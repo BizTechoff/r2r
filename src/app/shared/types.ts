@@ -51,8 +51,8 @@ export interface ride4DriverRideRegister {
   to: string,
   pass: number,
   isRegistered: boolean,
-  dFromHour?: Date,
-  dToHour?: Date, 
+  dFromHour?: string,
+  dToHour?: string, 
   dPass?: number,
 };
  

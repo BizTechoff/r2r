@@ -17,15 +17,32 @@
     <div>
         <table style="width: 100%;">
             <tr>
-                <td style="display:flex;">
-                    <button style="height: 40px;" mat-raised-button color="primary" (click)="prevDay()">-</button>
-                    <data-control [column]="params.date"></data-control>
-                    <button style="height: 40px;" mat-raised-button color="primary" (click)="nextDay()">+</button>
-                    <data-control [column]="params.fid"></data-control>
-                    <data-control [column]="params.tid"></data-control>
-                    <!-- <data-area [settings]="toolbar"></data-area> -->
+                <td>
+                    <div style="display:flex;">
+                        <button style="height: 40px;" mat-raised-button color="primary" (click)="prevDay()">-</button>
+                        <data-control [column]="params.date"></data-control>
+                        <button style="height: 40px;" mat-raised-button color="primary" (click)="nextDay()">+</button>
+                        <button mat-mini-fab title="Refresh" (click)="refresh()" color="primary"
+                            title="{{ clientLastRefreshDate | date: 'HH:mm' }}">
+                            <mat-icon>refresh</mat-icon>
+                        </button>
+                    </div>
+                    <div>
+                        <!-- <span style="padding-left: 15px;">Last Retrieved: {{ clientLastRefreshDate | date:
+                            'HH:mm'
+                            }}</span> -->
+                        <mat-expansion-panel [expanded]="false">
+                            <mat-expansion-panel-header>
+                                <mat-panel-title>
+                                    Last Retrieved: {{ clientLastRefreshDate | date: 'HH:mm' }}
+                                    </mat-panel-title>
+                            </mat-expansion-panel-header>
+                            <data-control [column]="params.fid"></data-control>
+                            <data-control [column]="params.tid"></data-control>
+                        </mat-expansion-panel>
+                    </div>
                 </td>
-                <td style="padding-left: 15px;">
+                <!-- <td style="padding-left: 15px;">
                     <table style="width: 100%;">
                         <tr>
                             <td>
@@ -36,13 +53,13 @@
                         </tr>
                         <tr>
                             <td>
-                                <span style="padding-left: 15px;">Refreshed: {{ clientLastRefreshDate | date:
+                                <span style="padding-left: 15px;">{{ clientLastRefreshDate | date:
                                     'HH:mm'
                                     }}</span>
                             </td>
                         </tr>
                     </table>
-                </td>
+                </td> -->
             </tr>
         </table>
     </div>
@@ -106,7 +123,7 @@
                         <td>seats(s): {{ r.dPass }}</td>
                     </tr>
                     <tr>
-                        <td>avaliable: {{ r.dFromHour | date: 'HH:mm' }} - {{ r.dToHour | date: 'HH:mm' }}</td>
+                        <td>avaliable: {{ r.dFromHour }} - {{ r.dToHour }}</td>
                     </tr>
                     <tr>
                 </table>
