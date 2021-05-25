@@ -41,14 +41,17 @@ export class DriverRidesComponent implements OnInit {
       throw 'Error - You are not register to use app';
     }
 
+    let today = new Date();
+    today = new Date(today.getFullYear(), today.getMonth(), today.getDate());//dd/mm/yyyy 00:00:00.0
     for await (const ride of context.for(Ride).iterate({
       where: r => r.driverId.isEqualTo(driver.id)
-        .and(r.status.isIn(...RideStatus.driverWaitingStatuses)),
+      .and(r.date.isGreaterOrEqualTo(today))
+        .and(r.status.isIn(...RideStatus.isInDriverWaitingStatuses)),
     })) {
       let from = (await context.for(Location).findId(ride.fromLocation.value)).name.value;
       let to = (await context.for(Location).findId(ride.toLocation.value)).name.value;
       let pName = ride.isHasPatient() ? (await context.for(Patient).findId(ride.patientId.value)).name.value : "";
-      let age = ride.isHasPatient() ? (await context.for(Patient).findId(ride.patientId.value)).age() : undefined;
+      let age = ride.isHasPatient() ? (await context.for(Patient).findId(ride.patientId.value)).age.value : undefined;
       let pMobile = ride.isHasPatient() ? (await context.for(Patient).findId(ride.patientId.value)).mobile.value : "";
       let contactsCount = await context.for(Contact).count(
         c => c.patientId.isEqualTo(ride.patientId),
@@ -63,7 +66,7 @@ export class DriverRidesComponent implements OnInit {
       if (ride.isHasExtraEquipment) {
         equipment.push('home_repair_service');
       }
-
+console.log('---- ' + ride.passengers());
       let row = result.find(r => r.rId === ride.id.value);
       if (!(row)) {
         row = {
@@ -75,9 +78,10 @@ export class DriverRidesComponent implements OnInit {
           from: from,
           to: to,
           contactsCount: contactsCount,
-          date: ride.date.value,
+          date: ride.date.value, 
           // pickupTime: ride.pickupTime.value,
           visitTime: ride.visitTime.value,
+          pickupTime: ride.pickupTime.value,
           passengers: ride.passengers(),
           age: age,
           equipment: equipment,

@@ -16,14 +16,14 @@ import { addDays, Usher, UsherRideGroup, UsherRideRow } from './usher';
 
 @ServerController({ key: 'usherParams', allowed: true })
 class usherParams {//dataControlSettings: () => ({width: '150px'}), 
-  date = new DateColumn({ defaultValue: new Date(2021,2,3), valueChange: async () => { await this.onChanged(); } });
-  fid = new LocationIdColumn({ valueChange: async () => { await this.onChanged(); } }, this.context);
-  tid = new LocationIdColumn({ valueChange: async () => { await this.onChanged(); } }, this.context);
+  date = new DateColumn({ defaultValue: new Date() /*new Date(2021,2,3)*/, valueChange: async () => { await this.onChanged(); } });
+  fid = new LocationIdColumn({ caption: 'From', valueChange: async () => { await this.onChanged(); } }, this.context);
+  tid = new LocationIdColumn({ caption: 'To', valueChange: async () => { await this.onChanged(); } }, this.context);
   // date = new DateColumn({ defaultValue: new Date(), valueChange: async () => { if(this.ready) await this.retrieveRideList4Usher(1); } });
   // fid = new LocationIdColumn({ valueChange: async () => { if(this.ready) await this.retrieveRideList4Usher(2); } }, this.context);
   // tid = new LocationIdColumn({ valueChange: async () => { if(this.ready) await this.retrieveRideList4Usher(3); } }, this.context);
   constructor(private context: Context) { }
-  ready = false;
+  ready = false; 
   onChanged = async () => {};
   
   @ServerMethod()
@@ -99,7 +99,6 @@ export class UsherComponent implements OnInit {
   }
 
   async ngOnInit() {
-    let date = new Date(2021, 2, 3);
     await this.refresh();
     this.params.ready = true;
     this.params.onChanged =  async() => {await this.refresh();};
@@ -269,7 +268,7 @@ export class UsherComponent implements OnInit {
   }
   async editPatient(r: UsherRideRow) {
     await this.context.openDialog(PatientCrudComponent, thus => thus.args = {
-      pid: r.pid, isNew: false,
+      pid: r.pid
     });
     // let changed = await openPatient(r.pid, this.context);
   }

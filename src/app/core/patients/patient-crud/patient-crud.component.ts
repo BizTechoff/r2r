@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
-import { Context, DataAreaSettings } from '@remult/core';
+import { Context, DataAreaSettings, NumberColumn } from '@remult/core';
 import { Patient } from '../patient';
 import { Contact } from '../patient-contacts/contact';
 import { PatientContactsComponent } from '../patient-contacts/patient-contacts.component';
@@ -15,17 +15,20 @@ export class PatientCrudComponent implements OnInit {
   okPressed = false;
   args: {
     pid: string,
-    isNew: boolean,
-  } = { pid: '', isNew: true };
+  } = { pid: ''};
   patient = this.context.for(Patient).create();
   areaSettings: DataAreaSettings = new DataAreaSettings({});
   contactsCount = 0;
 
+  
   constructor(private context: Context, private dialogRef: MatDialogRef<any>) { }
-
+ 
   async ngOnInit() {
-    this.args.isNew = (!(this.args.pid.length > 0));
-    if (!(this.args.isNew)) {
+    if(!(this.args.pid)){
+      this.args.pid = '';
+    }
+    let isNew = (!(this.args.pid.length > 0));
+    if (!(isNew)) {
       let res = await this.retrieve(this.args.pid);
       this.patient = res.p;
       this.contactsCount = res.c;
@@ -36,7 +39,7 @@ export class PatientCrudComponent implements OnInit {
         [this.patient.name, this.patient.hebName],
         [this.patient.mobile, this.patient.idNumber],
         [this.patient.defaultBorder, this.patient.defaultHospital],
-        this.patient.birthDate,
+        [{ column: this.patient.birthDate },{column: this.patient.age, readOnly: true, width: '25px'}],
         this.patient.remark,
       ],
     });

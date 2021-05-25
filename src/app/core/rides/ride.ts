@@ -1,4 +1,3 @@
-import { formatDate } from "@angular/common";
 import { BoolColumn, ColumnSettings, Context, DateColumn, DateTimeColumn, EntityClass, IdEntity, NumberColumn, StringColumn, ValueListColumn } from "@remult/core";
 import { InputAreaComponent } from "../../common/input-area/input-area.component";
 import { MessageType, ServerEventsService } from "../../server/server-events-service";
@@ -12,14 +11,14 @@ import { PatientIdColumn } from "../patients/patient";
 export class Ride extends IdEntity {
 
     driverRemark = new StringColumn({});
-    driverId = new DriverIdColumn({}, this.context);
-    patientId = new PatientIdColumn(this.context);
+    driverId = new DriverIdColumn({ caption: 'Driver' }, this.context);
+    patientId = new PatientIdColumn({}, this.context);
     status = new RideStatusColumn();
     statusDate = new DateTimeColumn();
     importRideNum = new StringColumn();
 
-    fromLocation = new LocationIdColumn({allowNull: false}, this.context);
-    toLocation = new LocationIdColumn({allowNull: false}, this.context);
+    fromLocation = new LocationIdColumn({ allowNull: false }, this.context);
+    toLocation = new LocationIdColumn({ allowNull: false }, this.context);
     date = new DateColumn({
         // valueChange: () => {
         //     if (this.isHasDate() && this.isHasVisitTime()) {
@@ -32,8 +31,21 @@ export class Ride extends IdEntity {
         //     }
         // }, 
     });
-    visitTime = new StringColumn({defaultValue: '00:00', inputType:'time'});
-    pickupTime = new StringColumn({defaultValue: '00:00', inputType:'time'});
+    visitTime = new StringColumn({
+        defaultValue: '00:00', inputType: 'time', valueChange: () => {
+            if (this.visitTime.value) {
+                if (!(this.isHasPickupTime())) {
+                    let pickup = '00:00';
+                    let hour = this.visitTime.value.split(':');
+                    if (hour.length > 1) {
+                        pickup = ('' + (parseInt(hour[0]) - 2)).padStart(2, "0") + ":" + hour[1];
+                    }
+                    this.pickupTime.value = pickup;
+                }
+            }
+        }
+    });
+    pickupTime = new StringColumn({ defaultValue: '00:00', inputType: 'time' });
     dayPeriod = new DayPeriodColumn();
     dayOfWeek = new DayOfWeekColumn({});
     isHasBabyChair = new BoolColumn({ caption: 'Has Baby Chair' });
@@ -51,11 +63,13 @@ export class Ride extends IdEntity {
             name: "rides",
             allowApiCRUD: c => c.isSignedIn(),
             allowApiRead: c => c.isSignedIn(),
-            saving: async () => {if (context.onServer) {
-                if (this.status.wasChanged()){
-                    this.statusDate.value = new Date();
+            saving: async () => {
+                if (context.onServer) {
+                    if (this.status.wasChanged()) {
+                        this.statusDate.value = new Date();
+                    }
                 }
-            }},
+            },
             saved: async () => {//trigger from db on status changed
                 if (context.onServer) {
                     if (this.status.wasChanged()) {
@@ -103,6 +117,10 @@ export class Ride extends IdEntity {
 
     isHasVisitTime() {
         return this.visitTime && this.visitTime.value && this.visitTime.value.length > 0 && (!(this.visitTime.value === '00:00'));
+    }
+
+    isHasPickupTime() {
+        return this.pickupTime && this.pickupTime.value && this.pickupTime.value.length > 0 && (!(this.pickupTime.value === '00:00'));
     }
 
     isExsistPatient(): boolean {
@@ -228,18 +246,21 @@ export class RideStatus {
     static waitingForUsherSelectDriver = new RideStatus();
     constructor(public color = 'green') { }
     id;
- 
-    isInProgress(): boolean {
-        return this == RideStatus.waitingForPickup
-            ||
-            this == RideStatus.waitingForArrived;
-    }
 
-    static isCanBackRide = [
+    static isInProgressStatuses = [
+        RideStatus.waitingForPickup,
+        RideStatus.waitingForArrived
+    ];
+
+    static isInCanBackRideStatuses = [
         RideStatus.waitingForArrived,
     ];
 
-    static driverWaitingStatuses = [
+    static isInMatcherCanApproveStatuses = [
+        RideStatus.waitingForStart,
+    ];
+
+    static isInDriverWaitingStatuses = [
         RideStatus.waitingForAccept,
         RideStatus.waitingForDriver,
         RideStatus.waitingForStart,
@@ -248,14 +269,14 @@ export class RideStatus {
         RideStatus.waitingForEnd,
     ];
 
-    static driverFinishedStatuses = [
+    static isInDriverFinishedStatuses = [
         RideStatus.failed,
         RideStatus.rejected,
         RideStatus.succeeded,
         RideStatus.waitingForDriver,
     ];
 
-    static driverAvailable = [
+    static isInDriverAvailableStatuses = [
         RideStatus.waitingForStart,
         RideStatus.waitingForUsherApproove,
     ];

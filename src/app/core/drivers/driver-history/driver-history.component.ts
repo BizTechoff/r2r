@@ -37,12 +37,12 @@ export class DriverHistoryComponent implements OnInit {
 
     for await (const ride of context.for(Ride).iterate({
       where: r => r.driverId.isEqualTo(driver.id)
-        .and(r.status.isNotIn(...RideStatus.driverWaitingStatuses)),
+        .and(r.status.isNotIn(...RideStatus.isInDriverWaitingStatuses)),
     })) {
       let from = (await context.for(Location).findId(ride.fromLocation.value)).name.value;
       let to = (await context.for(Location).findId(ride.toLocation.value)).name.value;
       let pName = ride.isHasPatient() ? (await context.for(Patient).findId(ride.patientId.value)).name.value : "";
-      let age = ride.isHasPatient() ? (await context.for(Patient).findId(ride.patientId.value)).age() : undefined;
+      let age = ride.isHasPatient() ? (await context.for(Patient).findId(ride.patientId.value)).age.value : undefined;
       let mobile = ride.isHasPatient() ? (await context.for(Patient).findId(ride.patientId.value)).mobile.value : "";
       let contactsCount = await context.for(Contact).count(
         c => c.patientId.isEqualTo(ride.patientId),
@@ -70,7 +70,7 @@ export class DriverHistoryComponent implements OnInit {
           to: to,
           contactsCount: contactsCount,
           date: ride.date.value,
-          // time: ride.visitTime.value,
+          pickupTime: ride.pickupTime.value,
           visitTime: ride.visitTime.value,
           passengers: ride.passengers(),
           age: age,

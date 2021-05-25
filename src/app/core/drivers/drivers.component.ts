@@ -158,7 +158,7 @@ export class DriversComponent implements OnInit {
           { column: c.modified, readOnly: true },
         ],
       }),
-    })
+    });
   }
 
   async openScheduleDialog(p: Driver) {

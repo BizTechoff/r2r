@@ -15,34 +15,30 @@
 
 <div class="full-page">
     <div class="header">
-        <table style="width: 100%;">
-            <tr>
-                <td style="display:flex;">
-                    <button style="height: 40px;" mat-raised-button color="primary" (click)="prevDay()">-</button>
-                    <data-control [column]="params.date"></data-control>
-                    <button style="height: 40px;" mat-raised-button color="primary" (click)="nextDay()">+</button>
-                    <data-control [column]="params.fid"></data-control>
-                    <data-control [column]="params.tid"></data-control>
-                    <!-- <data-area [settings]="toolbar"></data-area> -->
-                </td>
-                <td style="padding-left: 15px;">
-                    <button mat-mini-fab title="Refresh" (click)="refresh()" color="primary">
-                        <mat-icon>refresh</mat-icon>
-                    </button>
-                </td>
-                <td style="padding-left: 15px;">LastRefresh: {{ clientLastRefreshDate | date: 'HH:mm' }}</td>
-                <!-- <td style="padding-left: 15px;width: 100%;text-align: end;">
-                    <button mat-mini-fab title="Add Ride" (click)="addRide()" color="primary">
-                        <mat-icon>add</mat-icon>
-                    </button></td> -->
-            </tr>
-            <!-- <tr>
-            <td>
-                <mat-checkbox [checked]="groupSameLocations" (change)="onGroupSameLocations()">Group Same Locations
-          </mat-checkbox>
-            </td>
-        </tr> -->
-        </table>
+
+        <div style="display:flex;flex-direction: row;flex-grow: 1;">
+            <button style="height: 40px;" mat-raised-button color="primary" (click)="prevDay()">-</button>
+            <data-control [column]="params.date"></data-control>
+            <button style="height: 40px;" mat-raised-button color="primary" (click)="nextDay()">+</button>
+            <button mat-mini-fab title="Refresh" (click)="refresh()" color="primary" style="align-items: flex-end;"
+                title="{{ clientLastRefreshDate | date: 'HH:mm' }}">
+                <mat-icon>refresh</mat-icon>
+            </button>
+        </div>
+        <div>
+            <!-- <span style="padding-left: 15px;">Last Retrieved: {{ clientLastRefreshDate | date:
+                'HH:mm'
+                }}</span> -->
+            <mat-expansion-panel [expanded]="false">
+                <mat-expansion-panel-header>
+                    <mat-panel-title>
+                        Last Retrieved: {{ clientLastRefreshDate | date: 'HH:mm' }}
+                        </mat-panel-title>
+                </mat-expansion-panel-header>
+                <data-control [column]="params.fid"></data-control>
+                <data-control [column]="params.tid"></data-control>
+            </mat-expansion-panel>
+        </div>
     </div>
     <div class="grow-item">
         <table style="width: 100%">

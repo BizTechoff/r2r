@@ -1,12 +1,6 @@
-import { Context, DateColumn, EntityClass, IdEntity, StringColumn } from "@remult/core";
+import { ColumnSettings, Context, DateColumn, EntityClass, IdEntity, NumberColumn, StringColumn } from "@remult/core";
 import { DynamicServerSideSearchDialogComponent } from "../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component";
-import { InputAreaComponent } from "../../common/input-area/input-area.component";
-import { Utils } from "../../shared/utils";
-import { DayPeriod } from "../drivers/driverPrefs";
 import { LocationIdColumn } from "../locations/location";
-import { Ride } from "../rides/ride";
-import { UsherRideRow } from "../usher/usher";
-import { PatientCrudComponent } from "./patient-crud/patient-crud.component";
 
 @EntityClass
 export class Patient extends IdEntity {
@@ -15,11 +9,24 @@ export class Patient extends IdEntity {
   hebName = new StringColumn({});
   mobile = new StringColumn({});
   idNumber = new StringColumn({});
-  birthDate = new DateColumn({});
+  birthDate?= new DateColumn({
+    allowNull: true,
+    valueChange: () => {
+      if (this.birthDate.value) {
+        let y1 = new Date().getFullYear();
+        let y2 = this.birthDate.value.getFullYear();
+        this.age.value = y1 - y2;
+      }
+      else{
+        this.age.value = 0;
+      }
+    },
+  });
   remark = new StringColumn({});
+  age = new NumberColumn({ caption: 'Age' });
 
-  defaultBorder?= new LocationIdColumn({},this.context, true);
-  defaultHospital?= new LocationIdColumn({},this.context, true);
+  defaultBorder?= new LocationIdColumn({}, this.context, true);
+  defaultHospital?= new LocationIdColumn({}, this.context, true);
 
   constructor(private context: Context) {
     super({
@@ -34,7 +41,7 @@ export class Patient extends IdEntity {
     return this.birthDate && this.birthDate.value && this.birthDate.value.getFullYear() > 1900;
   }
 
-  age(today?: Date) {
+  private calcAge(today?: Date) {
     today = new Date();
     if (this.hasBirthDate())
       return today.getFullYear() - this.birthDate.value.getFullYear();
@@ -51,8 +58,9 @@ export class Patient extends IdEntity {
 }
 export class PatientIdColumn extends StringColumn {
 
-  constructor(private context: Context) {
+  constructor(options?: ColumnSettings<string>, private context?: Context) {
     super({
+      caption: 'Patient',
       dataControlSettings: () => ({
         getValue: () => this.context.for(Patient).lookup(this).name.value,
         hideDataOnInput: true,

@@ -67,7 +67,7 @@ export interface ride4Driver {
   to: string,
   contactsCount: number,
   date: Date,//+Time
-  // time: Date,
+  pickupTime: string,
   visitTime: string,
   passengers: number,
   age: number,

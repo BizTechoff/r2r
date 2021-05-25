@@ -13,26 +13,33 @@ export class ApprovePatientRideComponent implements OnInit {
 
   today = new Date();
   ridesSettings = this.context.for(Ride).gridSettings({
-    where: r => new Filter(f => f.isNotNull(r.driverId))
-      .and(new Filter(f => f.isDifferentFrom(r.driverId, '')))
-      .and(r.status.isIn(RideStatus.waitingForStart)),
+    where: r => r.date.isGreaterOrEqualTo(this.today),
+      // .and(new Filter(f => f.isNotNull(r.driverId)))
+      // .and(new Filter(f => f.isDifferentFrom(r.driverId, ''))),
+    // .and(r.status.isIn(RideStatus.waitingForStart)),
     numOfColumnsInGrid: 10,
     columnSettings: (r) => [
       r.patientId,
-      r.driverId,
+      // r.driverId,
+      r.fromLocation,
+      r.toLocation,
       r.status,
+      r.date,
+      r.visitTime,
     ],
     rowButtons: [
       {
         textInMenu: 'Approve',
         icon: 'how_to_reg',
         click: async (r) => { await this.approve(r); },
+        visible: (r) => {return r.status.value === RideStatus.waitingForStart},
       },
     ],
   });
 
   constructor(private context: Context) {
 
+    this.today = new Date(this.today.getFullYear(), this.today.getMonth(), this.today.getDate());
   }
 
   async refresh() {

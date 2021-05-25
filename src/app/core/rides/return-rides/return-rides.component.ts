@@ -15,7 +15,7 @@ export class ReturnRidesComponent implements OnInit {
 
   ridesSettings = this.context.for(Ride).gridSettings({
     where: r => r.date.isEqualTo(this.today)
-      .and(r.status.isIn(...RideStatus.isCanBackRide))
+      .and(r.status.isIn(...RideStatus.isInCanBackRideStatuses))
       .and(r.hadBackId() ? new Filter(() => false) : new Filter(() => { })),
       numOfColumnsInGrid: 10,
       columnSettings: r => [

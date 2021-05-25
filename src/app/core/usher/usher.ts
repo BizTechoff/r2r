@@ -446,7 +446,7 @@ export class Usher {
         let result: UsherRideRow = {
             pid: p.id.value,
             pName: p.name.value,
-            pAge: p.age(),
+            pAge: p.age.value,
             pMobile: p.mobile.value,
             icons: icons,
             did: d.id.value,

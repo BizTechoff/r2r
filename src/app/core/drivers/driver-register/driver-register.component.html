@@ -99,7 +99,7 @@
 
     <div class="grow-item">
         <h3>Rides You Registered {{ rides && (rides.length > 0)? "(contact u soon)" :"" }}</h3>
-        <span *ngIf="(!(rides)) || (rides.length == 0)">You didn't registered yet</span>
+        <span *ngIf="(!(rides)) || (rides.length == 0)">TX! You didn't registered yet</span>
         <table *ngIf="rides && (rides.length > 0)" style="width: 100%">
             <tr *ngFor="let r of rides">
                 <table style="width: 100%;padding: 10px;">

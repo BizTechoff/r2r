@@ -148,7 +148,7 @@ export class ShowRidesComponent implements OnInit {
 
   async openPatient(r: ride4UsherApprove) {
     await this.context.openDialog(PatientCrudComponent, thus => thus.args = {
-      pid: r.patientId, isNew: false,
+      pid: r.patientId,
     });
     // openPatient(r.patientId, this.context);
   }

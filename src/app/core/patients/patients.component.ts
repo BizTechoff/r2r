@@ -1,11 +1,12 @@
 import { formatDate } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { BusyService, SelectValueDialogComponent } from '@remult/angular';
+import { BusyService } from '@remult/angular';
 import { Context, StringColumn, ValueListItem } from '@remult/core';
 import { DialogService } from '../../common/dialog';
+import { GridDialogComponent } from '../../common/grid-dialog/grid-dialog.component';
 import { InputAreaComponent } from '../../common/input-area/input-area.component';
 import { DayPeriod, DriverPrefs } from '../drivers/driverPrefs';
-import { Ride } from '../rides/ride';
+import { openRide, Ride } from '../rides/ride';
 import { addDays, Usher } from '../usher/usher';
 import { Patient } from './patient';
 import { PatientCrudComponent } from './patient-crud/patient-crud.component';
@@ -100,7 +101,7 @@ export class PatientsComponent implements OnInit {
 
   async addPatient() {
     await this.context.openDialog(PatientCrudComponent, thus => thus.args = {
-      pid: '', isNew: false,
+      pid: ''
     });
     // let changed = await openPatient('', this.context);
     // var patient = this.context.for(Patient).create();
@@ -126,11 +127,68 @@ export class PatientsComponent implements OnInit {
 
   async editPatient(p: Patient) {
     if (await this.context.openDialog(PatientCrudComponent, thus => thus.args = {
-      pid: p.id.value, isNew: false,
+      pid: p.id.value
     })) {
       await p.reload();
     }
     // let changed = await openPatient(p.id.value, this.context);
+  }
+
+  async editRide(r:Ride){
+    let today = new Date();
+    let tomorrow = new Date();
+    tomorrow.setDate(today.getDate() + 1);
+    let tomorrow10am = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate(), 10);
+    
+    // var isNeedReturnTrip = new BoolColumn({ caption: "Need Return Ride" });
+    await this.context.openDialog(
+      InputAreaComponent,
+      x => x.args = {
+        title: `Edit Ride: (${r.status.value.id})`,// ${p.name.value} (age: ${p.age.value})`,
+        columnSettings: () => [
+          r.fromLocation,
+          r.toLocation,
+          r.date, 
+          r.dayPeriod,
+          r.visitTime,
+          r.isHasBabyChair,
+          r.isHasWheelchair,
+          r.escortsCount,
+          r.dRemark,
+          r.rRemark,
+        ],
+        // buttons: [{
+        //   text: 'Patient Details',
+        //   click: async () => { await this.editPatient(p); }
+        // }
+        // ],
+        validate: async () => {
+          if (!(r.fromLocation.value && r.fromLocation.value.length > 0)) {
+            r.fromLocation.validationError = 'Required';
+            throw r.fromLocation.defs.caption + ' ' + r.fromLocation.validationError;
+          }
+          if (!(r.toLocation.value && r.toLocation.value.length > 0)) {
+            r.toLocation.validationError = 'Required';
+            throw r.toLocation.defs.caption + ' ' + r.toLocation.validationError;
+          }
+          if (!(r.isHasDate())) {
+            r.date.validationError = 'Required';
+            throw r.date.defs.caption + ' ' + r.date.validationError;
+          }
+          if (r.date.value < addDays(0)) {
+            r.date.validationError = 'Must be greater or equals today';
+            throw r.date.defs.caption + ' ' + r.date.validationError;
+          }
+          if (!(r.isHasVisitTime())) {
+            r.visitTime.validationError = 'Required';
+            throw r.visitTime.defs.caption + ' ' + r.visitTime.validationError;
+          }
+        },
+        ok: async () => {
+          await r.save();
+        }
+      },
+    )
   }
 
   async openScheduleRides(p: Patient) {
@@ -144,20 +202,54 @@ export class PatientsComponent implements OnInit {
         caption: r.from + '|' + r.to + '|' + formatDate(r.date, 'dd.MM.yyyy', 'en-US') + '|' + r.status.id,
       });
     };
+
+    let today = new Date();
+    today = new Date(today.getFullYear(), today.getMonth(), today.getDate());//dd/mm/yyyy 00:00:00.0
+
+    await this.context.openDialog(GridDialogComponent, gd => gd.args = {
+      title: `Scheduled Rides For ${p.name.value}`,
+      settings: this.context.for(Ride).gridSettings({
+        where: r => r.patientId.isEqualTo(p.id)
+          .and(r.date.isGreaterOrEqualTo(today)),
+        orderBy: r => [{ column: r.date, descending: false }],
+        allowCRUD: false,// this.context.isAllowed([Roles.admin, Roles.usher, Roles.matcher]),
+        allowDelete: false,
+        showPagination: false,
+        numOfColumnsInGrid: 10,
+        columnSettings: r => [
+          // r.patientId,
+          r.date,
+          r.visitTime,
+          r.fromLocation,
+          r.toLocation,
+          r.status,
+        ],
+        rowButtons: [
+          {
+            textInMenu: 'Edit',
+            icon: 'edit',
+            click: async (r) => { await this.editRide(r); },
+          },
+        ],
+      }),
+    });
+
+
+
     // console.table(relevantDrivers);
-    this.context.openDialog(SelectValueDialogComponent, x => x.args({
-      title: `Registered Rides (${rides.length})`,
-      values: values,
-      // orderBy:r => [{ column: r.date, descending: true }]
-      onSelect: async x => {
-        // let ride = await this.context.for(Ride).findId(x.item.id);
-        // r.driverId.value = x.id;
-        // r.status.value = RideStatus.waitingFor30Start,
-        // await r.save();
-        // this.snakebar.info(`Sending Sms To Driver: ${x.caption}`);
-        // this.retrieveDrivers();
-      },
-    }));
+    // this.context.openDialog(GridDialogComponent, x => x.args({
+    //   title: `Registered Rides (${rides.length})`,
+    //   values: values,
+    //   // orderBy:r => [{ column: r.date, descending: true }]
+    //   onSelect: async x => {
+    //     // let ride = await this.context.for(Ride).findId(x.item.id);
+    //     // r.driverId.value = x.id;
+    //     // r.status.value = RideStatus.waitingFor30Start,
+    //     // await r.save();
+    //     // this.snakebar.info(`Sending Sms To Driver: ${x.caption}`);
+    //     // this.retrieveDrivers();
+    //   },
+    // }));
   }
 
   async openAddRideDialog(p: Patient) {
@@ -179,7 +271,7 @@ export class PatientsComponent implements OnInit {
     this.context.openDialog(
       InputAreaComponent,
       x => x.args = {
-        title: `Add Ride For: ${p.name.value} (age: ${p.age()})`,
+        title: `Add Ride For: ${p.name.value} (age: ${p.age.value})`,
         columnSettings: () => [
           ride.fromLocation,
           ride.toLocation,
