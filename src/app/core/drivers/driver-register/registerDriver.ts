@@ -4,9 +4,9 @@ import { DriverIdColumn } from "../driver";
 
 @EntityClass
 export class RegisterDriver extends IdEntity {
-
-    rId = new StringColumn({});
-    rgId = new StringColumn({});
+ 
+    rrId = new StringColumn({});
+    rdId = new StringColumn({});
     dId = new DriverIdColumn({});
     fromHour = new StringColumn({ caption: 'Avaliable From Hour' });
     toHour = new StringColumn({ caption: 'Avaliable Till Hour' });

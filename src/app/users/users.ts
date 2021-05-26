@@ -150,7 +150,7 @@ export class Users extends IdEntity {
         // console.log(1);
         try{ await this.save();        }
         catch(error){
-            console.log(console.error);
+            console.log(error);
         }
 
         // await this.createEntityForUserByRole(Roles.driver, this);

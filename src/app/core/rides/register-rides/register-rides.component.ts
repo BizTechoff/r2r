@@ -81,7 +81,7 @@ export class RegisterRidesComponent implements OnInit {
       let from = (await context.for(Location).findId(reg.fromLoc)).name.value;
       let to = (await context.for(Location).findId(reg.toLoc)).name.value;
       let registeredCount = (await context.for(RegisterDriver).count(
-        rg => rg.rgId.isEqualTo(reg.id),
+        rg => rg.rdId.isEqualTo(reg.id),
       ));
 
       let row: ride4UsherRideRegister = {

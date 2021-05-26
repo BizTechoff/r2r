@@ -225,18 +225,18 @@ export class ShowRidesComponent implements OnInit {
   }
 
   async setDriver(r: ride4UsherApprove) {
-    let selected = await this.context.openDialog(SuggestDriverComponent,
-      sd => sd.args = { rId: r.id, },
-      sd => sd.selected);
-    if (selected.did.length > 0) {
-      let d = await this.context.for(Driver).findId(selected.did);
-      if (d) {
-        r.driverId = d.id.value;
-        r.driver = d.name.value;
-        r.dMobile = d.mobile.value;
-        r.status = selected.status;
-      }
-    }
+    // let selected = await this.context.openDialog(SuggestDriverComponent,
+    //   sd => sd.args = { rId: r.id, },
+    //   sd => sd.selected);
+    // if (selected.did.length > 0) {
+    //   let d = await this.context.for(Driver).findId(selected.did);
+    //   if (d) {
+    //     r.driverId = d.id.value;
+    //     r.driver = d.name.value;
+    //     r.dMobile = d.mobile.value;
+    //     r.status = selected.status;
+    //   }
+    // }
   }
 
   async approveDriver(r: rideRow) {

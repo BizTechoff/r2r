@@ -47,7 +47,7 @@ export class DriversComponent implements OnInit {
       d.defaultFromTime,
       d.defaultToTime,
       //prefsCount, await this.context.for(DriverPrefs).count(p=>p.driverId.isEqualTo(d.id));
-    ],
+    ], 
     allowCRUD: false,
     rowButtons: [{
       name: "Show Rides",

@@ -29,7 +29,7 @@ export async function importDataNew(db: SqlDatabase, fresh = false) {
     var context = new ServerContext(db);
 
     await seed(context);
-
+// return;
     var rides = fs.readdirSync(ridersFolder);
     console.log("rides.length = " + rides.length);
 
@@ -83,6 +83,7 @@ async function seed(context?: Context) {
         let u = context.for(Users).create();
         u.isAdmin.value = true;
         u.name.value = "admin";
+        u.mobile.value = "0555555555"
         await u.create("Q1w2e3r4");
         console.log("created admin");
     }

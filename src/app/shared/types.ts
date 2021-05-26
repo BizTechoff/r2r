@@ -146,6 +146,9 @@ export interface ride4UsherSetDriver {
   visitTime: string,
   passengers: number,
   patient: string,
+  rid: string,
+  status: RideStatus,
+  freeSeats?:number;
 };
 
 export interface usherDriversResponse {

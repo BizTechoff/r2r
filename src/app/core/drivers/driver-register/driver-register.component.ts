@@ -74,7 +74,7 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
       let to = (await this.context.for(Location).findId(reg.toLoc.value)).name.value;
       let registereds = (await this.context.for(RegisterDriver).find(
         {
-          where: rg => rg.rgId.isEqualTo(reg.id)
+          where: rg => rg.rdId.isEqualTo(reg.id)
             .and(rg.dId.isEqualTo(this.did)),
         }));
 
@@ -151,7 +151,7 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
 
       let registereds = (await this.context.for(RegisterDriver).find(
         {
-          where: rg => rg.rId.isEqualTo(ride.id)
+          where: rg => rg.rrId.isEqualTo(ride.id)
             .and(rg.dId.isEqualTo(this.did)),
         }));
 
@@ -496,14 +496,14 @@ export class DriverRegisterComponent implements OnInit {
     if (r.rId && r.rId.length > 0) {
       reg = await this.context.for(RegisterDriver).findFirst({
         where: rd => rd.dId.isEqualTo(r.dId)
-          .and(rd.rId.isEqualTo(r.rId)),
+          .and(rd.rrId.isEqualTo(r.rId)),
       });
     }
     else (r.rgId && r.rgId.length > 0)
     {
       reg = await this.context.for(RegisterDriver).findFirst({
         where: rd => rd.dId.isEqualTo(r.dId)
-          .and(rd.rgId.isEqualTo(r.rgId)),
+          .and(rd.rdId.isEqualTo(r.rgId)),
       });
     }
 
@@ -516,8 +516,8 @@ export class DriverRegisterComponent implements OnInit {
   async register(r: ride4DriverRideRegister) {
     // let date = new Date(2021, 2, 3);
     let reg = this.context.for(RegisterDriver).create();
-    reg.rId.value = r.rId;
-    reg.rgId.value = r.rgId;
+    reg.rrId.value = r.rId;
+    reg.rdId.value = r.rgId; 
     reg.dId.value = this.driver.id.value;
     reg.fromHour.value = this.driver.defaultFromTime.value;// todo: r.date;
     reg.toHour.value = this.driver.defaultToTime.value;// todo: r.date;

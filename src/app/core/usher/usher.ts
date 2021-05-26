@@ -267,6 +267,9 @@ export class Usher {
                     passengers: ride.passengers(),
                     selected: false,
                     visitTime: ride.visitTime.value,
+                    rid:ride.id.value,
+                    status: ride.status.value,
+                    freeSeats: 0,
                 };
                 result.push(row);
             }

@@ -1,14 +1,12 @@
-import { formatDate } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { Context, DataAreaSettings, DateColumn, Filter, ServerController, ServerMethod, StringColumn } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
-import { getRideList4UsherParams, ride4UsherSetDriver } from '../../../shared/types';
+import { ride4UsherSetDriver } from '../../../shared/types';
 import { Driver, DriverIdColumn } from '../../drivers/driver';
 import { Location } from '../../locations/location';
 import { Patient } from '../../patients/patient';
 import { Ride, RideStatus } from '../../rides/ride';
 import { SuggestDriverComponent } from '../suggest-driver/suggest-driver.component';
-import { Usher } from '../usher';
 
 
 @ServerController({ key: 'usherSerDriver', allowed: true })
@@ -16,25 +14,34 @@ class usherSerDriver {
   date = new DateColumn();
   fid = new StringColumn();
   tid = new StringColumn();
-  constructor(private context: Context){}
- 
+  constructor(private context: Context) { }
+
   @ServerMethod()
   async retrieveRideList4UsherSetDriver(): Promise<ride4UsherSetDriver[]> {
     var result: ride4UsherSetDriver[] = [];
-    var alwaysTrue =new Filter(x => { /* true */ });
+    var alwaysTrue = new Filter(x => { /* true */ });
 
     // drivers = dPrefs.push(d.prefId);//רק נהגים שמופיעים בנסיעות
 
     for await (const ride of this.context.for(Ride).iterate({
       where: r => r.date.isEqualTo(this.date)
-      .and(this.fid.value ? r.fid.isEqualTo(this.fid) : alwaysTrue)
-      .and(this.tid.value ? r.tid.isEqualTo(this.tid) : alwaysTrue)
+        .and(this.fid.value ? r.fid.isEqualTo(this.fid) : alwaysTrue)
+        .and(this.tid.value ? r.tid.isEqualTo(this.tid) : alwaysTrue)
         .and(r.status.isNotIn(...[RideStatus.succeeded])),
     })) {
       let from = (await this.context.for(Location).findId(ride.fid.value)).name.value;
       let to = (await this.context.for(Location).findId(ride.tid.value)).name.value;
-      let driver = ride.isHasDriver() ? (await this.context.for(Driver).findId(ride.driverId.value)).name.value : "";
+      let d = (await this.context.for(Driver).findId(ride.driverId.value));
       let patient = ride.isHasPatient() ? (await this.context.for(Patient).findId(ride.patientId.value)).name.value : "";
+
+      let seats = 0;
+      if (d) {
+        seats = d.seats.value;
+      }
+      let dName = '';
+      if (d) {
+        dName = d.name.value;
+      }
 
       let row = result.find(r => r.id === ride.id.value);
       if (!(row)) {
@@ -44,12 +51,15 @@ class usherSerDriver {
           driverId: ride.driverId.value,
           from: from,
           to: to,
-          driver: driver,
+          driver: dName,
           patient: patient,
           dMobile: "",
           passengers: ride.passengers(),
           selected: false,
           visitTime: ride.visitTime.value,
+          rid:ride.id.value,
+          status: ride.status.value,
+          freeSeats: seats,
         };
         result.push(row);
       }
@@ -80,7 +90,7 @@ export interface rideRow {
   styleUrls: ['./set-driver.component.scss']
 })
 export class SetDriverComponent implements OnInit {
-  
+
   params = new usherSerDriver(this.context);
 
   clearSelections() {
@@ -98,16 +108,10 @@ export class SetDriverComponent implements OnInit {
     dataControlSettings: () => ({
       click: async () => {
         let selected = await this.context.openDialog(SuggestDriverComponent,
-          sd => sd.args = { rId: '', },
+          sd => sd.args = { date: this.params.date.value, fid: this.params.fid.value, tid: this.params.tid.value },
           sd => sd.selected);
         if (selected.did.length > 0) {
-          let d = await this.context.for(Driver).findId(selected.did);
-          if (d) {
-            // r.driverId = d.id.value;
-            // r.driver = d.name.value;
-            // r.dMobile = d.mobile.value;
-            // r.status = selected.status;
-          }
+          this.driverId.value = selected.did;
         }
       },
     }),
@@ -172,7 +176,7 @@ export class SetDriverComponent implements OnInit {
   }
 
   selectionRowChanged(r: rideRow) {
-    let min:string = '23:59';
+    let min: string = '23:59';
     //  console.log(min);
     let minChanged = false;
     this.selectedPassengers = 0;
@@ -182,17 +186,16 @@ export class SetDriverComponent implements OnInit {
       // console.log(row.visitTime <= min);
       if (row.selected) {
         this.selectedPassengers += row.passengers;
-        if (row.visitTime  < min) {
+        if (row.visitTime < min) {
           min = row.visitTime;
           minChanged = true;
         }
       }
-    }
+    } 
     if (minChanged) {
       let hour = min.split(':');
-      if(hour.length > 1)
-      {
-        min = ('' + (parseInt( hour[0]) - 2)).padStart(2, "0") + ":" + hour[1];
+      if (hour.length > 1) {
+        min = ('' + (parseInt(hour[0]) - 2)).padStart(2, "0") + ":" + hour[1];
       }
       this.selectedPickupTime = min;
     }
@@ -201,6 +204,73 @@ export class SetDriverComponent implements OnInit {
   }
   selectionAllChanged() {
 
+  }
+
+  async accept4Driver(r: ride4UsherSetDriver) {
+    let setStatusToApproved = await this.dialog.yesNoQuestion(`Set ${r.driver} Has approved`);
+    if (setStatusToApproved) {
+      let ride = await this.context.for(Ride).findId(r.rid);
+      ride.status.value = RideStatus.waitingForStart;
+      await ride.save();
+      r.status = RideStatus.waitingForStart.id;
+    }
+  }
+
+  async start4Driver(r: ride4UsherSetDriver) {
+    let setStatusToApproved = await this.dialog.yesNoQuestion(`Set ${r.driver} Has start`);
+    if (setStatusToApproved) {
+      let ride = await this.context.for(Ride).findId(r.rid);
+      ride.status.value = RideStatus.waitingForPickup;
+      await ride.save();
+      r.status = RideStatus.waitingForPickup.id;
+    }
+  }
+
+  async pickup4Driver(r: ride4UsherSetDriver) {
+    let setStatusToApproved = await this.dialog.yesNoQuestion(`Set ${r.driver} Has pickup`);
+    if (setStatusToApproved) {
+      let ride = await this.context.for(Ride).findId(r.rid);
+      ride.status.value = RideStatus.waitingForArrived;
+      await ride.save();
+      r.status = RideStatus.waitingForArrived.id;
+    }
+  }
+
+  async arrived4Driver(r: ride4UsherSetDriver) {
+    let setStatusToApproved = await this.dialog.yesNoQuestion(`Set ${r.driver} Has Arrived`);
+    if (setStatusToApproved) {
+      let ride = await this.context.for(Ride).findId(r.rid);
+      ride.status.value = RideStatus.waitingForEnd;
+      await ride.save();
+      r.status = RideStatus.waitingForEnd.id;
+    }
+  }
+
+  async end4Driver(r: ride4UsherSetDriver) {
+    let setStatusToApproved = await this.dialog.yesNoQuestion(`Set ${r.driver} Has succeeded`);
+    if (setStatusToApproved) {
+      let ride = await this.context.for(Ride).findId(r.rid);
+      ride.status.value = RideStatus.succeeded;
+      await ride.save();
+      //r.status = RideStatus.succeeded.id;
+      let i = this.rides.indexOf(r);
+      if (i >= 0) {
+        this.rides.splice(i, 1);
+      } 
+    }
+  }
+
+  async removeDriver(r: ride4UsherSetDriver) {
+    let setStatusToApproved = await this.dialog.confirmDelete(r.driver + ' from selected ride');
+    if (setStatusToApproved) {
+      let ride = await this.context.for(Ride).findId(r.rid);
+      ride.driverId.value = '';
+      ride.status.value = RideStatus.waitingForDriver;
+      await ride.save();
+      r.driver = '';
+      r.driverId = '';
+      r.status = RideStatus.waitingForDriver.id;
+    }
   }
 
 }

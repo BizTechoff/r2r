@@ -58,15 +58,16 @@
                 <td *ngIf="r.toIsBorder"><strong> {{ r.to }} </strong></td>
                 <td *ngIf="!r.toIsBorder">{{ r.to }}</td>
                 <td *ngIf="r.ridesCount == 0">{{ r.ridesCount }}</td>
-                <td *ngIf="r.ridesCount > 0"><button (click)="openShowRides(r)"><u>{{ r.ridesCount }}</u></button></td>
+                <td *ngIf="r.ridesCount > 0"><button (click)="openSetDriver(r)"><u>{{ r.ridesCount }}</u></button></td>
                 <td>{{ r.passengers }}</td>
                 <td>{{ r.inProgress }}</td>
+                <td>{{ r.needDriver }}</td>
+                <td>{{ r.needApprove }}</td>
                 <!-- <td *ngIf="r.needDriver > 0 && rides"><button (click)="openSetDriver(r)"><u>{{ r.inProgress }}</u></button> </td> -->
-                <td *ngIf="r.needDriver == 0">{{ r.needDriver }}</td>
-                <td *ngIf="r.needDriver > 0"><button (click)="openSetDriver(r)"><u>{{ r.needDriver }}</u></button> </td>
-                <td *ngIf="r.needApprove == 0">{{ r.needApprove }}</td>
-                <td *ngIf="r.needApprove > 0"><button (click)="openApproveDriver(r)"><u>{{ r.needApprove }}</u></button>
-                </td>
+                <!-- <td *ngIf="r.needDriver == 0">{{ r.needDriver }}</td> -->
+                <!-- <td *ngIf="r.needDriver > 0"><button (click)="openSetDriver(r)"><u>{{ r.needDriver }}</u></button> </td> -->
+                <!-- <td *ngIf="r.needApprove == 0">{{ r.needApprove }}</td> -->
+                <!-- <td *ngIf="r.needApprove > 0"><button (click)="openApproveDriver(r)"><u>{{ r.needApprove }}</u></button></td> -->
                 <!-- <td><button (click)="openApproveDriver(r)"><u>{{ r.needApprove }}</u></button></td> -->
             </tr>
         </table>
