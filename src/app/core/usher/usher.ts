@@ -104,8 +104,8 @@ export class Usher {
 
         return r.date.isEqualTo(params.date)
         .and(r.status.isNotIn(...[RideStatus.succeeded]))
-        .and(params.fromId && (params.fromId.length > 0) ? r.fromLocation.isEqualTo(params.fromId) : new Filter(x => { /* true */ }))
-        .and(params.toId && (params.toId.length > 0) ? r.toLocation.isEqualTo(params.toId) : new Filter(x => { /* true */ }));
+        .and(params.fromId && (params.fromId.length > 0) ? r.fid.isEqualTo(params.fromId) : new Filter(x => { /* true */ }))
+        .and(params.toId && (params.toId.length > 0) ? r.tid.isEqualTo(params.toId) : new Filter(x => { /* true */ }));
     }
 
     @ServerFunction({ allowed: [Roles.usher, Roles.admin] })
@@ -137,13 +137,13 @@ export class Usher {
         for await (const ride of context.for(Ride).iterate({
             where: r => r.date.isEqualTo(params.date)
             .and(r.status.isNotIn(...[RideStatus.succeeded]))
-            .and(params.fromId && (params.fromId.length > 0) ? r.fromLocation.isEqualTo(params.fromId) : new Filter(x => { /* true */ }))
-            .and(params.toId && (params.toId.length > 0) ? r.toLocation.isEqualTo(params.toId) : new Filter(x => { /* true */ })),
+            .and(params.fromId && (params.fromId.length > 0) ? r.fid.isEqualTo(params.fromId) : new Filter(x => { /* true */ }))
+            .and(params.toId && (params.toId.length > 0) ? r.tid.isEqualTo(params.toId) : new Filter(x => { /* true */ })),
         })) { 
-            let from = (await context.for(Location).findId(ride.fromLocation.value));
+            let from = (await context.for(Location).findId(ride.fid.value));
             let fromName = from.name.value;
             let fromIsBorder = from.type.value == LocationType.border;
-            let to = (await context.for(Location).findId(ride.toLocation.value));
+            let to = (await context.for(Location).findId(ride.tid.value));
             let toName = to.name.value;
             let toIsBorder = to.type.value == LocationType.border;
             let key = `${fromName}-${toName}`;
@@ -193,11 +193,11 @@ export class Usher {
         for await (const ride of context.for(Ride).iterate({
             where: r => r.date.isEqualTo(params.date)
             .and(r.status.isNotIn(...[RideStatus.succeeded]))
-            .and(params.fromId && (params.fromId.length > 0) ? r.fromLocation.isEqualTo(params.fromId) : new Filter(x => { /* true */ }))
-            .and(params.toId && (params.toId.length > 0) ? r.toLocation.isEqualTo(params.toId) : new Filter(x => { /* true */ })),
+            .and(params.fromId && (params.fromId.length > 0) ? r.fid.isEqualTo(params.fromId) : new Filter(x => { /* true */ }))
+            .and(params.toId && (params.toId.length > 0) ? r.tid.isEqualTo(params.toId) : new Filter(x => { /* true */ })),
         })) { 
-            let from = (await context.for(Location).findId(ride.fromLocation.value)).name.value;
-            let to = (await context.for(Location).findId(ride.toLocation.value)).name.value;
+            let from = (await context.for(Location).findId(ride.fid.value)).name.value;
+            let to = (await context.for(Location).findId(ride.tid.value)).name.value;
             let dName= '';
             let dMobile = '';
             if(ride.isHasDriver()){
@@ -245,11 +245,11 @@ export class Usher {
         for await (const ride of context.for(Ride).iterate({
             where: r => r.date.isEqualTo(params.date)
             .and(r.status.isNotIn(...[RideStatus.succeeded]))
-            .and(params.fromId && (params.fromId.length > 0) ? r.fromLocation.isEqualTo(params.fromId) : new Filter(x => { /* true */ }))
-            .and(params.toId && (params.toId.length > 0) ? r.toLocation.isEqualTo(params.toId) : new Filter(x => { /* true */ })),
+            .and(params.fromId && (params.fromId.length > 0) ? r.fid.isEqualTo(params.fromId) : new Filter(x => { /* true */ }))
+            .and(params.toId && (params.toId.length > 0) ? r.tid.isEqualTo(params.toId) : new Filter(x => { /* true */ })),
         })) { 
-            let from = (await context.for(Location).findId(ride.fromLocation.value)).name.value;
-            let to = (await context.for(Location).findId(ride.toLocation.value)).name.value;
+            let from = (await context.for(Location).findId(ride.fid.value)).name.value;
+            let to = (await context.for(Location).findId(ride.tid.value)).name.value;
             let driver= ride.isHasDriver()? (await context.for(Driver).findId(ride.driverId.value)).name.value : "";
             let patient= ride.isHasPatient()? (await context.for(Patient).findId(ride.patientId.value)).name.value : "";
 
@@ -382,8 +382,8 @@ export class Usher {
             }
 
             case MabatGroupBy.from: {
-                if (r.fromLocation.value) {
-                    result = (await context.for(Location).findId(r.fromLocation.value)).name.value;
+                if (r.fid.value) {
+                    result = (await context.for(Location).findId(r.fid.value)).name.value;
                 }
                 else {
                     result = "No_From";
@@ -391,8 +391,8 @@ export class Usher {
                 break;
             }
             case MabatGroupBy.to: {
-                if (r.toLocation.value) {
-                    result = "> " + (await context.for(Location).findId(r.toLocation.value)).name.value;
+                if (r.tid.value) {
+                    result = "> " + (await context.for(Location).findId(r.tid.value)).name.value;
                 }
                 else {
                     result = "No_To";
@@ -440,8 +440,8 @@ export class Usher {
         if (d && d.name) {
             dName = d.name.value;
         }
-        let from = (await context.for(Location).findId(ride.fromLocation.value)).name.value;
-        let to = (await context.for(Location).findId(ride.toLocation.value)).name.value;
+        let from = (await context.for(Location).findId(ride.fid.value)).name.value;
+        let to = (await context.for(Location).findId(ride.tid.value)).name.value;
 
         let result: UsherRideRow = {
             pid: p.id.value,
@@ -578,13 +578,13 @@ export class Usher {
                 date: ride.date.value,
                 status: ride.status.value.id,
                 statusDate: ride.statusDate.value,
-                from: (await context.for(Location).findId(ride.fromLocation.value)).name.value,
-                to: (await context.for(Location).findId(ride.toLocation.value)).name.value,
+                from: (await context.for(Location).findId(ride.fid.value)).name.value,
+                to: (await context.for(Location).findId(ride.tid.value)).name.value,
                 passengers: ride.passengers(),
             };
 
             if (groupByFromAndTo) {
-                let key = `${ride.fromLocation}-${row.to}`;
+                let key = `${ride.fid}-${row.to}`;
                 let r = group.rows.find(r => key === `${r.from}-${r.to}`);
                 if (r) {
                     r.ids.push(row.id);
@@ -678,13 +678,13 @@ export class Usher {
                 date: ride.date.value,
                 status: ride.status.value.id,
                 statusDate: ride.statusDate.value,
-                from: (await context.for(Location).findId(ride.fromLocation.value)).name.value,
-                to: (await context.for(Location).findId(ride.toLocation.value)).name.value,
+                from: (await context.for(Location).findId(ride.fid.value)).name.value,
+                to: (await context.for(Location).findId(ride.tid.value)).name.value,
                 passengers: ride.passengers(),
             };
 
             if (groupByFromAndTo) {
-                let key = `${ride.fromLocation}-${row.to}`;
+                let key = `${ride.fid}-${row.to}`;
                 let r = group.rows.find(r => key === `${r.from}-${r.to}`);
                 if (r) {
                     r.ids.push(row.id);
@@ -756,8 +756,8 @@ export class Usher {
                 date: ride.date.value,
                 status: ride.status.value,
                 statusDate: ride.statusDate.value,
-                from: (await context.for(Location).findId(ride.fromLocation.value)).name.value,
-                to: (await context.for(Location).findId(ride.toLocation.value)).name.value,
+                from: (await context.for(Location).findId(ride.fid.value)).name.value,
+                to: (await context.for(Location).findId(ride.tid.value)).name.value,
                 passengers: ride.passengers(),
                 phones: phones,
                 isWaitingForUsherApproove: ride.isWaitingForUsherApproove(),
@@ -771,12 +771,50 @@ export class Usher {
     }
 
 
-    @ServerFunction({ allowed: Roles.driver })
+    @ServerFunction({ allowed: [Roles.usher, Roles.admin] })
     static async getRegisteredRidesForDriver(driverId: string, context?: Context) {
         let result: rides4DriverRow[] = [];
+        for await (const ride of context.for(Ride).iterate({
+            // where: r => (r.date.isGreaterOrEqualTo(todayDate))
+            //     .and(r.patientId.isEqualTo(patientId)),
+            where: r=> r.driverId.isEqualTo(driverId),
+            orderBy: r => [{ column: r.date, descending: false }],
+        })) {
+            
+            let icons: { name: string, desc: string }[] = [];
+            if (ride.isHasBabyChair.value) {
+                icons.push({ name: "child_friendly", desc: "Has Babychair" });
+            }
+            if (ride.isHasWheelchair.value) {
+                icons.push({ name: "accessible", desc: "Has Wheelchair" });
+            }
+            if (ride.isHasExtraEquipment.value) {
+                icons.push({ name: "home_repair_service", desc: "Has Extra Equipment" });
+            }
 
-        for await (const grp of await this.getRegisteredRidesForDriverGoupByDateAndPeriod(driverId, false, context)) {
-            result.push(...grp.rows);
+            let phones = "";
+            let p = await context.for(Patient).findId(ride.patientId.value);
+            if (p && p.mobile && p.mobile.value) {
+                phones = p.mobile.value;
+            }
+
+            let row: rides4DriverRow = {
+                id: ride.id.value,
+                from: (await context.for(Location).findId(ride.fid.value)).name.value,
+                to: (await context.for(Location).findId(ride.tid.value)).name.value,
+                passengers: ride.passengers(),
+                icons: icons,
+                phones: phones,
+                date: ride.date.value,
+                status: ride.status.value,
+                ids: [],
+                groupByLocation: false,
+                isWaitingForUsherApproove: ride.isWaitingForUsherApproove(),
+                isWaitingForStart: ride.isWaitingForStart(),
+                isWaitingForPickup: ride.isWaitingForPickup(),
+                isWaitingForArrived: ride.isWaitingForArrived(),
+            };
+            result.push(row);
         }
         return result;
     }
@@ -829,12 +867,13 @@ export class Usher {
 
             let row: rides4DriverRow = {
                 id: ride.id.value,
-                from: (await context.for(Location).findId(ride.fromLocation.value)).name.value,
-                to: (await context.for(Location).findId(ride.toLocation.value)).name.value,
+                from: (await context.for(Location).findId(ride.fid.value)).name.value,
+                to: (await context.for(Location).findId(ride.tid.value)).name.value,
                 passengers: ride.passengers(),
                 icons: icons,
                 phones: phones,
                 date: ride.date.value,
+                status: ride.status.value,
                 ids: [],
                 groupByLocation: false,
                 isWaitingForUsherApproove: ride.isWaitingForUsherApproove(),
@@ -884,7 +923,7 @@ export class Usher {
 
         let driversIds: string[] = [];
         for await (const pf of context.for(DriverPrefs).iterate({
-            where: pf => (pf.locationId.isEqualTo(ride.fromLocation).or(pf.locationId.isEqualTo(ride.toLocation))),
+            where: pf => (pf.locationId.isEqualTo(ride.fid).or(pf.locationId.isEqualTo(ride.tid))),
         })) {
             driversIds.push(pf.driverId.value);
         };
@@ -958,7 +997,7 @@ export class Usher {
             for await (const ride of context.for(Ride).iterate({
                 where: r => (r.date.isGreaterOrEqualTo(todayDate))//dates
                     .and(r.status.isEqualTo(RideStatus.waitingForDriver))//status
-                    .and(r.fromLocation.isIn(...fromBorders).or(r.toLocation.isIn(...toBorders))),//locations
+                    .and(r.fid.isIn(...fromBorders).or(r.tid.isIn(...toBorders))),//locations
             })) {
 
                 // Build Row
@@ -985,11 +1024,12 @@ export class Usher {
 
                 let row: rides4DriverRow = {
                     id: ride.id.value,
-                    from: (await context.for(Location).findId(ride.fromLocation.value)).name.value,
-                    to: (await context.for(Location).findId(ride.toLocation.value)).name.value,
+                    from: (await context.for(Location).findId(ride.fid.value)).name.value,
+                    to: (await context.for(Location).findId(ride.tid.value)).name.value,
                     passengers: ride.passengers(),
                     icons: icons,
                     phones: "",
+                    status: ride.status.value,
                     groupByLocation: false,
                     ids: [],
                     date: ride.date.value,
@@ -1110,9 +1150,10 @@ export interface rides4DriverRow {
     icons: { name: string, desc: string }[],
     phones: string,
     date: Date,
+    status: RideStatus,
     groupByLocation: boolean,
     ids: string[],
-
+ 
     isWaitingForUsherApproove: boolean,
     isWaitingForStart: boolean,
     isWaitingForPickup: boolean,

@@ -5,6 +5,7 @@ import { Context, StringColumn, ValueListItem } from '@remult/core';
 import { DialogService } from '../../common/dialog';
 import { GridDialogComponent } from '../../common/grid-dialog/grid-dialog.component';
 import { InputAreaComponent } from '../../common/input-area/input-area.component';
+import { Roles } from '../../users/roles';
 import { DayPeriod, DriverPrefs } from '../drivers/driverPrefs';
 import { openRide, Ride } from '../rides/ride';
 import { addDays, Usher } from '../usher/usher';
@@ -146,8 +147,8 @@ export class PatientsComponent implements OnInit {
       x => x.args = {
         title: `Edit Ride: (${r.status.value.id})`,// ${p.name.value} (age: ${p.age.value})`,
         columnSettings: () => [
-          r.fromLocation,
-          r.toLocation,
+          r.fid,
+          r.tid,
           r.date, 
           r.dayPeriod,
           r.visitTime,
@@ -163,13 +164,13 @@ export class PatientsComponent implements OnInit {
         // }
         // ],
         validate: async () => {
-          if (!(r.fromLocation.value && r.fromLocation.value.length > 0)) {
-            r.fromLocation.validationError = 'Required';
-            throw r.fromLocation.defs.caption + ' ' + r.fromLocation.validationError;
+          if (!(r.fid.value && r.fid.value.length > 0)) {
+            r.fid.validationError = 'Required';
+            throw r.fid.defs.caption + ' ' + r.fid.validationError;
           }
-          if (!(r.toLocation.value && r.toLocation.value.length > 0)) {
-            r.toLocation.validationError = 'Required';
-            throw r.toLocation.defs.caption + ' ' + r.toLocation.validationError;
+          if (!(r.tid.value && r.tid.value.length > 0)) {
+            r.tid.validationError = 'Required';
+            throw r.tid.defs.caption + ' ' + r.tid.validationError;
           }
           if (!(r.isHasDate())) {
             r.date.validationError = 'Required';
@@ -207,21 +208,21 @@ export class PatientsComponent implements OnInit {
     today = new Date(today.getFullYear(), today.getMonth(), today.getDate());//dd/mm/yyyy 00:00:00.0
 
     await this.context.openDialog(GridDialogComponent, gd => gd.args = {
-      title: `Scheduled Rides For ${p.name.value}`,
+      title: `${p.name.value}    (scheduled rides)`,
       settings: this.context.for(Ride).gridSettings({
-        where: r => r.patientId.isEqualTo(p.id)
-          .and(r.date.isGreaterOrEqualTo(today)),
-        orderBy: r => [{ column: r.date, descending: false }],
+        where: r => r.id.isIn(...rides.map(rm => rm.id)),
+        // where: r => r.driverId.isEqualTo(d.id)
+        //   .and(r.date.isGreaterOrEqualTo(today)),
+        orderBy: r => [{ column: r.date, descending: true }],
         allowCRUD: false,// this.context.isAllowed([Roles.admin, Roles.usher, Roles.matcher]),
         allowDelete: false,
         showPagination: false,
         numOfColumnsInGrid: 10,
         columnSettings: r => [
-          // r.patientId,
+          r.fid,
+          r.tid,
           r.date,
-          r.visitTime,
-          r.fromLocation,
-          r.toLocation,
+          r.patientId,
           r.status,
         ],
         rowButtons: [
@@ -229,6 +230,7 @@ export class PatientsComponent implements OnInit {
             textInMenu: 'Edit',
             icon: 'edit',
             click: async (r) => { await this.editRide(r); },
+            visible: this.context.isAllowed([Roles.matcher]),//[Roles.admin, Roles.usher, Roles.matcher]),
           },
         ],
       }),
@@ -264,8 +266,8 @@ export class PatientsComponent implements OnInit {
     ride.dayOfWeek.value = DriverPrefs.getDayOfWeek(ride.date.getDayOfWeek());
     ride.dayPeriod.value = DayPeriod.morning;
     ride.patientId.value = p.id.value;
-    ride.fromLocation.value = p.defaultBorder.value;
-    ride.toLocation.value = p.defaultHospital.value;
+    ride.fid.value = p.defaultBorder.value;
+    ride.tid.value = p.defaultHospital.value;
     ride.pMobile.value = p.mobile.value;
     // var isNeedReturnTrip = new BoolColumn({ caption: "Need Return Ride" });
     this.context.openDialog(
@@ -273,8 +275,8 @@ export class PatientsComponent implements OnInit {
       x => x.args = {
         title: `Add Ride For: ${p.name.value} (age: ${p.age.value})`,
         columnSettings: () => [
-          ride.fromLocation,
-          ride.toLocation,
+          ride.fid,
+          ride.tid,
           ride.date, {
             column: ride.dayPeriod,
             valueList: [DayPeriod.morning, DayPeriod.afternoon],
@@ -308,13 +310,13 @@ export class PatientsComponent implements OnInit {
         }
         ],
         validate: async () => {
-          if (!(ride.fromLocation.value && ride.fromLocation.value.length > 0)) {
-            ride.fromLocation.validationError = 'Required';
-            throw ride.fromLocation.defs.caption + ' ' + ride.fromLocation.validationError;
+          if (!(ride.fid.value && ride.fid.value.length > 0)) {
+            ride.fid.validationError = 'Required';
+            throw ride.fid.defs.caption + ' ' + ride.fid.validationError;
           }
-          if (!(ride.toLocation.value && ride.toLocation.value.length > 0)) {
-            ride.toLocation.validationError = 'Required';
-            throw ride.toLocation.defs.caption + ' ' + ride.toLocation.validationError;
+          if (!(ride.tid.value && ride.tid.value.length > 0)) {
+            ride.tid.validationError = 'Required';
+            throw ride.tid.defs.caption + ' ' + ride.tid.validationError;
           }
           if (!(ride.isHasDate())) {
             ride.date.validationError = 'Required';

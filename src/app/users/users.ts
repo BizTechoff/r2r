@@ -147,7 +147,11 @@ export class Users extends IdEntity {
         // if (!this.isNew())
         //     throw "Invalid Operation";
         this.password.value = PasswordColumn.passwordHelper.generateHash(password);
-        await this.save();
+        // console.log(1);
+        try{ await this.save();        }
+        catch(error){
+            console.log(console.error);
+        }
 
         // await this.createEntityForUserByRole(Roles.driver, this);
     }

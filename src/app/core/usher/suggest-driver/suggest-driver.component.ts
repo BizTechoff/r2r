@@ -23,7 +23,10 @@ export class SuggestDriverComponent implements OnInit {
   static readonly STOP_AFTER_FIRST_REASON = true;
 
   args: {
-    rId: string,
+    rId?: string,
+    date?:Date,
+    fid?:string,
+    tid?:string,
   }
 
   drivers: driver4UsherSuggest[] = [];
@@ -140,8 +143,8 @@ export class SuggestDriverComponent implements OnInit {
       let dRow: driver4UsherSuggest = await SuggestDriverComponent.createDriverRow(
         1,
         rgD.dId.value,
-        ride.fromLocation.value,
-        ride.toLocation.value,
+        ride.fid.value,
+        ride.tid.value,
         ride.date.value,
         'registered',
         context);
@@ -149,8 +152,8 @@ export class SuggestDriverComponent implements OnInit {
     };
 
     for await (const same of context.for(RegisterRide).iterate({
-      where: r => r.fromLoc.isEqualTo(ride.fromLocation)
-        .and(r.toLoc.isEqualTo(ride.toLocation))
+      where: r => r.fromLoc.isEqualTo(ride.fid)
+        .and(r.toLoc.isEqualTo(ride.tid))
         .and(r.date.isEqualTo(ride.date))
     })) {
       for await (const rgD of context.for(RegisterDriver).iterate({
@@ -161,8 +164,8 @@ export class SuggestDriverComponent implements OnInit {
         let dRow: driver4UsherSuggest = await SuggestDriverComponent.createDriverRow(
           2,
           rgD.dId.value,
-          ride.fromLocation.value,
-          ride.toLocation.value,
+          ride.fid.value,
+          ride.tid.value,
           ride.date.value,
           'registered(future)',
           context);
@@ -176,8 +179,8 @@ export class SuggestDriverComponent implements OnInit {
   static async driversWithSameLocations(ride: Ride, context: Context): Promise<driver4UsherSuggest[]> {
     let drivers: driver4UsherSuggest[] = [];
     for await (const same of context.for(Ride).iterate({
-      where: r => r.fromLocation.isEqualTo(ride.fromLocation)
-        .and(r.toLocation.isEqualTo(ride.toLocation))
+      where: r => r.fid.isEqualTo(ride.fid)
+        .and(r.tid.isEqualTo(ride.tid))
         .and(r.date.isEqualTo(ride.date))
         .and(r.status.isIn(RideStatus.waitingForStart))
         .and(new Filter((f) => { f.isNotNull(r.driverId) }))
@@ -186,8 +189,8 @@ export class SuggestDriverComponent implements OnInit {
       let dRow: driver4UsherSuggest = await SuggestDriverComponent.createDriverRow(
         3,
         same.driverId.value,
-        same.fromLocation.value,
-        same.toLocation.value,
+        same.fid.value,
+        same.tid.value,
         ride.date.value,
         'same ride',
         context);
@@ -200,7 +203,7 @@ export class SuggestDriverComponent implements OnInit {
     let result: driver4UsherSuggest[] = [];
     let dIds: string[] = [];
     for await (const pref of context.for(DriverPrefs).iterate({
-      where: pf => pf.locationId.isIn(ride.fromLocation),
+      where: pf => pf.locationId.isIn(ride.fid),
     })) {
       if (!(dIds.includes(pref.driverId.value))) {
         dIds.push(pref.driverId.value);
@@ -208,8 +211,8 @@ export class SuggestDriverComponent implements OnInit {
         let dRow: driver4UsherSuggest = await SuggestDriverComponent.createDriverRow(
           4,
           pref.driverId.value,
-          ride.fromLocation.value,
-          ride.toLocation.value,
+          ride.fid.value,
+          ride.tid.value,
           ride.date.value,
           'same prefered borders',
           context);
@@ -224,7 +227,7 @@ export class SuggestDriverComponent implements OnInit {
     let threeMonthsAgo = addDays(-90);
     let dIds: string[] = [];
     for await (const same of context.for(Ride).iterate({
-      where: r => r.fromLocation.isIn(ride.fromLocation)
+      where: r => r.fid.isIn(ride.fid)
         .and(r.date.isGreaterOrEqualTo(threeMonthsAgo))
         .and(new Filter(f => f.isNotNull(r.driverId)))
         .and(new Filter(f => f.isDifferentFrom(r.driverId, ''))),
@@ -235,8 +238,8 @@ export class SuggestDriverComponent implements OnInit {
         let dRow: driver4UsherSuggest = await SuggestDriverComponent.createDriverRow(
           5,
           same.driverId.value,
-          same.fromLocation.value,
-          same.toLocation.value,
+          same.fid.value,
+          same.tid.value,
           same.date.value,
           'same border on 3 month ago',
           context);
@@ -251,7 +254,7 @@ export class SuggestDriverComponent implements OnInit {
     let area: string[] = [];
     let dIds: string[] = [];
 
-    let rLoc = await context.for(Location).findId(ride.fromLocation.value);
+    let rLoc = await context.for(Location).findId(ride.fid.value);
 
     let lIds: string[] = [];
     for await (const loc of context.for(Location).iterate({
@@ -260,7 +263,7 @@ export class SuggestDriverComponent implements OnInit {
       lIds.push(loc.id.value);
     }
     for await (const same of context.for(Ride).iterate({
-      where: r => r.fromLocation.isIn(...lIds)
+      where: r => r.fid.isIn(...lIds)
       .and(new Filter(f => f.isNotNull(r.driverId)))
       .and(new Filter(f => f.isDifferentFrom(r.driverId, ''))),
     })) {
@@ -270,8 +273,8 @@ export class SuggestDriverComponent implements OnInit {
         let dRow: driver4UsherSuggest = await SuggestDriverComponent.createDriverRow(
           6,
           same.driverId.value,
-          same.fromLocation.value,
-          same.toLocation.value,
+          same.fid.value,
+          same.tid.value,
           same.date.value,
           'same area',
           context);
@@ -301,8 +304,8 @@ export class SuggestDriverComponent implements OnInit {
         let dRow: driver4UsherSuggest = await SuggestDriverComponent.createDriverRow(
           7,
           same.driverId.value,
-          same.fromLocation.value,
-          same.toLocation.value,
+          same.fid.value,
+          same.tid.value,
           same.date.value,
           'no ride last 7 days',
           context);
@@ -324,8 +327,8 @@ export class SuggestDriverComponent implements OnInit {
     }
     let takenSeats = 0;
     for await (const taken of context.for(Ride).iterate({
-      where: r => r.fromLocation.isEqualTo(fid)
-        .and(r.toLocation.isEqualTo(tid))
+      where: r => r.fid.isEqualTo(fid)
+        .and(r.tid.isEqualTo(tid))
         .and(r.date.isEqualTo(date))
         .and(r.driverId.isEqualTo(did))
     })) {

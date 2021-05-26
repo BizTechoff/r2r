@@ -7,6 +7,7 @@ import { Driver, DriverIdColumn } from '../../drivers/driver';
 import { Location } from '../../locations/location';
 import { Patient } from '../../patients/patient';
 import { Ride, RideStatus } from '../../rides/ride';
+import { SuggestDriverComponent } from '../suggest-driver/suggest-driver.component';
 import { Usher } from '../usher';
 
 
@@ -20,15 +21,18 @@ class usherSerDriver {
   @ServerMethod()
   async retrieveRideList4UsherSetDriver(): Promise<ride4UsherSetDriver[]> {
     var result: ride4UsherSetDriver[] = [];
+    var alwaysTrue =new Filter(x => { /* true */ });
+
+    // drivers = dPrefs.push(d.prefId);//רק נהגים שמופיעים בנסיעות
 
     for await (const ride of this.context.for(Ride).iterate({
       where: r => r.date.isEqualTo(this.date)
-        .and(r.status.isNotIn(...[RideStatus.succeeded]))
-        .and(this.fid.value ? r.fromLocation.isEqualTo(this.fid) : new Filter(x => { /* true */ }))
-        .and(this.tid.value ? r.toLocation.isEqualTo(this.tid) : new Filter(x => { /* true */ })),
+      .and(this.fid.value ? r.fid.isEqualTo(this.fid) : alwaysTrue)
+      .and(this.tid.value ? r.tid.isEqualTo(this.tid) : alwaysTrue)
+        .and(r.status.isNotIn(...[RideStatus.succeeded])),
     })) {
-      let from = (await this.context.for(Location).findId(ride.fromLocation.value)).name.value;
-      let to = (await this.context.for(Location).findId(ride.toLocation.value)).name.value;
+      let from = (await this.context.for(Location).findId(ride.fid.value)).name.value;
+      let to = (await this.context.for(Location).findId(ride.tid.value)).name.value;
       let driver = ride.isHasDriver() ? (await this.context.for(Driver).findId(ride.driverId.value)).name.value : "";
       let patient = ride.isHasPatient() ? (await this.context.for(Patient).findId(ride.patientId.value)).name.value : "";
 
@@ -91,6 +95,22 @@ export class SetDriverComponent implements OnInit {
   selectedPickupTime = "00:00";
   driverId = new DriverIdColumn({
     caption: "Select Driver To Set",
+    dataControlSettings: () => ({
+      click: async () => {
+        let selected = await this.context.openDialog(SuggestDriverComponent,
+          sd => sd.args = { rId: '', },
+          sd => sd.selected);
+        if (selected.did.length > 0) {
+          let d = await this.context.for(Driver).findId(selected.did);
+          if (d) {
+            // r.driverId = d.id.value;
+            // r.driver = d.name.value;
+            // r.dMobile = d.mobile.value;
+            // r.status = selected.status;
+          }
+        }
+      },
+    }),
     valueChange: async () => {
       this.driverSeats = (await this.context.for(Driver).findId(this.driverId.value)).seats.value;
       if (this.selectedPassengers > this.driverSeats) {

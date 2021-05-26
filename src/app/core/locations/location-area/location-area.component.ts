@@ -13,7 +13,7 @@ export class LocationAreaComponent implements OnInit {
 
   args: { dId: string };
   okPressed = false;
-  borders: { id: string, selected: boolean, name: string, area?: LocationArea, visible?:boolean }[] = [];
+  borders: { id: string, selected: boolean, name: string, area?: LocationArea, ivisible?:boolean }[] = [];
   existsBordersIds: string[] = [];
 
 
@@ -79,7 +79,7 @@ export class LocationAreaComponent implements OnInit {
         selected: this.existsBordersIds.includes(loc.id.value),
         name: loc.name.value,
         area: loc.area.value,
-        visible: true,
+        ivisible: true,
       });
     }
     this.borders.sort((b1, b2) => b1.name.localeCompare(b2.name));
@@ -89,10 +89,10 @@ export class LocationAreaComponent implements OnInit {
   filter() {
     for (const loc of this.borders) {
       if (this.selected.value && this.selected.value.id.length > 0 && (!(this.selected.value == LocationArea.all))){
-        loc.visible = (loc.area == this.selected.value);
+        loc.ivisible = (loc.area == this.selected.value);
       }
       else{
-        loc.visible = true;
+        loc.ivisible = true;
       }
     }
   }

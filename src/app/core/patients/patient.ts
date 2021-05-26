@@ -25,8 +25,8 @@ export class Patient extends IdEntity {
   remark = new StringColumn({});
   age = new NumberColumn({ caption: 'Age' });
 
-  defaultBorder?= new LocationIdColumn({}, this.context, true);
-  defaultHospital?= new LocationIdColumn({}, this.context, true);
+  defaultBorder?= new LocationIdColumn({allowNull: true}, this.context);
+  defaultHospital?= new LocationIdColumn({allowNull: true}, this.context);
 
   constructor(private context: Context) {
     super({

@@ -128,17 +128,17 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
       let isok = true;
       if ((this.fid.value) || (this.tid.value)) {
         if (this.fid.value) {
-          if (!(ride.fromLocation.value == this.fid.value)) {
+          if (!(ride.fid.value == this.fid.value)) {
             isok = false;
           }
         }
         if (this.tid.value) {
-          if (!(ride.toLocation.value == this.tid.value)) {
+          if (!(ride.tid.value == this.tid.value)) {
             isok = false;
           }
         }
       }
-      else if (!(dLocs.includes(ride.fromLocation.value) || dLocs.includes(ride.toLocation.value))) {
+      else if (!(dLocs.includes(ride.fid.value) || dLocs.includes(ride.tid.value))) {
         isok = false;
       }
 
@@ -146,8 +146,8 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
         continue;
       }
 
-      let from = (await this.context.for(Location).findId(ride.fromLocation.value)).name.value;
-      let to = (await this.context.for(Location).findId(ride.toLocation.value)).name.value;
+      let from = (await this.context.for(Location).findId(ride.fid.value)).name.value;
+      let to = (await this.context.for(Location).findId(ride.tid.value)).name.value;
 
       let registereds = (await this.context.for(RegisterDriver).find(
         {
@@ -162,8 +162,8 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
             rgId: '',// ride.id.value,
             dId: nreg.dId.value,
             date: ride.date.value,
-            fId: ride.fromLocation.value,
-            tId: ride.toLocation.value,
+            fId: ride.fid.value,
+            tId: ride.tid.value,
             from: from,
             to: to,
             pass: nreg.seats.value,// ride.passengers(),
@@ -182,8 +182,8 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
             rgId: '',// ride.id.value,
             // dId: nreg.driverId.value,
             date: ride.date.value,
-            fId: ride.fromLocation.value,
-            tId: ride.toLocation.value,
+            fId: ride.fid.value,
+            tId: ride.tid.value,
             from: from,
             to: to,
             pass: ride.passengers(),

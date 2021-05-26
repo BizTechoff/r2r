@@ -39,8 +39,8 @@ export class DriverHistoryComponent implements OnInit {
       where: r => r.driverId.isEqualTo(driver.id)
         .and(r.status.isNotIn(...RideStatus.isInDriverWaitingStatuses)),
     })) {
-      let from = (await context.for(Location).findId(ride.fromLocation.value)).name.value;
-      let to = (await context.for(Location).findId(ride.toLocation.value)).name.value;
+      let from = (await context.for(Location).findId(ride.fid.value)).name.value;
+      let to = (await context.for(Location).findId(ride.tid.value)).name.value;
       let pName = ride.isHasPatient() ? (await context.for(Patient).findId(ride.patientId.value)).name.value : "";
       let age = ride.isHasPatient() ? (await context.for(Patient).findId(ride.patientId.value)).age.value : undefined;
       let mobile = ride.isHasPatient() ? (await context.for(Patient).findId(ride.patientId.value)).mobile.value : "";
@@ -64,7 +64,7 @@ export class DriverHistoryComponent implements OnInit {
           rId: ride.id.value,
           pId: ride.patientId.value,
           dId: ride.isHasDriver()? ride.driverId.value: '',
-          fId: ride.fromLocation.value,
+          fId: ride.fid.value,
           pName: pName,
           from: from,
           to: to,
@@ -90,7 +90,7 @@ export class DriverHistoryComponent implements OnInit {
         };
         result.push(row);
       }
-    }
+    } 
 
     // console.log(result)
     result.sort((r1, r2) => +r1.date - +r2.date);

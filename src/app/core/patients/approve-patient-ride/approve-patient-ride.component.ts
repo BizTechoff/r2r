@@ -21,8 +21,8 @@ export class ApprovePatientRideComponent implements OnInit {
     columnSettings: (r) => [
       r.patientId,
       // r.driverId,
-      r.fromLocation,
-      r.toLocation,
+      r.fid,
+      r.tid,
       r.status,
       r.date,
       r.visitTime,

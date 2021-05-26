@@ -2,7 +2,6 @@ import { ErrorHandler, NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { NotSignedInGuard, RemultModule } from '@remult/angular';
 import { ShowDialogOnErrorErrorHandler } from './common/dialog';
-import { ApplicationSettingsComponent } from './core/application-settings/application-settings.component';
 import { DriverHistoryComponent } from './core/drivers/driver-history/driver-history.component';
 import { DriverRegisterComponent } from './core/drivers/driver-register/driver-register.component';
 import { DriverRidesComponent } from './core/drivers/driver-rides/driver-rides.component';
@@ -14,22 +13,20 @@ import { ApprovePatientRideComponent } from './core/patients/approve-patient-rid
 import { PatientsComponent } from './core/patients/patients.component';
 import { RegisterRidesComponent } from './core/rides/register-rides/register-rides.component';
 import { ReturnRidesComponent } from './core/rides/return-rides/return-rides.component';
-import { RidesComponent } from './core/rides/rides.component';
 import { UsherComponent } from './core/usher/usher.component';
-import { DemoComponent } from './demo/demo.component';
 import { HomeComponent } from './home/home.component';
 import { AdminGuard, DriverGuard, MatcherGuard, UsherGuard } from './users/roles';
 import { UsersComponent } from './users/users.component';
 
 
 const routes: Routes = [
-// {path:'demo',component: DemoComponent},
+  // {path:'demo',component: DemoComponent},
   // Driver
-  { path: 'Rides4Driver', component: DriverRidesComponent, canActivate: [DriverGuard], data: { name: "My Rides" } },
-  { path: 'Settings', component: DriverSettingsComponent, canActivate: [DriverGuard], data: { name: "Settings" } },
-  { path: 'My History Rides', component: DriverHistoryComponent, canActivate: [DriverGuard], data: { name: "History" } },
-  { path: 'Register New Rides', component: DriverRegisterComponent, canActivate: [DriverGuard], data: { name: "Registers" } },
-  { path: 'UsefulInformation', component: DriverUsefulInformationComponent, canActivate: [DriverGuard], data: { name: "Useful Information" } },
+  { path: 'd/rides', component: DriverRidesComponent, canActivate: [DriverGuard], data: { name: "My Rides" } },
+  { path: 'd/register', component: DriverRegisterComponent, canActivate: [DriverGuard], data: { name: "Register To Ride" } },
+  { path: 'd/info', component: DriverUsefulInformationComponent, canActivate: [DriverGuard], data: { name: "Useful Information" } },
+  { path: 'd/defs', component: DriverSettingsComponent, canActivate: [DriverGuard], data: { name: "Settings" } },
+  { path: 'd/history', component: DriverHistoryComponent, canActivate: [DriverGuard], data: { name: "History" } },
 
   // Matcher
   { path: 'PatientsMatcher', component: PatientsComponent, canActivate: [MatcherGuard], data: { name: "Patients" } },
@@ -37,13 +34,13 @@ const routes: Routes = [
 
   // Usher
   { path: 'Rides4Usher', component: UsherComponent, canActivate: [UsherGuard], data: { name: "Rides" } },
+  { path: 'Register Rides', component: RegisterRidesComponent, canActivate: [UsherGuard], data: { name: "Register Rides" } },
+  { path: 'Return Rides', component: ReturnRidesComponent, canActivate: [UsherGuard], data: { name: "Return Rides" } },
   // { path: 'Rides', component: RidesComponent, canActivate: [UsherGuard] },
   { path: 'Drivers', component: DriversComponent, canActivate: [UsherGuard] },
   { path: 'PatientsUsher', component: PatientsComponent, canActivate: [UsherGuard], data: { name: "Patients" } },
 
   { path: 'Locations', component: LocationsComponent, canActivate: [UsherGuard] },
-  { path: 'Register Rides', component: RegisterRidesComponent, canActivate: [UsherGuard], data: { name: "Register Rides" } },
-  { path: 'Return Rides', component: ReturnRidesComponent, canActivate: [UsherGuard], data: { name: "Return Rides" } },
 
   // Admin
   { path: 'Reports', component: LocationsComponent, canActivate: [AdminGuard] },

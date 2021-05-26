@@ -1,3 +1,4 @@
+import { formatDate } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { BusyService, SelectValueDialogComponent } from '@remult/angular';
 import { Context, ServerFunction, StringColumn, ValueListItem } from '@remult/core';
@@ -7,7 +8,7 @@ import { InputAreaComponent } from '../../common/input-area/input-area.component
 import { Roles } from '../../users/roles';
 import { LocationAreaComponent } from '../locations/location-area/location-area.component';
 import { Ride, RideStatus } from '../rides/ride';
-import { Usher } from '../usher/usher';
+import { addDays, Usher } from '../usher/usher';
 import { Driver, openDriver } from './driver';
 import { DriverCall } from './driverCall';
 import { DriverPrefs } from './driverPrefs';
@@ -49,8 +50,8 @@ export class DriversComponent implements OnInit {
     ],
     allowCRUD: false,
     rowButtons: [{
-      name: "Suggest Rides",
-      click: async (d) => await this.openSuggestedRidesForDriverDialog(d),
+      name: "Show Rides",
+      click: async (d) => await this.openScheduleRides(d),
       icon: "directions_bus_filled",
       visible: (d) => !d.isNew(),
       //showInLine: (this.context.for(DriverPrefs).count(p => p.driverId.isEqualTo("")).then(() => { return true; })),
@@ -183,6 +184,114 @@ export class DriversComponent implements OnInit {
     // });
   }
 
+  async openScheduleRides(d: Driver) {
+
+    let values: ValueListItem[] = [];
+    // console.log(r.date);
+    let rides = await Usher.getRegisteredRidesForDriver(d.id.value);
+    console.log(rides.length);
+    for (const r of rides) {
+      values.push({
+        id: r.id,
+        caption: r.from + '|' + r.to + '|' + formatDate(r.date, 'dd.MM.yyyy', 'en-US') + '|' + r.status.id,
+      });
+    };
+
+    let today = new Date();
+    today = new Date(today.getFullYear(), today.getMonth(), today.getDate());//dd/mm/yyyy 00:00:00.0
+
+    await this.context.openDialog(GridDialogComponent, gd => gd.args = {
+      title: `${d.name.value} -Scheduled Rides`,
+      settings: this.context.for(Ride).gridSettings({
+        where: r => r.id.isIn(...rides.map(rm => rm.id)),
+        // where: r => r.driverId.isEqualTo(d.id)
+        //   .and(r.date.isGreaterOrEqualTo(today)),
+        orderBy: r => [{ column: r.date, descending: true }],
+        allowCRUD: false,// this.context.isAllowed([Roles.admin, Roles.usher, Roles.matcher]),
+        allowDelete: false,
+        showPagination: false,
+        numOfColumnsInGrid: 10,
+        columnSettings: r => [
+          r.fid,
+          r.tid,
+          r.date,
+          r.patientId,
+          r.status,
+        ],
+        // rowButtons: [
+        //   {
+        //     textInMenu: 'Edit',
+        //     icon: 'edit',
+        //     click: async (r) => { await this.editRide(r); },
+        //   },
+        // ],
+      }),
+    });
+  }
+  
+
+  async editRide(r:Ride){
+    let today = new Date();
+    let tomorrow = new Date();
+    tomorrow.setDate(today.getDate() + 1);
+    let tomorrow10am = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate(), 10);
+    
+    // var isNeedReturnTrip = new BoolColumn({ caption: "Need Return Ride" });
+    await this.context.openDialog(
+      InputAreaComponent,
+      x => x.args = {
+        title: `Edit Ride: (${r.status.value.id})`,// ${p.name.value} (age: ${p.age.value})`,
+        columnSettings: () => [
+          r.fid,
+          r.tid,
+          r.date, 
+          r.dayPeriod,
+          r.visitTime,
+          r.isHasBabyChair,
+          r.isHasWheelchair,
+          r.escortsCount,
+          r.dRemark,
+          r.rRemark,
+        ],
+        // buttons: [{
+        //   text: 'Patient Details',
+        //   click: async () => { await this.editPatient(p); }
+        // }
+        // ],
+        validate: async () => {
+          if (!(r.fid.value && r.fid.value.length > 0)) {
+            r.fid.validationError = 'Required';
+            throw r.fid.defs.caption + ' ' + r.fid.validationError;
+          }
+          if (!(r.tid.value && r.tid.value.length > 0)) {
+            r.tid.validationError = 'Required';
+            throw r.tid.defs.caption + ' ' + r.tid.validationError;
+          }
+          if (!(r.isHasDate())) {
+            r.date.validationError = 'Required';
+            throw r.date.defs.caption + ' ' + r.date.validationError;
+          }
+          if (r.date.value < addDays(0)) {
+            r.date.validationError = 'Must be greater or equals today';
+            throw r.date.defs.caption + ' ' + r.date.validationError;
+          }
+          if (!(r.isHasVisitTime())) {
+            r.visitTime.validationError = 'Required';
+            throw r.visitTime.defs.caption + ' ' + r.visitTime.validationError;
+          }
+        },
+        ok: () => async () => {
+          if (this.context.isAllowed(Roles.admin)) {
+            await r.save();
+          }
+          else {
+            this.dialog.info("Not Allowed");
+          }
+        },
+      },
+    )
+  }
+
   async openSuggestedRidesForDriverDialog(d: Driver) {
     let suggestedRides = await Usher.getSuggestedRidesForDriver(d.id.value);
     suggestedRides = [];
@@ -193,10 +302,11 @@ export class DriversComponent implements OnInit {
       suggestedRides.push({
         id: row.id.value,
         date: row.date.value,
-        from: row.fromLocation.value,
-        to: row.toLocation.value,
+        from: row.fid.value,
+        to: row.tid.value,
         passengers: row.passengers(),
         phones: '',
+        status: row.status.value,
         groupByLocation: false,
         icons: [],
         ids: [],
@@ -246,7 +356,7 @@ export class DriversComponent implements OnInit {
 
     let borders = await DriversComponent.getBordersIds(did, context);
     for await (const ride of context.for(Ride).iterate({
-      where: r => r.fromLocation.isIn(...borders)
+      where: r => r.fid.isIn(...borders)
         .and(r.status.isIn(RideStatus.waitingForDriver)),
     })) {
       result.push({ rid: ride.id.value });

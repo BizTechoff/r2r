@@ -26,11 +26,11 @@ class usherAccept4Driver {
         for await (const ride of this.context.for(Ride).iterate({
             where: r => r.date.isEqualTo(this.date)
             .and(r.status.isNotIn(...[RideStatus.succeeded]))
-            .and(this.fid.value ? r.fromLocation.isEqualTo(this.fid) : new Filter(x => { /* true */ }))
-            .and(this.tid.value ? r.toLocation.isEqualTo(this.tid) : new Filter(x => { /* true */ })),
+            .and(this.fid.value ? r.fid.isEqualTo(this.fid) : new Filter(x => { /* true */ }))
+            .and(this.tid.value ? r.tid.isEqualTo(this.tid) : new Filter(x => { /* true */ })),
         })) { 
-            let from = (await this.context.for(Location).findId(ride.fromLocation.value)).name.value;
-            let to = (await this.context.for(Location).findId(ride.toLocation.value)).name.value;
+            let from = (await this.context.for(Location).findId(ride.fid.value)).name.value;
+            let to = (await this.context.for(Location).findId(ride.tid.value)).name.value;
             let dName= '';
             let dMobile = '';
             if(ride.isHasDriver()){

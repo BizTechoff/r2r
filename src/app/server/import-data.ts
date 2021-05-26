@@ -253,8 +253,8 @@ async function findOrCreateRideNew(rideRecord: any, driverId: string, patientId:
     ride.importRideNum.value = rideRecord.RideNum;
     ride.driverId.value = driverId;
     ride.patientId.value = patientId;
-    ride.fromLocation.value = fromId;
-    ride.toLocation.value = toId;
+    ride.fid.value = fromId;
+    ride.tid.value = toId;
     ride.date.value = toDate(rideRecord.Date);
     ride.dayOfWeek.value = DriverPrefs.getDayOfWeek((ride.date.value.getDay() + 1));
     ride.dayPeriod.value = DriverPrefs.getDayPeriod(ride.date.value.getHours() > 12 ? "afternoon" : "morning");

@@ -24,8 +24,8 @@ export class RidesComponent implements OnInit {
     numOfColumnsInGrid: 10,
     columnSettings: (r) => [
       r.date,
-      r.fromLocation,
-      r.toLocation,
+      r.fid,
+      r.tid,
       r.dayPeriod,
       r.dayOfWeek,
       r.visitTime,
@@ -64,8 +64,8 @@ export class RidesComponent implements OnInit {
       {
         column: r.date,//"HH:mm"
       },
-      r.fromLocation,
-      r.toLocation,
+      r.fid,
+      r.tid,
       r.patientId,
       {
         column: new NumberColumn({ caption: "passengers" }),
@@ -104,8 +104,8 @@ export class RidesComponent implements OnInit {
         column: r.visitTime,
         inputType: 'time',
       },
-      r.fromLocation,
-      r.toLocation,
+      r.fid,
+      r.tid,
       r.patientId,
       {
         column: new NumberColumn({ caption: "age" }),

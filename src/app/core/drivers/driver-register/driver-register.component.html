@@ -31,7 +31,7 @@
                         <!-- <span style="padding-left: 15px;">Last Retrieved: {{ clientLastRefreshDate | date:
                             'HH:mm'
                             }}</span> -->
-                        <mat-expansion-panel [expanded]="false">
+                        <mat-expansion-panel [expanded]="params.fid.value || params.tid.value">
                             <mat-expansion-panel-header>
                                 <mat-panel-title>
                                     Last Retrieved: {{ clientLastRefreshDate | date: 'HH:mm' }}

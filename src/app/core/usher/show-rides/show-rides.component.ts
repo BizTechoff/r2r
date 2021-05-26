@@ -34,11 +34,11 @@ class usherShowRides {//dataControlSettings: () => ({width: '150px'}),
         for await (const ride of this.context.for(Ride).iterate({
             where: r => r.date.isEqualTo(this.date)
             .and(r.status.isNotIn(...[RideStatus.succeeded]))
-            .and(this.fid.value ? r.fromLocation.isEqualTo(this.fid) : new Filter(x => { /* true */ }))
-            .and(this.tid.value ? r.toLocation.isEqualTo(this.tid) : new Filter(x => { /* true */ })),
+            .and(this.fid.value ? r.fid.isEqualTo(this.fid) : new Filter(x => { /* true */ }))
+            .and(this.tid.value ? r.tid.isEqualTo(this.tid) : new Filter(x => { /* true */ })),
         })) { 
-            let from = (await this.context.for(Location).findId(ride.fromLocation.value)).name.value;
-            let to = (await this.context.for(Location).findId(ride.toLocation.value)).name.value;
+            let from = (await this.context.for(Location).findId(ride.fid.value)).name.value;
+            let to = (await this.context.for(Location).findId(ride.tid.value)).name.value;
             let dName= '';
             let dMobile = '';
             if(ride.isHasDriver()){
@@ -227,7 +227,7 @@ export class ShowRidesComponent implements OnInit {
   async setDriver(r: ride4UsherApprove) {
     let selected = await this.context.openDialog(SuggestDriverComponent,
       sd => sd.args = { rId: r.id, },
-      d => d.selected);
+      sd => sd.selected);
     if (selected.did.length > 0) {
       let d = await this.context.for(Driver).findId(selected.did);
       if (d) {

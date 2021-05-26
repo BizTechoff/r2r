@@ -45,3 +45,12 @@ export class DriverGuard extends SignedInGuard {
         return Roles.driver;// c => c.isAllowed(Roles.driver) || c.isAllowed(Roles.usher)  || c.isAllowed(Roles.admin);
     }
 }
+
+@Injectable()
+export class OnlyDriverGuard extends SignedInGuard {
+
+    isAllowed() {
+        return c=> c.isAllowed(Roles.driver) && (! c.isAllowed([Roles.admin || Roles.usher || Roles.matcher]));
+        return Roles.driver;// c => c.isAllowed(Roles.driver) || c.isAllowed(Roles.usher)  || c.isAllowed(Roles.admin);
+    }
+}

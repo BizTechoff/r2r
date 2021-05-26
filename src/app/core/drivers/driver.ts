@@ -55,8 +55,8 @@ export class Driver extends IdEntity {
 
   lastStatus = new RideStatusColumn({});
   lastStatusDate = new DateColumn({});
-  defaultFromLocation?= new LocationIdColumn({}, this.context, true);
-  defaultToLocation?= new LocationIdColumn({}, this.context, true);
+  defaultFromLocation?= new LocationIdColumn({allowNull: true}, this.context);
+  defaultToLocation?= new LocationIdColumn({allowNull: true}, this.context);
   defaultFromTime = new StringColumn({defaultValue: '00:00'});//{ defaultValue: "00:00", dataControlSettings: () => ({ inputType: 'time', width: '110' }) });
   defaultToTime = new StringColumn({defaultValue: '00:00'});//{ defaultValue: "00:00", dataControlSettings: () => ({ inputType: 'time', width: '110' }) });
   defaultSeats = new NumberColumn({defaultValue: 1});

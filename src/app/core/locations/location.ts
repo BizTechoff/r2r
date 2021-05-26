@@ -52,7 +52,7 @@ export class LocationArea {
       return LocationArea.center;
     }
   }
-  id:string;
+  id: string;
 }
 export class LocationAreaColumn extends ValueListColumn<LocationArea>{
   constructor(options: ColumnOptions) {
@@ -71,12 +71,24 @@ export class LocationTypeColumn extends ValueListColumn<LocationType>{
   }
 }
 
+export interface LocationFilterSettings {
+  onlyBorder?: boolean,
+  onlyHospital?: boolean,
+}
 
 export class LocationIdColumn extends StringColumn {
-
-  constructor(options?: ColumnSettings<string>, private context?: Context, allowNull = false, onlyBorders = false) {
+  filter = (l: Location, f?: LocationFilterSettings) => new Filter(() => {
+    if (f) {
+      if (f.onlyBorder) {
+        return l.type.isEqualTo(LocationType.border);
+      }
+      else if (f.onlyHospital) {
+        return l.type.isEqualTo(LocationType.hospital);
+      }
+    }
+  });
+  constructor(options?: ColumnSettings<string>, private context?: Context, private filterSettings?: LocationFilterSettings) {
     super({
-      allowNull: allowNull,
       validate: () => {
         // console.log(this.defs.allowNull);
         // if (this.defs.allowNull) { }
@@ -89,19 +101,20 @@ export class LocationIdColumn extends StringColumn {
         getValue: () => this.context.for(Location).lookup(this).name.value,
         hideDataOnInput: true,
         clickIcon: 'search',
-        width: "150px",
+        width: "150px", 
         click: () => {
           this.context.openDialog(DynamicServerSideSearchDialogComponent,
             x => x.args(Location, {
               onClear: () => this.value = '',
               onSelect: l => this.value = l.id.value,
               searchColumn: l => l.name,
+              where: l => this.filter(l, filterSettings),
             }));
         }
       }),//...options
     },
       options);
-  }
+  };
 }
 export class BorderAreaIdColumn extends StringColumn {
 

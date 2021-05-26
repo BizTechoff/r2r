@@ -40,7 +40,7 @@ export class AppComponent {
         if (needPw == undefined) {
           this.dialogService.error("User not found, please contact Avishai");
         }
-        else if(needPw == false){
+        else if (needPw == false) {
           this.session.setToken(await AppComponent.signIn(mobile.value, ''));
         }
         else {
@@ -63,7 +63,8 @@ export class AppComponent {
   static async isSpecial(mobile: string, context?: Context) {
     let u = await context.for(Users).findFirst(usr => usr.mobile.isEqualTo(mobile));
     if (u) {
-      if (u.isDriver.value) {
+      let onlyDriver = u.isDriver.value && (!(u.isAdmin || u.isUsher || u.isMatcher));
+      if (onlyDriver) {
         return false;
       }
       return true;
@@ -76,8 +77,8 @@ export class AppComponent {
     let result: UserInfo;
     let u = await context.for(Users).findFirst(usr => usr.mobile.isEqualTo(mobile));
     if (u) {
-      if (u.isDriver.value||  !u.password.value || PasswordColumn.passwordHelper.verify(password, u.password.value)) {
-      //if (u.isDriver ||  !u.password.value || PasswordColumn.passwordHelper.verify(password, u.password.value)) {
+      if (u.isDriver.value || !u.password.value || PasswordColumn.passwordHelper.verify(password, u.password.value)) {
+        //if (u.isDriver ||  !u.password.value || PasswordColumn.passwordHelper.verify(password, u.password.value)) {
         result = {
           id: u.id.value,
           roles: [],

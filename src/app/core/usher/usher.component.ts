@@ -1,20 +1,69 @@
 import { Component, OnInit } from '@angular/core';
-import { Context, DataAreaSettings, DateColumn, Filter, GridSettings, ServerController, ServerFunction, ServerMethod } from '@remult/core';
-import { getRideList4UsherParams, ride4Usher } from '../../shared/types';
+import { BoolColumn, Context, DateColumn, DateTimeColumn, Filter, GridSettings, IdEntity, ServerController, ServerFunction, ServerMethod, StringColumn } from '@remult/core';
+import { ride4Usher } from '../../shared/types';
 import { Roles } from '../../users/roles';
-import { Driver, openDriver } from '../drivers/driver';
+import { UserId } from '../../users/users';
+import { Driver, DriverIdColumn, openDriver } from '../drivers/driver';
 import { Location, LocationIdColumn, LocationType } from '../locations/location';
 import { Patient } from '../patients/patient';
 import { PatientCrudComponent } from '../patients/patient-crud/patient-crud.component';
-import { addRide, openRide, Ride, RideStatus } from '../rides/ride';
+import { addRide, openRide, Ride, RideStatus, RideStatusColumn } from '../rides/ride';
 import { MabatGroupBy } from './mabat';
 import { SetDriverComponent } from './set-driver/set-driver.component';
 import { ShowRidesComponent, UsherRowStatus } from './show-rides/show-rides.component';
 import { addDays, Usher, UsherRideGroup, UsherRideRow } from './usher';
 
+// @EntityClass
+@ServerController({ key: 'ridesProvider', allowed: true })//mabatParams
+class ridesProviderParams extends IdEntity {//componentParams
+  date = new DateColumn({ defaultValue: new Date() });
+  fid?= new LocationIdColumn({ defaultValue: null, allowNull: true }, this.context, { onlyBorder: true });
+  tid?= new LocationIdColumn({ defaultValue: null, allowNull: true }, this.context, { onlyHospital: true });
+  did?= new DriverIdColumn({ defaultValue: null, allowNull: true }, this.context);
+  status?= new RideStatusColumn({ defaultValue: null, allowNull: true });
 
+  name = new StringColumn({ defaultValue: '' });
+  default = new BoolColumn({ defaultValue: false });
+  private = new BoolColumn({ defaultValue: false });
+  created = new DateTimeColumn({});
+  createdBy = new UserId(this.context, { defaultValue: '' });
+  modified = new DateTimeColumn({});
+  modifiedBy = new UserId(this.context, { defaultValue: '' });
 
-@ServerController({ key: 'usherParams', allowed: true })
+  constructor(private context: Context) {
+    super({
+      name: 'mabats',
+      allowApiInsert: Roles.admin,
+      allowApiUpdate: [Roles.admin, Roles.usher, Roles.matcher],
+      allowApiRead: [Roles.admin, Roles.usher, Roles.matcher],
+      allowApiDelete: Roles.admin,
+
+      saving: async () => {
+        if (this.context.onServer) {
+          if (this.isNew()) {
+            this.created.value = new Date();
+            this.createdBy.value = this.context.user.id;
+          }
+          else {
+            this.modified.value = new Date();
+            this.modifiedBy.value = this.context.user.id;
+          }
+        }
+      },
+    });
+  }
+
+  @ServerMethod({ allowed: true, blockUser: false, queue: true })
+  async exec() {
+    for await (const ride of this.context.for(Ride).iterate({
+      where: r => r.date.isEqualTo(this.date)
+      // .and(r.)
+    })) {
+    }
+  }
+}
+
+@ServerController({ key: 'usherParams', allowed: true })//todo: MABAT = ServerController
 class usherParams {//dataControlSettings: () => ({width: '150px'}), 
   date = new DateColumn({ defaultValue: new Date() /*new Date(2021,2,3)*/, valueChange: async () => { await this.onChanged(); } });
   fid = new LocationIdColumn({ caption: 'From', valueChange: async () => { await this.onChanged(); } }, this.context);
@@ -23,23 +72,23 @@ class usherParams {//dataControlSettings: () => ({width: '150px'}),
   // fid = new LocationIdColumn({ valueChange: async () => { if(this.ready) await this.retrieveRideList4Usher(2); } }, this.context);
   // tid = new LocationIdColumn({ valueChange: async () => { if(this.ready) await this.retrieveRideList4Usher(3); } }, this.context);
   constructor(private context: Context) { }
-  ready = false; 
-  onChanged = async () => {};
-  
+  ready = false;
+  onChanged = async () => { };
+
   @ServerMethod()
-  async retrieveRideList4Usher(id:number): Promise<ride4Usher[]> {
+  async retrieveRideList4Usher(id: number): Promise<ride4Usher[]> {
     var result: ride4Usher[] = [];
-// console.log(id);
+    // console.log(id);
     for await (const ride of this.context.for(Ride).iterate({
       where: r => r.date.isEqualTo(this.date)
         .and(r.status.isNotIn(...[RideStatus.succeeded]))
-        .and(this.fid.value ? r.fromLocation.isEqualTo(this.fid) : new Filter(x => { /* true */ }))
-        .and(this.tid.value ? r.toLocation.isEqualTo(this.tid) : new Filter(x => { /* true */ })),
+        .and(this.fid.value ? r.fid.isEqualTo(this.fid) : new Filter(x => { /* true */ }))
+        .and(this.tid.value ? r.tid.isEqualTo(this.tid) : new Filter(x => { /* true */ })),
     })) {
-      let from = (await this.context.for(Location).findId(ride.fromLocation.value));
+      let from = (await this.context.for(Location).findId(ride.fid.value));
       let fromName = from.name.value;
       let fromIsBorder = from.type.value == LocationType.border;
-      let to = (await this.context.for(Location).findId(ride.toLocation.value));
+      let to = (await this.context.for(Location).findId(ride.tid.value));
       let toName = to.name.value;
       let toIsBorder = to.type.value == LocationType.border;
       let key = `${fromName}-${toName}`;
@@ -70,7 +119,7 @@ class usherParams {//dataControlSettings: () => ({width: '150px'}),
       row.passengers += ride.passengers();
       row.ridesCount += 1;
     }
-    
+
     result.sort((r1, r2) => (r1.from + '-' + r1.to).localeCompare(r2.from + '-' + r2.to));
 
     return result;
@@ -83,6 +132,8 @@ class usherParams {//dataControlSettings: () => ({width: '150px'}),
   styleUrls: ['./usher.component.scss']
 })
 export class UsherComponent implements OnInit {
+
+  ridesProvider = new ridesProviderParams(this.context);
 
   params = new usherParams(this.context);
   ridesGrid: GridSettings<Ride>;
@@ -101,14 +152,14 @@ export class UsherComponent implements OnInit {
   async ngOnInit() {
     await this.refresh();
     this.params.ready = true;
-    this.params.onChanged =  async() => {await this.refresh();};
+    this.params.onChanged = async () => { await this.refresh(); };
   }
 
   filter(r: Ride, from: string, to: string): Filter {
     return r.date.isEqualTo(this.params.date)
       .and(r.status.isNotIn(...[RideStatus.succeeded]))
-      .and(from && (from.trim().length > 0) ? r.fromLocation.isEqualTo(from) : new Filter(x => { }))
-      .and(to && (to.trim().length > 0) ? r.toLocation.isEqualTo(to) : new Filter(x => { }));
+      .and(from && (from.trim().length > 0) ? r.fid.isEqualTo(from) : new Filter(x => { }))
+      .and(to && (to.trim().length > 0) ? r.tid.isEqualTo(to) : new Filter(x => { }));
   }
 
   async prevDay() {
@@ -125,8 +176,8 @@ export class UsherComponent implements OnInit {
 
     this.context.openDialog(ShowRidesComponent, sr => sr.args = {
       date: this.params.date.value,
-      from: r.fromLocation.value,
-      to: r.toLocation.value,
+      from: r.fid.value,
+      to: r.tid.value,
       status: UsherRowStatus.backRide,
     });
   }
@@ -176,9 +227,9 @@ export class UsherComponent implements OnInit {
     //   fromId: this.selectedFrom.value,
     //   toId: this.selectedTo.value,
     // };
-    this.params.onChanged = async () => {};
+    this.params.onChanged = async () => { };
     this.rides = await this.params.retrieveRideList4Usher(0);// await UsherComponent.retrueveRideList4Usher(this.params);
-    this.params.onChanged =  async() => {await this.refresh();};
+    this.params.onChanged = async () => { await this.refresh(); };
   }
 
   async addRide() {
@@ -203,13 +254,13 @@ export class UsherComponent implements OnInit {
     for await (const ride of context.for(Ride).iterate({
       where: r => r.date.isEqualTo(params.date)
         .and(r.status.isNotIn(...[RideStatus.succeeded]))
-        .and(params.fid.value ? r.fromLocation.isEqualTo(params.fid) : new Filter(x => { /* true */ }))
-        .and(params.tid.value ? r.toLocation.isEqualTo(params.tid) : new Filter(x => { /* true */ })),
+        .and(params.fid.value ? r.fid.isEqualTo(params.fid) : new Filter(x => { /* true */ }))
+        .and(params.tid.value ? r.tid.isEqualTo(params.tid) : new Filter(x => { /* true */ })),
     })) {
-      let from = (await context.for(Location).findId(ride.fromLocation.value));
+      let from = (await context.for(Location).findId(ride.fid.value));
       let fromName = from.name.value;
       let fromIsBorder = from.type.value == LocationType.border;
-      let to = (await context.for(Location).findId(ride.toLocation.value));
+      let to = (await context.for(Location).findId(ride.tid.value));
       let toName = to.name.value;
       let toIsBorder = to.type.value == LocationType.border;
       let key = `${fromName}-${toName}`;
@@ -289,8 +340,8 @@ export class UsherComponent implements OnInit {
     if (notify) {
       let mobile = driver.mobile.value;
       let patientName = this.context.for(Patient).findId(ride.patientId.value);
-      let fromName = this.context.for(Location).findId(ride.fromLocation.value);
-      let toName = this.context.for(Location).findId(ride.toLocation.value);
+      let fromName = this.context.for(Location).findId(ride.fid.value);
+      let toName = this.context.for(Location).findId(ride.tid.value);
 
       let message = `Hi, please 
         Collect-'${(patientName)}' 

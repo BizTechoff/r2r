@@ -17,20 +17,10 @@ export class Ride extends IdEntity {
     statusDate = new DateTimeColumn();
     importRideNum = new StringColumn();
 
-    fromLocation = new LocationIdColumn({ allowNull: false }, this.context);
-    toLocation = new LocationIdColumn({ allowNull: false }, this.context);
-    date = new DateColumn({
-        // valueChange: () => {
-        //     if (this.isHasDate() && this.isHasVisitTime()) {
-        //         this.visitTime.value = new Date(
-        //             this.date.value.getFullYear(),
-        //             this.date.value.getMonth(),
-        //             this.date.value.getDate(),
-        //             this.visitTime.value.getHours(),
-        //             this.visitTime.value.getMinutes());
-        //     }
-        // }, 
-    });
+    date = new DateColumn({});
+    fid = new LocationIdColumn({ caption: 'From', allowNull: false }, this.context);
+    tid = new LocationIdColumn({ caption: 'To', allowNull: false }, this.context);
+    
     visitTime = new StringColumn({
         defaultValue: '00:00', inputType: 'time', valueChange: () => {
             if (this.visitTime.value) {
@@ -211,8 +201,8 @@ export class Ride extends IdEntity {
         target.escortsCount.value = this.escortsCount.value;
         target.patientId.value = this.patientId.value;
         if (!(forBackRide)) {
-            target.fromLocation.value = this.fromLocation.value;
-            target.toLocation.value = this.toLocation.value;
+            target.fid.value = this.fid.value;
+            target.tid.value = this.tid.value;
             target.visitTime.value = this.visitTime.value;
             target.driverId.value = this.driverId.value;
             target.backId.value = this.backId.value;
@@ -224,7 +214,7 @@ export class Ride extends IdEntity {
     }
 
     toString() {
-        return `${this.date.value} | ${this.fromLocation.value} | ${this.toLocation.value} | ${this.status.value} | ${this.statusDate.value} | ${this.passengers()}`
+        return `${this.date.value} | ${this.fid.value} | ${this.tid.value} | ${this.status.value} | ${this.statusDate.value} | ${this.passengers()}`
     }
 }
 
@@ -304,8 +294,8 @@ export async function openRide(rid: string, context: Context): Promise<boolean> 
             x => x.args = {
                 title: `Edit Ride:`,// ${r.name.value}`,
                 columnSettings: () => [
-                    r.fromLocation,
-                    r.toLocation,
+                    r.fid,
+                    r.tid,
                     r.date, {
                         column: r.dayPeriod,
                         valueList: [DayPeriod.morning, DayPeriod.afternoon]
@@ -362,8 +352,8 @@ export async function addRide(rid: string, context: Context): Promise<boolean> {
         x => x.args = {
             title: "Add Ride",// For: " + p.name.value,
             columnSettings: () => [
-                ride.fromLocation,
-                ride.toLocation,
+                ride.fid,
+                ride.tid,
                 ride.date, {
                     column: ride.dayPeriod,
                     valueList: [DayPeriod.morning, DayPeriod.afternoon],

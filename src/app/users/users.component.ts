@@ -40,6 +40,7 @@ export class UsersComponent implements OnInit {
     ],
     rowButtons: [{
       name: 'Set New Password',
+      icon: 'password',
       click: async (u) => {
 
         let password = new PasswordColumn();

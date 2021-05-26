@@ -19,8 +19,8 @@ export class ReturnRidesComponent implements OnInit {
       .and(r.hadBackId() ? new Filter(() => false) : new Filter(() => { })),
       numOfColumnsInGrid: 10,
       columnSettings: r => [
-        r.fromLocation,
-        r.toLocation,
+        r.fid,
+        r.tid,
         r.date,
         r.driverId,
         r.status,
@@ -59,8 +59,8 @@ export class ReturnRidesComponent implements OnInit {
 
     let rides: Ride[] = [];
     for await (const ride of this.context.for(Ride).iterate({
-      where: br => br.fromLocation.isEqualTo(r.toLocation)
-        .and(br.toLocation.isEqualTo(r.fromLocation))
+      where: br => br.fid.isEqualTo(r.tid)
+        .and(br.tid.isEqualTo(r.fid))
         .and(br.isHasDriver() ? new Filter(() => { }) : new Filter(() => { false }))
         .and(r.status.isNotIn(RideStatus.waitingForArrived))
     })) {
@@ -76,9 +76,9 @@ export class ReturnRidesComponent implements OnInit {
 
     let back = this.context.for(Ride).create();
     r.copyTo(back, true);
-    let id = r.fromLocation.value;
-    back.fromLocation.value = r.toLocation.value;
-    back.toLocation.value = r.fromLocation.value;
+    let id = r.fid.value;
+    back.fid.value = r.tid.value;
+    back.tid.value = r.fid.value;
     back.status.value = RideStatus.waitingForDriver;
     if (foundDriver) {
       back.driverId.value = rides[0].driverId.value;

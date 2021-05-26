@@ -6,7 +6,7 @@
     <div class="grow-item">
         <table style="width: 100%;">
             <tr *ngFor="let b of borders">
-                <div *ngIf="b.visible">
+                <div *ngIf="b.ivisible">
                 <td>
                     <mat-checkbox [(ngModel)]="b.selected" (change)="onSelection()"></mat-checkbox>
                 </td>

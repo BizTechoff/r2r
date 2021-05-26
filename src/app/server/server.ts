@@ -1,22 +1,21 @@
 //import { CustomModuleLoader } from '../../../../../../repos/radweb/src/app/server/CustomModuleLoader';
 //let moduleLoader = new CustomModuleLoader('/dist-server/repos/radweb/projects/');
-import * as express from 'express';
-import { initExpress } from '@remult/server';
-import * as fs from 'fs';
 import { SqlDatabase } from '@remult/core';
-import { Pool } from 'pg';
-import { config } from 'dotenv';
+import { initExpress } from '@remult/server';
 import { PostgresDataProvider, verifyStructureOfAllEntities } from '@remult/server-postgres';
-import * as forceHttps from 'express-force-https';
-import * as jwt from 'jsonwebtoken';
 import * as compression from 'compression';
+import { config } from 'dotenv';
+import * as express from 'express';
+import * as forceHttps from 'express-force-https';
+import * as fs from 'fs';
+import * as jwt from 'jsonwebtoken';
 import * as passwordHash from 'password-hash';
+import { Pool } from 'pg';
 import '../app.module';
 import { PasswordColumn } from '../users/users';
 import { importDataNew } from './import-data';
 import { ServerEvents } from './server-events';
-import { env, exit } from 'process';
- 
+
 config(); //loads the configuration from the .env file
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
@@ -34,8 +33,8 @@ let app = express();
 new ServerEvents(app);
 app.use(compression());
 if (!process.env.DEV_MODE)
-    app.use(forceHttps); 
-initExpress(app, database, { 
+    app.use(forceHttps);
+initExpress(app, database, {
     tokenProvider: {
         createToken: userInfo => jwt.sign(userInfo, process.env.TOKEN_SIGN_KEY),
         verifyToken: token => jwt.verify(token, process.env.TOKEN_SIGN_KEY)
@@ -49,14 +48,14 @@ app.use('/*', async (req, res) => {
         res.sendStatus(500);
     }
 });
-  
+
 console.time('noam');
-if (process.env.IMPORT_DATA && process.env.IMPORT_DATA === "true")
-{
-    importDataNew(database, false).then(()=>console.timeEnd("noam"));
+if (process.env.IMPORT_DATA && process.env.IMPORT_DATA === "true") {
+    let fresh = process.env.IMPORT_DATA_FRESH && process.env.IMPORT_DATA_FRESH === "true";
+    importDataNew(database, fresh).then(() => console.timeEnd("noam"));
     // importDataNew(database).then(()=>console.timeEnd("noam"));
 }
- 
+
 let port = process.env.PORT || 3000;
-app.listen(port); 
+app.listen(port);
 // console.timeEnd("noam")
