@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Context, DataAreaSettings, DateColumn, Filter, ServerController, ServerMethod, StringColumn } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
-import { ride4UsherSetDriver } from '../../../shared/types';
+import { InputAreaComponent } from '../../../common/input-area/input-area.component';
+import { ride4UsherApprove, ride4UsherSetDriver } from '../../../shared/types';
 import { Driver, DriverIdColumn } from '../../drivers/driver';
 import { Location } from '../../locations/location';
 import { Patient } from '../../patients/patient';
@@ -57,9 +58,14 @@ class usherSerDriver {
           passengers: ride.passengers(),
           selected: false,
           visitTime: ride.visitTime.value,
-          rid:ride.id.value,
+          rid: ride.id.value,
           status: ride.status.value,
           freeSeats: seats,
+          w4Accept: ride.status.value === RideStatus.waitingForAccept,
+          w4Arrived: ride.status.value === RideStatus.waitingForArrived,
+          w4End: ride.status.value === RideStatus.waitingForEnd,
+          w4Pickup: ride.status.value === RideStatus.waitingForPickup,
+          w4Start: ride.status.value === RideStatus.waitingForStart,
         };
         result.push(row);
       }
@@ -191,7 +197,7 @@ export class SetDriverComponent implements OnInit {
           minChanged = true;
         }
       }
-    } 
+    }
     if (minChanged) {
       let hour = min.split(':');
       if (hour.length > 1) {
@@ -212,7 +218,7 @@ export class SetDriverComponent implements OnInit {
       let ride = await this.context.for(Ride).findId(r.rid);
       ride.status.value = RideStatus.waitingForStart;
       await ride.save();
-      r.status = RideStatus.waitingForStart.id;
+      r.status = RideStatus.waitingForStart;
     }
   }
 
@@ -222,7 +228,7 @@ export class SetDriverComponent implements OnInit {
       let ride = await this.context.for(Ride).findId(r.rid);
       ride.status.value = RideStatus.waitingForPickup;
       await ride.save();
-      r.status = RideStatus.waitingForPickup.id;
+      r.status = RideStatus.waitingForPickup;
     }
   }
 
@@ -232,7 +238,7 @@ export class SetDriverComponent implements OnInit {
       let ride = await this.context.for(Ride).findId(r.rid);
       ride.status.value = RideStatus.waitingForArrived;
       await ride.save();
-      r.status = RideStatus.waitingForArrived.id;
+      r.status = RideStatus.waitingForArrived;
     }
   }
 
@@ -242,7 +248,7 @@ export class SetDriverComponent implements OnInit {
       let ride = await this.context.for(Ride).findId(r.rid);
       ride.status.value = RideStatus.waitingForEnd;
       await ride.save();
-      r.status = RideStatus.waitingForEnd.id;
+      r.status = RideStatus.waitingForEnd;
     }
   }
 
@@ -256,7 +262,7 @@ export class SetDriverComponent implements OnInit {
       let i = this.rides.indexOf(r);
       if (i >= 0) {
         this.rides.splice(i, 1);
-      } 
+      }
     }
   }
 
@@ -269,9 +275,40 @@ export class SetDriverComponent implements OnInit {
       await ride.save();
       r.driver = '';
       r.driverId = '';
-      r.status = RideStatus.waitingForDriver.id;
+      r.status = RideStatus.waitingForDriver;
     }
   }
+ 
+  async showRide(r: ride4UsherSetDriver) {
+
+    let ride = await this.context.for(Ride).findId(r.id);
+    await this.context.openDialog(
+      InputAreaComponent,
+      x => x.args = {
+        title: `Edit Ride: (${r.status.id})`,
+        columnSettings: () => [
+          { column: ride.fid, readOnly: true },
+          { column: ride.tid, readOnly: true },
+          [
+            { column: ride.date, readOnly: true },
+            { column: ride.visitTime, readOnly: true }
+          ],
+          { column: ride.escortsCount, readOnly: true },
+          [
+            { column: ride.isHasBabyChair, readOnly: true, caption: "Baby Chair?" },
+            { column: ride.isHasWheelchair, readOnly: true, caption: "Wheelchair?" }
+          ],
+          // { column: ride.dRemark, readOnly: true },
+          { column: ride.rRemark, readOnly: true, caption: 'Remark' },
+        ],
+        ok: null,
+        cancel: () => { }
+      },
+    )
+  }
+
+  // [{ column: ride.isHasBabyChair, readOnly: true, clickIcon: 'child_friendly', caption: '?' },
+  // { column: ride.isHasWheelchair, readOnly: true, clickIcon: 'accessible',caption: '?' }],
 
 }
 

@@ -45,11 +45,11 @@
             <tr>
                 <th><u>from</u></th>
                 <th><u>to</u></th>
-                <th><u>ridesCount</u></th>
                 <th><u>passengers</u></th>
+                <th><u>rides-Count</u></th>
+                <th><u>no-Driver</u></th>
+                <th><u>no-Accept</u></th>
                 <th><u>inProgress</u></th>
-                <th><u>needDriver</u></th>
-                <th><u>accept4Driver</u></th>
             </tr>
             <!-- <tr ng-repeat="r in rides | orderBy:'-age'"></tr> -->
             <tr *ngFor="let r of rides">
@@ -57,12 +57,12 @@
                 <td *ngIf="!r.fromIsBorder">{{ r.from }}</td>
                 <td *ngIf="r.toIsBorder"><strong> {{ r.to }} </strong></td>
                 <td *ngIf="!r.toIsBorder">{{ r.to }}</td>
+                <td>{{ r.passengers }}</td>
                 <td *ngIf="r.ridesCount == 0">{{ r.ridesCount }}</td>
                 <td *ngIf="r.ridesCount > 0"><button (click)="openSetDriver(r)"><u>{{ r.ridesCount }}</u></button></td>
-                <td>{{ r.passengers }}</td>
+                <td>{{ r.w4Driver }}</td>
+                <td>{{ r.w4Accept }}</td>
                 <td>{{ r.inProgress }}</td>
-                <td>{{ r.needDriver }}</td>
-                <td>{{ r.needApprove }}</td>
                 <!-- <td *ngIf="r.needDriver > 0 && rides"><button (click)="openSetDriver(r)"><u>{{ r.inProgress }}</u></button> </td> -->
                 <!-- <td *ngIf="r.needDriver == 0">{{ r.needDriver }}</td> -->
                 <!-- <td *ngIf="r.needDriver > 0"><button (click)="openSetDriver(r)"><u>{{ r.needDriver }}</u></button> </td> -->

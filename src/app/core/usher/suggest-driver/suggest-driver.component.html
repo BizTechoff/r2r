@@ -1,19 +1,9 @@
 <div class="full-page">
+    <!-- <data-grid class="grow-item" [settings]="grid"></data-grid> -->
     <div class="header">
         <u>
             <h3>Set Driver</h3>
         </u>
-        <!-- <table style="width: 100%;">
-            <tr>
-                <th>name</th>
-                <th>mobile</th>
-                <th>home</th>
-                <th>lastRideDays</th>
-                <th>lastCallDays</th>
-                <th>reason</th>
-            </tr>
-        </table> -->
-        <!-- <hr> -->
     </div>
     <div class="grow-item">
         <table style="width: 100%;">
@@ -25,17 +15,13 @@
                 <th>lastCallDays</th>
                 <th>reason</th>
             </tr>
-            <tr *ngFor="let d of drivers" (dblclick)="onDriverSelected(d)">
+            <tr *ngFor="let d of drivers" (dblclick)="onDriverSelected(d)" title="Double Click To Select">
                 <td>{{ d.name }}</td>
                 <td>{{ d.mobile }}</td>
                 <td>{{ d.home }}</td>
                 <td>{{ d.lastRideDays }}</td>
                 <td>{{ d.lastCallDays}}</td>
-                <td>
-                    <tr *ngFor="let rsn of d.reasons">
-                        <td>{{ rsn }}</td>
-                    </tr>
-                </td>
+                <td>{{ d.reason}}</td>
             </tr>
         </table>
     </div>

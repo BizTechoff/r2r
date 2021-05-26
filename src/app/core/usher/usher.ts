@@ -159,8 +159,8 @@ export class Usher {
                     from: fromName,
                     to: toName,
                     inProgress: 0,
-                    needApprove: 0,
-                    needDriver: 0,
+                    w4Accept: 0,
+                    w4Driver: 0,
                     passengers: 0,
                     ridesCount: 0,
                     ids: [],
@@ -169,8 +169,8 @@ export class Usher {
             }
 
             row.inProgress += ([RideStatus.waitingForPickup, RideStatus.waitingForArrived].includes(ride.status.value) ? 1 : 0);
-            row.needApprove += (ride.status.value == RideStatus.waitingForAccept ? 1 : 0);
-            row.needDriver += (ride.isHasDriver() ? 0 : 1);
+            row.w4Accept += (ride.status.value == RideStatus.waitingForAccept ? 1 : 0);
+            row.w4Driver += (ride.isHasDriver() ? 0 : 1);
             row.passengers += ride.passengers();
             row.ridesCount += 1;
         }
@@ -270,6 +270,11 @@ export class Usher {
                     rid:ride.id.value,
                     status: ride.status.value,
                     freeSeats: 0,
+                    w4Accept: ride.status.value === RideStatus.waitingForAccept,
+                    w4Arrived: ride.status.value === RideStatus.waitingForArrived,
+                    w4End: ride.status.value === RideStatus.waitingForEnd,
+                    w4Pickup: ride.status.value === RideStatus.waitingForPickup,
+                    w4Start: ride.status.value === RideStatus.waitingForStart,
                 };
                 result.push(row);
             }
@@ -459,7 +464,7 @@ export class Usher {
             date: ride.date.value,
             visitTime: ride.visitTime.value,
             days: days,
-            status: ride.status.value.id,
+            status: ride.status.value,
             statusDate: ride.statusDate.value,
             from: from,
             to: to,

@@ -22,10 +22,10 @@ export class Users extends IdEntity {
     });
     createDate = new changeDate('Create Date');
 
-    isAdmin = new BoolColumn({ allowApiUpdate: Roles.admin });
-    isUsher = new BoolColumn({ allowApiUpdate: Roles.admin });
-    isMatcher = new BoolColumn({ allowApiUpdate: Roles.admin });
-    isDriver = new BoolColumn({ allowApiUpdate: Roles.admin });
+    isAdmin = new BoolColumn({ defaultValue: false, allowApiUpdate: Roles.admin });
+    isUsher = new BoolColumn({ defaultValue: false, allowApiUpdate: Roles.admin });
+    isMatcher = new BoolColumn({ defaultValue: false, allowApiUpdate: Roles.admin });
+    isDriver = new BoolColumn({ defaultValue: false, allowApiUpdate: Roles.admin });
 
     mobile = new StringColumn({
         validate: () => {
@@ -148,8 +148,8 @@ export class Users extends IdEntity {
         //     throw "Invalid Operation";
         this.password.value = PasswordColumn.passwordHelper.generateHash(password);
         // console.log(1);
-        try{ await this.save();        }
-        catch(error){
+        try { await this.save(); }
+        catch (error) {
             console.log(error);
         }
 

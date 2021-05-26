@@ -18,13 +18,13 @@ export class PatientContactsComponent implements OnInit {
     where: c => c.patientId.isEqualTo(this.args.pid),
     orderBy: c => c.name,
     newRow: c => c.patientId.value = this.args.pid,
+    showPagination: false,
     columnSettings: (c) => [
-      c.name,
-      c.mobile,
-      c.idNumber,
+      { column: c.mobile, width: '50' },
+      { column: c.name, width: '150' },
     ],
 
-    allowCRUD: this.context.isAllowed([Roles.admin, Roles.usher, Roles.admin]),
+    allowCRUD: this.context.isAllowed([Roles.admin, Roles.usher, Roles.matcher]),
   });
 
   constructor(private context: Context) { }

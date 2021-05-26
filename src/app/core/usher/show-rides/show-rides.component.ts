@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Context, DateColumn, Filter, ServerController, ServerMethod } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
+import { InputAreaComponent } from '../../../common/input-area/input-area.component';
 import { getRideList4UsherParams, ride4UsherApprove } from '../../../shared/types';
 import { Driver, openDriver } from '../../drivers/driver';
 import { Location, LocationIdColumn } from '../../locations/location';

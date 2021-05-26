@@ -104,8 +104,8 @@ class usherParams {//dataControlSettings: () => ({width: '150px'}),
           from: fromName,
           to: toName,
           inProgress: 0,
-          needApprove: 0,
-          needDriver: 0,
+          w4Accept: 0,
+          w4Driver: 0,
           passengers: 0,
           ridesCount: 0,
           ids: [],
@@ -114,8 +114,8 @@ class usherParams {//dataControlSettings: () => ({width: '150px'}),
       }
 
       row.inProgress += ([RideStatus.waitingForPickup, RideStatus.waitingForArrived].includes(ride.status.value) ? 1 : 0);
-      row.needApprove += (ride.status.value == RideStatus.waitingForAccept ? 1 : 0);
-      row.needDriver += (ride.isHasDriver() ? 0 : 1);
+      row.w4Accept += (ride.status.value == RideStatus.waitingForAccept ? 1 : 0);
+      row.w4Driver += (ride.isHasDriver() ? 0 : 1);
       row.passengers += ride.passengers();
       row.ridesCount += 1;
     }
@@ -276,8 +276,8 @@ export class UsherComponent implements OnInit {
           from: fromName,
           to: toName,
           inProgress: 0,
-          needApprove: 0,
-          needDriver: 0,
+          w4Accept: 0,
+          w4Driver: 0,
           passengers: 0,
           ridesCount: 0,
           ids: [],
@@ -286,8 +286,8 @@ export class UsherComponent implements OnInit {
       }
 
       row.inProgress += ([RideStatus.waitingForPickup, RideStatus.waitingForArrived].includes(ride.status.value) ? 1 : 0);
-      row.needApprove += (ride.status.value == RideStatus.waitingForAccept ? 1 : 0);
-      row.needDriver += (ride.isHasDriver() ? 0 : 1);
+      row.w4Accept += (ride.status.value == RideStatus.waitingForAccept ? 1 : 0);
+      row.w4Driver += (ride.isHasDriver() ? 0 : 1);
       row.passengers += ride.passengers();
       row.ridesCount += 1;
     }

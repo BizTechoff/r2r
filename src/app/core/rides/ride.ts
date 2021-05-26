@@ -45,8 +45,8 @@ export class Ride extends IdEntity {
     escortsCount = new NumberColumn({});
     backId = new StringColumn({});
     pMobile = new StringColumn({});
-    dRemark = new StringColumn({});
-    rRemark = new StringColumn({});
+    dRemark = new StringColumn({caption: 'Remark For Driver'});
+    rRemark = new StringColumn({caption: 'Remark For Ride'});
 
     constructor(private context: Context, private appSettings: ApplicationSettings) {
         super({
@@ -235,7 +235,11 @@ export class RideStatus {
     static rejected = new RideStatus();
     static waitingForUsherSelectDriver = new RideStatus();
     constructor(public color = 'green') { }
-    id;
+    id:string;
+
+    isEquals(status:string){
+return status === this.id;
+    }
 
     static isInProgressStatuses = [
         RideStatus.waitingForPickup,

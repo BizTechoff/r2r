@@ -21,7 +21,7 @@ export interface driver4UsherSuggest {
   lastRideDays: number,
   lastCallDays: number,
   isMatchPrefs: boolean,
-  reasons: string[],
+  reason: string,
   priority: number,
 };
  
@@ -97,8 +97,8 @@ export interface ride4Usher {
   passengers: number,
   ridesCount: number,
   inProgress: number,
-  needDriver: number,
-  needApprove: number,
+  w4Driver: number,
+  w4Accept: number,
   ids?: string[],
 };
 
@@ -149,6 +149,11 @@ export interface ride4UsherSetDriver {
   rid: string,
   status: RideStatus,
   freeSeats?:number;
+  w4Accept: boolean,
+  w4Start: boolean,
+  w4Pickup: boolean,
+  w4Arrived: boolean,
+  w4End: boolean,
 };
 
 export interface usherDriversResponse {

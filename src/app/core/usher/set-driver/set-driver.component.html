@@ -4,9 +4,10 @@
     </div>
     <div>
         <data-area [settings]="driverArea"></data-area>
-        Selected Driver Seats: {{ driverSeats }}
+        Selected Driver Seats: <strong>{{ driverSeats }}</strong>
     </div>
-    <mat-label>Selected Paasengers: {{ selectedPassengers }}</mat-label>
+    <mat-label *ngIf="!(selectedPassengers <= driverSeats)">Selected Passengers: <span style="color: red;">{{ selectedPassengers }}</span></mat-label>
+    <mat-label *ngIf="selectedPassengers <= driverSeats">Selected Passengers: <span style="color: green;">{{ selectedPassengers }}</span></mat-label>
     <mat-divider></mat-divider>
     <div style="color: red;" *ngIf="selectedPassengers > 0 && driverSeats > 0 && driverSeats >= selectedPassengers">
         Pickup Time: <input [(ngModel)]="selectedPickupTime" #pickup required type="time">
@@ -30,23 +31,26 @@
             <tr *ngFor="let r of rides">
                 <td>
                     <!-- *ngIf="menu && menu.items && menu.items.length > 0" -->
-                    <button *ngIf="r.driverId && r.driverId.length > 0" mat-flat-button [matMenuTriggerFor]="menu">
+                    <button mat-flat-button [matMenuTriggerFor]="menu">
                         <mat-icon>more_vert</mat-icon>
                     </button>
                     <mat-menu #menu="matMenu">
-                        <!-- <button>{{ r.status.id }}</button> -->
-                        <button *ngIf="r.driverId && r.driverId.length > 0" mat-menu-item
-                            (click)="removeDriver(r)">Remove Driver</button>
-                        <button *ngIf="(r.status.id === 'waitingForAccept')" mat-menu-item
+                        <!-- <button>{{ r.status }}</button> -->
+                        <button *ngIf="(r.w4Accept)" mat-menu-item
                             (click)="accept4Driver(r)">Set Accept For Driver</button>
-                        <button *ngIf="(r.status.id === 'waitingForStart')" mat-menu-item (click)="start4Driver(r)">Set
+                        <button *ngIf="(r.w4Start)" mat-menu-item (click)="start4Driver(r)">Set
                             Start For Driver</button>
-                        <button *ngIf="(r.status.id === 'waitingForPickup')" mat-menu-item
+                        <button *ngIf="(r.w4Pickup)" mat-menu-item
                             (click)="pickup4Driver(r)">Set Pickup For Driver</button>
-                        <button *ngIf="(r.status.id === 'waitingForArrived')" mat-menu-item
+                        <button *ngIf="(r.w4Arrived)" mat-menu-item
                             (click)="arrived4Driver(r)">Set Arrived For Driver</button>
-                        <button *ngIf="(r.status.id === 'waitingForEnd')" mat-menu-item (click)="end4Driver(r)">Set End
+                        <button *ngIf="(r.w4End)" mat-menu-item (click)="end4Driver(r)">Set End
                             For Driver</button>
+                            <button *ngIf="r.driverId && r.driverId.length > 0" mat-menu-item
+                                (click)="removeDriver(r)">Remove Driver</button>
+                            <hr>
+                            <button mat-menu-item (click)="showRide(r)">Show Ride</button>
+                            <!-- <hr> -->
                     </mat-menu>
                 </td>
                 <td>
