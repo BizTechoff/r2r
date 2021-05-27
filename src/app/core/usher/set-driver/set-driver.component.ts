@@ -301,7 +301,7 @@ export class SetDriverComponent implements OnInit {
           // { column: ride.dRemark, readOnly: true },
           { column: ride.rRemark, readOnly: true, caption: 'Remark' },
         ],
-        ok: null,
+        ok: () => {  },//this.dialog.info("");
         cancel: () => { }
       },
     )

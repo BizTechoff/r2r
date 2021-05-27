@@ -34,8 +34,8 @@ const routes: Routes = [
 
   // Usher
   { path: 'Rides4Usher', component: UsherComponent, canActivate: [UsherGuard], data: { name: "Rides" } },
-  { path: 'Register Rides', component: RegisterRidesComponent, canActivate: [UsherGuard], data: { name: "Register Rides" } },
   { path: 'Return Rides', component: ReturnRidesComponent, canActivate: [UsherGuard], data: { name: "Return Rides" } },
+  { path: 'Register Rides', component: RegisterRidesComponent, canActivate: [UsherGuard], data: { name: "Constant Rides" } },
   // { path: 'Rides', component: RidesComponent, canActivate: [UsherGuard] },
   { path: 'Drivers', component: DriversComponent, canActivate: [UsherGuard] },
   { path: 'PatientsUsher', component: PatientsComponent, canActivate: [UsherGuard], data: { name: "Patients" } },

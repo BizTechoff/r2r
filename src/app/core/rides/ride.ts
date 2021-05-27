@@ -117,6 +117,10 @@ export class Ride extends IdEntity {
         return this.patientId && this.patientId.value && this.patientId.value.length > 0;
     }
 
+    isExsistBakcup(): boolean {
+        return this.backId && this.backId.value && this.backId.value.length > 0;
+    }
+
     isExsistDriver(): boolean {
         return this.driverId && this.driverId.value && this.driverId.value.length > 0;
     }

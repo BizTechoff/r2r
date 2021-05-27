@@ -108,12 +108,6 @@ export class ShowRidesComponent implements OnInit {
   }
 
   async retrieve() {
-    let params: getRideList4UsherParams = {
-      date: this.args.date,
-      fromId: this.args.from,
-      toId: this.args.to,
-    };
-
     this.rides = [];
     this.params.onChanged = async () => {};
     for await (const r of await this.params.retrieveRideList4Usher()) {
