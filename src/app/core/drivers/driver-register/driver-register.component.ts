@@ -19,7 +19,10 @@ export interface response {
 
 @ServerController({ key: 'driverRegister', allowed: true })
 class driverRegister {//dataControlSettings: () => ({width: '150px'}), 
-  date = new DateColumn({ defaultValue: new Date(), valueChange: async () => { await this.onChanged(); } });
+  date = new DateColumn({ defaultValue: new Date(), valueChange: async () => {
+    console.log("date changed");
+     await this.onChanged(); 
+    } });
   fid = new LocationIdColumn({caption: 'From', valueChange: async () => { await this.onChanged(); } }, this.context);
   tid = new LocationIdColumn({caption: 'To',  valueChange: async () => { await this.onChanged(); } }, this.context);
   did = new DriverIdColumn({}, this.context);

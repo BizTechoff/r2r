@@ -88,8 +88,9 @@ export class ReturnRidesComponent implements OnInit {
 
   ridesSettings = this.context.for(Ride).gridSettings({
  
-    where: r => r.date.isEqualTo(this.today)
+    where: r => r.date.isEqualTo(this.today)//only empty
       .and(r.status.isEqualTo(RideStatus.waitingForArrived).or(r.status.isEqualTo(RideStatus.waitingForEnd).or(r.status.isEqualTo(RideStatus.succeeded))))
+      .and (r.backId.isDifferentFrom(''))//null/
       // .and((new Filter(f => f.isDifferentFrom(r.backId, ''))).or(new Filter(f => f.isNull(r.backId))))
     ,numOfColumnsInGrid: 10,
     columnSettings: r => [

@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
-import { Context, DateColumn, Entity, Filter, NumberColumn, ServerController, ServerMethod, StringColumn } from '@remult/core';
+import { Context, DateColumn, Entity, Filter, GridSettings, InMemoryDataProvider, NumberColumn, ServerController, ServerMethod, StringColumn } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
 import { driver4UsherSuggest } from '../../../shared/types';
 import { Roles } from '../../../users/roles';
@@ -24,7 +24,7 @@ class usherSuggestDrivers {
   @ServerMethod({ allowed: [Roles.admin, Roles.usher] })
   async retrieveSuggestedDrivers() {
     let drivers: driver4UsherSuggest[] = [];
-
+console.log('start');
     //1. drivers registered to same locations
     this.distinct(drivers,
       (await this.driversRegistered()));
@@ -34,16 +34,19 @@ class usherSuggestDrivers {
     //3. drivers with same prefered locations.
     this.distinct(drivers,
       (await this.driversWithSamePrefs()));
+      
     //4. drivers with same locations for last 3 months.
     this.distinct(drivers,
       (await this.driversMadeRideWithSameLocations3MonthsAgo()));
     //5. drivers did ride with same area locations.
+    console.log('middle);');
+    return drivers;
     this.distinct(drivers,
       (await this.driversMadeRideWithSameArea()));
     //6. drivers not did ride for last 7 days.
     this.distinct(drivers,
       (await this.driversNoRideOnLast7Days()));
-
+      console.log("end");
     drivers.sort((d1, d2) => d1.priority - d2.priority == 0 /*same*/
       ? d1.lastRideDays - d2.lastRideDays
       : d1.priority - d2.priority);
@@ -364,8 +367,8 @@ export class SuggestDriverComponent implements OnInit {
   args: { date?: Date, fid?: string, tid?: string }
   selected: { did: string, status: string } = { did: '', status: '' };
 
-  // grid: GridSettings;
-  // mem = new InMemoryDataProvider();
+  grid: GridSettings;
+  mem = new InMemoryDataProvider();
 
   drivers: driver4UsherSuggest[] = [];
   params = new usherSuggestDrivers(this.context);
@@ -378,8 +381,8 @@ export class SuggestDriverComponent implements OnInit {
     this.params.tid.value = this.args.tid;
 
     // (new InMemoryDataProvider()).rows["SuggestDriver"] = this.drivers
-    // this.mem.rows["SuggestDriver"] = this.drivers;
-    // this.grid = this.context.for(SuggestDriver, this.mem).gridSettings({ allowCRUD: false, numOfColumnsInGrid: 10 });
+    this.mem.rows["SuggestDriver"] = this.drivers;
+    this.grid = this.context.for(SuggestDriver, this.mem).gridSettings({ allowCRUD: false, numOfColumnsInGrid: 10 });
 
     await this.refresh();
   }

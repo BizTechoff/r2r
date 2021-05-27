@@ -17,6 +17,7 @@
     </div>
     <mat-divider></mat-divider>
     <div class="grow-item">
+        <data-grid *ngIf="grid" [settings]="grid"></data-grid>
         <table *ngIf="rides && rides.length > 0">
             <tr>
                 <td></td><!-- menu -->

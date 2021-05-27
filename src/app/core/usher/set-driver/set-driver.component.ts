@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Context, DataAreaSettings, DateColumn, Filter, ServerController, ServerMethod, StringColumn } from '@remult/core';
+import { BoolColumn, Context, DataAreaSettings, DateColumn, Entity, Filter, GridSettings, InMemoryDataProvider, NumberColumn, ServerController, ServerMethod, StringColumn } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
 import { InputAreaComponent } from '../../../common/input-area/input-area.component';
 import { ride4UsherApprove, ride4UsherSetDriver } from '../../../shared/types';
@@ -156,9 +156,14 @@ export class SetDriverComponent implements OnInit {
     await this.retrieve();
   }
 
+  grid:GridSettings;
   async retrieve() {
 
     this.rides = await this.params.retrieveRideList4UsherSetDriver();
+    var mem = new InMemoryDataProvider();
+    mem.rows["ride4UsherSetDriverEntity"] = this.rides;
+    this.grid =this.context.for(ride4UsherSetDriverEntity,mem).gridSettings();
+
   }
 
   async setDriver() {
@@ -311,6 +316,30 @@ export class SetDriverComponent implements OnInit {
   // { column: ride.isHasWheelchair, readOnly: true, clickIcon: 'accessible',caption: '?' }],
 
 }
+export class ride4UsherSetDriverEntity extends Entity<string> {
+  constructor(){
+    super("ride4UsherSetDriverEntity");
+  }
+  id = new StringColumn();
+  patientId = new StringColumn();
+  driverId? = new StringColumn();
+  selected = new BoolColumn();
+  from = new StringColumn();
+  to = new StringColumn();
+  driver = new StringColumn();
+  dMobile = new StringColumn();
+  visitTime = new StringColumn();
+  passengers= new NumberColumn();
+  patient = new StringColumn();
+  rid = new StringColumn();
+  //status: RideStatus,
+  //freeSeats?:number;
+  w4Accept = new BoolColumn();
+  w4Start = new BoolColumn();
+  w4Pickup = new BoolColumn();
+  w4Arrived = new BoolColumn();
+  w4End = new BoolColumn();
+};
 
 
 /*

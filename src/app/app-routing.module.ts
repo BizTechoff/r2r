@@ -14,13 +14,14 @@ import { PatientsComponent } from './core/patients/patients.component';
 import { RegisterRidesComponent } from './core/rides/register-rides/register-rides.component';
 import { ReturnRidesComponent } from './core/rides/return-rides/return-rides.component';
 import { UsherComponent } from './core/usher/usher.component';
+import { DemoComponent } from './demo/demo.component';
 import { HomeComponent } from './home/home.component';
 import { AdminGuard, DriverGuard, MatcherGuard, UsherGuard } from './users/roles';
 import { UsersComponent } from './users/users.component';
 
 
 const routes: Routes = [
-  // {path:'demo',component: DemoComponent},
+   {path:'demo',component: DemoComponent},
   // Driver
   { path: 'd/rides', component: DriverRidesComponent, canActivate: [DriverGuard], data: { name: "My Rides" } },
   { path: 'd/register', component: DriverRegisterComponent, canActivate: [DriverGuard], data: { name: "Register To Ride" } },
