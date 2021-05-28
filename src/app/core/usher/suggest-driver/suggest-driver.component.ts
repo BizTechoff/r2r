@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
-import { Context, DateColumn, Entity, Filter, GridSettings, InMemoryDataProvider, NumberColumn, ServerController, ServerMethod, StringColumn } from '@remult/core';
+import { Context, DateColumn, Entity, GridSettings, InMemoryDataProvider, NumberColumn, ServerController, ServerMethod, StringColumn } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
 import { driver4UsherSuggest } from '../../../shared/types';
 import { Roles } from '../../../users/roles';
@@ -24,7 +24,7 @@ class usherSuggestDrivers {
   @ServerMethod({ allowed: [Roles.admin, Roles.usher] })
   async retrieveSuggestedDrivers() {
     let drivers: driver4UsherSuggest[] = [];
-console.log('start');
+    // console.log('start');
     //1. drivers registered to same locations
     this.distinct(drivers,
       (await this.driversRegistered()));
@@ -34,19 +34,19 @@ console.log('start');
     //3. drivers with same prefered locations.
     this.distinct(drivers,
       (await this.driversWithSamePrefs()));
-      
+
     //4. drivers with same locations for last 3 months.
     this.distinct(drivers,
       (await this.driversMadeRideWithSameLocations3MonthsAgo()));
     //5. drivers did ride with same area locations.
-    console.log('middle);');
-    return drivers;
+    // console.log('middle);');
+    // return drivers;
     this.distinct(drivers,
       (await this.driversMadeRideWithSameArea()));
     //6. drivers not did ride for last 7 days.
     this.distinct(drivers,
       (await this.driversNoRideOnLast7Days()));
-      console.log("end");
+    // console.log("end");
     drivers.sort((d1, d2) => d1.priority - d2.priority == 0 /*same*/
       ? d1.lastRideDays - d2.lastRideDays
       : d1.priority - d2.priority);
@@ -64,6 +64,13 @@ console.log('start');
           if (!d) {
             source.push(row);
           }
+          else {
+            let i = source.indexOf(d);
+            if (row.priority < source[i].priority) {//less is more
+              source[i].reason = row.reason;
+              source[i].priority = row.priority;
+            }
+          }
         }
         else {
           source.push(row);
@@ -72,50 +79,14 @@ console.log('start');
     }
   }
 
-  // private distinct(source: driver4UsherSuggest[], add: driver4UsherSuggest[]) {
-  //   if (add.length > 0) {
-  //     for (const row of add) {
-  //       if (source.length > 0) {
-  //         let d = source.find(r => {
-  //           return r.did === row.did
-  //         });
-  //         if (d) {
-  //           if (!(SuggestDriverComponent.STOP_AFTER_FIRST_REASON)) {
-  //             for (const rsn of row.reason) {
-  //               if (d.reason.length > 0) {
-  //                 let d2 = d.reason.find(r => r.includes(rsn));
-  //                 if (!(d2)) {
-  //                   // priority not changed.
-  //                   d.reason.push(rsn);
-  //                 }
-  //               }
-  //               else {
-  //                 // priority not changed.
-  //                 d.reason.push(rsn);
-  //               }
-  //             }
-  //           }
-  //         }
-  //         else {
-  //           // The most-importent priority set once.
-  //           source.push(row);
-  //         }
-  //       }
-  //       else {
-  //         // The most-importent priority set once.
-  //         source.push(row);
-  //       }
-  //     }
-  //   }
-  // }
-
   private async driversRegistered(): Promise<driver4UsherSuggest[]> {
     let drivers: driver4UsherSuggest[] = [];
 
     for await (const rr of this.context.for(RegisterRide).iterate({
-      where: r => r.date.isEqualTo(this.date)
-        .and(r.fromLoc.isEqualTo(this.fid))
-        .and(r.toLoc.isEqualTo(this.tid)),
+      where: r => r.fdate.isLessOrEqualTo(this.date)//fdate=<date<=tdate
+        .and(r.tdate.isGreaterOrEqualTo(this.date))
+        .and(r.fid.isEqualTo(this.fid))
+        .and(r.tid.isEqualTo(this.tid)),
     })) {
       for await (const rd of this.context.for(RegisterDriver).iterate({
         where: d => d.rrId.isEqualTo(rr.id),
@@ -129,9 +100,10 @@ console.log('start');
     };
 
     for await (const same of this.context.for(RegisterRide).iterate({
-      where: r => r.fromLoc.isEqualTo(this.fid)
-        .and(r.toLoc.isEqualTo(this.tid))
-        .and(r.date.isEqualTo(this.date))
+      where: r => r.fdate.isLessOrEqualTo(this.date)//fdate=<date<=tdate
+        .and(r.tdate.isGreaterOrEqualTo(this.date))
+        .and(r.tid.isEqualTo(this.tid))
+        .and(r.fid.isEqualTo(this.fid))
     })) {
       for await (const rgD of this.context.for(RegisterDriver).iterate({
         where: d => d.rdId.isEqualTo(same.id),
@@ -152,12 +124,11 @@ console.log('start');
   private async driversWithSameLocations(): Promise<driver4UsherSuggest[]> {
     let drivers: driver4UsherSuggest[] = [];
     for await (const same of this.context.for(Ride).iterate({
-      where: r => r.fid.isEqualTo(this.fid)
+      where: r => r.date.isEqualTo(this.date)
         .and(r.tid.isEqualTo(this.tid))
-        .and(r.date.isEqualTo(this.date))
+        .and(r.fid.isEqualTo(this.fid))
         .and(r.status.isIn(RideStatus.waitingForStart))
-        .and(new Filter((f) => { f.isNotNull(r.driverId) }))
-        .and(new Filter((f) => { f.isDifferentFrom(r.driverId, ''); })),
+        .and(r.driverId.isDifferentFrom(''))
     })) {
       let dRow: driver4UsherSuggest = await this.createDriverRow(
         3,
@@ -192,10 +163,9 @@ console.log('start');
     let threeMonthsAgo = addDays(-90);
     let dIds: string[] = [];
     for await (const same of this.context.for(Ride).iterate({
-      where: r => r.fid.isIn(this.fid)
-        .and(r.date.isGreaterOrEqualTo(threeMonthsAgo))
-        .and(new Filter(f => f.isNotNull(r.driverId)))
-        .and(new Filter(f => f.isDifferentFrom(r.driverId, ''))),
+      where: r => r.date.isGreaterOrEqualTo(threeMonthsAgo)
+        .and(r.fid.isIn(this.fid))
+        .and(r.driverId.isDifferentFrom('')),
     })) {
       if (!(dIds.includes(same.driverId.value))) {
         dIds.push(same.driverId.value);
@@ -225,8 +195,7 @@ console.log('start');
     }
     for await (const same of this.context.for(Ride).iterate({
       where: r => r.fid.isIn(...lIds)
-        .and(new Filter(f => f.isNotNull(r.driverId)))
-        .and(new Filter(f => f.isDifferentFrom(r.driverId, ''))),
+        .and(r.driverId.isDifferentFrom('')),
     })) {
       if (!(dIds.includes(same.driverId.value))) {
         dIds.push(same.driverId.value);
