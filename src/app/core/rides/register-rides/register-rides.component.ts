@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
-import { Context, DateColumn, GridSettings, NumberColumn, ServerFunction } from '@remult/core';
+import { Context, NumberColumn, ServerFunction, StringColumn } from '@remult/core';
 import { InputAreaComponent } from '../../../common/input-area/input-area.component';
 import { ride4UsherRideRegister } from '../../../shared/types';
 import { Roles } from '../../../users/roles';
 import { RegisterDriver } from '../../drivers/driver-register/registerDriver';
 import { Location } from '../../locations/location';
+import { addDays } from '../../usher/usher';
 import { RegisterRide } from './registerRide';
 
 @Component({
@@ -14,24 +15,43 @@ import { RegisterRide } from './registerRide';
 })
 export class RegisterRidesComponent implements OnInit {
 
-  count = new NumberColumn({ caption: 'registeredCount', defaultValue: 0 });
+  days = new StringColumn({ caption: 'Days' })
   registerSettings = this.context.for(RegisterRide).gridSettings({
-    orderBy: regR => [{column: regR.date, descending: false}, {column: regR.fromLoc, descending: false},],
+    orderBy: cur => [{ column: cur.fdate, descending: false }, { column: cur.fid, descending: false },],
     allowSelection: true,
     numOfColumnsInGrid: 10,
-    columnSettings: (regR) => [
-      regR.date,
-      regR.fromLoc,
-      regR.toLoc,
-      regR.passengers,
-      this.count,
+    columnSettings: (cur) => [
+      cur.fid,
+      cur.tid,
+      cur.fdate,
+      cur.tdate,
+      { 
+        column: this.days,
+        getValue: (r) => {
+          return '|' +
+            r.sunday && r.sunday.value ? 'sun' + '|' : '' +
+              r.monday && r.monday.value ? 'mon' + '|' : '' +
+                r.tuesday && r.tuesday.value ? 'tue' + '|' : '' +
+                  r.wednesday && r.wednesday.value ? 'wed' + '|' : '' +
+                    r.thursday && r.thursday.value ? 'thu' + '|' : '' +
+                      r.friday && r.friday.value ? 'fri' + '|' : '';
+        }
+      },
+      // cur.sunday,
+      // cur.monday,
+      // cur.tuesday,
+      // cur.wednesday,
+      // cur.thursday,
+      // cur.friday,
+      // cur.passengers,
+      cur.dCount,
       // {
       //   column: this.count,
-        // getValue: async r => {
-        //   let count = (await this.context.for(RegisterDriver).count(
-        //     regD => regD.regRideId.isEqualTo(regR.id)));
-        //   return count;
-        // },
+      // getValue: async r => {
+      //   let count = (await this.context.for(RegisterDriver).count(
+      //     regD => regD.regRideId.isEqualTo(regR.id)));
+      //   return count;
+      // },
       // },
     ],
   });
@@ -78,20 +98,20 @@ export class RegisterRidesComponent implements OnInit {
 
     for await (const reg of context.for(RegisterRide).iterate({
     })) {
-      let from = (await context.for(Location).findId(reg.fromLoc)).name.value;
-      let to = (await context.for(Location).findId(reg.toLoc)).name.value;
+      let from = (await context.for(Location).findId(reg.fid)).name.value;
+      let to = (await context.for(Location).findId(reg.tid)).name.value;
       let registeredCount = (await context.for(RegisterDriver).count(
         rg => rg.rdId.isEqualTo(reg.id),
       ));
 
       let row: ride4UsherRideRegister = {
         rgId: reg.id.value,
-        date: reg.date.value,
-        fId: reg.fromLoc.value,
-        tId: reg.toLoc.value,
+        date: reg.fdate.value,
+        fId: reg.fid.value,
+        tId: reg.tid.value,
         from: from,
         to: to,
-        pass: reg.passengers.value,
+        // pass: reg.passengers.value,
         registeredCount: registeredCount,
         selected: false,
       };
@@ -106,21 +126,24 @@ export class RegisterRidesComponent implements OnInit {
   async openAddRegisterRide() {
 
     let reg = this.context.for(RegisterRide).create();
-    reg.date.value = new Date();
-    let toDate = new DateColumn({ defaultValue: new Date() });
+    reg.fdate.value = new Date();
+    reg.tdate.value = addDays(-1, new Date(reg.fdate.value.getFullYear(), reg.fdate.value.getMonth() + 1, 1));
+    // let toDate = new DateColumn({ defaultValue: new Date() });
     await this.context.openDialog(
       InputAreaComponent,
       x => x.args = {
         title: "Register Ride(s)",
         columnSettings: () => [
-          reg.date,
-          toDate,
-          reg.fromLoc,
-          reg.toLoc,
-          reg.passengers,
+          reg.fid, reg.tid,
+          // reg.passengers,
+          reg.fdate, reg.tdate,
+          [reg.sunday, reg.monday, reg.tuesday],
+          [reg.wednesday, reg.thursday, reg.friday],
+          // [reg.saturday],
         ],
         ok: async () => {
-          await this.openHowMany(reg, toDate.value);
+          await reg.save();
+          // await this.openHowMany(reg, toDate.value);
         }
       },
     );
@@ -128,7 +151,7 @@ export class RegisterRidesComponent implements OnInit {
 
   private async openHowMany(reg: RegisterRide, toDate: Date) {
 
-    let diff = 1 + Math.floor((+toDate - +reg.date.value) / (1000 * 60 * 60 * 24));
+    let diff = 1 + Math.floor((+toDate - +reg.fdate.value) / (1000 * 60 * 60 * 24));
 
     let count = new NumberColumn({
       defaultValue: 5,
@@ -150,14 +173,14 @@ export class RegisterRidesComponent implements OnInit {
         ok: async () => {
 
           for (let i = 0; i < diff; ++i) {
-            let date = reg.date.value;
+            let date = reg.fdate.value;
             date.setDate(date.getDate() + i);
             for (let i = 0; i < count.value; ++i) {
               let newReg = this.context.for(RegisterRide).create();
-              newReg.date.value = date;
-              newReg.fromLoc.value = reg.fromLoc.value;
-              newReg.toLoc.value = reg.toLoc.value;
-              newReg.passengers.value = reg.passengers.value;
+              newReg.fdate.value = date;
+              newReg.fid.value = reg.fid.value;
+              newReg.tid.value = reg.tid.value;
+              // newReg.passengers.value = reg.passengers.value;
               await newReg.save();
             }
           }

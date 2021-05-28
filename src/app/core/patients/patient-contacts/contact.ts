@@ -4,8 +4,8 @@ import { PatientIdColumn } from "../patient";
 
 @EntityClass
 export class Contact extends IdEntity {
-
-    patientId = new PatientIdColumn({}, this.context);
+ 
+    patientId = new PatientIdColumn(this.context);
     name = new StringColumn({});
     mobile = new StringColumn({});
     idNumber = new StringColumn({});

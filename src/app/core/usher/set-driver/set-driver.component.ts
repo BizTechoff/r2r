@@ -5,7 +5,7 @@ import { InputAreaComponent } from '../../../common/input-area/input-area.compon
 import { ride4UsherApprove, ride4UsherSetDriver } from '../../../shared/types';
 import { Driver, DriverIdColumn } from '../../drivers/driver';
 import { Location } from '../../locations/location';
-import { Patient } from '../../patients/patient';
+import { Patient, PatientIdColumn } from '../../patients/patient';
 import { Ride, RideStatus } from '../../rides/ride';
 import { SuggestDriverComponent } from '../suggest-driver/suggest-driver.component';
 
@@ -32,15 +32,13 @@ class usherSerDriver {
     })) {
       let from = (await this.context.for(Location).findId(ride.fid.value)).name.value;
       let to = (await this.context.for(Location).findId(ride.tid.value)).name.value;
-      let d = (await this.context.for(Driver).findId(ride.driverId.value));
       let patient = ride.isHasPatient() ? (await this.context.for(Patient).findId(ride.patientId.value)).name.value : "";
+      let d = (await this.context.for(Driver).findId(ride.driverId.value));
 
+      let dName = '';
       let seats = 0;
       if (d) {
         seats = d.seats.value;
-      }
-      let dName = '';
-      if (d) {
         dName = d.name.value;
       }
 
@@ -160,9 +158,23 @@ export class SetDriverComponent implements OnInit {
   async retrieve() {
 
     this.rides = await this.params.retrieveRideList4UsherSetDriver();
-    var mem = new InMemoryDataProvider();
-    mem.rows["ride4UsherSetDriverEntity"] = this.rides;
-    this.grid =this.context.for(ride4UsherSetDriverEntity,mem).gridSettings();
+    // var mem = new InMemoryDataProvider();
+    // mem.rows["ride4UsherSetDriverEntity"] = this.rides;
+    // this.grid =this.context.for(ride4UsherSetDriverEntity,mem).gridSettings({
+    //   orderBy: cur => cur.visitTime,
+    //   numOfColumnsInGrid: 10,
+    //   columnSettings: cur => [
+    //     cur.driverId,
+    //     cur.visitTime,
+    //     cur.passengers,
+    //   ],
+    //   rowButtons: [
+    //     {textInMenu: '',
+    //     visible: cur => cur.w4Accept.value,
+    //     click: async cur => await this.accept4Driver(cur);
+    //   }
+    //   ],
+    // });
 
   }
 
@@ -215,6 +227,16 @@ export class SetDriverComponent implements OnInit {
   }
   selectionAllChanged() {
 
+  }
+
+  async accept4DriverNew(r: ride4UsherSetDriverEntity) {
+    let setStatusToApproved = await this.dialog.yesNoQuestion(`Set ${r.driver} Has approved`);
+    if (setStatusToApproved) {
+      let ride = await this.context.for(Ride).findId(r.rid);
+      ride.status.value = RideStatus.waitingForStart;
+      await ride.save();
+      // r.status = RideStatus.waitingForStart;
+    }
   }
 
   async accept4Driver(r: ride4UsherSetDriver) {
@@ -317,11 +339,11 @@ export class SetDriverComponent implements OnInit {
 
 }
 export class ride4UsherSetDriverEntity extends Entity<string> {
-  constructor(){
+  constructor(private context: Context){
     super("ride4UsherSetDriverEntity");
   }
   id = new StringColumn();
-  patientId = new StringColumn();
+  patientId = new PatientIdColumn(this.context);
   driverId? = new StringColumn();
   selected = new BoolColumn();
   from = new StringColumn();

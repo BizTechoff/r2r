@@ -12,7 +12,7 @@ export class Ride extends IdEntity {
 
     driverRemark = new StringColumn({});
     driverId = new DriverIdColumn({ caption: 'Driver' }, this.context);
-    patientId = new PatientIdColumn({}, this.context);
+    patientId = new PatientIdColumn(this.context);
     status = new RideStatusColumn();
     statusDate = new DateTimeColumn();
     importRideNum = new StringColumn();

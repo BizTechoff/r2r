@@ -58,7 +58,7 @@ export class Patient extends IdEntity {
 }
 export class PatientIdColumn extends StringColumn {
 
-  constructor(options?: ColumnSettings<string>, private context?: Context) {
+  constructor(private context?: Context, options?: ColumnSettings<string>) {
     super({
       caption: 'Patient',
       dataControlSettings: () => ({

@@ -32,7 +32,7 @@ export interface ride4UsherRideRegister {
   tId: string,
   from: string,
   to: string,
-  pass: number,
+  // pass: number,
   registeredCount: number,
   dFromHour?: Date,
   dToHour?: Date,

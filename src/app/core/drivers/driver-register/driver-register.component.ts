@@ -46,7 +46,7 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
     }
 
     for await (const reg of this.context.for(RegisterRide).iterate({//todo: display only records that not attach by usher
-      where: rg => rg.date.isEqualTo(this.date),
+      where: rg => rg.fdate.isEqualTo(this.date),
       // .and(fid && (fid.trim().length > 0) ? rg.fromLoc.isEqualTo(fid) : rg.fromLoc.isIn(...dLocs))// new Filter(x => { /*true*/ }))
       // .and(tid && (tid.trim().length > 0) ? rg.toLoc.isEqualTo(tid) : rg.toLoc.isIn(...dLocs)),// new Filter(x => { /*true*/ })),
     })) {
@@ -55,17 +55,17 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
       let isok = true;
       if ((this.fid.value) || (this.tid.value)) {
         if (this.fid.value) {
-          if (!(reg.fromLoc.value == this.fid.value)) {
+          if (!(reg.fid.value == this.fid.value)) {
             isok = false;
           }
         }
         if (this.tid.value) {
-          if (!(reg.toLoc.value == this.tid.value)) {
+          if (!(reg.tid.value == this.tid.value)) {
             isok = false;
           }
         }
       }
-      else if (!(dLocs.includes(reg.fromLoc.value) || dLocs.includes(reg.toLoc.value))) {
+      else if (!(dLocs.includes(reg.fid.value) || dLocs.includes(reg.tid.value))) {
         isok = false;
       }
 
@@ -73,8 +73,8 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
         continue;
       }
 
-      let from = (await this.context.for(Location).findId(reg.fromLoc.value)).name.value;
-      let to = (await this.context.for(Location).findId(reg.toLoc.value)).name.value;
+      let from = (await this.context.for(Location).findId(reg.fid.value)).name.value;
+      let to = (await this.context.for(Location).findId(reg.tid.value)).name.value;
       let registereds = (await this.context.for(RegisterDriver).find(
         {
           where: rg => rg.rdId.isEqualTo(reg.id)
@@ -87,9 +87,9 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
             rId: '',
             rgId: reg.id.value,
             dId: nreg.dId.value,
-            date: reg.date.value,
-            fId: reg.fromLoc.value,
-            tId: reg.toLoc.value,
+            date: reg.fdate.value,
+            fId: reg.fid.value,
+            tId: reg.tid.value,
             from: from,
             to: to,
             pass: nreg.seats.value,
@@ -102,22 +102,22 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
         }
       }
       else {
-        if (reg.passengers.value <= this.seats.value) {
-          let row: ride4DriverRideRegister = {
-            rId: '',
-            rgId: reg.id.value,
-            // dId: nreg.driverId.value,
-            date: reg.date.value,
-            fId: reg.fromLoc.value,
-            tId: reg.toLoc.value,
-            from: from,
-            to: to,
-            pass: reg.passengers.value,
-            isRegistered: false,// (registereds && registereds.length > 0),
-            dPass: this.seats.value,
-          };
-          result.newregistered.push(row);
-        }
+        // if (reg.passengers.value <= this.seats.value) {
+        //   let row: ride4DriverRideRegister = {
+        //     rId: '',
+        //     rgId: reg.id.value,
+        //     // dId: nreg.driverId.value,
+        //     date: reg.fdate.value,
+        //     fId: reg.fid.value,
+        //     tId: reg.tid.value,
+        //     from: from,
+        //     to: to, 
+        //     // pass: reg.passengers.value,
+        //     isRegistered: false,// (registereds && registereds.length > 0),
+        //     dPass: this.seats.value,
+        //   };
+        //   result.newregistered.push(row);
+        // }
       }
     }
 
