@@ -116,7 +116,7 @@ export class Usher {
         for await (const ride of context.for(Ride).iterate({
             where: r => (r.date.isEqualTo(date)),
                 // .and(r.status.isEqualTo(RideStatus.waitingForDriver)),
-            orderBy: r => [{ column: r.date, descending: false }, { column: r.dayPeriod, descending: true }],
+            // orderBy: r => [{ column: r.date, descending: false }, { column: r.dayPeriod, descending: true }],
         })) {
             // console.log("@@@@");
         }
@@ -312,7 +312,7 @@ export class Usher {
                 .and(r.status.isNotIn(...[RideStatus.succeeded])),
             orderBy: r => [
                 { column: r.date, descending: false },
-                { column: r.dayPeriod, descending: true },
+                // { column: r.dayPeriod, descending: true },
                 // { column: r.fromLocation, descending: false, },//todo: sort by fromLocation.getName()?
                 // { column: r.toLocation, descending: false },
             ],
@@ -370,7 +370,7 @@ export class Usher {
                 break;
             }
             case MabatGroupBy.period: {
-                result = r.dayPeriod.value.id;
+                // result = r.dayPeriod.value.id;
                 break;
             }
 
@@ -537,7 +537,7 @@ export class Usher {
         for await (const ride of context.for(Ride).iterate({
             where: r => (r.date.isEqualTo(todayDate)),
                 // .and(r.status.isEqualTo(RideStatus.waitingForDriver)),
-            orderBy: r => [{ column: r.date, descending: false }, { column: r.dayPeriod, descending: true }],
+            // orderBy: r => [{ column: r.date, descending: false }, { column: r.dayPeriod, descending: true }],
         })) {
 
             // Build Row
@@ -548,7 +548,7 @@ export class Usher {
                 : rDate.getTime() === tomorrowDate.getTime()
                     ? "Tomorrow"
                     : formatDate(rDate.getTime(), "dd/MM/yyyy", 'en-US');//todo:'he-IL';
-            let period = ride.dayPeriod.value.id;
+            let period = '';//  ride.dayPeriod.value.id;
 
             let icons: { name: string, desc: string }[] = [];
             if (ride.isHasBabyChair.value) {
@@ -637,7 +637,7 @@ export class Usher {
         for await (const ride of context.for(Ride).iterate({
             where: r => (r.date.isGreaterOrEqualTo(todayDate))
                 .and(r.status.isEqualTo(RideStatus.suggestedByDriver)),
-            orderBy: r => [{ column: r.date, descending: false }, { column: r.dayPeriod, descending: true }],
+            // orderBy: r => [{ column: r.date, descending: false }, { column: r.dayPeriod, descending: true }],
         })) {
 
             // Build Row
@@ -648,7 +648,7 @@ export class Usher {
                 : rDate.getTime() === tomorrowDate.getTime()
                     ? "Tomorrow"
                     : formatDate(rDate.getTime(), "dd/MM/yyyy", 'en-US');//todo:'he-IL';
-            let period = ride.dayPeriod.value.id;
+            let period = '';// ride.dayPeriod.value.id;
 
             let icons: { name: string, desc: string }[] = [];
             if (ride.isHasBabyChair.value) {
@@ -853,8 +853,8 @@ export class Usher {
                 : rDate.getTime() === tomorrowDate.getTime()
                     ? "Tomorrow"
                     : formatDate(rDate.getTime(), "dd/MM/yyyy", 'en-US');//todo:'he-IL';
-            let period = ride.dayPeriod.value.id;
-            let title = `${date} - ${period}`;
+            let period = '';// ride.dayPeriod.value.id;
+            let title = '';// `${date} - ${period}`;
 
             let icons: { name: string, desc: string }[] = [];
             if (ride.isHasBabyChair.value) {
@@ -1016,7 +1016,7 @@ export class Usher {
                     : rDate.getTime() === tomorrowDate.getTime()
                         ? "Tomorrow"
                         : formatDate(rDate.getTime(), "dd/MM/yyyy", 'en-US');//todo:'he-IL'
-                let period = ride.dayPeriod.value.id;
+                let period = '';// ride.dayPeriod.value.id;
                 let title = `${date} - ${period}`;
 
                 let icons: { name: string, desc: string }[] = [];

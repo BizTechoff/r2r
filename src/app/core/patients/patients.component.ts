@@ -147,16 +147,16 @@ export class PatientsComponent implements OnInit {
       x => x.args = {
         title: `Edit Ride: (${r.status.value.id})`,// ${p.name.value} (age: ${p.age.value})`,
         columnSettings: () => [
-          { column: r.fid, readOnly: true },
-          { column: r.tid, readOnly: true },
+          { column: r.fid },
+          { column: r.tid },
           [
-            { column: r.date, readOnly: true },
-            { column: r.visitTime, readOnly: true }
+            { column: r.date },
+            { column: r.visitTime }
           ],
-          { column: r.escortsCount, readOnly: true },
+          { column: r.escortsCount },
           [
-            { column: r.isHasBabyChair, readOnly: true, caption: "Baby Chair?" },
-            { column: r.isHasWheelchair, readOnly: true, caption: "Wheelchair?" }
+            { column: r.isHasBabyChair, caption: "Baby Chair?" },
+            { column: r.isHasWheelchair, caption: "Wheelchair?" }
           ],
           // { column: ride.dRemark, readOnly: true },
           // { column: r.rRemark, readOnly: true, caption: 'Remark' },
@@ -268,8 +268,8 @@ export class PatientsComponent implements OnInit {
     var ride = this.context.for(Ride).create();
     ride.date.value = tomorrow;
     // ride.visitTime.value = tomorrow10am;
-    ride.dayOfWeek.value = DriverPrefs.getDayOfWeek(ride.date.getDayOfWeek());
-    ride.dayPeriod.value = DayPeriod.morning;
+    // ride.dayOfWeek.value = DriverPrefs.getDayOfWeek(ride.date.getDayOfWeek());
+    // ride.dayPeriod.value = DayPeriod.morning;
     ride.patientId.value = p.id.value;
     ride.fid.value = p.defaultBorder.value;
     ride.tid.value = p.defaultHospital.value;
@@ -280,34 +280,22 @@ export class PatientsComponent implements OnInit {
       x => x.args = {
         title: `Add Ride For: ${p.name.value} (age: ${p.age.value})`,
         columnSettings: () => [
-          ride.fid,
-          ride.tid,
-          ride.date, {
-            column: ride.dayPeriod,
-            valueList: [DayPeriod.morning, DayPeriod.afternoon],
-          },
-          // {
-          //   column: isNeedReturnTrip,
-          //   visible: (r) => ride.dayPeriod.value == DayPeriod.morning,
-          // },
-          {
-            column: ride.visitTime,
-            inputType: 'time',
-            visible: (r) => ride.dayPeriod.value == DayPeriod.morning,
-            // displayValue: ride.isHasVisitTime() ? formatDate(ride.visitTime.value, "HH:mm", 'en-US') : "",
-          },
-          ride.isHasBabyChair,
-          ride.isHasWheelchair,
-          // ride.isHasExtraEquipment,
-          ride.escortsCount,
-          {
-            column: ride.dRemark,
-            caption: 'Remark For Driver',
-          },
-          {
-            column: ride.rRemark,
-            caption: 'Remark For Ride',
-          },
+
+          { column: ride.fid },
+          { column: ride.tid },
+          [
+            { column: ride.date },
+            { column: ride.visitTime, inputType: 'time' }
+          ],
+          { column: ride.escortsCount },
+          [
+            { column: ride.isHasBabyChair, caption: "Baby Chair?" },
+            { column: ride.isHasWheelchair, caption: "Wheelchair?" }
+          ],
+          // { column: ride.dRemark, readOnly: true },
+          // { column: r.rRemark, readOnly: true, caption: 'Remark' },
+          ride.rRemark,
+          ride.dRemark,
         ],
         buttons: [{
           text: 'Patient Details',

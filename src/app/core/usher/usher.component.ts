@@ -7,7 +7,7 @@ import { Driver, DriverIdColumn, openDriver } from '../drivers/driver';
 import { Location, LocationIdColumn, LocationType } from '../locations/location';
 import { Patient } from '../patients/patient';
 import { PatientCrudComponent } from '../patients/patient-crud/patient-crud.component';
-import { addRide, openRide, Ride, RideStatus, RideStatusColumn } from '../rides/ride';
+import { openRide, Ride, RideStatus, RideStatusColumn } from '../rides/ride';
 import { MabatGroupBy } from './mabat';
 import { SetDriverComponent } from './set-driver/set-driver.component';
 import { ShowRidesComponent, UsherRowStatus } from './show-rides/show-rides.component';
@@ -17,8 +17,8 @@ import { addDays, Usher, UsherRideGroup, UsherRideRow } from './usher';
 @ServerController({ key: 'ridesProvider', allowed: true })//mabatParams
 class ridesProviderParams extends IdEntity {//componentParams
   date = new DateColumn({ defaultValue: new Date() });
-  fid?= new LocationIdColumn({ defaultValue: null, allowNull: true }, this.context, { onlyBorder: true });
-  tid?= new LocationIdColumn({ defaultValue: null, allowNull: true }, this.context, { onlyHospital: true });
+  fid?= new LocationIdColumn({ defaultValue: null, allowNull: true }, this.context);
+  tid?= new LocationIdColumn({ defaultValue: null, allowNull: true }, this.context);
   did?= new DriverIdColumn({ defaultValue: null, allowNull: true }, this.context);
   status?= new RideStatusColumn({ defaultValue: null, allowNull: true });
 
@@ -232,9 +232,9 @@ export class UsherComponent implements OnInit {
     this.params.onChanged = async () => { await this.refresh(); };
   }
 
-  async addRide() {
-    let changed = await addRide('', this.context);
-  }
+  // async addRide() {
+  //   let changed = await addRide('', this.context);
+  // }
 
   @ServerFunction({ allowed: [Roles.usher, Roles.admin] })
   static async retrieveUsherRides(fromDb = true, context?: Context): Promise<UsherRideGroup> {
@@ -343,11 +343,12 @@ export class UsherComponent implements OnInit {
       let fromName = this.context.for(Location).findId(ride.fid.value);
       let toName = this.context.for(Location).findId(ride.tid.value);
 
+      // ${(ride.dayPeriod)} 
       let message = `Hi, please 
         Collect-'${(patientName)}' 
         From-${(fromName)} 
         To-${(toName)} 
-        At-${(ride.date)} ${(ride.dayPeriod)} 
+        At-${(ride.date)}
         , Thanks
         for more details click ${("https://riding/" + ride.id.value)}`;
 

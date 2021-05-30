@@ -36,13 +36,13 @@ const routes: Routes = [
   // Usher
   { path: 'Rides4Usher', component: UsherComponent, canActivate: [UsherGuard], data: { name: "Rides" } },
   { path: 'Return Rides', component: ReturnRidesComponent, canActivate: [UsherGuard], data: { name: "Return Rides" } },
-  { path: 'Register Rides', component: RegisterRidesComponent, canActivate: [AdminGuard], data: { name: "Registable Rides" } },
   // { path: 'Rides', component: RidesComponent, canActivate: [UsherGuard] },
   { path: 'Drivers', component: DriversComponent, canActivate: [UsherGuard] },
   { path: 'PatientsUsher', component: PatientsComponent, canActivate: [UsherGuard], data: { name: "Patients" } },
 
   { path: 'Locations', component: LocationsComponent, canActivate: [UsherGuard] },
 
+  { path: 'Register Rides', component: RegisterRidesComponent, canActivate: [AdminGuard], data: { name: "Rides For Register" } },
   // Admin
   { path: 'Reports', component: LocationsComponent, canActivate: [AdminGuard] },
   // { path: 'AppSettings', component: ApplicationSettingsComponent, canActivate: [AdminGuard], data: { name: "App Settings" } },

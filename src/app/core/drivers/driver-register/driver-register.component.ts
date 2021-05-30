@@ -42,27 +42,31 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
 
     let dLocs: { id: string, areaIds: string[] }[] = [];
     for await (const pref of this.context.for(DriverPrefs).iterate({
-      where: pf => pf.driverId.isEqualTo(this.did),
+      where: cur => cur.driverId.isEqualTo(this.did)
     })) {
-      let loc = await this.context.for(Location).findId(pref.locationId.value);
-      if (loc) {
-        let bordes: string[] = [];
-        if (loc.type == LocationType.border) {
-          for await (const l of this.context.for(Location).iterate({
-            where: cur => cur.area.isEqualTo(loc.area)
-          })) {
-            bordes.push(l.id.value);
+      let found = dLocs.find(cur => cur.id === pref.locationId.value);
+      if (!(found)) {
+        let loc = await this.context.for(Location).findId(pref.locationId.value);
+        if (loc) {
+          let bordes: string[] = [];
+          if (loc.type == LocationType.border) {
+            for await (const l of this.context.for(Location).iterate({
+              where: cur => cur.area.isEqualTo(loc.area)
+            })) {
+              bordes.push(l.id.value);
+            }
           }
+          dLocs.push({ id: pref.locationId.value, areaIds: bordes });//123|border|tarkumia_betlechem
         }
-        dLocs.push({ id: pref.locationId.value, areaIds: bordes });//123|border|tarkumia_betlechem
       }
     }
+    // let f= dLocs[dLocs.findIndex(cur => cur.id === '')].areaIds;
 
     for await (const rr of this.context.for(RegisterRide).iterate({//todo: display only records that not attach by usher
       where: cur => cur.fdate.isLessOrEqualTo(this.date)
         .and(cur.tdate.isGreaterOrEqualTo(this.date))
-        .and(this.fid.value ? cur.fid.isEqualTo(this.fid) : cur.fid.isIn(...dLocs.map(d => d.id))// new Filter(x => { /*true*/ }))
-          .or(this.tid.value ? cur.tid.isEqualTo(this.tid) : cur.tid.isIn(...dLocs.map(d => d.id))))// new Filter(x => { /*true*/ }))
+        .and(this.fid.value ? cur.fid.isEqualTo(this.fid) : cur.fid.isIn(...dLocs.map(d => d.id)))// new Filter(x => { /*true*/ }))
+          // .or(this.tid.value ? cur.tid.isEqualTo(this.tid) : this.getAreaBorders(cur.tid.value, dLocs) : cur.tid.isIn(...dLocs[dLocs.findIndex(l => l.id === cur.tid.value)].areaIds)))// new Filter(x => { /*true*/ }))
     })) {
 
 

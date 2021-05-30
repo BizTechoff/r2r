@@ -8,12 +8,12 @@
     <div class="grow-item">
         <table style="width: 100%;">
             <tr>
-                <th>name</th>
-                <th>mobile</th>
-                <th>home</th>
-                <th>lastRideDays</th>
-                <th>lastCallDays</th>
-                <th>reason</th>
+                <th>Name</th>
+                <th>Mobile</th>
+                <th>Home</th>
+                <th title="Days From Last Ride (any)">Last-Ride</th>
+                <th>Last-Call</th>
+                <th>Reason</th>
             </tr>
             <tr *ngFor="let d of drivers" (dblclick)="onDriverSelected(d)" title="Double Click To Select">
                 <td>{{ d.name }}</td>

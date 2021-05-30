@@ -36,8 +36,8 @@ export class Ride extends IdEntity {
         }
     });
     pickupTime = new StringColumn({ defaultValue: '00:00', inputType: 'time' });
-    dayPeriod = new DayPeriodColumn();
-    dayOfWeek = new DayOfWeekColumn({});
+    // dayPeriod = new DayPeriodColumn();
+    // dayOfWeek = new DayOfWeekColumn({});
     isHasBabyChair = new BoolColumn({ caption: 'Has Baby Chair' });
     isHasWheelchair = new BoolColumn({ caption: 'Has Wheel Chair' });
     isHasExtraEquipment = new BoolColumn({ caption: 'Has Extra Equipment' });
@@ -47,6 +47,7 @@ export class Ride extends IdEntity {
     pMobile = new StringColumn({});
     dRemark = new StringColumn({caption: 'Remark For Driver'});
     rRemark = new StringColumn({caption: 'Remark For Ride'});
+    isBackRide = new BoolColumn({defaultValue: false});
 
     constructor(private context: Context, private appSettings: ApplicationSettings) {
         super({
@@ -195,8 +196,8 @@ export class Ride extends IdEntity {
 
 
     copyTo(target: Ride, forBackRide: boolean = false) {
-        target.dayOfWeek.value = this.dayOfWeek.value;
-        target.dayPeriod.value = this.dayPeriod.value;
+        // target.dayOfWeek.value = this.dayOfWeek.value;
+        // target.dayPeriod.value = this.dayPeriod.value;
         target.date.value = this.date.value;
         target.isHasBabyChair.value = this.isHasBabyChair.value;
         target.isHasWheelchair.value = this.isHasWheelchair.value;
@@ -304,10 +305,11 @@ export async function openRide(rid: string, context: Context): Promise<boolean> 
                 columnSettings: () => [
                     r.fid,
                     r.tid,
-                    r.date, {
-                        column: r.dayPeriod,
-                        valueList: [DayPeriod.morning, DayPeriod.afternoon]
-                    },
+                    r.date, 
+                    // {
+                    //     column: r.dayPeriod,
+                    //     valueList: [DayPeriod.morning, DayPeriod.afternoon]
+                    // },
                     r.isHasBabyChair,
                     r.isHasWheelchair,
                     r.isHasExtraEquipment,
@@ -340,64 +342,65 @@ export async function openRide(rid: string, context: Context): Promise<boolean> 
     return false;
 }
 
-export async function addRide(rid: string, context: Context): Promise<boolean> {
-    let today = new Date();
-    let tomorrow = new Date();
-    tomorrow.setDate(today.getDate() + 1);
-    let tomorrow10am = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate(), 10);
+// export async function addRide(rid: string, context: Context): Promise<boolean> {
+//     let today = new Date();
+//     let tomorrow = new Date();
+//     tomorrow.setDate(today.getDate() + 1);
+//     let tomorrow10am = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate(), 10);
 
-    var ride = context.for(Ride).create();
-    ride.date.value = tomorrow;
-    // ride.visitTime.value = tomorrow10am;
-    ride.dayOfWeek.value = DriverPrefs.getDayOfWeek(ride.date.getDayOfWeek());
-    ride.dayPeriod.value = DayPeriod.morning;
-    // ride.patientId.value = p.id.value;
-    // ride.fromLocation.value = p.defaultBorder.value;
-    // ride.toLocation.value = p.defaultHospital.value;
-    var isNeedReturnTrip = new BoolColumn({ caption: "Need Return Ride" });
-    context.openDialog(
-        InputAreaComponent,
-        x => x.args = {
-            title: "Add Ride",// For: " + p.name.value,
-            columnSettings: () => [
-                ride.fid,
-                ride.tid,
-                ride.date, {
-                    column: ride.dayPeriod,
-                    valueList: [DayPeriod.morning, DayPeriod.afternoon],
-                },
-                {
-                    column: isNeedReturnTrip,
-                    visible: (r) => ride.dayPeriod.value == DayPeriod.morning,
-                },
-                {
-                    column: ride.visitTime,
-                    visible: (r) => ride.dayPeriod.value == DayPeriod.morning,
-                    inputType: 'time',
-                },
-                ride.isHasBabyChair,
-                ride.isHasWheelchair,
-                ride.isHasExtraEquipment,
-                ride.escortsCount,
-                // ride.isHasEscort,
-                // {
-                //     column: ride.escortsCount,
-                //     visible: (r) => ride.isHasEscort.value
-                // },
-            ],
-            ok: async () => {
-                await ride.save();
-                // if (isNeedReturnTrip.value && ride.dayPeriod.value == DayPeriod.morning) {
-                //     var returnRide = context.for(Ride).create();
-                //     ride.copyTo(returnRide);
-                //     returnRide.fromLocation.value = ride.toLocation.value;
-                //     returnRide.toLocation.value = ride.fromLocation.value;
-                //     returnRide.dayPeriod.value = DayPeriod.afternoon;
-                //     await returnRide.save();
-                // }
-                return true;
-            }
-        },
-    )
-    return false;
-}
+//     var ride = context.for(Ride).create();
+//     ride.date.value = tomorrow;
+//     // ride.visitTime.value = tomorrow10am;
+//     // ride.dayOfWeek.value = DriverPrefs.getDayOfWeek(ride.date.getDayOfWeek());
+//     // ride.dayPeriod.value = DayPeriod.morning;
+//     // ride.patientId.value = p.id.value;
+//     // ride.fromLocation.value = p.defaultBorder.value;
+//     // ride.toLocation.value = p.defaultHospital.value;
+//     var isNeedReturnTrip = new BoolColumn({ caption: "Need Return Ride" });
+//     context.openDialog(
+//         InputAreaComponent,
+//         x => x.args = {
+//             title: "Add Ride",// For: " + p.name.value,
+//             columnSettings: () => [
+//                 ride.fid,
+//                 ride.tid,
+//                 ride.date, 
+//                 // {
+//                 //     column: ride.dayPeriod,
+//                 //     valueList: [DayPeriod.morning, DayPeriod.afternoon],
+//                 // },
+//                 {
+//                     column: isNeedReturnTrip,
+//                     visible: (r) => ride.dayPeriod.value == DayPeriod.morning,
+//                 },
+//                 {
+//                     column: ride.visitTime,
+//                     visible: (r) => ride.dayPeriod.value == DayPeriod.morning,
+//                     inputType: 'time',
+//                 },
+//                 ride.isHasBabyChair,
+//                 ride.isHasWheelchair,
+//                 ride.isHasExtraEquipment,
+//                 ride.escortsCount,
+//                 // ride.isHasEscort,
+//                 // {
+//                 //     column: ride.escortsCount,
+//                 //     visible: (r) => ride.isHasEscort.value
+//                 // },
+//             ],
+//             ok: async () => {
+//                 await ride.save();
+//                 // if (isNeedReturnTrip.value && ride.dayPeriod.value == DayPeriod.morning) {
+//                 //     var returnRide = context.for(Ride).create();
+//                 //     ride.copyTo(returnRide);
+//                 //     returnRide.fromLocation.value = ride.toLocation.value;
+//                 //     returnRide.toLocation.value = ride.fromLocation.value;
+//                 //     returnRide.dayPeriod.value = DayPeriod.afternoon;
+//                 //     await returnRide.save();
+//                 // }
+//                 return true;
+//             }
+//         },
+//     )
+//     return false;
+// }

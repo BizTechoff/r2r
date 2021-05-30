@@ -71,23 +71,9 @@ export class LocationTypeColumn extends ValueListColumn<LocationType>{
   }
 }
 
-export interface LocationFilterSettings {
-  onlyBorder?: boolean,
-  onlyHospital?: boolean,
-}
-
 export class LocationIdColumn extends StringColumn {
-  filter = (l: Location, f?: LocationFilterSettings) => new Filter(() => {
-    if (f && l) {
-      if (f.onlyBorder) {
-        return l.type.isEqualTo(LocationType.border);
-      }
-      else if (f.onlyHospital) {
-        return l.type.isEqualTo(LocationType.hospital);
-      }
-    }
-  });
-  constructor(options?: ColumnSettings<string>, private context?: Context, private filterSettings?: LocationFilterSettings) {
+  private types:LocationType[] = [LocationType.border, LocationType.hospital];
+  constructor(options?: ColumnSettings<string>, private context?: Context) {
     super({
       validate: () => {
         // console.log(this.defs.allowNull);
@@ -101,14 +87,16 @@ export class LocationIdColumn extends StringColumn {
         getValue: () => this.context.for(Location).lookup(this).name.value,
         hideDataOnInput: true,
         clickIcon: 'search',
-        width: "150px", 
+        width: "150px",
         click: () => {
+          console.log(this.types);
+          let trueFilter = new Filter((f) => {return true;});
           this.context.openDialog(DynamicServerSideSearchDialogComponent,
             x => x.args(Location, {
               onClear: () => this.value = '',
               onSelect: l => this.value = l.id.value,
               searchColumn: l => l.name,
-              where: l => this.filter(l, filterSettings),
+              // where: l => l.type.isIn(this.types),
             }));
         }
       }),//...options

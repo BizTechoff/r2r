@@ -14,8 +14,8 @@ import { RegisterRide } from './registerRide';
 @ServerController({ key: 'registerRidesProvider', allowed: [Roles.admin] })//mabatParams
 class registerRidesProviderParams {//componentParams
   date = new DateColumn({ defaultValue: new Date(), valueChange: async () => await this.onChanged() });//, dataControlSettings: () => ({cssClass: () => {return 'todaySelected';} })
-  fid?= new LocationIdColumn({ caption: 'From', defaultValue: null, allowNull: true }, this.context, { onlyBorder: false });
-  tid?= new LocationIdColumn({ caption: 'To', defaultValue: null, allowNull: true }, this.context, { onlyHospital: false });
+  fid?= new LocationIdColumn({ caption: 'From', defaultValue: null, allowNull: true }, this.context);
+  tid?= new LocationIdColumn({ caption: 'To', defaultValue: null, allowNull: true }, this.context);
   onChanged: () => void;
   constructor(private context: Context, onChanged: () => void) {
     this.onChanged = onChanged;
@@ -177,7 +177,7 @@ export class RegisterRidesComponent implements OnInit {
     await this.context.openDialog(
       InputAreaComponent,
       x => x.args = {
-        title: "New Requested Rides",
+        title: "New Registeration",
         columnSettings: () => [
           reg.fid, reg.tid,
           // reg.passengers,
@@ -187,17 +187,30 @@ export class RegisterRidesComponent implements OnInit {
           reg.visitTime,
           reg.remark,
         ],
+        validate: async () => {
+          if (await this.foundConflicts(reg)) {
+            throw 'Found Conflicts';
+          }
+        },
         ok: async () => {
-          await reg.save();
-          if (this.params.date.value == reg.fdate.value) {
-            await this.refresh();
-          }
-          else {
-            this.params.date.value = reg.fdate.value;//auto-refresh-onchanged
-          }
+            await reg.save();
+            if (this.params.date.value == reg.fdate.value) {
+              await this.refresh();
+            }
+            else {
+              this.params.date.value = reg.fdate.value;//auto-refresh-onchanged
+            }
         }
       },
     );
+  }
+
+  async foundConflicts(check: RegisterRide) {
+    let count = await this.context.for(RegisterRide).count(
+      // where: cur => cur.fdate.isGreaterThan(check.tdate).or(cur.tdate.isLessOrEqualTo(check.fdate))//no conflict
+      cur => cur.fdate.isLessOrEqualTo(check.tdate).and(cur.tdate.isGreaterOrEqualTo(check.fdate))//conflict
+        .and(cur.fid.isEqualTo(check.fid).and(cur.tid.isEqualTo(check.tid))));
+    return count > 0;
   }
 
   async deleteSelected() {

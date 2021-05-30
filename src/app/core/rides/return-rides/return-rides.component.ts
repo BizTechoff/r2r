@@ -89,8 +89,8 @@ export class ReturnRidesComponent implements OnInit {
   ridesSettings = this.context.for(Ride).gridSettings({
  
     where: r => r.date.isEqualTo(this.today)//only empty
-      .and(r.status.isEqualTo(RideStatus.waitingForArrived).or(r.status.isEqualTo(RideStatus.waitingForEnd).or(r.status.isEqualTo(RideStatus.succeeded))))
-      .and (r.backId.isDifferentFrom(''))//null/
+      .and(r.status.isIn(...[RideStatus.waitingForArrived, RideStatus.waitingForEnd, RideStatus.succeeded]))
+      .and (r.backId.isEqualTo(''))//.or(r.isBackRide.isEqualTo(true)))//null/
       // .and((new Filter(f => f.isDifferentFrom(r.backId, ''))).or(new Filter(f => f.isNull(r.backId))))
     ,numOfColumnsInGrid: 10,
     columnSettings: r => [
@@ -182,6 +182,7 @@ export class ReturnRidesComponent implements OnInit {
     back.fid.value = r.tid.value;
     back.tid.value = r.fid.value;
     back.status.value = RideStatus.waitingForDriver;
+    back.isBackRide.value = true;
     if (foundDriver) {
       back.driverId.value = more[0].driverId.value;
       back.status.value = RideStatus.waitingForStart;
@@ -191,6 +192,8 @@ export class ReturnRidesComponent implements OnInit {
     await r.save();
     await this.refresh();
   }
+
+  // async edit
 
 }
 

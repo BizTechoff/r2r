@@ -361,7 +361,6 @@ class usherSuggestDrivers2 {
   @ServerMethod({ allowed: [Roles.admin, Roles.usher] })
   async retrieveSuggestedDrivers() {
     let drivers: driver4UsherSuggest[] = [];
-    // console.log('start');
     //1. drivers registered to same locations
     this.distinct(drivers,
       (await this.driversRegistered()));
@@ -371,19 +370,16 @@ class usherSuggestDrivers2 {
     //3. drivers with same prefered locations.
     this.distinct(drivers,
       (await this.driversWithSamePrefs()));
-
     //4. drivers with same locations for last 3 months.
     this.distinct(drivers,
       (await this.driversMadeRideWithSameLocations3MonthsAgo()));
     //5. drivers did ride with same area locations.
-    // console.log('middle);');
-    // return drivers;
     this.distinct(drivers,
       (await this.driversMadeRideWithSameArea()));
     //6. drivers not did ride for last 7 days.
     this.distinct(drivers,
       (await this.driversNoRideOnLast7Days()));
-    // console.log("end");
+
     drivers.sort((d1, d2) => d1.priority - d2.priority == 0 /*same*/
       ? d1.lastRideDays - d2.lastRideDays
       : d1.priority - d2.priority);
@@ -420,13 +416,13 @@ class usherSuggestDrivers2 {
     let drivers: driver4UsherSuggest[] = [];
 
     for await (const rr of this.context.for(RegisterRide).iterate({
-      where: r => r.fdate.isLessOrEqualTo(this.date)//fdate=<date<=tdate
-        .and(r.tdate.isGreaterOrEqualTo(this.date))
-        .and(r.fid.isEqualTo(this.fid))
-        .and(r.tid.isEqualTo(this.tid)),
+      where: cur => cur.fdate.isLessOrEqualTo(this.date)//fdate=<date<=tdate
+        .and(cur.tdate.isGreaterOrEqualTo(this.date))
+        .and(cur.fid.isEqualTo(this.fid))
+        .and(cur.tid.isEqualTo(this.tid)),
     })) {
       for await (const rd of this.context.for(RegisterDriver).iterate({
-        where: d => d.rrId.isEqualTo(rr.id),
+        where: cur => cur.rrId.isEqualTo(rr.id),
       })) {
         let dRow: driver4UsherSuggest = await this.createDriverRow(
           1,
@@ -436,24 +432,22 @@ class usherSuggestDrivers2 {
       };
     };
 
-    for await (const same of this.context.for(RegisterRide).iterate({
-      where: r => r.fdate.isLessOrEqualTo(this.date)//fdate=<date<=tdate
-        .and(r.tdate.isGreaterOrEqualTo(this.date))
-        .and(r.tid.isEqualTo(this.tid))
-        .and(r.fid.isEqualTo(this.fid))
-    })) {
-      for await (const rgD of this.context.for(RegisterDriver).iterate({
-        where: d => d.rdId.isEqualTo(same.id),
-      })) {
-
-
-        let dRow: driver4UsherSuggest = await this.createDriverRow(
-          2,
-          rgD.dId.value,
-          'registered(future)');
-        drivers.push(dRow);
-      };
-    };
+    // for await (const rr of this.context.for(RegisterRide).iterate({
+    //   where: cur => cur.fdate.isLessOrEqualTo(this.date)//fdate=<date<=tdate
+    //     .and(cur.tdate.isGreaterOrEqualTo(this.date))
+    //     .and(cur.tid.isEqualTo(this.tid))
+    //     .and(cur.fid.isEqualTo(this.fid))
+    // })) {
+    //   for await (const rgD of this.context.for(RegisterDriver).iterate({
+    //     where: cur => cur.rdId.isEqualTo(rr.id),
+    //   })) {
+    //     let dRow: driver4UsherSuggest = await this.createDriverRow(
+    //       2,
+    //       rgD.dId.value,
+    //       'registered(future)');
+    //     drivers.push(dRow);
+    //   };
+    // };
 
     return drivers;
   }
@@ -462,8 +456,8 @@ class usherSuggestDrivers2 {
     let drivers: driver4UsherSuggest[] = [];
     for await (const same of this.context.for(Ride).iterate({
       where: r => r.date.isEqualTo(this.date)
-        .and(r.tid.isEqualTo(this.tid))
         .and(r.fid.isEqualTo(this.fid))
+        .and(r.tid.isEqualTo(this.tid))
         .and(r.status.isIn(RideStatus.waitingForStart))
         .and(r.driverId.isDifferentFrom(''))
     })) {
@@ -588,7 +582,7 @@ class usherSuggestDrivers2 {
     });
     if (lastRide) {
       let diff = (+(new Date())) - (+lastRide.date.value);
-      lastRideDays = (-1 * (Math.ceil(diff / SuggestDriverComponent.ONE_DAY_MS) + 1));
+      lastRideDays = (-1 * (Math.floor(diff / SuggestDriverComponent.ONE_DAY_MS)));
     }
     let takenSeats = 0;
     for await (const taken of this.context.for(Ride).iterate({
@@ -671,7 +665,7 @@ export class SuggestDriverComponent implements OnInit {
   // mem = new InMemoryDataProvider();
 
   drivers: driver4UsherSuggest[] = [];
-  params = new usherSuggestDrivers(this.context);
+  params = new usherSuggestDrivers2(this.context);
   constructor(private context: Context, private dialogRef: MatDialogRef<any>, private dialog: DialogService) {
   }
 

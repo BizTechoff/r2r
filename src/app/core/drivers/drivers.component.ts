@@ -230,67 +230,67 @@ export class DriversComponent implements OnInit {
   }
   
 
-  async editRide(r:Ride){
-    let today = new Date();
-    let tomorrow = new Date();
-    tomorrow.setDate(today.getDate() + 1);
-    let tomorrow10am = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate(), 10);
+  // async editRide(r:Ride){
+  //   let today = new Date();
+  //   let tomorrow = new Date();
+  //   tomorrow.setDate(today.getDate() + 1);
+  //   let tomorrow10am = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate(), 10);
     
-    // var isNeedReturnTrip = new BoolColumn({ caption: "Need Return Ride" });
-    await this.context.openDialog(
-      InputAreaComponent,
-      x => x.args = {
-        title: `Edit Ride: (${r.status.value.id})`,// ${p.name.value} (age: ${p.age.value})`,
-        columnSettings: () => [
-          r.fid,
-          r.tid,
-          r.date, 
-          r.dayPeriod,
-          r.visitTime,
-          r.isHasBabyChair,
-          r.isHasWheelchair,
-          r.escortsCount,
-          r.dRemark,
-          r.rRemark,
-        ],
-        // buttons: [{
-        //   text: 'Patient Details',
-        //   click: async () => { await this.editPatient(p); }
-        // }
-        // ],
-        validate: async () => {
-          if (!(r.fid.value && r.fid.value.length > 0)) {
-            r.fid.validationError = 'Required';
-            throw r.fid.defs.caption + ' ' + r.fid.validationError;
-          }
-          if (!(r.tid.value && r.tid.value.length > 0)) {
-            r.tid.validationError = 'Required';
-            throw r.tid.defs.caption + ' ' + r.tid.validationError;
-          }
-          if (!(r.isHasDate())) {
-            r.date.validationError = 'Required';
-            throw r.date.defs.caption + ' ' + r.date.validationError;
-          }
-          if (r.date.value < addDays(0)) {
-            r.date.validationError = 'Must be greater or equals today';
-            throw r.date.defs.caption + ' ' + r.date.validationError;
-          }
-          if (!(r.isHasVisitTime())) {
-            r.visitTime.validationError = 'Required';
-            throw r.visitTime.defs.caption + ' ' + r.visitTime.validationError;
-          }
-        },
-        ok: () => async () => {
-          if (this.context.isAllowed(Roles.admin)) {
-            await r.save();
-          }
-          else {
-            this.dialog.info("Not Allowed");
-          }
-        },
-      },
-    )
-  }
+  //   // var isNeedReturnTrip = new BoolColumn({ caption: "Need Return Ride" });
+  //   await this.context.openDialog(
+  //     InputAreaComponent,
+  //     x => x.args = {
+  //       title: `Edit Ride: (${r.status.value.id})`,// ${p.name.value} (age: ${p.age.value})`,
+  //       columnSettings: () => [
+  //         r.fid,
+  //         r.tid,
+  //         r.date, 
+  //         // r.dayPeriod,
+  //         r.visitTime,
+  //         r.isHasBabyChair,
+  //         r.isHasWheelchair,
+  //         r.escortsCount,
+  //         r.dRemark,
+  //         r.rRemark,
+  //       ],
+  //       // buttons: [{
+  //       //   text: 'Patient Details',
+  //       //   click: async () => { await this.editPatient(p); }
+  //       // }
+  //       // ],
+  //       validate: async () => {
+  //         if (!(r.fid.value && r.fid.value.length > 0)) {
+  //           r.fid.validationError = 'Required';
+  //           throw r.fid.defs.caption + ' ' + r.fid.validationError;
+  //         }
+  //         if (!(r.tid.value && r.tid.value.length > 0)) {
+  //           r.tid.validationError = 'Required';
+  //           throw r.tid.defs.caption + ' ' + r.tid.validationError;
+  //         }
+  //         if (!(r.isHasDate())) {
+  //           r.date.validationError = 'Required';
+  //           throw r.date.defs.caption + ' ' + r.date.validationError;
+  //         }
+  //         if (r.date.value < addDays(0)) {
+  //           r.date.validationError = 'Must be greater or equals today';
+  //           throw r.date.defs.caption + ' ' + r.date.validationError;
+  //         }
+  //         if (!(r.isHasVisitTime())) {
+  //           r.visitTime.validationError = 'Required';
+  //           throw r.visitTime.defs.caption + ' ' + r.visitTime.validationError;
+  //         }
+  //       },
+  //       ok: () => async () => {
+  //         if (this.context.isAllowed(Roles.admin)) {
+  //           await r.save();
+  //         }
+  //         else {
+  //           this.dialog.info("Not Allowed");
+  //         }
+  //       },
+  //     },
+  //   )
+  // }
 
   async openSuggestedRidesForDriverDialog(d: Driver) {
     let suggestedRides = await Usher.getSuggestedRidesForDriver(d.id.value);

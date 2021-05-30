@@ -26,8 +26,8 @@ export class RidesComponent implements OnInit {
       r.date,
       r.fid,
       r.tid,
-      r.dayPeriod,
-      r.dayOfWeek,
+      // r.dayPeriod,
+      // r.dayOfWeek,
       r.visitTime,
       r.status,
       r.patientId,
@@ -57,7 +57,7 @@ export class RidesComponent implements OnInit {
 
   suggestedByDriversSettings = this.context.for(Ride).gridSettings({
     where: r => r.id.isIn(...this.selectedGroupRideIds),
-    orderBy: r => [{ column: r.date, descending: true }, { column: r.dayPeriod, descending: false }],
+    // orderBy: r => [{ column: r.date, descending: true }, { column: r.dayPeriod, descending: false }],
     allowCRUD: false,
     numOfColumnsInGrid: 10,
     columnSettings: r => [
@@ -95,7 +95,7 @@ export class RidesComponent implements OnInit {
 
   waiting4DriverSettings = this.context.for(Ride).gridSettings({
     where: r => r.id.isIn(...this.selectedWaiting4DriverIds),
-    orderBy: r => [{ column: r.date, descending: true }, { column: r.dayPeriod, descending: false }],
+    // orderBy: r => [{ column: r.date, descending: true }, { column: r.dayPeriod, descending: false }],
     allowCRUD: false,
     numOfColumnsInGrid: 10,
     columnSettings: r => [

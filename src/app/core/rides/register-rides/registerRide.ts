@@ -1,3 +1,4 @@
+import { ThrowStmt } from "@angular/compiler";
 import { BoolColumn, Context, DateColumn, DateTimeColumn, EntityClass, IdEntity, NumberColumn, StringColumn } from "@remult/core";
 import { Roles } from "../../../users/roles";
 import { DriverIdColumn } from "../../drivers/driver";
@@ -5,14 +6,22 @@ import { Location, LocationIdColumn, LocationType } from "../../locations/locati
 
 @EntityClass
 export class RegisterRide extends IdEntity {
-    
+
     fid = new LocationIdColumn({
         caption: 'From',
-        validate: () => {
+        validate: async () => {
             if (!(this.fid.value)) {
                 this.fid.validationError = 'Required';
             }
         },
+        // valueChange: async () => {
+        //     let from = await this.context.for(Location).findId(this.fid.value);
+        //     if (from) {
+        //         if (from.type.value == LocationType.hospital) {
+        //             this.tid.setType([LocationType.border]);
+        //         }
+        //     }
+        // },
     }, this.context);
     tid = new LocationIdColumn({
         // allowNull: true,
@@ -20,23 +29,26 @@ export class RegisterRide extends IdEntity {
         caption: 'To',
         validate: async () => {
             if (!(this.tid.value)) {
-                if (this.fid.value) {
-                    let from = await this.context.for(Location).findId(this.fid.value);
-                    if (from) {
-                        if (from.type.value == LocationType.hospital) {
-                            // Or from-border Or to-border.
-                            this.tid.validationError = ' Required Border';
-                        }
-                    }
-                }
+                this.tid.validationError = 'Required';
             }
+            // if (!(this.tid.value)) {
+            //     if (this.fid.value) {
+            //         let from = await this.context.for(Location).findId(this.fid.value);
+            //         if (from) {
+            //             if (from.type.value == LocationType.hospital) {
+            //                 // Or from-border Or to-border.
+            //                 this.tid.validationError = ' Required Border';
+            //             }
+            //         }
+            //     }
+            // }
         }
     }, this.context);
     fdate = new DateColumn({
         caption: 'From Date',
         validate: () => {
             let now = new Date();// server date
-        let todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            let todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
             if (!(this.fdate.value)) {
                 this.fdate.validationError = " Date Required";
             }
