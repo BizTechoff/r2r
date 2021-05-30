@@ -1,12 +1,11 @@
-import { BoolColumn, Context, DateColumn, DateTimeColumn, EntityClass, IdEntity, NumberColumn } from "@remult/core";
+import { BoolColumn, Context, DateColumn, DateTimeColumn, EntityClass, IdEntity, NumberColumn, StringColumn } from "@remult/core";
 import { Roles } from "../../../users/roles";
 import { DriverIdColumn } from "../../drivers/driver";
-import { LocationIdColumn } from "../../locations/location";
+import { Location, LocationIdColumn, LocationType } from "../../locations/location";
 
 @EntityClass
 export class RegisterRide extends IdEntity {
-
-
+    
     fid = new LocationIdColumn({
         caption: 'From',
         validate: () => {
@@ -16,24 +15,39 @@ export class RegisterRide extends IdEntity {
         },
     }, this.context);
     tid = new LocationIdColumn({
+        // allowNull: true,
+        // defaultValue: '',
         caption: 'To',
-        validate: () => {
+        validate: async () => {
             if (!(this.tid.value)) {
-                this.tid.validationError = 'Required';
+                if (this.fid.value) {
+                    let from = await this.context.for(Location).findId(this.fid.value);
+                    if (from) {
+                        if (from.type.value == LocationType.hospital) {
+                            // Or from-border Or to-border.
+                            this.tid.validationError = ' Required Border';
+                        }
+                    }
+                }
             }
-        }, 
+        }
     }, this.context);
     fdate = new DateColumn({
         caption: 'From Date',
         validate: () => {
+            let now = new Date();// server date
+        let todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
             if (!(this.fdate.value)) {
                 this.fdate.validationError = " Date Required";
             }
-            // else if (this.fdate.value < new Date()) {
-            //     this.fdate.validationError = " Date Must From Today And Above";
-            // }
+            else if (this.fdate.value < todayMidnight) {
+                this.fdate.validationError = " Must Be Today And Above";
+            }
         },
         valueChange: () => {
+            // if (this.fdate.value < new Date()) {
+            //     this.fdate.value = new Date();
+            // }
             if (this.tdate.value <= this.fdate.value) {
                 this.tdate.value = this.fdate.value;
             }
@@ -50,6 +64,7 @@ export class RegisterRide extends IdEntity {
             }
         }
     });
+    visitTime = new StringColumn({ inputType: 'time' });
     sunday = new BoolColumn({ caption: 'sun', defaultValue: false });
     monday = new BoolColumn({ caption: 'mon', defaultValue: false });
     tuesday = new BoolColumn({ caption: 'tue', defaultValue: false });
@@ -67,6 +82,7 @@ export class RegisterRide extends IdEntity {
     did?= new DriverIdColumn({ caption: 'Approved Driver' }, this.context);
     didDate?= new DateTimeColumn({});
     dCount = new NumberColumn({ caption: 'RegisteredDrivers', defaultValue: 0 });
+    remark = new StringColumn({});
 
     constructor(private context: Context) {
         super({

@@ -6,33 +6,50 @@
                     <table style="width: 100%;">
                         <tr>
                             <td>
-                                <button mat-mini-fab title="Refresh" (click)="refresh()" color="primary">
-                                    <mat-icon>refresh</mat-icon>
-                                </button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <span style="padding-left: 15px;">Refreshed: {{ clientLastRefreshDate | date: 'HH:mm'
-                                    }}</span>
-                            </td>
+                                <div style="display:flex;flex-direction: row;flex-grow: 1;">
+                                    <button style="height: 40px;" mat-raised-button color="primary"
+                                        (click)="prevDay()" title="Show Prev Day">-</button>
+                                    <data-control [column]="params.date"></data-control>
+                                    <button style="height: 40px;" mat-raised-button color="primary"
+                                        (click)="nextDay()" title="Show Next Day">+</button>
+                                    <button mat-mini-fab title="Refresh" (click)="refresh()" color="primary"
+                                        style="align-items: flex-end;">
+                                        <!-- title="{{ clientLastRefreshDate | date: 'HH:mm' }}" -->
+                                        <mat-icon>refresh</mat-icon>
+                                    </button>
                             <td style="padding-left: 15px;width: 100%;text-align: end;">
-                                <button mat-mini-fab title="Add Ride" (click)="openAddRegisterRide()" color="primary">
+                                <button mat-mini-fab title="Add New Requested Rides" (click)="openAddRegisterRide()" color="primary">
                                     <mat-icon>add</mat-icon>
                                 </button>
                             </td>
-                        </tr>
-                    </table>
-                </td>
-
-            </tr>
-        </table>
-        <hr>
     </div>
+    <div>
+        <!-- <span style="padding-left: 15px;">Last Retrieved: {{ clientLastRefreshDate | date:
+                                        'HH:mm'
+                                        }}</span> -->
+        <mat-expansion-panel [expanded]="params.fid.value || params.tid.value">
+            <mat-expansion-panel-header>
+                <mat-panel-title>
+                    Last Retrieved: {{ clientLastRefreshDate | date: 'HH:mm' }}
+                </mat-panel-title>
+            </mat-expansion-panel-header>
+            <data-control [column]="params.fid"></data-control>
+            <data-control [column]="params.tid"></data-control>
+        </mat-expansion-panel>
+    </div>
+    <td>
+        </tr>
+        </table>
+    </td>
 
-    <div class="grow-item">
-        <data-grid [settings]="registerSettings"></data-grid>
-        <!-- <span *ngIf="(!(rides)) || (rides.length == 0)">No regsiterations found</span>
+    </tr>
+    </table>
+    <!-- <hr> -->
+</div>
+
+<div class="grow-item">
+    <data-grid [settings]="registerSettings"></data-grid>
+    <!-- <span *ngIf="(!(rides)) || (rides.length == 0)">No regsiterations found</span>
         <table *ngIf="rides && (rides.length > 0)" style="width: 100%">
             <table style="width: 100%;">
                 <tr>
@@ -55,12 +72,13 @@
                 </tr>
             </table>
         </table> -->
-    </div>
+</div>
 
-    <div class="footer">
-        <hr>
-        <mat-label style="padding: 5px; color:blue">selected: {{ registerSettings.selectedRows.length }}</mat-label>
-        <!-- <span>selected: {{ this.borders.filter(i =>i.selected).length }}</span> -->
-        <button *ngIf="registerSettings.selectedRows.length > 0" mat-raised-button color="accent" (click)="deleteSelected()">Delete Selected</button>
-    </div>
+<div class="footer">
+    <!-- <hr> -->
+    <mat-label style="padding: 5px; color:blue">selected: {{ registerSettings.selectedRows.length }}</mat-label>
+    <!-- <span>selected: {{ this.borders.filter(i =>i.selected).length }}</span> -->
+    <button *ngIf="registerSettings.selectedRows.length > 0" mat-raised-button color="accent"
+        (click)="deleteSelected()">Delete Selected</button>
+</div>
 </div>

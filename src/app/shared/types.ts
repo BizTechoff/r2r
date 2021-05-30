@@ -20,7 +20,6 @@ export interface driver4UsherSuggest {
   freeSeats: number,
   lastRideDays: number,
   lastCallDays: number,
-  isMatchPrefs: boolean,
   reason: string,
   priority: number,
 };

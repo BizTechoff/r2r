@@ -21,7 +21,7 @@ import { UsersComponent } from './users/users.component';
 
 
 const routes: Routes = [
-   {path:'demo',component: DemoComponent},
+  //  {path:'demo',component: DemoComponent},
   // Driver
   { path: 'd/rides', component: DriverRidesComponent, canActivate: [DriverGuard], data: { name: "My Rides" } },
   { path: 'd/register', component: DriverRegisterComponent, canActivate: [DriverGuard], data: { name: "Register To Ride" } },
@@ -36,7 +36,7 @@ const routes: Routes = [
   // Usher
   { path: 'Rides4Usher', component: UsherComponent, canActivate: [UsherGuard], data: { name: "Rides" } },
   { path: 'Return Rides', component: ReturnRidesComponent, canActivate: [UsherGuard], data: { name: "Return Rides" } },
-  { path: 'Register Rides', component: RegisterRidesComponent, canActivate: [UsherGuard], data: { name: "Constant Rides" } },
+  { path: 'Register Rides', component: RegisterRidesComponent, canActivate: [AdminGuard], data: { name: "Registable Rides" } },
   // { path: 'Rides', component: RidesComponent, canActivate: [UsherGuard] },
   { path: 'Drivers', component: DriversComponent, canActivate: [UsherGuard] },
   { path: 'PatientsUsher', component: PatientsComponent, canActivate: [UsherGuard], data: { name: "Patients" } },

@@ -512,6 +512,7 @@ export class DriverRegisterComponent implements OnInit {
 
     if (await this.dialog.confirmDelete(`Your Registration (${r.from} to ${r.to} at ${formatDate(r.date, 'dd.MM.yyyy', 'en-US')})`)) {
       await reg.delete();
+      await this.updateRegisterRides(reg.rrId.value, -1);
       await this.refresh();
     }
   }
@@ -555,11 +556,21 @@ export class DriverRegisterComponent implements OnInit {
           this.driver.defaultToTime.value = reg.toHour.value;
           this.driver.defaultSeats.value = reg.seats.value;
           await this.driver.save();
+          await this.updateRegisterRides(reg.rrId.value, 1);
           await this.refresh();
         } 
       },
     );
 
+  }
+
+  async updateRegisterRides(rrid: string,add:number){
+    let rr = await this.context.for(RegisterRide).findId(rrid);
+    if(rr)
+    {
+      rr.dCount.value = rr.dCount.value + add;
+      await rr.save();
+    }
   }
 
 }

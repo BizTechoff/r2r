@@ -88,11 +88,12 @@ export class LocationAreaComponent implements OnInit {
 
   filter() {
     for (const loc of this.borders) {
-      if (this.selected.value && this.selected.value.id.length > 0 && (!(this.selected.value == LocationArea.all))){
-        loc.ivisible = (loc.area == this.selected.value);
+      console.log('filterfilterfilter');
+      if (this.selected.value == LocationArea.all){
+        loc.ivisible = true;
       }
       else{
-        loc.ivisible = true;
+        loc.ivisible = (loc.area == this.selected.value);
       }
     }
   }

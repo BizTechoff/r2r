@@ -147,16 +147,21 @@ export class PatientsComponent implements OnInit {
       x => x.args = {
         title: `Edit Ride: (${r.status.value.id})`,// ${p.name.value} (age: ${p.age.value})`,
         columnSettings: () => [
-          r.fid,
-          r.tid,
-          r.date, 
-          r.dayPeriod,
-          r.visitTime,
-          r.isHasBabyChair,
-          r.isHasWheelchair,
-          r.escortsCount,
-          r.dRemark,
+          { column: r.fid, readOnly: true },
+          { column: r.tid, readOnly: true },
+          [
+            { column: r.date, readOnly: true },
+            { column: r.visitTime, readOnly: true }
+          ],
+          { column: r.escortsCount, readOnly: true },
+          [
+            { column: r.isHasBabyChair, readOnly: true, caption: "Baby Chair?" },
+            { column: r.isHasWheelchair, readOnly: true, caption: "Wheelchair?" }
+          ],
+          // { column: ride.dRemark, readOnly: true },
+          // { column: r.rRemark, readOnly: true, caption: 'Remark' },
           r.rRemark,
+          r.dRemark,
         ],
         // buttons: [{
         //   text: 'Patient Details',

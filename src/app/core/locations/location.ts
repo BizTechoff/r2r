@@ -52,7 +52,7 @@ export class LocationArea {
       return LocationArea.center;
     }
   }
-  id: string;
+  id;//: string;
 }
 export class LocationAreaColumn extends ValueListColumn<LocationArea>{
   constructor(options: ColumnOptions) {
@@ -78,7 +78,7 @@ export interface LocationFilterSettings {
 
 export class LocationIdColumn extends StringColumn {
   filter = (l: Location, f?: LocationFilterSettings) => new Filter(() => {
-    if (f) {
+    if (f && l) {
       if (f.onlyBorder) {
         return l.type.isEqualTo(LocationType.border);
       }

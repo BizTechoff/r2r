@@ -1,12 +1,26 @@
 import { Component, OnInit } from '@angular/core';
-import { Context, NumberColumn, ServerFunction, StringColumn } from '@remult/core';
+import { BoolColumn, Context, DateColumn, Filter, NumberColumn, ServerController, ServerFunction, StringColumn } from '@remult/core';
+import { DialogService } from '../../../common/dialog';
 import { InputAreaComponent } from '../../../common/input-area/input-area.component';
 import { ride4UsherRideRegister } from '../../../shared/types';
 import { Roles } from '../../../users/roles';
 import { RegisterDriver } from '../../drivers/driver-register/registerDriver';
-import { Location } from '../../locations/location';
+import { Location, LocationIdColumn } from '../../locations/location';
 import { addDays } from '../../usher/usher';
 import { RegisterRide } from './registerRide';
+
+
+// @EntityClass
+@ServerController({ key: 'registerRidesProvider', allowed: [Roles.admin] })//mabatParams
+class registerRidesProviderParams {//componentParams
+  date = new DateColumn({ defaultValue: new Date(), valueChange: async () => await this.onChanged() });//, dataControlSettings: () => ({cssClass: () => {return 'todaySelected';} })
+  fid?= new LocationIdColumn({ caption: 'From', defaultValue: null, allowNull: true }, this.context, { onlyBorder: false });
+  tid?= new LocationIdColumn({ caption: 'To', defaultValue: null, allowNull: true }, this.context, { onlyHospital: false });
+  onChanged: () => void;
+  constructor(private context: Context, onChanged: () => void) {
+    this.onChanged = onChanged;
+  }
+}
 
 @Component({
   selector: 'app-register-rides',
@@ -15,44 +29,92 @@ import { RegisterRide } from './registerRide';
 })
 export class RegisterRidesComponent implements OnInit {
 
-  days = new StringColumn({ caption: 'Days' })
+  trueFilter = new Filter((f) => { return true });
+  all = new BoolColumn({ caption: 'Show All', defaultValue: false, valueChange: async () => { await this.refresh(); } });
+  params = new registerRidesProviderParams(this.context, async () => await this.refresh());
+  ridesCount = new NumberColumn({ caption: 'Total Rides' });
+  // days = new NumberColumn({});//{caption: ''});
+  daysOfWeek = new StringColumn({ caption: 'DaysOfWeek' })
   registerSettings = this.context.for(RegisterRide).gridSettings({
-    orderBy: cur => [{ column: cur.fdate, descending: false }, { column: cur.fid, descending: false },],
+    where: cur =>
+      this.all.value ? new Filter(f => { return true; }) : (cur.fdate.isLessOrEqualTo(this.params.date)
+        .and(cur.tdate.isGreaterOrEqualTo(this.params.date)))
+        .and(this.params.fid.value ? cur.fid.isEqualTo(this.params.fid) : this.trueFilter)
+        .and(this.params.tid.value ? cur.tid.isEqualTo(this.params.tid) : this.trueFilter),
+    orderBy: cur => [{ column: cur.fid, descending: false }, { column: cur.tid, descending: false }, { column: cur.fdate, descending: false }, { column: cur.tdate, descending: false }, { column: cur.visitTime, descending: false }],
+    // allowCRUD:this.context.isAllowed(Roles.admin),
     allowSelection: true,
-    numOfColumnsInGrid: 10,
+    numOfColumnsInGrid: 20,
     columnSettings: (cur) => [
       cur.fid,
       cur.tid,
+      cur.visitTime,
       cur.fdate,
       cur.tdate,
-      { 
-        column: this.days,
-        getValue: (r) => {
-          return '|' +
-            r.sunday && r.sunday.value ? 'sun' + '|' : '' +
-              r.monday && r.monday.value ? 'mon' + '|' : '' +
-                r.tuesday && r.tuesday.value ? 'tue' + '|' : '' +
-                  r.wednesday && r.wednesday.value ? 'wed' + '|' : '' +
-                    r.thursday && r.thursday.value ? 'thu' + '|' : '' +
-                      r.friday && r.friday.value ? 'fri' + '|' : '';
+      {
+        column: this.ridesCount,
+        getValue: r => {
+          let diff = this.getDateDiff(r.fdate, r.tdate);
+
+          let oneDaySelected = r.sunday.value || r.monday.value || r.tuesday.value || r.wednesday.value || r.thursday.value || r.friday.value || r.saturday.value;
+          if (!(oneDaySelected)) {
+            return diff;
+          }
+          else {
+            let couter = 0;
+            for (let days = 0; days < diff; ++days) {
+              const date = addDays(days, r.fdate.value);
+              let dayOfWeek = date.getDay();
+              if (r.sunday.value) {
+                if (dayOfWeek == 0) {
+                  ++couter;
+                }
+              }
+              if (r.monday.value) {
+                if (dayOfWeek == 1) {
+                  ++couter;
+                }
+              }
+              if (r.tuesday.value) {
+                if (dayOfWeek == 2) {
+                  ++couter;
+                }
+              }
+              if (r.wednesday.value) {
+                if (dayOfWeek == 3) {
+                  ++couter;
+                }
+              }
+              if (r.thursday.value) {
+                if (dayOfWeek == 4) {
+                  ++couter;
+                }
+              }
+              if (r.friday.value) {
+                if (dayOfWeek == 5) {
+                  ++couter;
+                }
+              }
+              if (r.saturday.value) {
+                if (dayOfWeek == 6) {
+                  ++couter;
+                }
+              }
+            }
+            return couter;
+          }
         }
       },
-      // cur.sunday,
-      // cur.monday,
-      // cur.tuesday,
-      // cur.wednesday,
-      // cur.thursday,
-      // cur.friday,
-      // cur.passengers,
-      cur.dCount,
-      // {
-      //   column: this.count,
-      // getValue: async r => {
-      //   let count = (await this.context.for(RegisterDriver).count(
-      //     regD => regD.regRideId.isEqualTo(regR.id)));
-      //   return count;
-      // },
-      // },
+      {
+        column: cur.dCount, caption: 'Registered Drivers', cssClass: 'color: red'
+        // ,value: async() => true?1:  (await this.context.for(RegisterDriver).count(d => d.rrId.isEqualTo(cur.id)))
+      },
+      { column: cur.sunday, caption: '1', width: '10', readOnly: true },
+      { column: cur.monday, caption: '2', width: '10', readOnly: true },
+      { column: cur.tuesday, caption: '3', width: '10', readOnly: true },
+      { column: cur.wednesday, caption: '4', width: '10', readOnly: true },
+      { column: cur.thursday, caption: '5', width: '10', readOnly: true },
+      { column: cur.friday, caption: '6', width: '10', readOnly: true },
     ],
   });
 
@@ -63,36 +125,19 @@ export class RegisterRidesComponent implements OnInit {
   registerRidesCount = 0;
   selectedCount = 0;
 
-  constructor(private context: Context) { }
+  constructor(private context: Context, private dialog: DialogService) { }
 
   async ngOnInit() {
-    // await this.refresh();
-    // this.registerSettings = this.context.for(RegisterRide).gridSettings({
-    //   numOfColumnsInGrid: 10,
-    //   columnSettings: (reg) => [
-    //     reg.date,
-    //     reg.fromLoc,
-    //     reg.toLoc,
-    //     reg.passengers,
-    //     {
-    //       caption: 'registeredCount',
-    //       column: new NumberColumn({}),
-    //       getValue: async r => {
-    //         (await this.context.for(RegisterDriver).count(
-    //           rg => rg.regRideId.isEqualTo(reg.id)));},
-    //     }
-    //   ],
-    // });
   }
 
   async refresh() {
+    await this.registerSettings.reloadData();
     this.clientLastRefreshDate = new Date();
-    this.registerSettings.reloadData();
     // this.rides = await RegisterRidesComponent.retrieveRegisterRides(this.context);
     // this.lastRefreshDate = new Date();
   }
 
-  @ServerFunction({ allowed: [Roles.usher, Roles.admin] })
+  @ServerFunction({ allowed: [Roles.admin] })
   static async retrieveRegisterRides(context?: Context) {
     var result: ride4UsherRideRegister[] = [];
 
@@ -132,94 +177,59 @@ export class RegisterRidesComponent implements OnInit {
     await this.context.openDialog(
       InputAreaComponent,
       x => x.args = {
-        title: "Register Ride(s)",
+        title: "New Requested Rides",
         columnSettings: () => [
           reg.fid, reg.tid,
           // reg.passengers,
           reg.fdate, reg.tdate,
           [reg.sunday, reg.monday, reg.tuesday],
           [reg.wednesday, reg.thursday, reg.friday],
-          // [reg.saturday],
+          reg.visitTime,
+          reg.remark,
         ],
         ok: async () => {
           await reg.save();
-          // await this.openHowMany(reg, toDate.value);
+          if (this.params.date.value == reg.fdate.value) {
+            await this.refresh();
+          }
+          else {
+            this.params.date.value = reg.fdate.value;//auto-refresh-onchanged
+          }
         }
       },
     );
   }
 
-  private async openHowMany(reg: RegisterRide, toDate: Date) {
-
-    let diff = 1 + Math.floor((+toDate - +reg.fdate.value) / (1000 * 60 * 60 * 24));
-
-    let count = new NumberColumn({
-      defaultValue: 5,
-      validate: () => {
-        if (count.value < 1) {
-          count.validationError = " Count at least one";
-        }
-      },
-      valueChange: () => { count.value > 0 ? this.registerRidesCount = count.value * diff : 0 },
-    });
-    await this.context.openDialog(
-      InputAreaComponent,
-      x => x.args = {
-        title: `How many Ride(s) to create for each day (${diff} days)`,
-        helpText: `${diff}(days) * ${count.value}(times) = ${this.registerRidesCount}(rides to create)`,
-        columnSettings: () => [
-          count,
-        ],
-        ok: async () => {
-
-          for (let i = 0; i < diff; ++i) {
-            let date = reg.fdate.value;
-            date.setDate(date.getDate() + i);
-            for (let i = 0; i < count.value; ++i) {
-              let newReg = this.context.for(RegisterRide).create();
-              newReg.fdate.value = date;
-              newReg.fid.value = reg.fid.value;
-              newReg.tid.value = reg.tid.value;
-              // newReg.passengers.value = reg.passengers.value;
-              await newReg.save();
-            }
-          }
-
-          await this.refresh();
-        },
-      });
+  async deleteSelected() {
+    let message = `${this.registerSettings.selectedRows.length} ${this.registerSettings.selectedRows.length == 1 ? 'row' : 'rows'}`;
+    let yes = await this.dialog.confirmDelete(message);
+    if (yes) {
+      let count = 0;
+      for (const reg of this.registerSettings.selectedRows) {
+        await reg.delete();
+        ++count;
+      }
+      if (count > 0) {
+        await this.refresh();
+      }
+    }
   }
 
-  // onSelection() {
-  //   this.selectedCount = 0;
-  //   for (const r of this.rides) {
-  //     if (r.selected) {
-  //       ++this.selectedCount;
-  //     }
-  //   }
-  //   console.log("sc: " + this.selectedCount);
-  // }
-
-  async deleteSelected() {
-
-    for (const reg of this.registerSettings.selectedRows) {
-      await reg.delete();
+  getDateDiff(fdate: DateColumn, tdate: DateColumn): number {
+    if (fdate && tdate && fdate.value && tdate.value) {
+      let diff = +tdate.value - +fdate.value;
+      let days = (Math.ceil(diff / 1000 / 60 / 60 / 24) + 1);
+      return days;
     }
-    await this.refresh();
-    // let p = new PromiseThrottle(this.selectedCount);
+    return 0;
+  }
 
-    // for (let i = this.rides.length -1; i >= 0; --i) {
-    //   const r = this.rides[i];
-    //   if(r.selected){
-    //     let ride = await this.context.for(RegisterRide).findId(r.rgId);
-    //     await ride.delete();
-    //     this.rides.splice(
-    //       this.rides.indexOf(r),
-    //       1,
-    //     );
-    //   }
-    // }
-    // await p.done();
+  async prevDay() {
+    this.params.date.value = addDays(-1, this.params.date.value);
+  }
+
+  async nextDay() {
+    this.params.date.value = addDays(+1, this.params.date.value);
   }
 
 }
