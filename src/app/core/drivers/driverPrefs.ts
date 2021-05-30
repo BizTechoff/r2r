@@ -8,9 +8,9 @@ export class DriverPrefs extends IdEntity {
     driverId = new DriverIdColumn({}, this.context);
     locationId = new LocationIdColumn({allowNull: true}, this.context, { onlyBorder: true });
 
-    isAlsoBack = new BoolColumn({});
-    dayOfWeek = new DayOfWeekColumn();
-    dayPeriod = new DayPeriodColumn();
+    // isAlsoBack = new BoolColumn({});
+    // dayOfWeek = new DayOfWeekColumn();
+    // dayPeriod = new DayPeriodColumn();
 
     constructor(private context: Context) {
         super({

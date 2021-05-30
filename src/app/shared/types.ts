@@ -41,7 +41,7 @@ export interface ride4UsherRideRegister {
 
 export interface ride4DriverRideRegister {
   rId: string,
-  rgId: string,
+  rrid: string,
   dId?: string,
   date: Date, 
   fId: string,

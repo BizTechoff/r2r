@@ -995,9 +995,9 @@ export class Usher {
             where: pf => pf.driverId.isEqualTo(driverId),
         })) {
             fromBorders.push(pf.locationId.value);
-            if (pf.isAlsoBack.value) {
-                toBorders.push(pf.locationId.value);
-            }
+            // if (pf.isAlsoBack.value) {
+            //     toBorders.push(pf.locationId.value);
+            // }
         };
 
         if (fromBorders.length > 0) {

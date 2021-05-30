@@ -26,8 +26,8 @@ const routes: Routes = [
   { path: 'd/rides', component: DriverRidesComponent, canActivate: [DriverGuard], data: { name: "My Rides" } },
   { path: 'd/register', component: DriverRegisterComponent, canActivate: [DriverGuard], data: { name: "Register To Ride" } },
   { path: 'd/info', component: DriverUsefulInformationComponent, canActivate: [DriverGuard], data: { name: "Useful Information" } },
-  { path: 'd/defs', component: DriverSettingsComponent, canActivate: [DriverGuard], data: { name: "Settings" } },
   { path: 'd/history', component: DriverHistoryComponent, canActivate: [DriverGuard], data: { name: "History" } },
+  { path: 'd/defs', component: DriverSettingsComponent, canActivate: [DriverGuard], data: { name: "Settings" } },
 
   // Matcher
   { path: 'PatientsMatcher', component: PatientsComponent, canActivate: [MatcherGuard], data: { name: "Patients" } },

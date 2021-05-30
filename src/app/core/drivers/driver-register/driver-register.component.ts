@@ -1,10 +1,10 @@
 import { formatDate } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { Context, DataAreaSettings, DateColumn, NumberColumn, ServerController, ServerMethod } from '@remult/core';
+import { Context, DateColumn, NumberColumn, ServerController, ServerMethod } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
 import { InputAreaComponent } from '../../../common/input-area/input-area.component';
 import { ride4DriverRideRegister } from '../../../shared/types';
-import { Location, LocationIdColumn } from '../../locations/location';
+import { Location, LocationIdColumn, LocationType } from '../../locations/location';
 import { RegisterRide } from '../../rides/register-rides/registerRide';
 import { Ride, RideStatus } from '../../rides/ride';
 import { addDays } from '../../usher/usher';
@@ -19,12 +19,14 @@ export interface response {
 
 @ServerController({ key: 'driverRegister', allowed: true })
 class driverRegister {//dataControlSettings: () => ({width: '150px'}), 
-  date = new DateColumn({ defaultValue: new Date(), valueChange: async () => {
-    console.log("date changed");
-     await this.onChanged(); 
-    } });
-  fid = new LocationIdColumn({caption: 'From', valueChange: async () => { await this.onChanged(); } }, this.context);
-  tid = new LocationIdColumn({caption: 'To',  valueChange: async () => { await this.onChanged(); } }, this.context);
+  date = new DateColumn({
+    defaultValue: new Date(), valueChange: async () => {
+      console.log("date changed");
+      await this.onChanged();
+    }
+  });
+  fid = new LocationIdColumn({ caption: 'From', valueChange: async () => { await this.onChanged(); } }, this.context);
+  tid = new LocationIdColumn({ caption: 'To', valueChange: async () => { await this.onChanged(); } }, this.context);
   did = new DriverIdColumn({}, this.context);
   seats = new NumberColumn();
   constructor(private context: Context) { }
@@ -38,46 +40,62 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
       newregistered: []
     };
 
-    let dLocs: string[] = [];
+    let dLocs: { id: string, areaIds: string[] }[] = [];
     for await (const pref of this.context.for(DriverPrefs).iterate({
       where: pf => pf.driverId.isEqualTo(this.did),
     })) {
-      dLocs.push(pref.locationId.value);
+      let loc = await this.context.for(Location).findId(pref.locationId.value);
+      if (loc) {
+        let bordes: string[] = [];
+        if (loc.type == LocationType.border) {
+          for await (const l of this.context.for(Location).iterate({
+            where: cur => cur.area.isEqualTo(loc.area)
+          })) {
+            bordes.push(l.id.value);
+          }
+        }
+        dLocs.push({ id: pref.locationId.value, areaIds: bordes });//123|border|tarkumia_betlechem
+      }
     }
 
-    for await (const reg of this.context.for(RegisterRide).iterate({//todo: display only records that not attach by usher
-      where: rg => rg.fdate.isEqualTo(this.date),
-      // .and(fid && (fid.trim().length > 0) ? rg.fromLoc.isEqualTo(fid) : rg.fromLoc.isIn(...dLocs))// new Filter(x => { /*true*/ }))
-      // .and(tid && (tid.trim().length > 0) ? rg.toLoc.isEqualTo(tid) : rg.toLoc.isIn(...dLocs)),// new Filter(x => { /*true*/ })),
+    for await (const rr of this.context.for(RegisterRide).iterate({//todo: display only records that not attach by usher
+      where: cur => cur.fdate.isLessOrEqualTo(this.date)
+        .and(cur.tdate.isGreaterOrEqualTo(this.date))
+        .and(this.fid.value ? cur.fid.isEqualTo(this.fid) : cur.fid.isIn(...dLocs.map(d => d.id))// new Filter(x => { /*true*/ }))
+          .or(this.tid.value ? cur.tid.isEqualTo(this.tid) : cur.tid.isIn(...dLocs.map(d => d.id))))// new Filter(x => { /*true*/ }))
     })) {
 
 
       let isok = true;
       if ((this.fid.value) || (this.tid.value)) {
         if (this.fid.value) {
-          if (!(reg.fid.value == this.fid.value)) {
+          if (!(rr.fid.value == this.fid.value)) {
             isok = false;
           }
         }
         if (this.tid.value) {
-          if (!(reg.tid.value == this.tid.value)) {
+          if (!(rr.tid.value == this.tid.value)) {
             isok = false;
           }
         }
       }
-      else if (!(dLocs.includes(reg.fid.value) || dLocs.includes(reg.tid.value))) {
-        isok = false;
+      else {
+        //   let row = dLocs.find(cur=>cur.id === reg.fid.value);
+        //    if (!(dLocs.includes(reg.fid.value) || dLocs.includes(reg.tid.value))) {
+        //   isok = false;
+        // }
       }
 
       if (!(isok)) {
+        console.log('continue');
         continue;
       }
 
-      let from = (await this.context.for(Location).findId(reg.fid.value)).name.value;
-      let to = (await this.context.for(Location).findId(reg.tid.value)).name.value;
+      let from = (await this.context.for(Location).findId(rr.fid.value)).name.value;
+      let to = rr.tid.value ? (await this.context.for(Location).findId(rr.tid.value)).name.value : '';
       let registereds = (await this.context.for(RegisterDriver).find(
         {
-          where: rg => rg.rdId.isEqualTo(reg.id)
+          where: rg => rg.rdId.isEqualTo(rr.id)
             .and(rg.dId.isEqualTo(this.did)),
         }));
 
@@ -85,11 +103,11 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
         for (const nreg of registereds) {
           let row: ride4DriverRideRegister = {
             rId: '',
-            rgId: reg.id.value,
+            rrid: rr.id.value,
             dId: nreg.dId.value,
-            date: reg.fdate.value,
-            fId: reg.fid.value,
-            tId: reg.tid.value,
+            date: rr.fdate.value,
+            fId: rr.fid.value,
+            tId: rr.tid.value,
             from: from,
             to: to,
             pass: nreg.seats.value,
@@ -103,20 +121,20 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
       }
       else {
         // if (reg.passengers.value <= this.seats.value) {
-        //   let row: ride4DriverRideRegister = {
-        //     rId: '',
-        //     rgId: reg.id.value,
-        //     // dId: nreg.driverId.value,
-        //     date: reg.fdate.value,
-        //     fId: reg.fid.value,
-        //     tId: reg.tid.value,
-        //     from: from,
-        //     to: to, 
-        //     // pass: reg.passengers.value,
-        //     isRegistered: false,// (registereds && registereds.length > 0),
-        //     dPass: this.seats.value,
-        //   };
-        //   result.newregistered.push(row);
+        let row: ride4DriverRideRegister = {
+          rId: '',
+          rrid: rr.id.value,
+          // dId: nreg.driverId.value,
+          date: rr.fdate.value,
+          fId: rr.fid.value,
+          tId: rr.tid.value,
+          from: from,
+          to: to,
+          pass: 0,// reg.passengers.value,
+          isRegistered: false,// (registereds && registereds.length > 0),
+          dPass: this.seats.value,
+        };
+        result.newregistered.push(row);
         // }
       }
     }
@@ -125,7 +143,7 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
       where: r => r.date.isEqualTo(this.date.value)
         // .and(fid && (fid.trim().length > 0) ? r.fromLocation.isEqualTo(fid) : r.fromLocation.isIn(...dLocs))// new Filter(x => { /*true*/ }))
         // .and(tid && (tid.trim().length > 0) ? r.toLocation.isEqualTo(tid) : new Filter(x => { /*true*/ }))
-        .and(r.status.isEqualTo(RideStatus.waitingForDriver)),
+        .and(r.status.isEqualTo(RideStatus.waitingForDriver).or(r.status.isEqualTo(RideStatus.waitingForAccept))),
     })) {
 
       let isok = true;
@@ -141,8 +159,10 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
           }
         }
       }
-      else if (!(dLocs.includes(ride.fid.value) || dLocs.includes(ride.tid.value))) {
-        isok = false;
+      else {
+        //    if (!(dLocs.includes(ride.fid.value) || dLocs.includes(ride.tid.value))) {
+        //   isok = false;
+        // }
       }
 
       if (!(isok)) {
@@ -162,7 +182,7 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
         for (const nreg of registereds) {
           let row: ride4DriverRideRegister = {
             rId: ride.id.value,
-            rgId: '',// ride.id.value,
+            rrid: '',// ride.id.value,
             dId: nreg.dId.value,
             date: ride.date.value,
             fId: ride.fid.value,
@@ -182,7 +202,7 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
         if (ride.passengers() <= this.seats.value) {
           let row: ride4DriverRideRegister = {
             rId: ride.id.value,
-            rgId: '',// ride.id.value,
+            rrid: '',// ride.id.value,
             // dId: nreg.driverId.value,
             date: ride.date.value,
             fId: ride.fid.value,
@@ -249,7 +269,7 @@ export class DriverRegisterComponent implements OnInit {
     this.params.date.value = addDays(+1, this.params.date.value);
     // console.log(this.params.date.value);
   }
-  
+
   async ngOnInit() {
 
     // let date = new Date(2021, 2, 3);
@@ -271,7 +291,7 @@ export class DriverRegisterComponent implements OnInit {
     this.params.tid.value = this.driver.defaultToLocation ? this.driver.defaultToLocation.value : null;
     this.params.did.value = this.driver.id.value;
     this.params.seats.value = this.driver.seats.value;
-    
+
     await this.refresh();
   }
 
@@ -502,11 +522,11 @@ export class DriverRegisterComponent implements OnInit {
           .and(rd.rrId.isEqualTo(r.rId)),
       });
     }
-    else (r.rgId && r.rgId.length > 0)
+    else (r.rrid && r.rrid.length > 0)
     {
       reg = await this.context.for(RegisterDriver).findFirst({
         where: rd => rd.dId.isEqualTo(r.dId)
-          .and(rd.rdId.isEqualTo(r.rgId)),
+          .and(rd.rdId.isEqualTo(r.rrid)),
       });
     }
 
@@ -521,12 +541,12 @@ export class DriverRegisterComponent implements OnInit {
     // let date = new Date(2021, 2, 3);
     let reg = this.context.for(RegisterDriver).create();
     reg.rrId.value = r.rId;
-    reg.rdId.value = r.rgId; 
+    reg.rdId.value = r.rrid;
     reg.dId.value = this.driver.id.value;
     reg.fromHour.value = this.driver.defaultFromTime.value;// todo: r.date;
     reg.toHour.value = this.driver.defaultToTime.value;// todo: r.date;
     // reg.toHour.value = date;// todo: r.date;
- 
+
     let seats = Math.min(r.pass, r.dPass);
     reg.seats.value = seats;
 
@@ -539,7 +559,7 @@ export class DriverRegisterComponent implements OnInit {
           { column: reg.toHour, inputType: 'time' },
           reg.seats,
         ],
-        validate :async () => {
+        validate: async () => {
           console.log(reg.fromHour.value);
           if (!(reg.isHasFromHour())) {
             reg.fromHour.validationError = 'Required';
@@ -558,16 +578,15 @@ export class DriverRegisterComponent implements OnInit {
           await this.driver.save();
           await this.updateRegisterRides(reg.rrId.value, 1);
           await this.refresh();
-        } 
+        }
       },
     );
 
   }
 
-  async updateRegisterRides(rrid: string,add:number){
+  async updateRegisterRides(rrid: string, add: number) {
     let rr = await this.context.for(RegisterRide).findId(rrid);
-    if(rr)
-    {
+    if (rr) {
       rr.dCount.value = rr.dCount.value + add;
       await rr.save();
     }
