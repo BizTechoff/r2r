@@ -38,8 +38,8 @@ export class Ride extends IdEntity {
     pickupTime = new StringColumn({ defaultValue: '00:00', inputType: 'time' });
     // dayPeriod = new DayPeriodColumn();
     // dayOfWeek = new DayOfWeekColumn({});
-    isHasBabyChair = new BoolColumn({ caption: 'Has Baby Chair' });
-    isHasWheelchair = new BoolColumn({ caption: 'Has Wheel Chair' });
+    isHasBabyChair = new BoolColumn({ caption: 'Has Babyseat?' });
+    isHasWheelchair = new BoolColumn({ caption: 'Wheelchair?' });
     //isHasExtraEquipment = new BoolColumn({ caption: 'Has Extra Equipment' });
     // isHasEscort = new BoolColumn({ caption: 'Has Escort', defaultValue: false });
     escortsCount = new NumberColumn({});

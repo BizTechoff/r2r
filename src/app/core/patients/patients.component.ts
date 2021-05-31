@@ -6,8 +6,7 @@ import { DialogService } from '../../common/dialog';
 import { GridDialogComponent } from '../../common/grid-dialog/grid-dialog.component';
 import { InputAreaComponent } from '../../common/input-area/input-area.component';
 import { Roles } from '../../users/roles';
-import { DayPeriod, DriverPrefs } from '../drivers/driverPrefs';
-import { openRide, Ride } from '../rides/ride';
+import { Ride } from '../rides/ride';
 import { addDays, Usher } from '../usher/usher';
 import { Patient } from './patient';
 import { PatientCrudComponent } from './patient-crud/patient-crud.component';
@@ -135,12 +134,12 @@ export class PatientsComponent implements OnInit {
     // let changed = await openPatient(p.id.value, this.context);
   }
 
-  async editRide(r:Ride){
+  async editRide(r: Ride) {
     let today = new Date();
     let tomorrow = new Date();
     tomorrow.setDate(today.getDate() + 1);
     let tomorrow10am = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate(), 10);
-    
+
     // var isNeedReturnTrip = new BoolColumn({ caption: "Need Return Ride" });
     await this.context.openDialog(
       InputAreaComponent,
@@ -155,8 +154,8 @@ export class PatientsComponent implements OnInit {
           ],
           { column: r.escortsCount },
           [
-            { column: r.isHasBabyChair, caption: "Baby Chair?" },
-            { column: r.isHasWheelchair, caption: "Wheelchair?" }
+            r.isHasBabyChair,
+            r.isHasWheelchair
           ],
           // { column: ride.dRemark, readOnly: true },
           // { column: r.rRemark, readOnly: true, caption: 'Remark' },
@@ -229,6 +228,7 @@ export class PatientsComponent implements OnInit {
           r.date,
           r.patientId,
           r.status,
+          // r.driverId,//??
         ],
         rowButtons: [
           {
@@ -280,20 +280,11 @@ export class PatientsComponent implements OnInit {
       x => x.args = {
         title: `Add Ride For: ${p.name.value} (age: ${p.age.value})`,
         columnSettings: () => [
-
-          { column: ride.fid },
-          { column: ride.tid },
-          [
-            { column: ride.date },
-            { column: ride.visitTime, inputType: 'time' }
-          ],
-          { column: ride.escortsCount },
-          [
-            { column: ride.isHasBabyChair, caption: "Baby Chair?" },
-            { column: ride.isHasWheelchair, caption: "Wheelchair?" }
-          ],
-          // { column: ride.dRemark, readOnly: true },
-          // { column: r.rRemark, readOnly: true, caption: 'Remark' },
+          ride.fid,
+          ride.tid,
+          [ride.date, ride.visitTime],
+          [ride.escortsCount, ride.pMobile],
+          [ride.isHasBabyChair, ride.isHasWheelchair],
           ride.rRemark,
           ride.dRemark,
         ],

@@ -327,8 +327,8 @@ export class SetDriverComponent implements OnInit {
           ],
           { column: ride.escortsCount, readOnly: true },
           [
-            { column: ride.isHasBabyChair, readOnly: true, caption: "Baby Chair?" },
-            { column: ride.isHasWheelchair, readOnly: true, caption: "Wheelchair?" }
+            { column: ride.isHasBabyChair, readOnly: true },
+            { column: ride.isHasWheelchair, readOnly: true }
           ],
           // { column: ride.dRemark, readOnly: true },
           { column: ride.rRemark, readOnly: true, caption: 'Remark' },
