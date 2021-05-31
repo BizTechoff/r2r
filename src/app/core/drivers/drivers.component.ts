@@ -126,10 +126,11 @@ export class DriversComponent implements OnInit {
       x => x.args = {
         title: "Add New Driver",
         columnSettings: () => [
-          [driver.name, driver.hebName],
-          [driver.mobile, driver.email],
-          [driver.idNumber, driver.birthDate],
-          [driver.home, driver.seats],
+          [driver.name, driver.idNumber],
+          [driver.mobile],
+          [driver.seats, driver.birthDate],
+          [driver.email],
+          [driver.home, ],
           [driver.city, driver.address],
         ],
         ok: async () => {
@@ -157,8 +158,10 @@ export class DriversComponent implements OnInit {
         numOfColumnsInGrid: 10,
         columnSettings: c => [
           c.doc,
+          { column: c.createdBy, readOnly: true },
           { column: c.created, readOnly: true },
           { column: c.modified, readOnly: true },
+          { column: c.modifiedBy, readOnly: true },
         ],
       }),
     });
@@ -211,7 +214,7 @@ export class DriversComponent implements OnInit {
         orderBy: r => [{ column: r.date, descending: true }],
         allowCRUD: false,// this.context.isAllowed([Roles.admin, Roles.usher, Roles.matcher]),
         allowDelete: false,
-        showPagination: false,
+        // showPagination: false,
         numOfColumnsInGrid: 10,
         columnSettings: r => [
           r.fid,

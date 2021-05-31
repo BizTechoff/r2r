@@ -58,6 +58,7 @@ export class PatientCrudComponent implements OnInit {
 
   async save() {
     await this.patient.save();
+    this.args.pid = this.patient.id.value;
     this.select();
   }
 

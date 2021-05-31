@@ -100,9 +100,19 @@ export class PatientsComponent implements OnInit {
   }
 
   async addPatient() {
-    await this.context.openDialog(PatientCrudComponent, thus => thus.args = {
-      pid: ''
-    });
+    let pid = await this.context.openDialog(PatientCrudComponent,
+      thus => thus.args = { pid: '' },
+      thus => thus.args.pid);
+
+    if (pid && pid.length > 0) {
+      let p = await this.context.for(Patient).findId(pid);
+      if (p) {
+        let yes = await this.dialog.yesNoQuestion(`Would You like to create Ride for ${p.name.value}`);
+        if (yes) {
+          await this.openAddRideDialog(p)
+        }
+      }
+    }
     // let changed = await openPatient('', this.context);
     // var patient = this.context.for(Patient).create();
     // this.context.openDialog(
@@ -260,6 +270,7 @@ export class PatientsComponent implements OnInit {
   }
 
   async openAddRideDialog(p: Patient) {
+    if (!(p)) return;
     let today = new Date();
     let tomorrow = new Date();
     tomorrow.setDate(today.getDate() + 1);
@@ -310,6 +321,10 @@ export class PatientsComponent implements OnInit {
             ride.date.validationError = 'Must be greater or equals today';
             throw ride.date.defs.caption + ' ' + ride.date.validationError;
           }
+          if (ride.date.value.getFullYear() < 2000 || ride.date.value.getFullYear() > 3000) {
+            ride.date.validationError = ' Invalid Format';
+            throw ride.date.defs.caption + ' ' + ride.date.validationError;
+          }
           if (!(ride.isHasVisitTime())) {
             ride.visitTime.validationError = 'Required';
             throw ride.visitTime.defs.caption + ' ' + ride.visitTime.validationError;
@@ -317,6 +332,10 @@ export class PatientsComponent implements OnInit {
         },
         ok: async () => {
           await ride.save();
+          if (!(p.mobile.value)) {
+            p.mobile.value = ride.pMobile.value;
+            await p.save();
+          }
         }
       },
     )

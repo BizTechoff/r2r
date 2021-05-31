@@ -20,9 +20,14 @@ export class UsersComponent implements OnInit {
   }
 
   users = this.context.for(Users).gridSettings({
-    allowDelete: true,
-    allowInsert: true,
-    allowUpdate: true,
+    allowCRUD: this.context.isAllowed(Roles.admin),
+    // allowDelete: false,
+    // allowInsert: false,
+    // allowUpdate: false,
+    // allowApiDelete: false,
+    // allowApiRead: context.isSignedIn(),
+    // allowApiUpdate: context.isSignedIn(),
+    // allowApiInsert: Roles.admin,
     numOfColumnsInGrid: 10,// this.users.settings.columnSettings.length,
     get: {
       orderBy: h => [h.name],

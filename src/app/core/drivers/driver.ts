@@ -217,10 +217,10 @@ export async function openDriver(id: string, context: Context): Promise<boolean>
       x => x.args = {
         title: `Edit Driver: ${d.name.value}`,
         columnSettings: () => [
-          [d.name, d.hebName],
-          [d.mobile, d.email],
-          [d.idNumber, d.birthDate],
-          [d.home, d.seats],
+          [d.name, d.idNumber],
+          [d.mobile, d.seats],
+          d.birthDate,
+          d.email,
           [d.city, d.address],
           {column: d.freezeTillDate, readOnly: true, visible: () => {return (!(d.freezeTillDate.value === null));} },
         ],

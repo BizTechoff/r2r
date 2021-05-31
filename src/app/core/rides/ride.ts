@@ -44,7 +44,7 @@ export class Ride extends IdEntity {
     // isHasEscort = new BoolColumn({ caption: 'Has Escort', defaultValue: false });
     escortsCount = new NumberColumn({});
     backId = new StringColumn({});
-    pMobile = new StringColumn({});
+    pMobile = new StringColumn({caption: 'Patient Mobile'});
     dRemark = new StringColumn({caption: 'Remark For Driver'});
     rRemark = new StringColumn({caption: 'Remark For Ride'});
     isBackRide = new BoolColumn({defaultValue: false});
