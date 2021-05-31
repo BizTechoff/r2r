@@ -65,12 +65,13 @@ export class GridDialogComponent implements OnInit {
     b.click(() => {
       this.dialogRef.close();
     });
-  }
+  } 
   isVisible(b: button) {
     console.log(b.text);
     if (!b.visible)
       return true;
-    return b.visible;
+    return b.visible();
+    return true;
   }
 
 

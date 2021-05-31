@@ -285,6 +285,9 @@ async function findOrCreateRideNew(rideRecord: any, driverId: string, patientId:
             }
         }
     }
+    
+    // all ride from import are in-the-past so all should be closed.
+    ride.status.value = RideStatus.succeeded;
 
     // console.log(rideRecord.RideNum);
     // console.log(ride);

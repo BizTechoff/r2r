@@ -6,7 +6,7 @@
   
     <mat-dialog-actions>
       <ng-container *ngFor="let b of args.buttons">
-        <button mat-raised-button *ngIf="isVisible(b)" (click)="buttonClick(b,$event)">
+        <button mat-raised-button *ngIf="(b.visible())" (click)="buttonClick(b,$event)">
           {{b.text}}
         </button></ng-container>
       <button type="button" mat-raised-button color="warning" (click)="this.dialogRef.close()" *ngIf="this.args.cancel">

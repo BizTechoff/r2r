@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { BoolColumn, Context, DataAreaSettings, DateColumn, Entity, Filter, GridSettings, NumberColumn, ServerController, ServerMethod, StringColumn } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
+import { GridDialogComponent } from '../../../common/grid-dialog/grid-dialog.component';
 import { InputAreaComponent } from '../../../common/input-area/input-area.component';
 import { ride4UsherSetDriver } from '../../../shared/types';
 import { Driver, DriverIdColumn } from '../../drivers/driver';
@@ -309,6 +310,88 @@ export class SetDriverComponent implements OnInit {
       r.driverId = '';
       r.status = RideStatus.waitingForDriver;
     }
+  }
+
+  async splitRide(r: ride4UsherSetDriver) {
+    let ride = await this.context.for(Ride).findId(r.id);
+    let explain = new StringColumn();
+    let count = new NumberColumn({ defaultValue: ride.passengers() });
+    let splitCount = new NumberColumn({
+      defaultValue: ride.escortsCount.value, valueChange: () => {
+        let splitingExplain = '';
+        if (splitCount.value > 0 && splitCount.value <= count.value) {
+          let times = Math.ceil(count.value / splitCount.value);
+          let mod = count.value % splitCount.value;
+          splitingExplain = `${splitCount.value} Rides(${times} pass)`;
+          if (mod > 0) {
+            splitingExplain += ` & 1 Ride (${mod} pass)`;
+          }
+        }
+        else {
+          splitingExplain = 'Not Valid';
+        }
+        explain.value = splitingExplain;
+      }
+    });
+    await this.context.openDialog(
+      InputAreaComponent,
+      x => x.args = {
+        title: 'Split Ride`s Escorts',
+        columnSettings: () => [
+          { column: count, readOnly: true, caption: 'Current Passengers' },
+          { column: splitCount, caption: 'Split Total Rides Count' },
+          { column: explain, readOnly: true, caption: 'Explain' },
+        ],
+        validate: async () => {
+          if (splitCount.value <= 0) {
+            splitCount.validationError = ' Split not valid';
+            throw splitCount.defs.caption + splitCount.validationError;
+          }
+          if (splitCount.value > count.value) {
+            splitCount.validationError = ' Can not split more then ' + count.value + ' rides';
+            throw splitCount.defs.caption + splitCount.validationError;
+          }
+        },
+        ok: async () => {
+          let yes = await this.dialog.yesNoQuestion(`Split ride to ${splitCount.value} rides`);
+          if (yes) {
+            await this.retrieve();
+          }
+        },
+        cancel: () => { }
+      },
+    )
+  }
+
+
+  async showDriverRides(r: ride4UsherSetDriver) {
+    let pass = new NumberColumn({caption: 'pass'});
+    await this.context.openDialog(GridDialogComponent, gd => gd.args = {
+      title: `${r.driver} - History Rides`,
+      settings: this.context.for(Ride).gridSettings({
+        where: cur => cur.driverId.isEqualTo(r.driverId),
+        orderBy: cur => [{ column: cur.date, descending: true }],
+        allowCRUD: false,// this.context.isAllowed([Roles.admin, Roles.usher, Roles.matcher]),
+        allowDelete: false,
+        // showPagination: false,
+        numOfColumnsInGrid: 10,
+        columnSettings: cur => [
+          cur.fid,
+          cur.tid,
+          // {column: pass, getValue: r => r.passengers() },
+          cur.date,
+          // cur.status
+          // cur.patientId,
+        ],
+        // rowButtons: [
+        //   {
+        //     textInMenu: 'Edit',
+        //     icon: 'edit',
+        //     click: async (r) => { await this.editRide(r); },
+        //   },
+        // ],
+      }),
+    });
   }
 
   async showRide(r: ride4UsherSetDriver) {

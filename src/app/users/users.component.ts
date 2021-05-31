@@ -36,18 +36,15 @@ export class UsersComponent implements OnInit {
     columnSettings: users => [
       users.name,
       users.mobile,
-      users.isAdmin,
-      users.isUsher,
-      users.isMatcher,
       users.isDriver,
-
-
+      users.isMatcher,
+      users.isUsher,
+      users.isAdmin
     ],
     rowButtons: [{
       name: 'Set New Password',
       icon: 'password',
       click: async (u) => {
-
         let password = new PasswordColumn();
         let confirmPassword = new PasswordColumn({ caption: "Confirm Password" });
         this.context.openDialog(InputAreaComponent, i => i.args = {
@@ -64,11 +61,6 @@ export class UsersComponent implements OnInit {
             await u.create(password.value);
           },
         });
-
-        // if (await this.dialog.yesNoQuestion("Are you sure you want to delete the password of " + this.users.currentRow.name.value)) {
-        //   await UsersComponent.resetPassword(this.users.currentRow.id.value);
-        //   this.dialog.info("Password deleted");
-        // };
       }
     }],
     confirmDelete: async (h) => {
@@ -84,10 +76,8 @@ export class UsersComponent implements OnInit {
       await u.save();
     }
   }
-
-
-
+  
   ngOnInit() {
   }
-
+  
 }

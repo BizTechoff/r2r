@@ -1,8 +1,21 @@
 import { Component, OnInit } from '@angular/core';
-import { Context, Filter } from '@remult/core';
+import { Context, DateColumn, ServerController } from '@remult/core';
 import { YesNoQuestionComponent } from '../../../common/yes-no-question/yes-no-question.component';
+import { Roles } from '../../../users/roles';
 import { Ride, RideStatus } from '../../rides/ride';
+import { addDays } from '../../usher/usher';
 import { Patient } from '../patient';
+
+
+@ServerController({ key: 'm', allowed: [Roles.matcher, Roles.admin] })
+class matcherService {
+  date = new DateColumn({ defaultValue: new Date(), valueChange: async () => await this.onChanged() });
+  onChanged: () => void;
+  constructor(onChanged: () => void) {
+    this.onChanged = onChanged;
+  }
+}
+
 
 @Component({
   selector: 'app-approve-patient-ride',
@@ -11,12 +24,10 @@ import { Patient } from '../patient';
 })
 export class ApprovePatientRideComponent implements OnInit {
 
-  today = new Date();
+  params = new matcherService(async () => await this.refresh());
   ridesSettings = this.context.for(Ride).gridSettings({
-    where: r => r.date.isGreaterOrEqualTo(this.today),
-      // .and(new Filter(f => f.isNotNull(r.driverId)))
-      // .and(new Filter(f => f.isDifferentFrom(r.driverId, ''))),
-    // .and(r.status.isIn(RideStatus.waitingForStart)),
+    where: r => r.date.isEqualTo(this.params.date)
+      .and(r.status.isNotIn(RideStatus.succeeded)),
     numOfColumnsInGrid: 10,
     columnSettings: (r) => [
       r.patientId,
@@ -25,21 +36,22 @@ export class ApprovePatientRideComponent implements OnInit {
       r.tid,
       r.status,
       r.date,
-      r.visitTime,
+      r.visitTime//,
+      // { column: r.mApproved, caption: 'Approved' }
     ],
     rowButtons: [
       {
         textInMenu: 'Approve',
         icon: 'how_to_reg',
         click: async (r) => { await this.approve(r); },
-        visible: (r) => {return r.status.value === RideStatus.waitingForStart},
+        visible: (r) => { return r.status.value === RideStatus.waitingForStart && !r.mApproved.value },
       },
     ],
   });
 
   constructor(private context: Context) {
-
-    this.today = new Date(this.today.getFullYear(), this.today.getMonth(), this.today.getDate());
+    // SetTime: 00:00:00.0 = MidNigth
+    this.params.date.value = new Date(this.params.date.value.getFullYear(), this.params.date.value.getMonth(), this.params.date.value.getDate());
   }
 
   async refresh() {
@@ -54,14 +66,25 @@ export class ApprovePatientRideComponent implements OnInit {
   }
 
   async approve(r: Ride) {
+    r.mApproved.value = true;
+    await r.save();
+
     let pName = await (await this.context.for(Patient).findId(r.patientId)).name.value;
     let answer = await this.context.openDialog(YesNoQuestionComponent, ynq => ynq.args = {
-      message: `You approved ride! Send message to patient? (${pName})`,
+      message: `You approved ride! Tell '${pName}' to be at '${r.visitTime}' at '${r.fid.displayValue}'? ()`,
       isAQuestion: true,
     });
     if (answer && answer == true) {
       console.log(`Send Message To: ${pName}, Hi found a ride for you: driver, Please be at 'place' on time 'HH:mm', TX.`);
     }
+  }
+
+  async prevDay() {
+    this.params.date.value = addDays(-1, this.params.date.value);
+  }
+
+  async nextDay() {
+    this.params.date.value = addDays(+1, this.params.date.value);
   }
 
 }

@@ -1,16 +1,54 @@
-import { formatDate } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { BusyService } from '@remult/angular';
-import { Context, StringColumn, ValueListItem } from '@remult/core';
+import { BoolColumn, Context, DateColumn, NumberColumn, ServerController, ServerMethod, StringColumn } from '@remult/core';
 import { DialogService } from '../../common/dialog';
 import { GridDialogComponent } from '../../common/grid-dialog/grid-dialog.component';
 import { InputAreaComponent } from '../../common/input-area/input-area.component';
 import { Roles } from '../../users/roles';
-import { Ride } from '../rides/ride';
-import { addDays, Usher } from '../usher/usher';
-import { Patient } from './patient';
+import { Ride, RideStatusColumn } from '../rides/ride';
+import { addDays } from '../usher/usher';
+import { Patient, PatientIdColumn } from './patient';
 import { PatientCrudComponent } from './patient-crud/patient-crud.component';
 
+export class patientRides {
+  id = new StringColumn();
+  date = new DateColumn();
+  fid = new StringColumn();
+  tid = new StringColumn();
+  pass = new NumberColumn();
+  phones = new StringColumn();
+  status = new RideStatusColumn();
+  statusDate = new DateColumn();
+  isWaitingForUsherApproove = new BoolColumn();
+  isWaitingForStart = new BoolColumn();
+  isWaitingForPickup = new BoolColumn();
+  isWaitingForArrived = new BoolColumn();
+};
+
+@ServerController({ key: 'p', allowed: [Roles.matcher, Roles.usher, Roles.admin] })
+class patientService {
+
+  pid = new PatientIdColumn(this.context);
+  constructor(private context: Context) { }
+
+  @ServerMethod()
+  async rides(): Promise<patientRides[]> {
+    var result: patientRides[] = [];
+
+    for await (const r of this.context.for(Ride).iterate({
+      where: cur => cur.patientId.isEqualTo(this.pid)
+    })) {
+      let row: patientRides = new patientRides();
+      row.date.value = r.date.value;
+      row.fid.value = r.fid.value;
+      row.tid.value = r.tid.value;
+      result.push(row);
+    }
+
+    console.log('patientRidesRequest.result.length=' + result.length);
+    return result;
+  }
+}
 
 @Component({
   selector: 'app-patients',
@@ -18,7 +56,6 @@ import { PatientCrudComponent } from './patient-crud/patient-crud.component';
   styleUrls: ['./patients.component.scss']
 })
 export class PatientsComponent implements OnInit {
-
 
   search = new StringColumn({
     caption: 'search patient name',
@@ -90,10 +127,9 @@ export class PatientsComponent implements OnInit {
     this.retrievePatients();
   }
 
-
-
   async retrievePatients() {
     this.patientsSettings.reloadData();
+
     // this.patients = await this.context.for(Patient).find({
     //   where:p=>this.search.value?p.name.isContains(this.search):undefined
     // });
@@ -208,15 +244,17 @@ export class PatientsComponent implements OnInit {
 
   async openScheduleRides(p: Patient) {
 
-    let values: ValueListItem[] = [];
-    // console.log(r.date);
-    let rides = await Usher.getRegisteredRidesForPatient(p.id.value);
-    for (const r of rides) {
-      values.push({
-        id: r.id,
-        caption: r.from + '|' + r.to + '|' + formatDate(r.date, 'dd.MM.yyyy', 'en-US') + '|' + r.status.id,
-      });
-    };
+
+    let params = new patientService(this.context);
+
+    // let grid:GridSettings;
+    // let mem = new InMemoryDataProvider();
+
+    params.pid.value = p.id.value;
+    let rides2 = await params.rides();
+    console.log('rides2.length=' + rides2.length);
+
+    // let rides = await Usher.getRegisteredRidesForPatient(p.id.value);
 
     let today = new Date();
     today = new Date(today.getFullYear(), today.getMonth(), today.getDate());//dd/mm/yyyy 00:00:00.0
@@ -224,11 +262,9 @@ export class PatientsComponent implements OnInit {
     await this.context.openDialog(GridDialogComponent, gd => gd.args = {
       title: `${p.name.value}    (scheduled rides)`,
       settings: this.context.for(Ride).gridSettings({
-        where: r => r.id.isIn(...rides.map(rm => rm.id)),
-        // where: r => r.driverId.isEqualTo(d.id)
-        //   .and(r.date.isGreaterOrEqualTo(today)),
-        orderBy: r => [{ column: r.date, descending: true }],
-        allowCRUD: false,// this.context.isAllowed([Roles.admin, Roles.usher, Roles.matcher]),
+        where: r => r.patientId.isEqualTo(p.id),
+        orderBy: r => [{ column: r.date, descending: false }],
+        allowCRUD: this.context.isAllowed([Roles.admin, Roles.usher, Roles.matcher]),
         allowDelete: false,
         showPagination: false,
         numOfColumnsInGrid: 10,
@@ -250,23 +286,6 @@ export class PatientsComponent implements OnInit {
         ],
       }),
     });
-
-
-
-    // console.table(relevantDrivers);
-    // this.context.openDialog(GridDialogComponent, x => x.args({
-    //   title: `Registered Rides (${rides.length})`,
-    //   values: values,
-    //   // orderBy:r => [{ column: r.date, descending: true }]
-    //   onSelect: async x => {
-    //     // let ride = await this.context.for(Ride).findId(x.item.id);
-    //     // r.driverId.value = x.id;
-    //     // r.status.value = RideStatus.waitingFor30Start,
-    //     // await r.save();
-    //     // this.snakebar.info(`Sending Sms To Driver: ${x.caption}`);
-    //     // this.retrieveDrivers();
-    //   },
-    // }));
   }
 
   async openAddRideDialog(p: Patient) {

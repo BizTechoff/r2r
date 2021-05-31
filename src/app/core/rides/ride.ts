@@ -48,6 +48,7 @@ export class Ride extends IdEntity {
     dRemark = new StringColumn({caption: 'Remark For Driver'});
     rRemark = new StringColumn({caption: 'Remark For Ride'});
     isBackRide = new BoolColumn({defaultValue: false});
+    mApproved = new BoolColumn({defaultValue: false});
 
     constructor(private context: Context, private appSettings: ApplicationSettings) {
         super({

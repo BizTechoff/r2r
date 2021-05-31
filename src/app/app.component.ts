@@ -109,7 +109,7 @@ export class AppComponent {
     this.session.signout();
     this.router.navigate(['/']);
   }
-  signUp() {
+  private signUp() {
     let user = this.context.for(Users).create();
     let password = new PasswordColumn();
     let confirmPassword = new PasswordColumn({ caption: "Confirm Password" });

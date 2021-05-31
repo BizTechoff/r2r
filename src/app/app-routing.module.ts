@@ -30,8 +30,8 @@ const routes: Routes = [
   { path: 'd/defs', component: DriverSettingsComponent, canActivate: [OnlyDriverGuard], data: { name: "Settings" } },
 
   // Matcher
-  { path: 'PatientsMatcher', component: PatientsComponent, canActivate: [MatcherGuard], data: { name: "Patients" } },
-  { path: 'PatientsApproveMatcher', component: ApprovePatientRideComponent, canActivate: [MatcherGuard], data: { name: "Patients Rides" } },
+  { path: 'm/patients', component: PatientsComponent, canActivate: [MatcherGuard], data: { name: "Patients" } },
+  { path: 'm/approve', component: ApprovePatientRideComponent, canActivate: [MatcherGuard], data: { name: "Patients Rides" } },
 
   // Usher
   { path: 'Rides4Usher', component: UsherComponent, canActivate: [UsherGuard], data: { name: "Rides" } },

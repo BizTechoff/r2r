@@ -7,18 +7,19 @@
                         <tr>
                             <td>
                                 <div style="display:flex;flex-direction: row;flex-grow: 1;">
-                                    <button style="height: 40px;" mat-raised-button color="primary"
-                                        (click)="prevDay()" title="Show Prev Day">-</button>
+                                    <button style="height: 40px;" mat-raised-button color="primary" (click)="prevDay()"
+                                        title="Show Prev Day">-</button>
                                     <data-control [column]="params.date"></data-control>
-                                    <button style="height: 40px;" mat-raised-button color="primary"
-                                        (click)="nextDay()" title="Show Next Day">+</button>
+                                    <button style="height: 40px;" mat-raised-button color="primary" (click)="nextDay()"
+                                        title="Show Next Day">+</button>
                                     <button mat-mini-fab title="Refresh" (click)="refresh()" color="primary"
                                         style="align-items: flex-end;">
                                         <!-- title="{{ clientLastRefreshDate | date: 'HH:mm' }}" -->
                                         <mat-icon>refresh</mat-icon>
                                     </button>
                             <td style="padding-left: 15px;width: 100%;text-align: end;">
-                                <button mat-mini-fab title="Add New Requested Rides" (click)="openAddRegisterRide()" color="primary">
+                                <button mat-mini-fab title="Add New Requested Rides" (click)="openAddRegisterRide()"
+                                    color="primary">
                                     <mat-icon>add</mat-icon>
                                 </button>
                             </td>
