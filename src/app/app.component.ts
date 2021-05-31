@@ -65,11 +65,6 @@ export class AppComponent {
     if (u) {
       // he is driver and not anything else (prevent see all sidebar-menu)
       let onlyDriver = (u.isDriver.value) && (!(u.isAdmin.value || u.isUsher.value || u.isMatcher.value));
-      console.log(u.isAdmin.value);
-      console.log(u.isDriver.value);
-      console.log(u.isMatcher.value);
-      console.log(u.isUsher.value);
-      console.log(onlyDriver);
       if (onlyDriver) {
         return false;
       }

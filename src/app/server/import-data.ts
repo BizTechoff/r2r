@@ -14,17 +14,18 @@ let ridersFolder = "c:/r2r/rides";
 let daysToRetrieve = 90;//3 months
 
 var counter = 0;
-
+ 
 export async function importDataNew(db: SqlDatabase, fresh = false) {
 
-    console.time("starting import");
-
     if (fresh) {
-        console.time("get data from old db");
+        console.log("starting import fresh");
+        console.time("starting import fresh");
         await importRidesAndToFiles();
-        console.timeEnd("get data from old db");
+        console.timeEnd("finished import fresh");
+        console.log("finished import fresh");
     } 
- 
+    // return;
+  
     console.log("starting import");
     var context = new ServerContext(db);
 
@@ -53,7 +54,7 @@ export async function importDataNew(db: SqlDatabase, fresh = false) {
 
         await createFromRideRecordNew(r, context);
     }
-    console.time("insert data to new db");
+    console.timeEnd("insert data to new db");
 
     //console.log("list tables with data");
     console.log(`settings: ${await context.for(ApplicationSettings).count()} rows`);

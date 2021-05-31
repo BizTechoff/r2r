@@ -21,7 +21,7 @@ import { DriverPrefs } from './driverPrefs';
 export class DriversComponent implements OnInit {
 
   search = new StringColumn({
-    caption: 'search driver name',
+    caption: 'Search here for driver name',
     valueChange: () => this.busy.donotWait(async () => this.retrieveDrivers())
 
   });
@@ -78,17 +78,19 @@ export class DriversComponent implements OnInit {
       click: async (p) => {
         await this.editDriver(p);
       },
-    }, {
-      textInMenu: "Delete Driver",
-      icon: "delete",
-      visible: (p) => !p.isNew(),
-      click: async (p) => {
-        let name = (await this.context.for(Driver).findId(p.id.value)).name.value;
-        if (await this.dialog.confirmDelete(name)) {
-          await p.delete();
-        }
-      },
-    },],
+    }, 
+    // {
+    //   textInMenu: "Delete Driver",
+    //   icon: "delete",
+    //   visible: (p) => !p.isNew(),
+    //   click: async (p) => {
+    //     let name = (await this.context.for(Driver).findId(p.id.value)).name.value;
+    //     if (await this.dialog.confirmDelete(name)) {
+    //       await p.delete();
+    //     }
+    //   },
+    // },
+  ],
     gridButtons: [{
       name: 'Add New Driver',
       icon: 'add',

@@ -65,10 +65,10 @@ export class Driver extends IdEntity {
   constructor(private context: Context, private dialog: DialogService) {
     super({
       name: "drivers",
-      allowApiCRUD: [Roles.usher, Roles.admin],// c => c.isSignedIn(),// [Roles.driver, Roles.admin],
+      allowApiDelete: false,
+      allowApiInsert: false,
       allowApiUpdate: [Roles.driver, Roles.admin],
       allowApiRead: c => c.isSignedIn(),
-      allowApiDelete: false,
 
       // allowApiDelete:false,
       // saving:async()=>{

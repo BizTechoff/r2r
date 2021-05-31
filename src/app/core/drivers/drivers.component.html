@@ -1,18 +1,19 @@
 <div class="full-page">
-    <div class="patients-top" style="display: flex;
-    align-content: space-between;">
+    <div class="hedaer">
         <data-control [column]="search"></data-control>
         <!-- <button mat-mini-fab color="accent" (click)="addDriver()"> -->
-        <button mat-raised-button style="margin: 10px;" color="primary" (click)="addDriver()">
+        <!-- <button mat-raised-button style="margin: 10px;" color="primary" (click)="addDriver()">
             <mat-icon>add</mat-icon>
             <mat-label>Add New Driver</mat-label>
-            <!-- <mat-label>Add New Patient</mat-label> -->
-        </button>
+        </button> -->
 
         <!-- <mat-label>Add New Patient</mat-label> -->
     </div>
 
     <div class="grow-item">
         <data-grid [settings]="driversSettings"></data-grid>
+    </div>
+    <div class="footer">
+        <!-- Found: {{ driversSettings.totalRows }} -->
     </div>
 </div>

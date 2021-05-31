@@ -1,13 +1,23 @@
-<div mat-dialog-content class="center-screen">
-  <div>
 
-    <h1>Rides Organizer Application</h1>
+  <div class="full-page">
+  <div class="grow-item">
+    <div mat-dialog-content class="center-screen">
+    <h4>Rides Organizer Application</h4>
     <h2>Welcome {{context.isSignedIn()?"("+context.user.roles.join()+")":""}}</h2>
     <h3 *ngIf="!context.isSignedIn()">Please Sign In</h3>
 
     <h2>Our News..</h2>
 
-    <p>FOR PEACE AND RECONCILIATION - HUMANITY BEFORE POLITICS</p>
+    <div>
+    <strong> <p style="color: green;"> FOR PEACE AND RECONCILIATION</p></strong>
+  </div>
+  <div>
+    <p style="color: green;"><strong><h1>HUMANITY BEFORE POLITICS</h1></strong></p>
+  </div>
+  <div>
+    <img src="assets/logo.png">
+  </div>
 
   </div>
+</div>
 </div>

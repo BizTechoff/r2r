@@ -38,8 +38,8 @@ export class Users extends IdEntity {
 
         super({
             name: "Users",
+            allowApiDelete: false,
             allowApiRead: context.isSignedIn(),
-            allowApiDelete: Roles.admin,
             allowApiUpdate: context.isSignedIn(),
             allowApiInsert: Roles.admin,
 
@@ -92,11 +92,13 @@ export class Users extends IdEntity {
                         where: d => d.userId.isEqualTo(user.id)
                     });
 
-                    if (user.isDriver.value) {//need driver also
-                        // 'refresh' his name & mobile if changed
-                        d.name.value = user.name.value;
-                        d.mobile.value = user.mobile.value;
-                        await d.save();
+                    if (user.isDriver.value) {//only if user is driver
+                        if (d.isNew() || (!(d.userId.value == user.id.value))) {
+                            d.name.value = user.name.value;
+                            d.mobile.value = user.mobile.value;
+                            d.userId.value = user.id.value;
+                            await d.save();
+                        }
                     }
                     else if (!(d.isNew())) {
                         // 'delete' it

@@ -10,7 +10,7 @@ import { PatientIdColumn } from "../patients/patient";
 @EntityClass
 export class Ride extends IdEntity {
 
-    driverRemark = new StringColumn({});
+    //driverRemark = new StringColumn({});
     driverId = new DriverIdColumn({ caption: 'Driver' }, this.context);
     patientId = new PatientIdColumn(this.context);
     status = new RideStatusColumn();
@@ -40,7 +40,7 @@ export class Ride extends IdEntity {
     // dayOfWeek = new DayOfWeekColumn({});
     isHasBabyChair = new BoolColumn({ caption: 'Has Baby Chair' });
     isHasWheelchair = new BoolColumn({ caption: 'Has Wheel Chair' });
-    isHasExtraEquipment = new BoolColumn({ caption: 'Has Extra Equipment' });
+    //isHasExtraEquipment = new BoolColumn({ caption: 'Has Extra Equipment' });
     // isHasEscort = new BoolColumn({ caption: 'Has Escort', defaultValue: false });
     escortsCount = new NumberColumn({});
     backId = new StringColumn({});
@@ -201,7 +201,7 @@ export class Ride extends IdEntity {
         target.date.value = this.date.value;
         target.isHasBabyChair.value = this.isHasBabyChair.value;
         target.isHasWheelchair.value = this.isHasWheelchair.value;
-        target.isHasExtraEquipment.value = this.isHasExtraEquipment.value;
+   //     target.isHasExtraEquipment.value = this.isHasExtraEquipment.value;
         // target.isHasEscort.value = this.isHasEscort.value;
         target.escortsCount.value = this.escortsCount.value;
         target.patientId.value = this.patientId.value;
@@ -214,7 +214,7 @@ export class Ride extends IdEntity {
             target.status = this.status;
             target.statusDate.value = this.statusDate.value;
             target.importRideNum.value = this.importRideNum.value;
-            target.driverRemark.value = this.driverRemark.value;
+     //       target.driverRemark.value = this.driverRemark.value;
         }
     }
 
@@ -224,12 +224,14 @@ export class Ride extends IdEntity {
 }
 
 export class RideStatus {
-    static suggestedByUsher = new RideStatus();
-    static suggestedByDriver = new RideStatus();
+    static suggestedByUsher = new RideStatus();//
+    static suggestedByDriver = new RideStatus();//
+    static waitingForPatient = new RideStatus();//
+    static waitingForPatientAndDriver = new RideStatus();//
+    static waitingForUsherApproove = new RideStatus();//
+    static waitingForUsherSelectDriver = new RideStatus();//
+    
     static waitingForDriver = new RideStatus();
-    static waitingForPatient = new RideStatus();
-    static waitingForPatientAndDriver = new RideStatus();
-    static waitingForUsherApproove = new RideStatus();
     static waitingForAccept = new RideStatus();
     static waitingForStart = new RideStatus();
     static waitingForPickup = new RideStatus();
@@ -238,7 +240,6 @@ export class RideStatus {
     static succeeded = new RideStatus();
     static failed = new RideStatus();
     static rejected = new RideStatus();
-    static waitingForUsherSelectDriver = new RideStatus();
     constructor(public color = 'green') { }
     id:string;
 
@@ -312,7 +313,7 @@ export async function openRide(rid: string, context: Context): Promise<boolean> 
                     // },
                     r.isHasBabyChair,
                     r.isHasWheelchair,
-                    r.isHasExtraEquipment,
+       //             r.isHasExtraEquipment,
                     r.escortsCount,
                     // r.isHasEscort,
                     // {

@@ -89,20 +89,21 @@ export class ReturnRidesComponent implements OnInit {
   ridesSettings = this.context.for(Ride).gridSettings({
  
     where: r => r.date.isEqualTo(this.today)//only empty
-      .and(r.status.isIn(...[RideStatus.waitingForArrived, RideStatus.waitingForEnd, RideStatus.succeeded]))
-      .and (r.backId.isEqualTo(''))//.or(r.isBackRide.isEqualTo(true)))//null/
+      .and(r.status.isIn(...[RideStatus.waitingForEnd, RideStatus.succeeded]))
+      .and (r.backId.isEqualTo('').or(r.isBackRide.isEqualTo(false)))//rides(no-back-created) || !back-rides
       // .and((new Filter(f => f.isDifferentFrom(r.backId, ''))).or(new Filter(f => f.isNull(r.backId))))
     ,numOfColumnsInGrid: 10,
     columnSettings: r => [
+      r.patientId,
       r.fid,
       r.tid,
-      r.date,
       r.driverId,
       r.status,
       r.statusDate,
-      r.driverRemark,
-      r.patientId,
+      r.date,
       r.visitTime,
+      // r.dRemark,
+      // r.rRemark,
     ],
     rowButtons: [
       {

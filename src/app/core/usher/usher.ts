@@ -434,9 +434,9 @@ export class Usher {
         if (ride.isHasWheelchair.value) {
             icons.push("accessible");
         }
-        if (ride.isHasExtraEquipment.value) {
-            icons.push("home_repair_service");
-        }
+        // if (ride.isHasExtraEquipment.value) {
+        //     icons.push("home_repair_service");
+        // }
 
         let phones = "";
         let p = await context.for(Patient).findId(ride.patientId.value);
@@ -557,9 +557,9 @@ export class Usher {
             if (ride.isHasWheelchair.value) {
                 icons.push({ name: "accessible", desc: "Has Wheelchair" });
             }
-            if (ride.isHasExtraEquipment.value) {
-                icons.push({ name: "home_repair_service", desc: "Has Extra Equipment" });
-            }
+            // if (ride.isHasExtraEquipment.value) {
+            //     icons.push({ name: "home_repair_service", desc: "Has Extra Equipment" });
+            // }
 
             let phones = "";
             let p = await context.for(Patient).findId(ride.patientId.value);
@@ -657,9 +657,9 @@ export class Usher {
             if (ride.isHasWheelchair.value) {
                 icons.push({ name: "accessible", desc: "Has Wheelchair" });
             }
-            if (ride.isHasExtraEquipment.value) {
-                icons.push({ name: "home_repair_service", desc: "Has Extra Equipment" });
-            }
+            // if (ride.isHasExtraEquipment.value) {
+            //     icons.push({ name: "home_repair_service", desc: "Has Extra Equipment" });
+            // }
 
             let phones = "";
             let p = await context.for(Patient).findId(ride.patientId.value);
@@ -749,9 +749,9 @@ export class Usher {
             if (ride.isHasWheelchair.value) {
                 icons.push({ name: "accessible", desc: "Has Wheelchair" });
             }
-            if (ride.isHasExtraEquipment.value) {
-                icons.push({ name: "home_repair_service", desc: "Has Extra Equipment" });
-            }
+            // if (ride.isHasExtraEquipment.value) {
+            //     icons.push({ name: "home_repair_service", desc: "Has Extra Equipment" });
+            // }
 
             let phones = "";
             let p = await context.for(Patient).findId(ride.patientId.value);
@@ -796,9 +796,9 @@ export class Usher {
             if (ride.isHasWheelchair.value) {
                 icons.push({ name: "accessible", desc: "Has Wheelchair" });
             }
-            if (ride.isHasExtraEquipment.value) {
-                icons.push({ name: "home_repair_service", desc: "Has Extra Equipment" });
-            }
+            // if (ride.isHasExtraEquipment.value) {
+            //     icons.push({ name: "home_repair_service", desc: "Has Extra Equipment" });
+            // }
 
             let phones = "";
             let p = await context.for(Patient).findId(ride.patientId.value);
@@ -863,9 +863,9 @@ export class Usher {
             if (ride.isHasWheelchair.value) {
                 icons.push({ name: "accessible", desc: "Has Wheelchair" });
             }
-            if (ride.isHasExtraEquipment.value) {
-                icons.push({ name: "home_repair_service", desc: "Has Extra Equipment" });
-            }
+            // if (ride.isHasExtraEquipment.value) {
+            //     icons.push({ name: "home_repair_service", desc: "Has Extra Equipment" });
+            // }
 
             let phones = "";
             let p = await context.for(Patient).findId(ride.patientId.value);
@@ -1026,9 +1026,9 @@ export class Usher {
                 if (ride.isHasWheelchair.value) {
                     icons.push({ name: "accessible", desc: "Has Wheelchair" });
                 }
-                if (ride.isHasExtraEquipment.value) {
-                    icons.push({ name: "home_repair_service", desc: "Has Extra Equipment" });
-                }
+                // if (ride.isHasExtraEquipment.value) {
+                //     icons.push({ name: "home_repair_service", desc: "Has Extra Equipment" });
+                // }
 
                 let row: rides4DriverRow = {
                     id: ride.id.value,

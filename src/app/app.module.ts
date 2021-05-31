@@ -38,7 +38,7 @@ import { ReportWeeklyDriversComponent } from './reports/report-weekly-drivers/re
 import { ReportWeeklyRidesComponent } from './reports/report-weekly-rides/report-weekly-rides.component';
 import { ServerEventsService } from './server/server-events-service';
 import { Utils } from './shared/utils';
-import { AdminGuard, DriverGuard, MatcherGuard, UsherGuard } from './users/roles';
+import { AdminGuard, DriverGuard, MatcherGuard, OnlyDriverGuard, UsherGuard } from './users/roles';
 import { UsersComponent } from './users/users.component';
 import { ApproveDriverComponent } from './core/usher/approve-driver/approve-driver.component';
 import { ShowRidesComponent } from './core/usher/show-rides/show-rides.component';
@@ -108,7 +108,7 @@ import { DemoComponent } from './demo/demo.component';
     RemultModule,
     BrowserAnimationsModule
   ],
-  providers: [DialogService, AdminGuard, UsherGuard, MatcherGuard, DriverGuard, ServerEventsService, Utils,
+  providers: [DialogService, AdminGuard, UsherGuard, MatcherGuard, DriverGuard, OnlyDriverGuard, ServerEventsService, Utils,
 
     // {
     //   provide: ApplicationSettings, useFactory: (service: SettingsService) => {

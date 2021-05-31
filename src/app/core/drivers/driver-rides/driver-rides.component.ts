@@ -63,9 +63,9 @@ export class DriverRidesComponent implements OnInit {
       if (ride.isHasWheelchair) {
         equipment.push('accessible');
       } 
-      if (ride.isHasExtraEquipment) {
-        equipment.push('home_repair_service');
-      }
+      // if (ride.isHasExtraEquipment) {
+      //   equipment.push('home_repair_service');
+      // }
 console.log('---- ' + ride.passengers());
       let row = result.find(r => r.rId === ride.id.value);
       if (!(row)) {

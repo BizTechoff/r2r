@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { BoolColumn, Context, DataAreaSettings, DateColumn, Entity, Filter, GridSettings, InMemoryDataProvider, NumberColumn, ServerController, ServerMethod, StringColumn } from '@remult/core';
+import { BoolColumn, Context, DataAreaSettings, DateColumn, Entity, Filter, GridSettings, NumberColumn, ServerController, ServerMethod, StringColumn } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
 import { InputAreaComponent } from '../../../common/input-area/input-area.component';
-import { ride4UsherApprove, ride4UsherSetDriver } from '../../../shared/types';
+import { ride4UsherSetDriver } from '../../../shared/types';
 import { Driver, DriverIdColumn } from '../../drivers/driver';
 import { Location } from '../../locations/location';
 import { Patient, PatientIdColumn } from '../../patients/patient';
@@ -25,10 +25,11 @@ class usherSerDriver {
     // drivers = dPrefs.push(d.prefId);//רק נהגים שמופיעים בנסיעות
 
     for await (const ride of this.context.for(Ride).iterate({
-      where: r => r.date.isEqualTo(this.date)
-        .and(this.fid.value ? r.fid.isEqualTo(this.fid) : alwaysTrue)
-        .and(this.tid.value ? r.tid.isEqualTo(this.tid) : alwaysTrue)
-        .and(r.status.isNotIn(...[RideStatus.succeeded])),
+      where: cur => cur.date.isEqualTo(this.date)
+        .and(this.fid.value ? cur.fid.isEqualTo(this.fid) : alwaysTrue)
+        .and(this.tid.value ? cur.tid.isEqualTo(this.tid) : alwaysTrue)
+        .and(cur.status.isNotIn(...[RideStatus.succeeded])),
+      orderBy: cur => [{ column: cur.visitTime, descending: false }]
     })) {
       let from = (await this.context.for(Location).findId(ride.fid.value)).name.value;
       let to = (await this.context.for(Location).findId(ride.tid.value)).name.value;
@@ -69,8 +70,12 @@ class usherSerDriver {
       }
     }
 
-    console.log(result)
-    result.sort((r1, r2) => r1.from.localeCompare(r2.from));
+    // sort-by: [visitTime, passengers, driver]
+    result.sort((r1, r2) => r1.visitTime.localeCompare(r2.visitTime) === 0
+      ? r1.passengers - r2.passengers === 0
+        ? r1.driver.localeCompare(r2.driver)
+        : r1.passengers - r2.passengers
+      : r1.visitTime.localeCompare(r2.visitTime));
 
     return result;
   }
@@ -154,7 +159,7 @@ export class SetDriverComponent implements OnInit {
     await this.retrieve();
   }
 
-  grid:GridSettings;
+  grid: GridSettings;
   async retrieve() {
 
     this.rides = await this.params.retrieveRideList4UsherSetDriver();
@@ -305,7 +310,7 @@ export class SetDriverComponent implements OnInit {
       r.status = RideStatus.waitingForDriver;
     }
   }
- 
+
   async showRide(r: ride4UsherSetDriver) {
 
     let ride = await this.context.for(Ride).findId(r.id);
@@ -328,7 +333,7 @@ export class SetDriverComponent implements OnInit {
           // { column: ride.dRemark, readOnly: true },
           { column: ride.rRemark, readOnly: true, caption: 'Remark' },
         ],
-        ok: () => {  },//this.dialog.info("");
+        ok: () => { },//this.dialog.info("");
         cancel: () => { }
       },
     )
@@ -339,19 +344,19 @@ export class SetDriverComponent implements OnInit {
 
 }
 export class ride4UsherSetDriverEntity extends Entity<string> {
-  constructor(private context: Context){
+  constructor(private context: Context) {
     super("ride4UsherSetDriverEntity");
   }
   id = new StringColumn();
   patientId = new PatientIdColumn(this.context);
-  driverId? = new StringColumn();
+  driverId?= new StringColumn();
   selected = new BoolColumn();
   from = new StringColumn();
   to = new StringColumn();
   driver = new StringColumn();
   dMobile = new StringColumn();
   visitTime = new StringColumn();
-  passengers= new NumberColumn();
+  passengers = new NumberColumn();
   patient = new StringColumn();
   rid = new StringColumn();
   //status: RideStatus,

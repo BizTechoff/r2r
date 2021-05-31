@@ -19,7 +19,7 @@
     </ng-container>
   </mat-toolbar>
   <mat-sidenav-container class="app-sidenav-container">
-    <mat-sidenav #sidenav class="app-sidenav mat-elevation-z10 no-print" [opened]="!dialogService.isScreenSmall()"
+    <mat-sidenav #sidenav class="app-sidenav mat-elevation-z10 no-print" [opened]="!dialogService.isScreenSmall() && context.isSignedIn()"
       [mode]="dialogService.isScreenSmall()?'over':'side'">
       <div style="width:100%;text-align: center">
 

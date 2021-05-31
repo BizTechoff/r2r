@@ -11,6 +11,7 @@ import * as fs from 'fs';
 import * as jwt from 'jsonwebtoken';
 import * as passwordHash from 'password-hash';
 import { Pool } from 'pg';
+import { exit } from 'process';
 import '../app.module';
 import { PasswordColumn } from '../users/users';
 import { importDataNew } from './import-data';
@@ -48,12 +49,14 @@ app.use('/*', async (req, res) => {
         res.sendStatus(500);
     }
 });
-
+  
 console.time('noam');
 if (process.env.IMPORT_DATA && process.env.IMPORT_DATA === "true") {
     let fresh = process.env.IMPORT_DATA_FRESH && process.env.IMPORT_DATA_FRESH === "true";
+    console.log('fresh=' + fresh);
     importDataNew(database, fresh).then(() => console.timeEnd("noam"));
     // importDataNew(database).then(()=>console.timeEnd("noam"));
+    // exit(1000);
 }
 
 let port = process.env.PORT || 3000;

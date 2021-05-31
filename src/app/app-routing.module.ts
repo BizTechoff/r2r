@@ -16,18 +16,18 @@ import { ReturnRidesComponent } from './core/rides/return-rides/return-rides.com
 import { UsherComponent } from './core/usher/usher.component';
 import { DemoComponent } from './demo/demo.component';
 import { HomeComponent } from './home/home.component';
-import { AdminGuard, DriverGuard, MatcherGuard, UsherGuard } from './users/roles';
+import { AdminGuard, DriverGuard, MatcherGuard, OnlyDriverGuard, UsherGuard } from './users/roles';
 import { UsersComponent } from './users/users.component';
 
 
 const routes: Routes = [
   //  {path:'demo',component: DemoComponent},
   // Driver
-  { path: 'd/rides', component: DriverRidesComponent, canActivate: [DriverGuard], data: { name: "My Rides" } },
-  { path: 'd/register', component: DriverRegisterComponent, canActivate: [DriverGuard], data: { name: "Register To Ride" } },
-  { path: 'd/info', component: DriverUsefulInformationComponent, canActivate: [DriverGuard], data: { name: "Useful Information" } },
-  { path: 'd/history', component: DriverHistoryComponent, canActivate: [DriverGuard], data: { name: "History" } },
-  { path: 'd/defs', component: DriverSettingsComponent, canActivate: [DriverGuard], data: { name: "Settings" } },
+  { path: 'd/rides', component: DriverRidesComponent, canActivate: [OnlyDriverGuard], data: { name: "My Rides" } },
+  { path: 'd/register', component: DriverRegisterComponent, canActivate: [OnlyDriverGuard], data: { name: "Register To Ride" } },
+  { path: 'd/info', component: DriverUsefulInformationComponent, canActivate: [OnlyDriverGuard], data: { name: "Useful Information" } },
+  { path: 'd/history', component: DriverHistoryComponent, canActivate: [OnlyDriverGuard], data: { name: "History" } },
+  { path: 'd/defs', component: DriverSettingsComponent, canActivate: [OnlyDriverGuard], data: { name: "Settings" } },
 
   // Matcher
   { path: 'PatientsMatcher', component: PatientsComponent, canActivate: [MatcherGuard], data: { name: "Patients" } },

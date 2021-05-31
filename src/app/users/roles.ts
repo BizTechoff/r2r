@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { SignedInGuard } from '@remult/angular';
+import { Context } from '@remult/core';
 
 
 
@@ -24,7 +25,7 @@ export class UsherGuard extends SignedInGuard {
 
     isAllowed() {
         return [Roles.usher, Roles.admin];
-        return c => c.isAllowed(Roles.usher) || c.isAllowed(Roles.admin);
+        // return (c: Context) => (c.isAllowed([Roles.usher, Roles.admin]));
     }
 }
 
@@ -32,9 +33,11 @@ export class UsherGuard extends SignedInGuard {
 export class MatcherGuard extends SignedInGuard {
 
     isAllowed() {
-        return Roles.matcher;
-        return c => c.isAllowed(Roles.matcher) || c.isAllowed(Roles.usher) || c.isAllowed(Roles.admin);
+        return (c: Context) => (c.isAllowed(Roles.matcher) && (!(c.isAllowed([Roles.admin, Roles.usher, Roles.driver]))));
     }
+    // isAllowed() {
+    //     return Roles.matcher;
+    // }
 }
 
 @Injectable()
@@ -42,15 +45,12 @@ export class DriverGuard extends SignedInGuard {
 
     isAllowed() {
         return Roles.driver;
-        return Roles.driver;// c => c.isAllowed(Roles.driver) || c.isAllowed(Roles.usher)  || c.isAllowed(Roles.admin);
     }
 }
 
 @Injectable()
 export class OnlyDriverGuard extends SignedInGuard {
-
     isAllowed() {
-        return c=> c.isAllowed(Roles.driver) && (! c.isAllowed([Roles.admin || Roles.usher || Roles.matcher]));
-        return Roles.driver;// c => c.isAllowed(Roles.driver) || c.isAllowed(Roles.usher)  || c.isAllowed(Roles.admin);
+        return (c: Context) => (c.isAllowed(Roles.driver) && (!(c.isAllowed([Roles.admin, Roles.usher, Roles.matcher]))));
     }
 }

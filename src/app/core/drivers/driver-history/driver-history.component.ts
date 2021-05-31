@@ -54,9 +54,9 @@ export class DriverHistoryComponent implements OnInit {
       if (ride.isHasWheelchair) {
         equipment.push('');
       }
-      if (ride.isHasExtraEquipment) {
-        equipment.push('');
-      }
+      // if (ride.isHasExtraEquipment) {
+      //   equipment.push('');
+      // }
 
       let row = result.find(r => r.rId === ride.id.value);
       if (!(row)) {
