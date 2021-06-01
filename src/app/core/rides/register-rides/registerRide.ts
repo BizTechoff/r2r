@@ -104,4 +104,8 @@ export class RegisterRide extends IdEntity {
         });
     }
 
+    isOneOdDayWeekSelected(): boolean{
+        return this.sunday.value ||  this.monday.value ||  this.tuesday.value ||  this.wednesday.value ||  this.thursday.value ||  this.friday.value ||  this.saturday.value;
+    }
+
 }

@@ -263,16 +263,16 @@ export class PatientsComponent implements OnInit {
       title: `${p.name.value}    (scheduled rides)`,
       settings: this.context.for(Ride).gridSettings({
         where: r => r.patientId.isEqualTo(p.id),
-        orderBy: r => [{ column: r.date, descending: false }],
-        allowCRUD: this.context.isAllowed([Roles.admin, Roles.usher, Roles.matcher]),
+        orderBy: r => [{ column: r.date, descending: true }],
+        allowCRUD: false,
         allowDelete: false,
-        showPagination: false,
+        // showPagination: false,
         numOfColumnsInGrid: 10,
         columnSettings: r => [
           r.fid,
           r.tid,
           r.date,
-          r.patientId,
+          // r.patientId,
           r.status,
           // r.driverId,//??
         ],

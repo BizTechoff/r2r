@@ -317,33 +317,44 @@ export class SetDriverComponent implements OnInit {
     let explain = new StringColumn();
     let count = new NumberColumn({ defaultValue: ride.passengers() });
     let splitCount = new NumberColumn({
-      defaultValue: ride.escortsCount.value, valueChange: () => {
+      defaultValue: 2 /*ride.passengers()*/,
+      valueChange: () => {
         let splitingExplain = '';
-        if (splitCount.value > 0 && splitCount.value <= count.value) {
-          let times = Math.ceil(count.value / splitCount.value);
-          let mod = count.value % splitCount.value;
-          splitingExplain = `${splitCount.value} Rides(${times} pass)`;
-          if (mod > 0) {
-            splitingExplain += ` & 1 Ride (${mod} pass)`;
+        if (splitCount.value > 1 && splitCount.value <= count.value) {
+          let rides: number[] = [];
+          for (let i = 0; i < count.value; ++i) {
+            let index = i % splitCount.value;
+            if (rides.length === index) {
+              rides.push(0);
+            }
+            rides[index] += 1;
           }
+          splitingExplain = `${rides.join(',')}`;//times//(Rides: ${rides.length})
+          // let mod = count.value % 2;//6=1,1,1,1,1,2 | 5=1,1,1,1,2 | 2=1,5
+          // let times = (count.value - mod);// Math.ceil(count.value / splitCount.value);
+          // splitingExplain = `${splitCount.value} Rides(${1} pass each)`;//times
+          // if (mod > 0) {
+          //   splitingExplain += ` & 1 Ride (${times - mod} pass)`;
+          // }
         }
         else {
           splitingExplain = 'Not Valid';
         }
+        explain.defs.caption = `Split Passengers To ${splitCount.value} Rides`;
         explain.value = splitingExplain;
       }
     });
     await this.context.openDialog(
       InputAreaComponent,
       x => x.args = {
-        title: 'Split Ride`s Escorts',
+        title: `Split ${r.patient}\`s Escorts`,
         columnSettings: () => [
-          { column: count, readOnly: true, caption: 'Current Passengers' },
-          { column: splitCount, caption: 'Split Total Rides Count' },
-          { column: explain, readOnly: true, caption: 'Explain' },
+          { column: count, readOnly: true, caption: 'Current Total Passengers' },
+          { column: splitCount, caption: 'Split Passengers To X Rides' },
+          { column: explain, readOnly: true, caption: 'Passengers Spliting' },
         ],
         validate: async () => {
-          if (splitCount.value <= 0) {
+          if (splitCount.value <= 1) {
             splitCount.validationError = ' Split not valid';
             throw splitCount.defs.caption + splitCount.validationError;
           }
@@ -355,6 +366,15 @@ export class SetDriverComponent implements OnInit {
         ok: async () => {
           let yes = await this.dialog.yesNoQuestion(`Split ride to ${splitCount.value} rides`);
           if (yes) {
+            for (let i = 1; i < splitCount.value; ++i) {
+              let copy = this.context.for(Ride).create();
+              ride.copyTo(copy);
+              copy.isSplitted.value = true;
+              copy.escortsCount.value = 0
+              await copy.save();
+              ride.escortsCount.value = 0;
+              await ride.save();
+            }
             await this.retrieve();
           }
         },
@@ -365,7 +385,7 @@ export class SetDriverComponent implements OnInit {
 
 
   async showDriverRides(r: ride4UsherSetDriver) {
-    let pass = new NumberColumn({caption: 'pass'});
+    let pass = new NumberColumn({ caption: 'pass' });
     await this.context.openDialog(GridDialogComponent, gd => gd.args = {
       title: `${r.driver} - History Rides`,
       settings: this.context.for(Ride).gridSettings({
@@ -394,8 +414,9 @@ export class SetDriverComponent implements OnInit {
     });
   }
 
-  async showRide(r: ride4UsherSetDriver) {
+  async editRide(r: ride4UsherSetDriver) {
 
+    let changed = false;
     let ride = await this.context.for(Ride).findId(r.id);
     await this.context.openDialog(
       InputAreaComponent,
@@ -406,20 +427,24 @@ export class SetDriverComponent implements OnInit {
           { column: ride.tid, readOnly: true },
           [
             { column: ride.date, readOnly: true },
-            { column: ride.visitTime, readOnly: true }
+            { column: ride.visitTime, readOnly: false }
           ],
-          { column: ride.escortsCount, readOnly: true },
+          { column: ride.escortsCount, readOnly: false },
           [
             { column: ride.isHasBabyChair, readOnly: true },
             { column: ride.isHasWheelchair, readOnly: true }
           ],
           // { column: ride.dRemark, readOnly: true },
-          { column: ride.rRemark, readOnly: true, caption: 'Remark' },
+          { column: ride.rRemark, caption: 'Remark' },
         ],
-        ok: () => { },//this.dialog.info("");
+        ok: async () => { if (ride.wasChanged()) { await ride.save(); changed = true; } },//this.dialog.info("");
         cancel: () => { }
       },
-    )
+    );
+    if (changed) {
+      r.visitTime = ride.visitTime.value;
+      r.passengers = ride.passengers();
+    }
   }
 
   // [{ column: ride.isHasBabyChair, readOnly: true, clickIcon: 'child_friendly', caption: '?' },

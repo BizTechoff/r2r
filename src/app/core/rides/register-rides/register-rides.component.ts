@@ -115,6 +115,7 @@ export class RegisterRidesComponent implements OnInit {
       { column: cur.wednesday, caption: '4', width: '10', readOnly: true },
       { column: cur.thursday, caption: '5', width: '10', readOnly: true },
       { column: cur.friday, caption: '6', width: '10', readOnly: true },
+      { column: cur.saturday, caption: '7', width: '10', readOnly: true },
     ],
   });
 
@@ -146,7 +147,7 @@ export class RegisterRidesComponent implements OnInit {
       let from = (await context.for(Location).findId(reg.fid)).name.value;
       let to = (await context.for(Location).findId(reg.tid)).name.value;
       let registeredCount = (await context.for(RegisterDriver).count(
-        rg => rg.rdId.isEqualTo(reg.id),
+        rg => rg.rid.isEqualTo(reg.id),
       ));
 
       let row: ride4UsherRideRegister = {
@@ -184,6 +185,7 @@ export class RegisterRidesComponent implements OnInit {
           reg.fdate, reg.tdate,
           [reg.sunday, reg.monday, reg.tuesday],
           [reg.wednesday, reg.thursday, reg.friday],
+          reg.saturday,
           reg.visitTime,
           reg.remark,
         ],

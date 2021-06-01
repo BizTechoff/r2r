@@ -72,7 +72,7 @@ export class LocationTypeColumn extends ValueListColumn<LocationType>{
 }
 
 export class LocationIdColumn extends StringColumn {
-  private types:LocationType[] = [LocationType.border, LocationType.hospital];
+  private types: LocationType[] = [LocationType.border, LocationType.hospital];
   constructor(options?: ColumnSettings<string>, private context?: Context) {
     super({
       validate: () => {
@@ -90,7 +90,7 @@ export class LocationIdColumn extends StringColumn {
         width: "150px",
         click: () => {
           console.log(this.types);
-          let trueFilter = new Filter((f) => {return true;});
+          let trueFilter = new Filter((f) => { return true; });
           this.context.openDialog(DynamicServerSideSearchDialogComponent,
             x => x.args(Location, {
               onClear: () => this.value = '',
@@ -103,6 +103,18 @@ export class LocationIdColumn extends StringColumn {
     },
       options);
   };
+  async area(): Promise<string[]> {
+    let result: string[] = [];
+    let loc = await this.context.for(Location).findId(this.value);
+    if (loc.type === LocationType.border) {
+      for await (const l of this.context.for(Location).iterate({
+        where: cur => cur.area.isEqualTo(loc.area)
+      })) {
+        result.push(l.id.value);
+      }
+    }
+    return result;
+  }
 }
 export class BorderAreaIdColumn extends StringColumn {
 

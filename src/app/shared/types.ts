@@ -13,15 +13,16 @@ export interface getRideList4UsherParams {
 
 export interface driver4UsherSuggest {
   did: string,
-  name: string,
-  mobile: string,
-  home: string,
-  seats: number,
   freeSeats: number,
   lastRideDays: number,
   lastCallDays: number,
   reason: string,
   priority: number,
+  // Extras from driver
+  name: string,
+  mobile: string,
+  home: string,
+  seats: number,
 };
  
 export interface ride4UsherRideRegister {

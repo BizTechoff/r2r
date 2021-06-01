@@ -7,7 +7,7 @@ import { DriverIdColumn } from "./driver";
 export class DriverCall extends IdEntity {
     dId = new DriverIdColumn({ caption: 'Driver' }, this.context);
     doc = new StringColumn({
-        caption: 'Documentation', validate: () => {
+        caption: 'Conversation content', validate: () => {
             if (!this.doc.value)
                 this.doc.validationError = " Is Too Short";
         },

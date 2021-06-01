@@ -49,6 +49,7 @@ export class Ride extends IdEntity {
     rRemark = new StringColumn({caption: 'Remark For Ride'});
     isBackRide = new BoolColumn({defaultValue: false});
     mApproved = new BoolColumn({defaultValue: false});
+    isSplitted = new BoolColumn({defaultValue: false});
 
     constructor(private context: Context, private appSettings: ApplicationSettings) {
         super({
@@ -244,6 +245,10 @@ export class RideStatus {
     constructor(public color = 'green') { }
     id:string;
 
+    // status.DriverNotStratedYet,
+    //       status.DriverStratedButNotArrived,
+    //       status.DriverArrived,
+
     isEquals(status:string){
 return status === this.id;
     }
@@ -270,7 +275,7 @@ return status === this.id;
         RideStatus.waitingForEnd,
     ];
 
-    static isInDriverFinishedStatuses = [
+    static isNoDriverRelevent = [
         RideStatus.failed,
         RideStatus.rejected,
         RideStatus.succeeded,

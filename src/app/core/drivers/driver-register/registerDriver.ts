@@ -5,12 +5,12 @@ import { DriverIdColumn } from "../driver";
 @EntityClass
 export class RegisterDriver extends IdEntity {
  
-    rrId = new StringColumn({});
-    rdId = new StringColumn({});
-    dId = new DriverIdColumn({});
-    fromHour = new StringColumn({ caption: 'Avaliable From Hour' });
-    toHour = new StringColumn({ caption: 'Avaliable Till Hour' });
-    seats = new NumberColumn({
+    rrid = new StringColumn({});
+    rid = new StringColumn({});
+    did = new DriverIdColumn({});
+    fh = new StringColumn({ caption: 'Avaliable From Hour' });
+    th = new StringColumn({ caption: 'Avaliable Till Hour' });
+    seats = new NumberColumn({  
         caption: 'Free Seats',
         validate: () => {
             if (!(this.seats.value > 0)) {
@@ -40,11 +40,11 @@ export class RegisterDriver extends IdEntity {
     };
 
     isHasFromHour() {
-        return this.fromHour && this.fromHour.value && this.fromHour.value.length > 0 && (!(this.fromHour.value === '00:00' || this.fromHour.value === '--:--'));
+        return this.fh && this.fh.value && this.fh.value.length > 0 && (!(this.fh.value === '00:00' || this.fh.value === '--:--'));
     }
 
     isHasToHour() {
-        return this.toHour && this.toHour.value && this.toHour.value.length > 0 && (!(this.toHour.value === '00:00'));
+        return this.th && this.th.value && this.th.value.length > 0 && (!(this.th.value === '00:00'));
     }
     
 }

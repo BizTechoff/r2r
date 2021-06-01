@@ -8,6 +8,7 @@
     <div class="grow-item">
         <table style="width: 100%;">
             <tr>
+                <th></th>
                 <th>Name</th>
                 <th>Mobile</th>
                 <th>Home</th>
@@ -16,6 +17,16 @@
                 <th>Reason</th>
             </tr>
             <tr *ngFor="let d of drivers" (dblclick)="onDriverSelected(d)" title="Double Click To Select">
+                <td>
+                    <!-- *ngIf="menu && menu.items && menu.items.length > 0" -->
+                    <button mat-flat-button [matMenuTriggerFor]="menu">
+                        <mat-icon>more_vert</mat-icon>
+                    </button>
+                    <mat-menu #menu="matMenu">
+                        <button mat-menu-item (click)="showDriverRides(d)">Show Driver Rides</button>
+                        <button mat-menu-item (click)="openCallDocumentationDialog(d)">Show Call Documentation</button>
+                    </mat-menu>
+                </td>
                 <td>{{ d.name }}</td>
                 <td>{{ d.mobile }}</td>
                 <td>{{ d.home }}</td>
