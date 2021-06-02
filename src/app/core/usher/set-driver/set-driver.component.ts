@@ -121,7 +121,7 @@ export class SetDriverComponent implements OnInit {
         let selected = await this.context.openDialog(SuggestDriverComponent,
           sd => sd.args = { date: this.params.date.value, fid: this.params.fid.value, tid: this.params.tid.value },
           sd => sd.selected);
-        if (selected.did.length > 0) {
+        if (selected && selected.did && selected.did.length > 0) {//if press back on browser will window was open.
           this.driverId.value = selected.did;
         }
       },
@@ -223,7 +223,7 @@ export class SetDriverComponent implements OnInit {
       }
     }
     if (minChanged) {
-      this.selectedPickupTime =addHours(-2, min);
+      this.selectedPickupTime = addHours(-2, min);
     }
     // console.log(min);
     // console.log(this.selectedPickupTime);
@@ -363,16 +363,26 @@ export class SetDriverComponent implements OnInit {
         ok: async () => {
           let yes = await this.dialog.yesNoQuestion(`Split ride to ${splitCount.value} rides`);
           if (yes) {
-            for (let i = 1; i < splitCount.value; ++i) {
-              let copy = this.context.for(Ride).create();
-              ride.copyTo(copy);
-              copy.isSplitted.value = true;
-              copy.escortsCount.value = 0
-              await copy.save();
-              ride.escortsCount.value = 0;
-              await ride.save();
+            let pass = explain.value.split(',').map(cur => parseInt(cur));
+            if (pass.length > 1) {//only one is the same existing ride
+              for (let i = 0; i < pass.length; ++i) {
+                if (i == pass.length - 1) {//last
+                  ride.isSplitted.value = true;
+                  ride.escortsCount.value = pass[i] - 1;
+                  await ride.save();
+                }
+                else {
+                  let copy = this.context.for(Ride).create();
+                  ride.copyTo(copy);
+                  copy.isHasWheelchair.value = false;
+                  copy.isHasBabyChair.value = false;
+                  copy.isSplitted.value = true;
+                  copy.escortsCount.value = pass[i] - 1;
+                  await copy.save();
+                }
+              }
+              await this.retrieve();
             }
-            await this.retrieve();
           }
         },
         cancel: () => { }

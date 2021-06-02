@@ -3,7 +3,7 @@
   <div class="grow-item">
     <div mat-dialog-content class="center-screen">
     <h4>Rides Organizer Application</h4>
-    <h2>Welcome {{context.isSignedIn()?"("+context.user.roles.join()+")":" - Please Sign In"}}</h2>
+    <h2>Welcome {{context.isSignedIn()?context.user.name:" - Please Sign In"}}</h2>
 
     <h2>Our News..</h2>
 
@@ -11,7 +11,7 @@
     <strong> <p style="color: green;"> FOR PEACE AND RECONCILIATION</p></strong>
   </div>
   <div>
-    <p style="color: green;"><strong><h1>HUMANITY BEFORE POLITICS</h1></strong></p>
+    <p style="color: green;"><strong><h2>HUMANITY BEFORE POLITICS</h2></strong></p>
   </div>
   <div>
     <img src="assets/logo.png">

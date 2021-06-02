@@ -6,12 +6,14 @@
                         <mat-icon>refresh</mat-icon>
                     </button>
                 </td>
-                <td><button mat-flat-button style="color: blue;background-color: transparent;" (click)="'tel'+':'+'054-6687991'">
+                <td><button mat-flat-button style="color: blue;background-color: transparent;"
+                        (click)="'tel'+':'+'054-6687991'">
                         <u>{{ 'Call Avishai' }}</u>
                         <mat-icon>call</mat-icon>
                     </button>
                 </td>
-                <td><button mat-flat-button style="color: blue;background-color: transparent;" (click)="'wapp'+':'+'054-6687991'">
+                <td><button mat-flat-button style="color: blue;background-color: transparent;"
+                        (click)="'wapp'+':'+'054-6687991'">
                         <u>{{ 'Send Avishai' }}</u>
                         <mat-icon>send</mat-icon>
                     </button>
@@ -28,77 +30,96 @@
     <div class="grow-item">
         <h3 *ngIf="(!(rides && rides.length > 0))">TX! Found no rides.</h3>
         <table *ngIf="rides && rides.length > 0" style="width: 100%;">
+
             <tr *ngFor="let r of rides">
-                <td class="card">
-                    <table>
-                        <hr *ngIf="rides.indexOf(r) > 0">
-                        <tr>
-                            <td>
-                                <u>{{ r.date | date: 'dd.MM.yyyy' }}</u>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="display:flex;flex-direction: row;justify-content: start;">
-                                <button mat-flat-button style="color: blue;background-color: transparent;" (click)="'waze'+':'+r.from">
-                                    <u>{{ r.from + ' (' + (r.pickupTime)+ ')'}}</u>
-                                </button>
-                                <h4>{{ ' > ' }}</h4>
-                                <button mat-flat-button style="color: blue;background-color: transparent;" (click)="'waze'+':'+r.to">
-                                    <u>{{ r.to }}</u>
-                                </button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div style="display:flex;flex-direction: row;justify-content: start;">
-                                <button mat-flat-button style="color: blue;background-color: transparent;"
-                                    (click)="'tel'+':'+r.pMobile">
-                                    <mat-icon>call</mat-icon>
-                                    <u>{{ r.pName }} {{ r.age > 0 ? '(age: '+r.age+')': '' }}</u>
-                                </button>
-                                <div *ngIf="r.contactsCount > 0 || r.passengers >1">
+
+                <mat-card>
+                    <td>
+                        <table>
+                            <!-- <hr *ngIf="rides.indexOf(r) > 0"> -->
+                            <tr>
+                                <td>
+                                    <u>{{ r.date | date: 'dd.MM.yyyy' }}</u>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="display:flex;flex-direction: row;justify-content: start;">
+                                    <button mat-flat-button style="color: blue;background-color: transparent;"
+                                        (click)="'waze'+':'+r.from">
+                                        <mat-icon>door_sliding</mat-icon>
+                                        <u>{{ r.from + ' (' + (r.pickupTime)+ ')'}}</u>
+                                    </button>
+                                    <h4>{{ ' > ' }}</h4>
+                                    <button mat-flat-button style="color: blue;background-color: transparent;"
+                                        (click)="'waze'+':'+r.to">
+                                        <mat-icon>place</mat-icon>
+                                        <u>{{ r.to }}</u>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div style="display:grid;flex-direction: row;justify-content: start;">
+                                        <button mat-flat-button style="color: blue;background-color: transparent;"
+                                            title="{{r.pName }}" (click)="'tel'+':'+r.pMobile">
+                                            <mat-icon>call</mat-icon>
+                                            <u>{{ r.pName | slice:0:r.contactsCount > 0 || r.passengers >1?20:30
+                                                }}{{r.pName&&r.pName.length > (r.contactsCount > 0 || r.passengers
+                                                >1?20:30)?'..':''}} {{ r.age > 0 ? '(age: '+r.age+')': '' }}</u>
+                                            <mat-icon *ngFor="let i of r.equipment">
+                                                {{ i }}
+                                            </mat-icon>
+                                            <button *ngIf="r.contactsCount > 0 || r.passengers >1" mat-flat-button
+                                                style="color: blue;background-color: transparent;"
+                                                (click)="openContacts(r)"><u>{{ r.contactsCount > 0? '+' +
+                                                    r.contactsCount:
+                                                    r.passengers > 1? '+' + (r.passengers -1) : '0' }}</u>
+                                            </button>
+                                        </button>
+                                        <!-- <div *ngIf="r.contactsCount > 0 || r.passengers >1">
                                     <button mat-flat-button style="color: blue;background-color: transparent;"
                                         (click)="openContacts(r)"><u>{{ r.contactsCount > 0? '+' + r.contactsCount:
                                             r.passengers > 1? '+' + (r.passengers -1) : '0' }}(escort)</u></button>
-                                </div>
-                            </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <mat-icon *ngFor="let i of r.equipment">
-                                    {{ i }}
-                                </mat-icon>
-                                <strong *ngIf="r.dRemark&&r.dRemark.length > 0" style="color: red;"> {{'*'+r.dRemark+'*' }}</strong>
-                                <!-- <button mat-flat-button>
+                                </div> -->
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td *ngIf="r.dRemark&&r.dRemark.length > 0">
+                                    <mat-icon>info</mat-icon>
+                                    <strong style="color: red;"> {{'*'+r.dRemark+'*' }}</strong>
+                                    <!-- <button mat-flat-button>
                                     <mat-icon>call</mat-icon>
                                 </button> -->
-                            </td>
-                        </tr>
-                        <!-- <tr>
+                                </td>
+                            </tr>
+                            <!-- <tr>
                             <td><button mat-flat-button style="color: blue;background-color: transparent;"
                                     (click)="openContacts(r)"><u>{{ r.contactsCount == 0? r.passengers +' seats': r.contactsCount +' escorts' }}</u></button></td>
                         </tr> -->
-                        
-                    <!-- <tr *ngIf="r.dRemark&&r.dRemark.length > 0">
+
+                            <!-- <tr *ngIf="r.dRemark&&r.dRemark.length > 0">
                         <td>Remark: <strong>{{ r.dRemark }}</strong></td>
                     </tr> -->
-                    </table>
-                </td>
-                <td>
-                    <button *ngIf="r.w4Accept" mat-raised-button color="primary" (click)="accept(r.rId)">
-                        Accept
-                    </button>
-                    <button *ngIf="r.w4Start&&((r.date|date:'dd.MM.yyyy')==(this.today|date:'dd.MM.yyyy'))" mat-raised-button color="primary" (click)="drive(r.rId)">
-                        Start
-                    </button>
-                    <button *ngIf="r.w4Pickup" mat-raised-button color="primary" (click)="pickup(r.rId)">
-                        Pickup
-                    </button>
-                    <button *ngIf="r.w4Arrived" mat-raised-button color="primary" (click)="arrived(r.rId)">
-                        Arrived
-                    </button>
-                </td>
+                        </table>
+                    </td>
+                    <td>
+                        <button *ngIf="r.w4Accept" mat-raised-button color="primary" (click)="accept(r.rId)">
+                            Accept
+                        </button>
+                        <button *ngIf="r.w4Start&&((r.date|date:'dd.MM.yyyy')==(this.today|date:'dd.MM.yyyy'))"
+                            mat-raised-button color="primary" (click)="drive(r.rId)">
+                            Start
+                        </button>
+                        <button *ngIf="r.w4Pickup" mat-raised-button color="primary" (click)="pickup(r.rId)">
+                            Pickup
+                        </button>
+                        <button *ngIf="r.w4Arrived" mat-raised-button color="primary" (click)="arrived(r.rId)">
+                            Arrived
+                        </button>
+                    </td>
+
+                </mat-card>
             </tr>
         </table>
     </div>
