@@ -210,12 +210,15 @@ export class Ride extends IdEntity {
         if (!(forBackRide)) {
             target.fid.value = this.fid.value;
             target.tid.value = this.tid.value;
+            target.pickupTime.value = this.pickupTime.value;
             target.visitTime.value = this.visitTime.value;
             target.driverId.value = this.driverId.value;
             target.backId.value = this.backId.value;
             target.status = this.status;
             target.statusDate.value = this.statusDate.value;
             target.importRideNum.value = this.importRideNum.value;
+            target.dRemark.value = this.dRemark.value;
+            target.rRemark.value = this.rRemark.value;
      //       target.driverRemark.value = this.driverRemark.value;
         }
     }

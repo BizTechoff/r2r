@@ -1,10 +1,11 @@
-import { Context, DateTimeColumn, EntityClass, IdEntity, NumberColumn, StringColumn } from "@remult/core";
+import { Context, DateColumn, DateTimeColumn, EntityClass, IdEntity, NumberColumn, StringColumn } from "@remult/core";
 import { Roles } from "../../../users/roles";
 import { DriverIdColumn } from "../driver";
 
 @EntityClass
 export class RegisterDriver extends IdEntity {
  
+    date = new DateColumn();
     rrid = new StringColumn({});
     rid = new StringColumn({});
     did = new DriverIdColumn({});

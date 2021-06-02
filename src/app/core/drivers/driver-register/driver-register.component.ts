@@ -4,7 +4,7 @@ import { Context, DateColumn, NumberColumn, ServerController, ServerMethod } fro
 import { DialogService } from '../../../common/dialog';
 import { InputAreaComponent } from '../../../common/input-area/input-area.component';
 import { ride4DriverRideRegister } from '../../../shared/types';
-import { Location, LocationIdColumn, LocationType } from '../../locations/location';
+import { Location, LocationArea, LocationIdColumn, LocationType } from '../../locations/location';
 import { RegisterRide } from '../../rides/register-rides/registerRide';
 import { Ride, RideStatus } from '../../rides/ride';
 import { addDays } from '../../usher/usher';
@@ -33,6 +33,8 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
   ready = false;
   onChanged = async () => { };
 
+  bAreas: { border: string, area: LocationArea, areaBorders: string[] }[] = [];
+
   @ServerMethod()
   async retrieveRideList4Usher(): Promise<response> {
     var result: response = {
@@ -40,59 +42,65 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
       newregistered: []
     };
 
-    let dLocs: { id: string, areaIds: string[] }[] = [];
-    for await (const pref of this.context.for(DriverPrefs).iterate({
+    // prepare kav & area
+    this.bAreas = [];
+    for await (const loc of this.context.for(Location).iterate({
+      where: cur => cur.type.isEqualTo(LocationType.border)
+    })) {
+      let f = this.bAreas.find(cur => cur.area === loc.area.value);
+      if (!(f)) {
+        f = { border: loc.id.value, area: loc.area.value, areaBorders: [] };
+        this.bAreas.push(f);
+      }
+      f.areaBorders.push(loc.id.value);
+    }
+
+    let dLocs: string[] = [];
+    let fBorders: string[] = [];
+    let tBorders: string[] = [];
+    for await (const dp of this.context.for(DriverPrefs).iterate({
       where: cur => cur.driverId.isEqualTo(this.did)
     })) {
-      let found = dLocs.find(cur => cur.id === pref.locationId.value);
-      if (!(found)) {
-        let loc = await this.context.for(Location).findId(pref.locationId.value);
-        if (loc) {
-          let bordes: string[] = [];
-          if (loc.type == LocationType.border) {
-            for await (const l of this.context.for(Location).iterate({
-              where: cur => cur.area.isEqualTo(loc.area)
-            })) {
-              bordes.push(l.id.value);
-            }
-          }
-          dLocs.push({ id: pref.locationId.value, areaIds: bordes });//123|border|tarkumia_betlechem
+      dLocs.push(dp.locationId.value);
+    }
+    for await (const r of this.context.for(Ride).iterate({
+      where: cur => cur.driverId.isEqualTo(this.did)
+        .and(this.fid.value ? cur.fid.isEqualTo(this.fid) : cur.fid.isIn(...dLocs)
+          .or(this.tid.value ? cur.tid.isEqualTo(this.tid) : cur.tid.isIn(...dLocs)))
+    })) {
+      let fBorder = this.bAreas.find(cur => cur.border === r.fid.value);
+      if (fBorder) {
+        if (!(fBorders.includes(fBorder.border))) {
+          fBorders.push(fBorder.border);
+        }
+      }
+      let tBorder = this.bAreas.find(cur => cur.border === r.tid.value);
+      if (tBorder) {
+        if (!(tBorders.includes(tBorder.border))) {
+          tBorders.push(tBorder.border);
         }
       }
     }
-    // let f= dLocs[dLocs.findIndex(cur => cur.id === '')].areaIds;
 
     for await (const rr of this.context.for(RegisterRide).iterate({//todo: display only records that not attach by usher
       where: cur => cur.fdate.isLessOrEqualTo(this.date)
         .and(cur.tdate.isGreaterOrEqualTo(this.date))
-        .and(this.fid.value ? cur.fid.isEqualTo(this.fid) : cur.fid.isIn(...dLocs.map(d => d.id)))// new Filter(x => { /*true*/ }))
-          // .or(this.tid.value ? cur.tid.isEqualTo(this.tid) : this.getAreaBorders(cur.tid.value, dLocs) : cur.tid.isIn(...dLocs[dLocs.findIndex(l => l.id === cur.tid.value)].areaIds)))// new Filter(x => { /*true*/ }))
+        .and(this.fid.value ? cur.fid.isEqualTo(this.fid) : cur.fid.isIn(...dLocs).or(cur.fid.isIn(...fBorders))
+          .or(this.tid.value ? cur.tid.isEqualTo(this.tid) : cur.tid.isIn(...dLocs).or(cur.tid.isIn(...tBorders))))
     })) {
 
-
-      let isok = true;
-      if ((this.fid.value) || (this.tid.value)) {
-        if (this.fid.value) {
-          if (!(rr.fid.value == this.fid.value)) {
-            isok = false;
-          }
+      if (rr.isOneOdDayWeekSelected()) {
+        let ok = false;
+        ok = ok || (rr.sunday.value && this.date.getDayOfWeek() == 0);
+        ok = ok || (rr.monday.value && this.date.getDayOfWeek() == 1);
+        ok = ok || (rr.tuesday.value && this.date.getDayOfWeek() == 2);
+        ok = ok || (rr.wednesday.value && this.date.getDayOfWeek() == 3);
+        ok = ok || (rr.thursday.value && this.date.getDayOfWeek() == 4);
+        ok = ok || (rr.friday.value && this.date.getDayOfWeek() == 5);
+        ok = ok || (rr.saturday.value && this.date.getDayOfWeek() == 6);
+        if (!(ok)) {
+          continue;
         }
-        if (this.tid.value) {
-          if (!(rr.tid.value == this.tid.value)) {
-            isok = false;
-          }
-        }
-      }
-      else {
-        //   let row = dLocs.find(cur=>cur.id === reg.fid.value);
-        //    if (!(dLocs.includes(reg.fid.value) || dLocs.includes(reg.tid.value))) {
-        //   isok = false;
-        // }
-      }
-
-      if (!(isok)) {
-        console.log('continue');
-        continue;
       }
 
       let from = (await this.context.for(Location).findId(rr.fid.value)).name.value;
@@ -109,7 +117,7 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
             rId: '',
             rrid: rr.id.value,
             dId: nreg.did.value,
-            date: rr.fdate.value,
+            date: nreg.date.value,
             fId: rr.fid.value,
             tId: rr.tid.value,
             from: from,
@@ -129,7 +137,7 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
           rId: '',
           rrid: rr.id.value,
           // dId: nreg.driverId.value,
-          date: rr.fdate.value,
+          date: this.date.value,
           fId: rr.fid.value,
           tId: rr.tid.value,
           from: from,
@@ -144,34 +152,11 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
     }
 
     for await (const ride of this.context.for(Ride).iterate({//todo: display only records that not attach by usher
-      where: r => r.date.isEqualTo(this.date.value)
-        // .and(fid && (fid.trim().length > 0) ? r.fromLocation.isEqualTo(fid) : r.fromLocation.isIn(...dLocs))// new Filter(x => { /*true*/ }))
-        // .and(tid && (tid.trim().length > 0) ? r.toLocation.isEqualTo(tid) : new Filter(x => { /*true*/ }))
-        .and(r.status.isEqualTo(RideStatus.waitingForDriver).or(r.status.isEqualTo(RideStatus.waitingForAccept))),
+      where: cur => cur.date.isEqualTo(this.date.value)
+        .and(this.fid.value ? cur.fid.isEqualTo(this.fid) : cur.fid.isIn(...dLocs).or(cur.fid.isIn(...fBorders))
+          .or(this.tid.value ? cur.tid.isEqualTo(this.tid) : cur.tid.isIn(...dLocs).or(cur.tid.isIn(...tBorders))))
+        .and(cur.status.isEqualTo(RideStatus.waitingForDriver).or(cur.status.isEqualTo(RideStatus.waitingForAccept))),
     })) {
-
-      let isok = true;
-      if ((this.fid.value) || (this.tid.value)) {
-        if (this.fid.value) {
-          if (!(ride.fid.value == this.fid.value)) {
-            isok = false;
-          }
-        }
-        if (this.tid.value) {
-          if (!(ride.tid.value == this.tid.value)) {
-            isok = false;
-          }
-        }
-      }
-      else {
-        //    if (!(dLocs.includes(ride.fid.value) || dLocs.includes(ride.tid.value))) {
-        //   isok = false;
-        // }
-      }
-
-      if (!(isok)) {
-        continue;
-      }
 
       let from = (await this.context.for(Location).findId(ride.fid.value)).name.value;
       let to = (await this.context.for(Location).findId(ride.tid.value)).name.value;
@@ -220,21 +205,6 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
           result.newregistered.push(row);
         }
       }
-
-
-
-      // let row: ride4DriverRideRegister = {
-      //   rId: ride.id.value,
-      //   rgId: '',// ride.id.value,
-      //   date: ride.date.value,
-      //   fId: ride.fromLocation.value,
-      //   tId: ride.toLocation.value,
-      //   from: from,
-      //   to: to,
-      //   pass: ride.passengers(),
-      //   isRegistered: false,
-      // };
-      // result.newregistered.push(row);
     }
 
     result.registered.sort((r1, r2) => r1.from.localeCompare(r2.from));
@@ -544,6 +514,7 @@ export class DriverRegisterComponent implements OnInit {
   async register(r: ride4DriverRideRegister) {
     // let date = new Date(2021, 2, 3);
     let reg = this.context.for(RegisterDriver).create();
+    reg.date.value = this.params.date.value;
     reg.rrid.value = r.rId;
     reg.rid.value = r.rrid;
     reg.did.value = this.driver.id.value;

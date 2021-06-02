@@ -7,7 +7,9 @@ export class DriverPrefs extends IdEntity {
 
     driverId = new DriverIdColumn({}, this.context);
     locationId = new LocationIdColumn({allowNull: true}, this.context);
-
+    fBorder = new BoolColumn({caption: 'From Border'});
+    tBorder = new BoolColumn({caption: 'To Border'});
+ 
     // isAlsoBack = new BoolColumn({});
     // dayOfWeek = new DayOfWeekColumn();
     // dayPeriod = new DayPeriodColumn();
