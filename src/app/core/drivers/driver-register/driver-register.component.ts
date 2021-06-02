@@ -7,7 +7,7 @@ import { ride4DriverRideRegister } from '../../../shared/types';
 import { Location, LocationArea, LocationIdColumn, LocationType } from '../../locations/location';
 import { RegisterRide } from '../../rides/register-rides/registerRide';
 import { Ride, RideStatus } from '../../rides/ride';
-import { addDays } from '../../usher/usher';
+import { addDays, addHours } from '../../usher/usher';
 import { Driver, DriverIdColumn } from '../driver';
 import { DriverPrefs } from '../driverPrefs';
 import { RegisterDriver } from './registerDriver';
@@ -55,18 +55,20 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
       f.areaBorders.push(loc.id.value);
     }
 
-    let dLocs: string[] = [];
+    let dLocs: { lid: string, both: boolean }[] = [];
     let fBorders: string[] = [];
     let tBorders: string[] = [];
     for await (const dp of this.context.for(DriverPrefs).iterate({
       where: cur => cur.driverId.isEqualTo(this.did)
     })) {
-      dLocs.push(dp.locationId.value);
+      dLocs.push({ lid: dp.locationId.value, both: dp.tBorder.value });
     }
+
+    // collect driver-history borders.
     for await (const r of this.context.for(Ride).iterate({
       where: cur => cur.driverId.isEqualTo(this.did)
-        .and(this.fid.value ? cur.fid.isEqualTo(this.fid) : cur.fid.isIn(...dLocs)
-          .or(this.tid.value ? cur.tid.isEqualTo(this.tid) : cur.tid.isIn(...dLocs)))
+        .and(this.fid.value ? cur.fid.isEqualTo(this.fid) : cur.fid.isIn(...dLocs.map(l => l.lid))
+          .or(this.tid.value ? cur.tid.isEqualTo(this.tid) : cur.tid.isIn(...dLocs.map(l => l.lid))))
     })) {
       let fBorder = this.bAreas.find(cur => cur.border === r.fid.value);
       if (fBorder) {
@@ -82,11 +84,11 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
       }
     }
 
-    for await (const rr of this.context.for(RegisterRide).iterate({//todo: display only records that not attach by usher
+    for await (const rr of this.context.for(RegisterRide).iterate({
       where: cur => cur.fdate.isLessOrEqualTo(this.date)
         .and(cur.tdate.isGreaterOrEqualTo(this.date))
-        .and(this.fid.value ? cur.fid.isEqualTo(this.fid) : cur.fid.isIn(...dLocs).or(cur.fid.isIn(...fBorders))
-          .or(this.tid.value ? cur.tid.isEqualTo(this.tid) : cur.tid.isIn(...dLocs).or(cur.tid.isIn(...tBorders))))
+        .and(this.fid.value ? cur.fid.isEqualTo(this.fid) : cur.fid.isIn(...dLocs.map(l => l.lid)).or(cur.fid.isIn(...fBorders))
+          .or(this.tid.value ? cur.tid.isEqualTo(this.tid) : cur.tid.isIn(...dLocs.map(l => l.lid)).or(cur.tid.isIn(...tBorders))))
     })) {
 
       if (rr.isOneOdDayWeekSelected()) {
@@ -127,6 +129,7 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
             dFromHour: nreg.fh.value,
             dToHour: nreg.th.value,
             dPass: this.seats.value,
+            pickupTime: addHours(-2, rr.visitTime.value)
           };
           result.registered.push(row);
         }
@@ -145,6 +148,7 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
           pass: 0,// reg.passengers.value,
           isRegistered: false,// (registereds && registereds.length > 0),
           dPass: this.seats.value,
+          pickupTime: addHours(-2, rr.visitTime.value)
         };
         result.newregistered.push(row);
         // }
@@ -153,8 +157,8 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
 
     for await (const ride of this.context.for(Ride).iterate({//todo: display only records that not attach by usher
       where: cur => cur.date.isEqualTo(this.date.value)
-        .and(this.fid.value ? cur.fid.isEqualTo(this.fid) : cur.fid.isIn(...dLocs).or(cur.fid.isIn(...fBorders))
-          .or(this.tid.value ? cur.tid.isEqualTo(this.tid) : cur.tid.isIn(...dLocs).or(cur.tid.isIn(...tBorders))))
+        .and(this.fid.value ? cur.fid.isEqualTo(this.fid) : cur.fid.isIn(...dLocs.map(l => l.lid)).or(cur.fid.isIn(...fBorders))
+          .or(this.tid.value ? cur.tid.isEqualTo(this.tid) : cur.tid.isIn(...dLocs.map(l => l.lid)).or(cur.tid.isIn(...tBorders))))
         .and(cur.status.isEqualTo(RideStatus.waitingForDriver).or(cur.status.isEqualTo(RideStatus.waitingForAccept))),
     })) {
 
@@ -183,6 +187,7 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
             dFromHour: nreg.fh.value,
             dToHour: nreg.th.value,
             dPass: this.seats.value,
+            pickupTime: ride.pickupTime.value
           };
           result.registered.push(row);
         }
@@ -201,6 +206,7 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
             pass: ride.passengers(),
             dPass: this.seats.value,
             isRegistered: false,// (registereds && registereds.length > 0),
+            pickupTime: ride.pickupTime.value
           };
           result.newregistered.push(row);
         }
@@ -518,8 +524,8 @@ export class DriverRegisterComponent implements OnInit {
     reg.rrid.value = r.rId;
     reg.rid.value = r.rrid;
     reg.did.value = this.driver.id.value;
-    reg.fh.value = this.driver.defaultFromTime.value;// todo: r.date;
-    reg.th.value = this.driver.defaultToTime.value;// todo: r.date;
+    reg.fh.value = r.pickupTime ? addHours(-1, r.pickupTime) : this.driver.defaultFromTime.value;// todo: r.date;
+    reg.th.value = r.pickupTime ? addHours(+1, r.pickupTime) : this.driver.defaultToTime.value;// todo: r.date;
     // reg.toHour.value = date;// todo: r.date;
 
     let seats = Math.min(r.pass, r.dPass);
@@ -530,8 +536,8 @@ export class DriverRegisterComponent implements OnInit {
       x => x.args = {
         title: "Register To Ride",
         columnSettings: () => [
-          { column: reg.fh, inputType: 'time' },
-          { column: reg.th, inputType: 'time' },
+          [{ column: reg.fh, inputType: 'time' },
+          { column: reg.th, inputType: 'time' }],
           reg.seats,
         ],
         validate: async () => {

@@ -1,0 +1,28 @@
+<div class="full-page">
+    <!-- display:flex; justify-content: space-between;flex-grow: 1; -->
+    <div class="header" style="display:flex;flex-direction: row;justify-content: space-evenly;">
+        <div style="flex-grow: 1;padding: 5px;">
+            <data-control [column]="params.fdate"></data-control>
+            <data-control [column]="params.tdate"></data-control>
+        </div>
+        <div style="flex-grow: 1;padding: 5px;">
+            <data-control [column]="params.fid"></data-control>
+            <data-control [column]="params.tid"></data-control>
+        </div>
+        <div style="flex-grow: 1;padding: 5px;">
+            <data-control [column]="params.did"></data-control>
+        </div>
+        <div style="flex-grow: 1;padding: 5px;">
+            <data-control [column]="params.pid"></data-control>
+        </div>
+        <div style="padding: 7px;justify-content: start;">
+            <button mat-mini-fab color="primary" (click)="refresh()">
+                <mat-icon>refresh</mat-icon>
+            </button>
+        </div>
+    </div>
+    <div class="grow-item">
+        <data-grid *ngIf="params.settings" [settings]="params.settings"></data-grid>
+    </div>
+    <div class="footer"></div>
+</div>

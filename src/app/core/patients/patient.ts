@@ -68,6 +68,7 @@ export class PatientIdColumn extends StringColumn {
         click: (p) => {
           this.context.openDialog(DynamicServerSideSearchDialogComponent,
             x => x.args(Patient, {
+              onClear: () => this.value = '',
               onSelect: l => this.value = l.id.value,
               searchColumn: l => l.name
             }));

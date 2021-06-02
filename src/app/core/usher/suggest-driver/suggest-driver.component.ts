@@ -13,7 +13,7 @@ import { DriverPrefs } from '../../drivers/driverPrefs';
 import { Location, LocationArea, LocationType } from '../../locations/location';
 import { RegisterRide } from '../../rides/register-rides/registerRide';
 import { Ride, RideStatus } from '../../rides/ride';
-import { addDays } from '../usher';
+import { addDays, addHours } from '../usher';
 
 
 
@@ -872,10 +872,7 @@ class usherSuggestDrivers2 {
           if (rr.fid.value === this.fid.value && rr.tid.value === this.tid.value) {
             let pickupTime = '';
             if (rr.visitTime.value && (!(rr.visitTime.value === '00:00'))) {
-              let hour = rr.visitTime.value.split(':');
-              if (hour.length > 1) {
-                pickupTime = ('' + (parseInt(hour[0]) - 2)).padStart(2, "0") + ":" + hour[1];
-              }
+              pickupTime = addHours(-2, rr.visitTime.value);
             }
             if (pickupTime.length > 0) {
               if (rd.fh.value > pickupTime || pickupTime > rd.th.value) {//out of interval
@@ -935,10 +932,7 @@ class usherSuggestDrivers2 {
           if (fab.includes(rr.fid.value) || tab.includes(rr.tid.value)) {
             let pickupTime = '';
             if (rr.visitTime.value && (!(rr.visitTime.value === '00:00'))) {
-              let hour = rr.visitTime.value.split(':');
-              if (hour.length > 1) {
-                pickupTime = ('' + (parseInt(hour[0]) - 2)).padStart(2, "0") + ":" + hour[1];
-              }
+              pickupTime = addHours(-2, rr.visitTime.value);
             }
             if (pickupTime.length > 0) {
               if (rd.fh.value > pickupTime || pickupTime > rd.th.value) {//out of interval

@@ -71,7 +71,7 @@
             <tr *ngFor="let r of ridesToRegister">
                 <table style="width: 100%;padding: 10px;">
                     <tr>
-                        <td>from: {{ r.from }}</td>
+                        <td>From: <i>{{ r.from }}</i></td>
                         <td rowspan="3">
                             <table *ngIf="!r.isRegistered" style="width: 100%;">
                                 <tr>
@@ -81,17 +81,17 @@
                         </td>
                     </tr>
                     <tr>
-                        <td>to: {{ r.to }}</td>
+                        <td>To: <i>{{ r.to }}</i></td>
                     </tr>
                     <tr>
-                        <td>pickup: {{ '(v.t-2)-1 <=(v.t-2)<= (v.t-2)+1' }}</td>
+                        <td>Pickup: <i>{{ r.pickupTime }}</i></td>
                     </tr>
-                    <tr>
+                    <!-- <tr>
                         <td>rid: {{ r.rId }}</td>
                     </tr>
                     <tr>
                         <td>rgid: {{ r.rrid }}</td>
-                    </tr>
+                    </tr> -->
                 </table>
             </tr>
         </table>

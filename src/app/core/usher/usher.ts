@@ -17,8 +17,8 @@ export class GroupType {
     static other = new GroupType(s => new Filter(x => { }));
     constructor(public filter: (status: RideStatusColumn) => Filter) { }
     id;
-} 
- 
+}
+
 export class GroupField4Usher {
     static date = new GroupField4Usher();
     static dayPeriod = new GroupField4Usher();
@@ -98,14 +98,14 @@ export class Usher {
 
     static mabat: Mabat = { name: "root-default" };
 
-    static getRideList4UsherQuery(r:Ride,params: getRideList4UsherParams){
+    static getRideList4UsherQuery(r: Ride, params: getRideList4UsherParams) {
         // console.log(params)
         //r.date.value.getTime() === params.date.getTime()?new Filter(x => { /* true */ }):Filter
 
         return r.date.isEqualTo(params.date)
-        .and(r.status.isNotIn(...[RideStatus.succeeded]))
-        .and(params.fromId && (params.fromId.length > 0) ? r.fid.isEqualTo(params.fromId) : new Filter(x => { /* true */ }))
-        .and(params.toId && (params.toId.length > 0) ? r.tid.isEqualTo(params.toId) : new Filter(x => { /* true */ }));
+            .and(r.status.isNotIn(...[RideStatus.succeeded]))
+            .and(params.fromId && (params.fromId.length > 0) ? r.fid.isEqualTo(params.fromId) : new Filter(x => { /* true */ }))
+            .and(params.toId && (params.toId.length > 0) ? r.tid.isEqualTo(params.toId) : new Filter(x => { /* true */ }));
     }
 
     @ServerFunction({ allowed: [Roles.usher, Roles.admin] })
@@ -115,7 +115,7 @@ export class Usher {
         let date = await Utils.getServerDate();//params.date;
         for await (const ride of context.for(Ride).iterate({
             where: r => (r.date.isEqualTo(date)),
-                // .and(r.status.isEqualTo(RideStatus.waitingForDriver)),
+            // .and(r.status.isEqualTo(RideStatus.waitingForDriver)),
             // orderBy: r => [{ column: r.date, descending: false }, { column: r.dayPeriod, descending: true }],
         })) {
             // console.log("@@@@");
@@ -128,18 +128,18 @@ export class Usher {
     static async getRideList4Usher(params: getRideList4UsherParams, context?: Context): Promise<ride4Usher[]> {
         var result: ride4Usher[] = [];
         params = {
-           date:  await Utils.getServerDate(),// params.date,// DateTimeColumn.stringToDate(params.date.toISOString()),//
-           fromId: params.fromId, 
-           toId: params.toId,  
+            date: await Utils.getServerDate(),// params.date,// DateTimeColumn.stringToDate(params.date.toISOString()),//
+            fromId: params.fromId,
+            toId: params.toId,
         };
         console.log('received: ' + params.date);
-        
+
         for await (const ride of context.for(Ride).iterate({
             where: r => r.date.isEqualTo(params.date)
-            .and(r.status.isNotIn(...[RideStatus.succeeded]))
-            .and(params.fromId && (params.fromId.length > 0) ? r.fid.isEqualTo(params.fromId) : new Filter(x => { /* true */ }))
-            .and(params.toId && (params.toId.length > 0) ? r.tid.isEqualTo(params.toId) : new Filter(x => { /* true */ })),
-        })) { 
+                .and(r.status.isNotIn(...[RideStatus.succeeded]))
+                .and(params.fromId && (params.fromId.length > 0) ? r.fid.isEqualTo(params.fromId) : new Filter(x => { /* true */ }))
+                .and(params.toId && (params.toId.length > 0) ? r.tid.isEqualTo(params.toId) : new Filter(x => { /* true */ })),
+        })) {
             let from = (await context.for(Location).findId(ride.fid.value));
             let fromName = from.name.value;
             let fromIsBorder = from.type.value == LocationType.border;
@@ -147,7 +147,7 @@ export class Usher {
             let toName = to.name.value;
             let toIsBorder = to.type.value == LocationType.border;
             let key = `${fromName}-${toName}`;
- 
+
             let row = result.find(r => r.key === key);
             if (!(row)) {
                 row = {
@@ -185,27 +185,27 @@ export class Usher {
     static async getRideList4UsherApprove(params: getRideList4UsherParams, context?: Context): Promise<ride4UsherApprove[]> {
         var result: ride4UsherApprove[] = [];
         params = {
-           date: new Date(2021,2,3),// params.date,
-           fromId: params.fromId,
-           toId: params.toId,  
+            date: new Date(2021, 2, 3),// params.date,
+            fromId: params.fromId,
+            toId: params.toId,
         };
-        
+
         for await (const ride of context.for(Ride).iterate({
             where: r => r.date.isEqualTo(params.date)
-            .and(r.status.isNotIn(...[RideStatus.succeeded]))
-            .and(params.fromId && (params.fromId.length > 0) ? r.fid.isEqualTo(params.fromId) : new Filter(x => { /* true */ }))
-            .and(params.toId && (params.toId.length > 0) ? r.tid.isEqualTo(params.toId) : new Filter(x => { /* true */ })),
-        })) { 
+                .and(r.status.isNotIn(...[RideStatus.succeeded]))
+                .and(params.fromId && (params.fromId.length > 0) ? r.fid.isEqualTo(params.fromId) : new Filter(x => { /* true */ }))
+                .and(params.toId && (params.toId.length > 0) ? r.tid.isEqualTo(params.toId) : new Filter(x => { /* true */ })),
+        })) {
             let from = (await context.for(Location).findId(ride.fid.value)).name.value;
             let to = (await context.for(Location).findId(ride.tid.value)).name.value;
-            let dName= '';
+            let dName = '';
             let dMobile = '';
-            if(ride.isHasDriver()){
+            if (ride.isHasDriver()) {
                 let driver = await context.for(Driver).findId(ride.driverId.value);
                 dName = driver.name.value;
-                dMobile =driver.mobile.value;
+                dMobile = driver.mobile.value;
             }
-            let patient= ride.isHasPatient()? (await context.for(Patient).findId(ride.patientId.value)).name.value : "";
+            let patient = ride.isHasPatient() ? (await context.for(Patient).findId(ride.patientId.value)).name.value : "";
 
             let row = result.find(r => r.id === ride.id.value);
             if (!(row)) {
@@ -222,7 +222,7 @@ export class Usher {
                     selected: false,
                     visitTime: ride.visitTime.value,
                     status: ride.status.value.id,
-                }; 
+                };
                 result.push(row);
             }
         }
@@ -237,21 +237,21 @@ export class Usher {
     static async getRideList4UsherSetDriver(params: getRideList4UsherParams, context?: Context): Promise<ride4UsherSetDriver[]> {
         var result: ride4UsherSetDriver[] = [];
         params = {
-           date: new Date(2021,2,3),// params.date,
-           fromId: params.fromId,
-           toId: params.toId,  
+            date: new Date(2021, 2, 3),// params.date,
+            fromId: params.fromId,
+            toId: params.toId,
         };
-        
+
         for await (const ride of context.for(Ride).iterate({
             where: r => r.date.isEqualTo(params.date)
-            .and(r.status.isNotIn(...[RideStatus.succeeded]))
-            .and(params.fromId && (params.fromId.length > 0) ? r.fid.isEqualTo(params.fromId) : new Filter(x => { /* true */ }))
-            .and(params.toId && (params.toId.length > 0) ? r.tid.isEqualTo(params.toId) : new Filter(x => { /* true */ })),
-        })) { 
+                .and(r.status.isNotIn(...[RideStatus.succeeded]))
+                .and(params.fromId && (params.fromId.length > 0) ? r.fid.isEqualTo(params.fromId) : new Filter(x => { /* true */ }))
+                .and(params.toId && (params.toId.length > 0) ? r.tid.isEqualTo(params.toId) : new Filter(x => { /* true */ })),
+        })) {
             let from = (await context.for(Location).findId(ride.fid.value)).name.value;
             let to = (await context.for(Location).findId(ride.tid.value)).name.value;
-            let driver= ride.isHasDriver()? (await context.for(Driver).findId(ride.driverId.value)).name.value : "";
-            let patient= ride.isHasPatient()? (await context.for(Patient).findId(ride.patientId.value)).name.value : "";
+            let driver = ride.isHasDriver() ? (await context.for(Driver).findId(ride.driverId.value)).name.value : "";
+            let patient = ride.isHasPatient() ? (await context.for(Patient).findId(ride.patientId.value)).name.value : "";
 
             let row = result.find(r => r.id === ride.id.value);
             if (!(row)) {
@@ -267,7 +267,7 @@ export class Usher {
                     passengers: ride.passengers(),
                     selected: false,
                     visitTime: ride.visitTime.value,
-                    rid:ride.id.value,
+                    rid: ride.id.value,
                     status: ride.status.value,
                     freeSeats: 0,
                     w4Accept: ride.status.value === RideStatus.waitingForAccept,
@@ -536,7 +536,7 @@ export class Usher {
 
         for await (const ride of context.for(Ride).iterate({
             where: r => (r.date.isEqualTo(todayDate)),
-                // .and(r.status.isEqualTo(RideStatus.waitingForDriver)),
+            // .and(r.status.isEqualTo(RideStatus.waitingForDriver)),
             // orderBy: r => [{ column: r.date, descending: false }, { column: r.dayPeriod, descending: true }],
         })) {
 
@@ -719,7 +719,7 @@ export class Usher {
     static async getRegisteredRidesForPatient(patientId: string, context?: Context) {
         let result: rides4PatientRow[] = [];
 
-        let today = new Date(2021,2,3);
+        let today = new Date(2021, 2, 3);
         // let tomorrow = addDays(1);
         let todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());//T00:00:00
         // let tomorrowDate = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());//T00:00:00
@@ -727,7 +727,7 @@ export class Usher {
         for await (const ride of context.for(Ride).iterate({
             // where: r => (r.date.isGreaterOrEqualTo(todayDate))
             //     .and(r.patientId.isEqualTo(patientId)),
-            where: r=> r.patientId.isEqualTo(patientId),
+            where: r => r.patientId.isEqualTo(patientId),
             orderBy: r => [{ column: r.date, descending: false }],
         })) {
 
@@ -785,10 +785,10 @@ export class Usher {
         for await (const ride of context.for(Ride).iterate({
             // where: r => (r.date.isGreaterOrEqualTo(todayDate))
             //     .and(r.patientId.isEqualTo(patientId)),
-            where: r=> r.driverId.isEqualTo(driverId),
+            where: r => r.driverId.isEqualTo(driverId),
             orderBy: r => [{ column: r.date, descending: false }],
         })) {
-            
+
             let icons: { name: string, desc: string }[] = [];
             if (ride.isHasBabyChair.value) {
                 icons.push({ name: "child_friendly", desc: "Has Babychair" });
@@ -1090,13 +1090,30 @@ export class Usher {
     }
 }
 
-export function addDays(days: number, date?:Date ) {
-    var x = date? date: new Date();
+export function addDays(days: number, date?: Date) {
+    var x = date ? date : new Date();
     var xnotime = new Date(x.getFullYear(), x.getMonth(), x.getDate());
     xnotime.setDate(xnotime.getDate() + days);
     return xnotime;
 }
 
+export function daysDiff(date1?: Date, date2?: Date) {
+    let diff = +date1 - +date2;
+    let days = (Math.ceil(diff / 1000 / 60 / 60 / 24) + 1);
+    return days;
+}
+
+export function addHours(hours: number, time: string) {
+    console.log(time);
+    let result = time;
+    if (time && time.length > 0 && time.includes(':')) {
+        let hour = time.split(':');
+        if (hour.length > 1) {
+            result = ('' + (parseInt(hour[0]) + hours)).padStart(2, "0") + ":" + hour[1];
+        }
+    }
+    return result;
+}
 
 export class ByDate {
     static yesterday = new ByDate(d => d.isEqualTo(addDays(-1)));
@@ -1161,7 +1178,7 @@ export interface rides4DriverRow {
     status: RideStatus,
     groupByLocation: boolean,
     ids: string[],
- 
+
     isWaitingForUsherApproove: boolean,
     isWaitingForStart: boolean,
     isWaitingForPickup: boolean,

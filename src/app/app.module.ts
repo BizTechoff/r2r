@@ -52,6 +52,7 @@ import { ReturnRidesComponent } from './core/rides/return-rides/return-rides.com
 import { SuggestDriverComponent } from './core/usher/suggest-driver/suggest-driver.component';
 import { ApprovePatientRideComponent } from './core/patients/approve-patient-ride/approve-patient-ride.component';
 import { DemoComponent } from './demo/demo.component';
+import { GeneralReportComponent } from './reports/general-report/general-report.component';
 
 
 @NgModule({
@@ -87,6 +88,7 @@ import { DemoComponent } from './demo/demo.component';
     SuggestDriverComponent,
     ApprovePatientRideComponent,
     DemoComponent,
+    GeneralReportComponent,
   ],
   imports: [
     BrowserModule,

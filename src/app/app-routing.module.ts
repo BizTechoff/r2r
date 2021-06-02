@@ -16,6 +16,7 @@ import { ReturnRidesComponent } from './core/rides/return-rides/return-rides.com
 import { UsherComponent } from './core/usher/usher.component';
 import { DemoComponent } from './demo/demo.component';
 import { HomeComponent } from './home/home.component';
+import { GeneralReportComponent } from './reports/general-report/general-report.component';
 import { AdminGuard, DriverGuard, MatcherGuard, OnlyDriverGuard, UsherGuard } from './users/roles';
 import { UsersComponent } from './users/users.component';
 
@@ -44,7 +45,7 @@ const routes: Routes = [
 
   { path: 'Register Rides', component: RegisterRidesComponent, canActivate: [AdminGuard], data: { name: "Rides For Register" } },
   // Admin
-  { path: 'Reports', component: LocationsComponent, canActivate: [AdminGuard] },
+  { path: 'Reports', component: GeneralReportComponent, canActivate: [AdminGuard] },
   // { path: 'AppSettings', component: ApplicationSettingsComponent, canActivate: [AdminGuard], data: { name: "App Settings" } },
   { path: 'User Accounts', component: UsersComponent, canActivate: [AdminGuard] },
 

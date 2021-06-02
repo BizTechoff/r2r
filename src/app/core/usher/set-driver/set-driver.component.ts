@@ -9,6 +9,7 @@ import { Location } from '../../locations/location';
 import { Patient, PatientIdColumn } from '../../patients/patient';
 import { Ride, RideStatus } from '../../rides/ride';
 import { SuggestDriverComponent } from '../suggest-driver/suggest-driver.component';
+import { addHours } from '../usher';
 
 
 @ServerController({ key: 'usherSerDriver', allowed: true })
@@ -226,7 +227,7 @@ export class SetDriverComponent implements OnInit {
       if (hour.length > 1) {
         min = ('' + (parseInt(hour[0]) - 2)).padStart(2, "0") + ":" + hour[1];
       }
-      this.selectedPickupTime = min;
+      this.selectedPickupTime =addHours(-2, min);
     }
     // console.log(min);
     // console.log(this.selectedPickupTime);

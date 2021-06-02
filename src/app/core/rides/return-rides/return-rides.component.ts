@@ -87,12 +87,12 @@ export class ReturnRidesComponent implements OnInit {
   params = new returnRidesProviderParams(this.context);
 
   ridesSettings = this.context.for(Ride).gridSettings({
- 
+
     where: r => r.date.isEqualTo(this.today)//only empty
       .and(r.status.isIn(...[RideStatus.waitingForEnd, RideStatus.succeeded]))
-      .and (r.backId.isEqualTo('').or(r.isBackRide.isEqualTo(false)))//rides(no-back-created) || !back-rides
-      // .and((new Filter(f => f.isDifferentFrom(r.backId, ''))).or(new Filter(f => f.isNull(r.backId))))
-    ,numOfColumnsInGrid: 10,
+      .and(r.backId.isEqualTo('').or(r.isBackRide.isEqualTo(false)))//rides(no-back-created) || !back-rides
+    // .and((new Filter(f => f.isDifferentFrom(r.backId, ''))).or(new Filter(f => f.isNull(r.backId))))
+    , numOfColumnsInGrid: 10,
     columnSettings: r => [
       r.patientId,
       r.fid,
@@ -123,6 +123,9 @@ export class ReturnRidesComponent implements OnInit {
 
   async refresh() {
     await this.ridesSettings.reloadData();
+    if (!(this.ridesSettings.items.length > 0)) {
+      this.dialog.info("No Rides From TODAY");
+    }
     // await ReturnRidesComponent.retrieve();
   }
 

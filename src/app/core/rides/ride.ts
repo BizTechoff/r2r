@@ -6,6 +6,7 @@ import { DriverIdColumn } from "../drivers/driver";
 import { DayOfWeekColumn, DayPeriod, DayPeriodColumn, DriverPrefs } from "../drivers/driverPrefs";
 import { LocationIdColumn } from "../locations/location";
 import { PatientIdColumn } from "../patients/patient";
+import { addHours } from "../usher/usher";
 
 @EntityClass
 export class Ride extends IdEntity {
@@ -22,18 +23,19 @@ export class Ride extends IdEntity {
     tid = new LocationIdColumn({ caption: 'To', allowNull: false }, this.context);
     
     visitTime = new StringColumn({
-        defaultValue: '00:00', inputType: 'time', valueChange: () => {
-            if (this.visitTime.value) {
-                if (!(this.isHasPickupTime())) {
-                    let pickup = '00:00';
-                    let hour = this.visitTime.value.split(':');
-                    if (hour.length > 1) {
-                        pickup = ('' + (parseInt(hour[0]) - 2)).padStart(2, "0") + ":" + hour[1];
-                    }
-                    this.pickupTime.value = pickup;
-                }
-            }
-        }
+        defaultValue: '00:00', inputType: 'time'//, 
+        // valueChange: () => {
+        //     if (this.visitTime.value) {
+        //         if (!(this.isHasPickupTime())) {
+        //             let pickup = '00:00';
+        //             let hour = this.visitTime.value.split(':');
+        //             if (hour.length > 1) {
+        //                 pickup = ('' + (parseInt(hour[0]) - 2)).padStart(2, "0") + ":" + hour[1];
+        //             }
+        //             this.pickupTime.value = pickup;
+        //         }
+        //     }
+        // }
     });
     pickupTime = new StringColumn({ defaultValue: '00:00', inputType: 'time' });
     // dayPeriod = new DayPeriodColumn();
@@ -60,6 +62,9 @@ export class Ride extends IdEntity {
                 if (context.onServer) {
                     if (this.status.wasChanged()) {
                         this.statusDate.value = new Date();
+                    }
+                    if(this.visitTime.wasChanged()){
+                        this.pickupTime.value = addHours(-2, this.visitTime.value);
                     }
                 }
             },

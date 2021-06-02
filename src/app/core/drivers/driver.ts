@@ -198,6 +198,7 @@ export class DriverIdColumn extends StringColumn {
         click: (d) => {
           this.context.openDialog(DynamicServerSideSearchDialogComponent,
             x => x.args(Driver, {
+              onClear: () => this.value = '',
               onSelect: d => this.value = d.id.value,
               searchColumn: d => d.name
             }));

@@ -54,6 +54,7 @@ export interface ride4DriverRideRegister {
   dFromHour?: string,
   dToHour?: string, 
   dPass?: number,
+  pickupTime?:string
 };
  
 export interface ride4Driver {

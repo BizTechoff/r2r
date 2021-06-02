@@ -65,6 +65,11 @@ export class DriverSettingsComponent implements OnInit {
     }
     await this.context.openDialog(LocationAreaComponent, thus => thus.args = { dId: this.args.driverId });
 
+    this.selectedCount = await this.context.for(DriverPrefs).count(
+      prf => prf.driverId.isEqualTo(this.driverId)
+        .and(prf.active.isEqualTo(true)));
+
+
     // await this.context.openDialog(GridDialogComponent, gd => gd.args = {
     //   title: "Preferred Borders",
     //   settings: this.context.for(DriverPrefs).gridSettings({
@@ -102,7 +107,8 @@ export class DriverSettingsComponent implements OnInit {
     })).id.value;
 
     this.selectedCount = await this.context.for(DriverPrefs).count(
-      prf => prf.driverId.isEqualTo(this.driverId));
+      prf => prf.driverId.isEqualTo(this.driverId)
+        .and(prf.active.isEqualTo(true)));
 
     // let driverId = (await this.context.for(Driver).findFirst({
     //   where: d=>d.userId.isEqualTo(this.context.user.id),

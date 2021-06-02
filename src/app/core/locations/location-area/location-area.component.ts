@@ -13,8 +13,8 @@ export class LocationAreaComponent implements OnInit {
 
   args: { dId: string };
   okPressed = false;
-  borders: { id: string, selected: boolean, name: string, area?: LocationArea, ivisible?:boolean }[] = [];
-  existsBordersIds: string[] = [];
+  borders: { id: string, selected: boolean, name: string, fBorder: boolean, tBorder: boolean, area?: LocationArea, ivisible?: boolean }[] = [];
+  existsBordersIds: { lid: string, fb: boolean, tb: boolean }[] = [];
 
 
   selectedCount = 0;
@@ -44,11 +44,31 @@ export class LocationAreaComponent implements OnInit {
     await this.refresh();
   }
 
-  onSelection() {
+  onSelection(lid: string, fb: boolean = false) {
     this.selectedCount = 0;
     for (const b of this.borders) {
       if (b.selected) {
         ++this.selectedCount;
+        b.fBorder = true;
+
+        if (!(fb)) {
+          if (b.id === lid) {
+            b.tBorder = true;
+            // if (!(b.tBorder)) {
+            //   let f = this.existsBordersIds.find(cur => cur.lid === lid);
+            //   if (f) {
+            //     b.fBorder = f.fb;
+            //   }
+            //   else {
+            //     b.fBorder = true;
+            //   }
+            // }
+          }
+        }
+      }
+      else {
+        b.fBorder = false;
+        b.tBorder = false;
       }
     }
     console.log("sc: " + this.selectedCount);
@@ -65,19 +85,23 @@ export class LocationAreaComponent implements OnInit {
     this.existsBordersIds = [];
     // console.log(this.args.dId);
     for await (const pref of this.context.for(DriverPrefs).iterate({
-      where: prf => prf.driverId.isEqualTo(this.args.dId),
+      where: prf => prf.driverId.isEqualTo(this.args.dId)
+        .and(prf.active.isEqualTo(true)),
     })) {
-      this.existsBordersIds.push(pref.locationId.value);
+      this.existsBordersIds.push({ lid: pref.locationId.value, fb: pref.fBorder.value, tb: pref.tBorder.value });
     }
 
     this.borders = [];
     for await (const loc of this.context.for(Location).iterate({
       where: l => l.type.isEqualTo(LocationType.border),
     })) {
+      let f = this.existsBordersIds.find(cur => cur.lid === loc.id.value);
       this.borders.push({
         id: loc.id.value,
-        selected: this.existsBordersIds.includes(loc.id.value),
+        selected: f ? true : false,
         name: loc.name.value,
+        fBorder: f ? true : false,
+        tBorder: f ? f.tb : false,
         area: loc.area.value,
         ivisible: true,
       });
@@ -89,10 +113,10 @@ export class LocationAreaComponent implements OnInit {
   filter() {
     for (const loc of this.borders) {
       console.log('filterfilterfilter');
-      if (this.selected.value == LocationArea.all){
+      if (this.selected.value == LocationArea.all) {
         loc.ivisible = true;
       }
-      else{
+      else {
         loc.ivisible = (loc.area == this.selected.value);
       }
     }
@@ -103,25 +127,37 @@ export class LocationAreaComponent implements OnInit {
     // console.log(this.borders);
     if (this.borders.length > 0) {
       for (const loc of this.borders) {
-        if (this.existsBordersIds.includes(loc.id)) {
+        let f = this.existsBordersIds.find(cur => cur.lid === loc.id);
+        if (f) {
+          let pref = await this.context.for(DriverPrefs).findFirst({
+            where: cur => cur.locationId.isEqualTo(loc.id)
+              .and(cur.driverId.isEqualTo(this.args.dId)),
+          });
           if (loc.selected) {
-            // was selected & stay selected
+            pref.fBorder.value = loc.selected;
+            pref.tBorder.value = loc.tBorder;
+            pref.active.value = true;
+            await pref.save();
           }
           else {
-            let prefRecord = await this.context.for(DriverPrefs).findFirst({
-              where: prf => prf.driverId.isEqualTo(this.args.dId)
-                .and(prf.locationId.isEqualTo(loc.id))
-            });
-            if (prefRecord) {
-              await prefRecord.delete();
-            }
+            pref.fBorder.value = false;
+            pref.tBorder.value = false;
+            pref.active.value = false;
+            await pref.save();
           }
         }
-        else if (loc.selected) {// was not exists now is selected create it.
-          let pref = await this.context.for(DriverPrefs).create();
-          pref.locationId.value = loc.id;
-          pref.driverId.value = this.args.dId;
-          await pref.save();
+        else {
+          if (loc.selected) {
+            let pref = await this.context.for(DriverPrefs).findOrCreate({
+              where: cur => cur.locationId.isEqualTo(loc.id)
+                .and(cur.driverId.isEqualTo(this.args.dId))
+            });
+
+            pref.fBorder.value = loc.selected;
+            pref.tBorder.value = loc.tBorder;
+            pref.active.value = true;
+            await pref.save();
+          }
         }
       }
       this.select();

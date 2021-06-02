@@ -1,4 +1,5 @@
 import { BoolColumn, ColumnSettings, Context, EntityClass, IdEntity, ValueListColumn } from "@remult/core";
+import { Roles } from "../../users/roles";
 import { Location, LocationIdColumn } from "../locations/location";
 import { DriverIdColumn } from "./driver";
 
@@ -6,19 +7,27 @@ import { DriverIdColumn } from "./driver";
 export class DriverPrefs extends IdEntity {
 
     driverId = new DriverIdColumn({}, this.context);
-    locationId = new LocationIdColumn({allowNull: true}, this.context);
-    fBorder = new BoolColumn({caption: 'From Border'});
-    tBorder = new BoolColumn({caption: 'To Border'});
- 
+    locationId = new LocationIdColumn({ allowNull: true }, this.context);
+    fBorder = new BoolColumn({ caption: 'From Border' });
+    tBorder = new BoolColumn({ caption: 'To Border' });
+    active = new BoolColumn({ caption: 'Active?', defaultValue: true });
+
     // isAlsoBack = new BoolColumn({});
     // dayOfWeek = new DayOfWeekColumn();
     // dayPeriod = new DayPeriodColumn();
 
-    constructor(private context: Context) {
+    constructor(private context: Context, oblyActive = true) {
         super({
             name: "driversPrefs",
-            allowApiCRUD: c => c.isSignedIn(),// [Roles.driver, Roles.admin],
+            allowApiInsert: [Roles.driver, Roles.usher, Roles.admin],
+            allowApiUpdate: [Roles.driver, Roles.usher, Roles.admin],
+            allowApiDelete: false,
             allowApiRead: c => c.isSignedIn(),
+            fixedWhereFilter: () => {
+                if (oblyActive) {
+                    return this.active.isEqualTo(true);
+                }
+            }
         });
     }
 
