@@ -87,6 +87,7 @@ export class DriverHistoryComponent implements OnInit {
           w4Pickup: ride.isWaitingForPickup(),
           w4Arrived: ride.isWaitingForArrived(),
           w4End: ride.isEnd(),
+          dRemark: ride.dRemark.value,
         };
         result.push(row);
       }

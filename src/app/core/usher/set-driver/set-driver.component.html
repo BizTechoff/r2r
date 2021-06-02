@@ -52,8 +52,14 @@
                             <button *ngIf="r.driverId && r.driverId.length > 0" mat-menu-item
                                 (click)="removeDriver(r)">Remove Driver</button>
                             <hr>
-                            <button mat-menu-item (click)="editRide(r)">Edit Ride</button>
-                            <button mat-menu-item *ngIf="!(r.driverId && r.driverId.length > 0) && r.passengers > 1" (click)="splitRide(r)">Split Ride</button>
+                            <button mat-menu-item (click)="editRide(r)">
+                                <mat-icon>edit</mat-icon>
+                                <label>Edit Ride</label>
+                            </button>
+                            <button mat-menu-item *ngIf="!(r.driverId && r.driverId.length > 0) && r.passengers > 1" (click)="splitRide(r)">
+                                <mat-icon>splitscreen</mat-icon>
+                                <label>Split Ride</label>
+                            </button>
                             <!-- <hr> -->
                     </mat-menu>
                 </td>

@@ -2,8 +2,11 @@
     <!-- <data-grid *ngIf="grid" class="grow-item" [settings]="grid"></data-grid> -->
     <div class="header">
         <u>
-            <h3>Set Driver</h3>
+            <!-- : {{this.params.date.value|date:'dd.MM.yyyy'}}) -->
+            <h3>Set Driver ({{this.params.from.value && this.params.to.value? this.params.from.value + ' > ' +
+                this.params.to.value: 'searching..'}})</h3>
         </u>
+        <input type="text" title="Search for driver" [(ngModel)]="serach" (change)="filter()">
     </div>
     <div class="grow-item">
         <table style="width: 100%;">
@@ -23,8 +26,13 @@
                         <mat-icon>more_vert</mat-icon>
                     </button>
                     <mat-menu #menu="matMenu">
-                        <button mat-menu-item (click)="showDriverRides(d)">Show Driver Rides</button>
-                        <button mat-menu-item (click)="openCallDocumentationDialog(d)">Show Call Documentation</button>
+                        <button mat-menu-item (click)="showDriverRides(d)">
+                            <mat-icon>directions_bus_filled</mat-icon>
+                            <label>Show Driver Rides</label>
+                        </button>
+                        <button mat-menu-item (click)="openCallDocumentationDialog(d)">
+                            <mat-icon>tty</mat-icon>
+                            <label>Show Call Documentation</label></button>
                     </mat-menu>
                 </td>
                 <td>{{ d.name }}</td>

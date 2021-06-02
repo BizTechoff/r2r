@@ -10,7 +10,7 @@ import { Driver, DriverIdColumn } from '../../drivers/driver';
 import { RegisterDriver } from '../../drivers/driver-register/registerDriver';
 import { DriverCall } from '../../drivers/driverCall';
 import { DriverPrefs } from '../../drivers/driverPrefs';
-import { Location, LocationArea, LocationType } from '../../locations/location';
+import { Location, LocationArea, LocationIdColumn, LocationType } from '../../locations/location';
 import { RegisterRide } from '../../rides/register-rides/registerRide';
 import { Ride, RideStatus } from '../../rides/ride';
 import { addDays, addHours } from '../usher';
@@ -358,8 +358,10 @@ class usherSuggestDrivers {
 class usherSuggestDrivers2 {
 
   date = new DateColumn();
-  fid = new StringColumn();
-  tid = new StringColumn();
+  fid = new LocationIdColumn();
+  tid = new LocationIdColumn();
+  from = new StringColumn();
+  to = new StringColumn();
   constructor(private context: Context) { }
 
   @ServerMethod({ allowed: [Roles.admin, Roles.usher] })
@@ -735,6 +737,12 @@ class usherSuggestDrivers2 {
     for await (const loc of this.context.for(Location).iterate({
       // where: cur => cur.type.isEqualTo(LocationType.border)
     })) {
+      if (loc.id.value === this.fid.value) {
+        this.from.value = loc.name.value;
+      }
+      else if (loc.id.value === this.tid.value) {
+        this.to.value = loc.name.value;
+      }
       if (loc.type == LocationType.border) {
         let f = this.bAreas.find(cur => cur.area === loc.area.value);
         if (!(f)) {
@@ -743,8 +751,8 @@ class usherSuggestDrivers2 {
         }
         f.areaBorders.push(loc.id.value);
       }
-      else{
-        this.bAreas.push({border: loc.id.value, areaBorders: []});
+      else {
+        this.bAreas.push({ border: loc.id.value, areaBorders: [] });
       }
     }
 
@@ -1156,13 +1164,12 @@ class usherSuggestDrivers2 {
     );
     if (c && c.created) {
       let diff = (+(new Date())) - (+c.created.value);
-      console.log('diff='+diff);
+      console.log('diff=' + diff);
       lastCallDays = (-1 * (Math.floor(diff / SuggestDriverComponent.ONE_DAY_MS)));
-      if(lastCallDays === 0)
-      {
+      if (lastCallDays === 0) {
         lastCallDays = 1;
       }
-      console.log('lastCallDays='+lastCallDays);
+      console.log('lastCallDays=' + lastCallDays);
     }
 
     let row: driver4UsherSuggest = {
@@ -1431,9 +1438,21 @@ export class SuggestDriverComponent implements OnInit {
   args: { date?: Date, fid?: string, tid?: string }
   selected: { did: string, status: string } = { did: '', status: '' };
 
+  serach = '';
+
+  async filter() {
+    if (this.serach && this.serach.length > 0) {
+      this.drivers = this.origin.filter(cur => cur.name.trim().toLowerCase().includes(this.serach.trim().toLowerCase()));
+    } 
+    else {
+      this.drivers = this.origin;
+    }
+  }
+
   // grid: GridSettings;
   // mem = new InMemoryDataProvider();
 
+  origin: driver4UsherSuggest[] = [];
   drivers: driver4UsherSuggest[] = [];
   params = new usherSuggestDrivers2(this.context);
   constructor(private context: Context, private dialogRef: MatDialogRef<any>, private dialog: DialogService) {
@@ -1444,9 +1463,11 @@ export class SuggestDriverComponent implements OnInit {
     this.params.fid.value = this.args.fid;
     this.params.tid.value = this.args.tid;
 
+    // let from
     // (new InMemoryDataProvider()).rows["SuggestDriver"] = this.drivers
 
     await this.refresh();
+    this.origin = this.drivers;
   }
 
   async onDriverSelected(r: driver4UsherSuggest) {
@@ -1490,7 +1511,7 @@ export class SuggestDriverComponent implements OnInit {
   async showDriverRides(d: driver4UsherSuggest) {
 
     await this.context.openDialog(GridDialogComponent, gd => gd.args = {
-      title: `${d.name} - Scheduled Rides`,
+      title: `${d.name} Rides`,
       settings: this.context.for(Ride).gridSettings({
         where: r => r.driverId.isEqualTo(d.did),
         orderBy: r => [{ column: r.date, descending: true }],

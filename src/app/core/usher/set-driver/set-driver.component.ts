@@ -223,10 +223,6 @@ export class SetDriverComponent implements OnInit {
       }
     }
     if (minChanged) {
-      let hour = min.split(':');
-      if (hour.length > 1) {
-        min = ('' + (parseInt(hour[0]) - 2)).padStart(2, "0") + ":" + hour[1];
-      }
       this.selectedPickupTime =addHours(-2, min);
     }
     // console.log(min);
@@ -436,7 +432,8 @@ export class SetDriverComponent implements OnInit {
             { column: ride.isHasWheelchair, readOnly: true }
           ],
           // { column: ride.dRemark, readOnly: true },
-          { column: ride.rRemark, caption: 'Remark' },
+          { column: ride.rRemark, caption: 'Ride Remark' },
+          { column: ride.dRemark, caption: 'Driver Remark' },
         ],
         ok: async () => { if (ride.wasChanged()) { await ride.save(); changed = true; } },//this.dialog.info("");
         cancel: () => { }

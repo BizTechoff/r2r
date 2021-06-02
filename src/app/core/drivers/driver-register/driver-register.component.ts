@@ -128,8 +128,9 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
             isRegistered: true,// (registereds && registereds.length > 0),
             dFromHour: nreg.fh.value,
             dToHour: nreg.th.value,
-            dPass: this.seats.value,
-            pickupTime: addHours(-2, rr.visitTime.value)
+            dPass: nreg.seats.value,
+            pickupTime: addHours(-2, rr.visitTime.value),
+            dRemark: rr.remark.value,
           };
           result.registered.push(row);
         }
@@ -148,7 +149,8 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
           pass: 0,// reg.passengers.value,
           isRegistered: false,// (registereds && registereds.length > 0),
           dPass: this.seats.value,
-          pickupTime: addHours(-2, rr.visitTime.value)
+          pickupTime: addHours(-2, rr.visitTime.value),
+          dRemark: rr.remark.value,
         };
         result.newregistered.push(row);
         // }
@@ -186,8 +188,9 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
             isRegistered: true,// (registereds && registereds.length > 0),
             dFromHour: nreg.fh.value,
             dToHour: nreg.th.value,
-            dPass: this.seats.value,
-            pickupTime: ride.pickupTime.value
+            dPass: nreg.seats.value,
+            pickupTime: ride.pickupTime.value,
+            dRemark: ride.dRemark.value,
           };
           result.registered.push(row);
         }
@@ -206,7 +209,8 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
             pass: ride.passengers(),
             dPass: this.seats.value,
             isRegistered: false,// (registereds && registereds.length > 0),
-            pickupTime: ride.pickupTime.value
+            pickupTime: ride.pickupTime.value,
+            dRemark: ride.dRemark.value,
           };
           result.newregistered.push(row);
         }
@@ -216,6 +220,25 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
     result.registered.sort((r1, r2) => r1.from.localeCompare(r2.from));
     result.newregistered.sort((r1, r2) => r1.from.localeCompare(r2.from));
 
+    return result;
+  }
+
+  async createRide4DriverRideRegister(ride:Ride, from:string, to: string): Promise<ride4DriverRideRegister>{
+    let result: ride4DriverRideRegister = {
+      rId: ride.id.value,
+      rrid: '',// ride.id.value,
+      // dId: nreg.driverId.value,
+      date: ride.date.value,
+      fId: ride.fid.value,
+      tId: ride.tid.value,
+      from: from,
+      to: to,
+      pass: ride.passengers(),
+      dPass: this.seats.value,
+      isRegistered: false,// (registereds && registereds.length > 0),
+      pickupTime: ride.pickupTime.value,
+      dRemark: ride.dRemark.value,
+    };
     return result;
   }
 }

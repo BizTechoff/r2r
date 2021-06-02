@@ -92,7 +92,7 @@ export class PatientsComponent implements OnInit {
       visible: (d) => !d.isNew(),
       showInLine: true,
     }, {
-      textInMenu: "Schedule Rides",
+      textInMenu: "Show Rides",
       click: async (p) => await this.openScheduleRides(p),
       icon: "departure_board",
       visible: (d) => !d.isNew(),
@@ -260,7 +260,7 @@ export class PatientsComponent implements OnInit {
     today = new Date(today.getFullYear(), today.getMonth(), today.getDate());//dd/mm/yyyy 00:00:00.0
 
     await this.context.openDialog(GridDialogComponent, gd => gd.args = {
-      title: `${p.name.value}    (scheduled rides)`,
+      title: `${p.name.value} Rides`,
       settings: this.context.for(Ride).gridSettings({
         where: r => r.patientId.isEqualTo(p.id),
         orderBy: r => [{ column: r.date, descending: true }],

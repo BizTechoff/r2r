@@ -84,8 +84,11 @@
                         <td>To: <i>{{ r.to }}</i></td>
                     </tr>
                     <tr>
-                        <td>Pickup: <i>{{ r.pickupTime }}</i></td>
+                        <td>Pickup: {{ r.pickupTime }}</td>
                     </tr>
+                    <!-- <tr *ngIf="r.dRemark&&r.dRemark.length > 0">
+                        <td>Remark: <strong>{{ r.dRemark }}</strong></td>
+                    </tr> -->
                     <!-- <tr>
                         <td>rid: {{ r.rId }}</td>
                     </tr>
@@ -103,11 +106,11 @@
         <table *ngIf="rides && (rides.length > 0)" style="width: 100%">
             <tr *ngFor="let r of rides">
                 <table style="width: 100%;padding: 10px;">
-                    <tr>
+                    <!-- <tr>
                         <td>date: {{ r.date | date: 'dd/MM/yyyy' }}</td>
-                    </tr>
+                    </tr> -->
                     <tr>
-                        <td>from: {{ r.from }}</td>
+                        <td>From: <i>{{ r.from }}</i></td>
                         <td rowspan="4">
                             <table *ngIf="r.isRegistered" style="width: 100%;">
                                 <tr>
@@ -117,15 +120,17 @@
                         </td>
                     </tr>
                     <tr>
-                        <td>to: {{ r.to }}</td>
+                        <td>To: <i>{{ r.to }}</i></td>
                     </tr>
                     <tr>
-                        <td>seats(s): {{ r.dPass }}</td>
+                        <td>Free Seats: {{ r.dPass }}</td>
                     </tr>
                     <tr>
                         <td>avaliable: {{ r.dFromHour }} - {{ r.dToHour }}</td>
                     </tr>
-                    <tr>
+                    <!-- <tr *ngIf="r.dRemark&&r.dRemark.length > 0">
+                        <td>Remark: <strong>{{ r.dRemark }}</strong></td>
+                    </tr> -->
                 </table>
             </tr>
         </table>

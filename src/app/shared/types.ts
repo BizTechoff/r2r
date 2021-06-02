@@ -54,7 +54,8 @@ export interface ride4DriverRideRegister {
   dFromHour?: string,
   dToHour?: string, 
   dPass?: number,
-  pickupTime?:string
+  pickupTime?:string,
+  dRemark:string,
 };
  
 export interface ride4Driver {
@@ -84,6 +85,7 @@ export interface ride4Driver {
   w4Pickup: boolean,
   w4Arrived: boolean,
   w4End: boolean,
+  dRemark:string,
 };
 
 export interface ride4Usher {

@@ -206,7 +206,7 @@ export class DriversComponent implements OnInit {
     today = new Date(today.getFullYear(), today.getMonth(), today.getDate());//dd/mm/yyyy 00:00:00.0
 
     await this.context.openDialog(GridDialogComponent, gd => gd.args = {
-      title: `${d.name.value} -Scheduled Rides`,
+      title: `${d.name.value} Rides`,
       settings: this.context.for(Ride).gridSettings({
         where: r => r.id.isIn(...rides.map(rm => rm.id)),
         // where: r => r.driverId.isEqualTo(d.id)

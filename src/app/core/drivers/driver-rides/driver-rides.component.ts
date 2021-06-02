@@ -1,7 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { RouteHelperService } from '@remult/angular';
 import { Context, ServerFunction } from '@remult/core';
-import { YesNoQuestionComponent } from '../../../common/yes-no-question/yes-no-question.component';
 import { ride4Driver } from '../../../shared/types';
 import { Roles } from '../../../users/roles';
 import { Location } from '../../locations/location';
@@ -19,21 +17,24 @@ import { Driver } from '../driver';
 export class DriverRidesComponent implements OnInit {
 
   rides: ride4Driver[];
+  today = new Date();
 
-  constructor(private context: Context) { }
+  constructor(private context: Context) {
+    this.today = new Date(this.today.getFullYear(), this.today.getMonth(), this.today.getDate());
+  }
 
   async ngOnInit() {
     this.refresh();
   }
 
-  async refresh(){
+  async refresh() {
     this.rides = await DriverRidesComponent.retrieveDriverRides(this.context);
   }
- 
+
   @ServerFunction({ allowed: Roles.driver })
   static async retrieveDriverRides(context?: Context) {
     var result: ride4Driver[] = [];
- 
+
     let driver = await context.for(Driver).findFirst({
       where: d => d.userId.isEqualTo(context.user.id),
     });
@@ -45,7 +46,7 @@ export class DriverRidesComponent implements OnInit {
     today = new Date(today.getFullYear(), today.getMonth(), today.getDate());//dd/mm/yyyy 00:00:00.0
     for await (const ride of context.for(Ride).iterate({
       where: r => r.driverId.isEqualTo(driver.id)
-      .and(r.date.isGreaterOrEqualTo(today))
+        .and(r.date.isGreaterOrEqualTo(today))
         .and(r.status.isIn(...RideStatus.isInDriverWaitingStatuses)),
     })) {
       let from = (await context.for(Location).findId(ride.fid.value)).name.value;
@@ -62,23 +63,23 @@ export class DriverRidesComponent implements OnInit {
       }
       if (ride.isHasWheelchair) {
         equipment.push('accessible');
-      } 
+      }
       // if (ride.isHasExtraEquipment) {
       //   equipment.push('home_repair_service');
       // }
-console.log('---- ' + ride.passengers());
+      console.log('---- ' + ride.passengers());
       let row = result.find(r => r.rId === ride.id.value);
       if (!(row)) {
         row = {
           rId: ride.id.value,
           pId: ride.patientId.value,
-          dId: ride.isHasDriver()? ride.driverId.value: '',
+          dId: ride.isHasDriver() ? ride.driverId.value : '',
           fId: ride.fid.value,
           pName: pName,
           from: from,
           to: to,
           contactsCount: contactsCount,
-          date: ride.date.value, 
+          date: ride.date.value,
           // pickupTime: ride.pickupTime.value,
           visitTime: ride.visitTime.value,
           pickupTime: ride.pickupTime.value,
@@ -96,8 +97,9 @@ console.log('---- ' + ride.passengers());
           w4Pickup: ride.isWaitingForPickup(),
           w4Arrived: ride.isWaitingForArrived(),
           w4End: ride.isEnd(),
+          dRemark: ride.dRemark.value,
           // status: ride.status.value,
-        }; 
+        };
         result.push(row);
       }
     }
@@ -108,13 +110,13 @@ console.log('---- ' + ride.passengers());
     return result;
   }
 
-  async openWaze(address:string){
+  async openWaze(address: string) {
     console.log(`open waze to: ${address}`)
     // this.context.openDialog(YesNoQuestionComponent);
   }
 
-  async openContacts(r:ride4Driver){
-     
+  async openContacts(r: ride4Driver) {
+
     this.context.openDialog(PatientContactsComponent, sr => sr.args = {
       pid: r.pId,
     });
