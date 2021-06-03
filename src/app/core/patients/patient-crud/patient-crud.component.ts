@@ -38,8 +38,8 @@ export class PatientCrudComponent implements OnInit {
       columnSettings: () => [
         [this.patient.name, this.patient.hebName],
         [this.patient.mobile, this.patient.idNumber],
-        [this.patient.defaultBorder, this.patient.defaultHospital],
         [{ column: this.patient.birthDate },{column: this.patient.age, readOnly: true, width: '25px'}],
+        [this.patient.defaultBorder, this.patient.defaultHospital],
         this.patient.remark,
       ],
     });

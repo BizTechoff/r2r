@@ -41,7 +41,7 @@ export interface ride4UsherRideRegister {
 };
 
 export interface ride4DriverRideRegister {
-  rId: string,
+  rid: string,
   rrid: string,
   dId?: string,
   date: Date, 
@@ -100,6 +100,7 @@ export interface ride4Usher {
   passengers: number,
   ridesCount: number,
   inProgress: number,
+  registers: number,
   w4Driver: number,
   w4Accept: number,
   ids?: string[],

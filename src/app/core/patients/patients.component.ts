@@ -8,6 +8,7 @@ import { Roles } from '../../users/roles';
 import { Ride, RideStatusColumn } from '../rides/ride';
 import { addDays } from '../usher/usher';
 import { Patient, PatientIdColumn } from './patient';
+import { PatientContactsComponent } from './patient-contacts/patient-contacts.component';
 import { PatientCrudComponent } from './patient-crud/patient-crud.component';
 
 export class patientRides {
@@ -137,8 +138,8 @@ export class PatientsComponent implements OnInit {
 
   async addPatient() {
     let pid = await this.context.openDialog(PatientCrudComponent,
-      thus => thus.args = { pid: '' },
-      thus => thus.args.pid);
+      cur => cur.args = { pid: '' },// input params
+      cur => cur.args.pid);// output param
 
     if (pid && pid.length > 0) {
       let p = await this.context.for(Patient).findId(pid);
@@ -298,13 +299,12 @@ export class PatientsComponent implements OnInit {
     var ride = this.context.for(Ride).create();
     ride.date.value = tomorrow;
     // ride.visitTime.value = tomorrow10am;
-    // ride.dayOfWeek.value = DriverPrefs.getDayOfWeek(ride.date.getDayOfWeek());
-    // ride.dayPeriod.value = DayPeriod.morning;
     ride.patientId.value = p.id.value;
     ride.fid.value = p.defaultBorder.value;
     ride.tid.value = p.defaultHospital.value;
     ride.pMobile.value = p.mobile.value;
-    // var isNeedReturnTrip = new BoolColumn({ caption: "Need Return Ride" });
+    ride.escortsCount.value = p.age.value > 0 && p.age.value <= 13 ? 1/*kid(as patient)+adult(atleast one)*/ : 0;
+    ride.isHasBabyChair.value = p.age.value > 0 && p.age.value <= 5;
     this.context.openDialog(
       InputAreaComponent,
       x => x.args = {
@@ -319,8 +319,12 @@ export class PatientsComponent implements OnInit {
           ride.dRemark,
         ],
         buttons: [{
-          text: 'Patient Details',
-          click: async () => { await this.editPatient(p); }
+          text: 'Patient Contacts',
+          click: async () => { 
+            await this.context.openDialog(PatientContactsComponent, sr => sr.args = {
+              pid: p.id.value,
+            });
+           }
         }
         ],
         validate: async () => {

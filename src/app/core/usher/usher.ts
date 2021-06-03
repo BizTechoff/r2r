@@ -159,6 +159,7 @@ export class Usher {
                     from: fromName,
                     to: toName,
                     inProgress: 0,
+                    registers: 0,
                     w4Accept: 0,
                     w4Driver: 0,
                     passengers: 0,
@@ -1090,6 +1091,9 @@ export class Usher {
     }
 }
 
+
+// export  static readonly ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
 export function addDays(days: number, date?: Date) {
     var x = date ? date : new Date();
     var xnotime = new Date(x.getFullYear(), x.getMonth(), x.getDate());
@@ -1097,9 +1101,10 @@ export function addDays(days: number, date?: Date) {
     return xnotime;
 }
 
-export function daysDiff(date1?: Date, date2?: Date) {
-    let diff = +date1 - +date2;
-    let days = (Math.ceil(diff / 1000 / 60 / 60 / 24) + 1);
+export function daysDiff(big?: Date, small?: Date) {
+    let day_ms = 24 * 60 * 60 * 1000;//h*m*s*ms
+    let diff = +big - +small;
+    let days = -(Math.ceil(diff / day_ms) + 1);//ONE_DAY_MS = 24 * 60 * 60 * 1000;
     return days;
 }
 

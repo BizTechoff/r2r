@@ -109,14 +109,14 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
       let to = rr.tid.value ? (await this.context.for(Location).findId(rr.tid.value)).name.value : '';
       let registereds = (await this.context.for(RegisterDriver).find(
         {
-          where: rg => rg.rid.isEqualTo(rr.id)
+          where: rg => rg.rrid.isEqualTo(rr.id)
             .and(rg.did.isEqualTo(this.did)),
         }));
 
       if (registereds && registereds.length > 0) {
         for (const nreg of registereds) {
           let row: ride4DriverRideRegister = {
-            rId: '',
+            rid: '',
             rrid: rr.id.value,
             dId: nreg.did.value,
             date: nreg.date.value,
@@ -138,7 +138,7 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
       else {
         // if (reg.passengers.value <= this.seats.value) {
         let row: ride4DriverRideRegister = {
-          rId: '',
+          rid: '',
           rrid: rr.id.value,
           // dId: nreg.driverId.value,
           date: this.date.value,
@@ -169,14 +169,14 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
 
       let registereds = (await this.context.for(RegisterDriver).find(
         {
-          where: rg => rg.rrid.isEqualTo(ride.id)
+          where: rg => rg.rid.isEqualTo(ride.id)
             .and(rg.did.isEqualTo(this.did)),
         }));
 
       if (registereds && registereds.length > 0) {
         for (const nreg of registereds) {
           let row: ride4DriverRideRegister = {
-            rId: ride.id.value,
+            rid: ride.id.value,
             rrid: '',// ride.id.value,
             dId: nreg.did.value,
             date: ride.date.value,
@@ -198,7 +198,7 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
       else {
         if (ride.passengers() <= this.seats.value) {
           let row: ride4DriverRideRegister = {
-            rId: ride.id.value,
+            rid: ride.id.value,
             rrid: '',// ride.id.value,
             // dId: nreg.driverId.value,
             date: ride.date.value,
@@ -225,7 +225,7 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
 
   async createRide4DriverRideRegister(ride:Ride, from:string, to: string): Promise<ride4DriverRideRegister>{
     let result: ride4DriverRideRegister = {
-      rId: ride.id.value,
+      rid: ride.id.value,
       rrid: '',// ride.id.value,
       // dId: nreg.driverId.value,
       date: ride.date.value,
@@ -519,10 +519,10 @@ export class DriverRegisterComponent implements OnInit {
 
   async unregister(r: ride4DriverRideRegister) {
     let reg = undefined;
-    if (r.rId && r.rId.length > 0) {
+    if (r.rid && r.rid.length > 0) {
       reg = await this.context.for(RegisterDriver).findFirst({
         where: rd => rd.did.isEqualTo(r.dId)
-          .and(rd.rrid.isEqualTo(r.rId)),
+          .and(rd.rrid.isEqualTo(r.rid)),
       });
     }
     else (r.rrid && r.rrid.length > 0)
@@ -544,13 +544,13 @@ export class DriverRegisterComponent implements OnInit {
     // let date = new Date(2021, 2, 3);
     let reg = this.context.for(RegisterDriver).create();
     reg.date.value = this.params.date.value;
-    reg.rrid.value = r.rId;
-    reg.rid.value = r.rrid;
+    reg.rrid.value = r.rrid;
+    reg.rid.value = r.rid; 
     reg.did.value = this.driver.id.value;
     reg.fh.value = r.pickupTime ? addHours(-1, r.pickupTime) : this.driver.defaultFromTime.value;// todo: r.date;
     reg.th.value = r.pickupTime ? addHours(+1, r.pickupTime) : this.driver.defaultToTime.value;// todo: r.date;
     // reg.toHour.value = date;// todo: r.date;
-
+ 
     let seats = Math.min(r.pass, r.dPass);
     reg.seats.value = seats;
 

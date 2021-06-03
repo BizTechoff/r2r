@@ -92,8 +92,26 @@ export class Driver extends IdEntity {
       : false;
   }
 
+  hasName() {
+    return this.name && this.name.value && this.name.value.length > 0
+      ? true
+      : false;
+  }
+
+  hasCity() {
+    return this.city && this.city.value && this.city.value.length > 0
+      ? true
+      : false;
+  }
+
   hasMobile() {
     return this.mobile && this.mobile.value && this.mobile.value.length > 0
+      ? true
+      : false;
+  }
+
+  hasSeats() {
+    return this.seats && this.seats.value && this.seats.value > 0
       ? true
       : false;
   }

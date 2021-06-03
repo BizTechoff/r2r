@@ -1,9 +1,10 @@
 import { BoolColumn, ColumnSettings, Context, DateColumn, DateTimeColumn, EntityClass, IdEntity, NumberColumn, StringColumn, ValueListColumn } from "@remult/core";
+import { DialogService } from "../../common/dialog";
 import { InputAreaComponent } from "../../common/input-area/input-area.component";
 import { MessageType, ServerEventsService } from "../../server/server-events-service";
 import { ApplicationSettings } from "../application-settings/applicationSettings";
 import { DriverIdColumn } from "../drivers/driver";
-import { DayOfWeekColumn, DayPeriod, DayPeriodColumn, DriverPrefs } from "../drivers/driverPrefs";
+import { DriverPrefs } from "../drivers/driverPrefs";
 import { LocationIdColumn } from "../locations/location";
 import { PatientIdColumn } from "../patients/patient";
 import { addHours } from "../usher/usher";
@@ -21,7 +22,7 @@ export class Ride extends IdEntity {
     date = new DateColumn({});
     fid = new LocationIdColumn({ caption: 'From', allowNull: false }, this.context);
     tid = new LocationIdColumn({ caption: 'To', allowNull: false }, this.context);
-    
+
     visitTime = new StringColumn({
         defaultValue: '00:00', inputType: 'time'//, 
         // valueChange: () => {
@@ -46,14 +47,14 @@ export class Ride extends IdEntity {
     // isHasEscort = new BoolColumn({ caption: 'Has Escort', defaultValue: false });
     escortsCount = new NumberColumn({});
     backId = new StringColumn({});
-    pMobile = new StringColumn({caption: 'Patient Mobile'});
-    dRemark = new StringColumn({caption: 'Remark For Driver'});
-    rRemark = new StringColumn({caption: 'Remark For Ride'});
-    isBackRide = new BoolColumn({defaultValue: false});
-    mApproved = new BoolColumn({defaultValue: false});
-    isSplitted = new BoolColumn({defaultValue: false});
+    pMobile = new StringColumn({ caption: 'Patient Mobile' });
+    dRemark = new StringColumn({ caption: 'Remark For Driver' });
+    rRemark = new StringColumn({ caption: 'Remark For Ride' });
+    isBackRide = new BoolColumn({ defaultValue: false });
+    mApproved = new BoolColumn({ defaultValue: false });
+    isSplitted = new BoolColumn({ defaultValue: false });
 
-    constructor(private context: Context, private appSettings: ApplicationSettings) {
+    constructor(private context: Context, private appSettings: ApplicationSettings, private dialog: DialogService) {
         super({
             name: "rides",
             allowApiCRUD: c => c.isSignedIn(),
@@ -63,7 +64,7 @@ export class Ride extends IdEntity {
                     if (this.status.wasChanged()) {
                         this.statusDate.value = new Date();
                     }
-                    if(this.visitTime.wasChanged()){
+                    if (this.visitTime.wasChanged()) {
                         this.pickupTime.value = addHours(-2, this.visitTime.value);
                     }
                 }
@@ -208,7 +209,7 @@ export class Ride extends IdEntity {
         target.date.value = this.date.value;
         target.isHasBabyChair.value = this.isHasBabyChair.value;
         target.isHasWheelchair.value = this.isHasWheelchair.value;
-   //     target.isHasExtraEquipment.value = this.isHasExtraEquipment.value;
+        //     target.isHasExtraEquipment.value = this.isHasExtraEquipment.value;
         // target.isHasEscort.value = this.isHasEscort.value;
         target.escortsCount.value = this.escortsCount.value;
         target.patientId.value = this.patientId.value;
@@ -224,7 +225,7 @@ export class Ride extends IdEntity {
             target.importRideNum.value = this.importRideNum.value;
             target.dRemark.value = this.dRemark.value;
             target.rRemark.value = this.rRemark.value;
-     //       target.driverRemark.value = this.driverRemark.value;
+            //       target.driverRemark.value = this.driverRemark.value;
         }
     }
 
@@ -240,7 +241,7 @@ export class RideStatus {
     static waitingForPatientAndDriver = new RideStatus();//
     static waitingForUsherApproove = new RideStatus();//
     static waitingForUsherSelectDriver = new RideStatus();//
-    
+
     static waitingForDriver = new RideStatus();
     static waitingForAccept = new RideStatus();
     static waitingForStart = new RideStatus();
@@ -251,14 +252,14 @@ export class RideStatus {
     static failed = new RideStatus();
     static rejected = new RideStatus();
     constructor(public color = 'green') { }
-    id:string;
+    id: string;
 
     // status.DriverNotStratedYet,
     //       status.DriverStratedButNotArrived,
     //       status.DriverArrived,
 
-    isEquals(status:string){
-return status === this.id;
+    isEquals(status: string) {
+        return status === this.id;
     }
 
     static isInProgressStatuses = [
@@ -320,14 +321,14 @@ export async function openRide(rid: string, context: Context): Promise<boolean> 
                 columnSettings: () => [
                     r.fid,
                     r.tid,
-                    r.date, 
+                    r.date,
                     // {
                     //     column: r.dayPeriod,
                     //     valueList: [DayPeriod.morning, DayPeriod.afternoon]
                     // },
                     r.isHasBabyChair,
                     r.isHasWheelchair,
-       //             r.isHasExtraEquipment,
+                    //             r.isHasExtraEquipment,
                     r.escortsCount,
                     // r.isHasEscort,
                     // {

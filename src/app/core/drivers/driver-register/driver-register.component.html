@@ -89,12 +89,12 @@
                     <!-- <tr *ngIf="r.dRemark&&r.dRemark.length > 0">
                         <td>Remark: <strong>{{ r.dRemark }}</strong></td>
                     </tr> -->
-                    <!-- <tr>
-                        <td>rid: {{ r.rId }}</td>
+                    <tr>
+                        <td>rid: {{ r.rid }}</td>
                     </tr>
                     <tr>
                         <td>rgid: {{ r.rrid }}</td>
-                    </tr> -->
+                    </tr>
                 </table>
             </tr>
         </table>
@@ -126,7 +126,13 @@
                         <td>Free Seats: {{ r.dPass }}</td>
                     </tr>
                     <tr>
-                        <td>avaliable: {{ r.dFromHour }} - {{ r.dToHour }}</td>
+                        <td>I Be there: {{ r.dFromHour }} - {{ r.dToHour }}</td>
+                    </tr>
+                    <tr>
+                        <td>rid: {{ r.rid }}</td>
+                    </tr>
+                    <tr>
+                        <td>rgid: {{ r.rrid }}</td>
                     </tr>
                     <!-- <tr *ngIf="r.dRemark&&r.dRemark.length > 0">
                         <td>Remark: <strong>{{ r.dRemark }}</strong></td>

@@ -4,6 +4,7 @@ import { ride4Usher } from '../../shared/types';
 import { Roles } from '../../users/roles';
 import { UserId } from '../../users/users';
 import { Driver, DriverIdColumn, openDriver } from '../drivers/driver';
+import { RegisterDriver } from '../drivers/driver-register/registerDriver';
 import { Location, LocationIdColumn, LocationType } from '../locations/location';
 import { Patient } from '../patients/patient';
 import { PatientCrudComponent } from '../patients/patient-crud/patient-crud.component';
@@ -79,16 +80,16 @@ class usherParams {//dataControlSettings: () => ({width: '150px'}),
   async retrieveRideList4Usher(id: number): Promise<ride4Usher[]> {
     var result: ride4Usher[] = [];
     // console.log(id);
-    for await (const ride of this.context.for(Ride).iterate({
-      where: r => r.date.isEqualTo(this.date)
-        .and(r.status.isNotIn(...[RideStatus.succeeded]))
-        .and(this.fid.value ? r.fid.isEqualTo(this.fid) : new Filter(x => { /* true */ }))
-        .and(this.tid.value ? r.tid.isEqualTo(this.tid) : new Filter(x => { /* true */ })),
+    for await (const r of this.context.for(Ride).iterate({
+      where: cur => cur.date.isEqualTo(this.date)
+        .and(cur.status.isNotIn(...[RideStatus.succeeded]))
+        .and(this.fid.value ? cur.fid.isEqualTo(this.fid) : new Filter(x => { /* true */ }))
+        .and(this.tid.value ? cur.tid.isEqualTo(this.tid) : new Filter(x => { /* true */ })),
     })) {
-      let from = (await this.context.for(Location).findId(ride.fid.value));
+      let from = (await this.context.for(Location).findId(r.fid.value));
       let fromName = from.name.value;
       let fromIsBorder = from.type.value == LocationType.border;
-      let to = (await this.context.for(Location).findId(ride.tid.value));
+      let to = (await this.context.for(Location).findId(r.tid.value));
       let toName = to.name.value;
       let toIsBorder = to.type.value == LocationType.border;
       let key = `${fromName}-${toName}`;
@@ -104,6 +105,7 @@ class usherParams {//dataControlSettings: () => ({width: '150px'}),
           from: fromName,
           to: toName,
           inProgress: 0,
+          registers: 0,
           w4Accept: 0,
           w4Driver: 0,
           passengers: 0,
@@ -113,10 +115,11 @@ class usherParams {//dataControlSettings: () => ({width: '150px'}),
         result.push(row);
       }
 
-      row.inProgress += ([RideStatus.waitingForPickup, RideStatus.waitingForArrived].includes(ride.status.value) ? 1 : 0);
-      row.w4Accept += (ride.status.value == RideStatus.waitingForAccept ? 1 : 0);
-      row.w4Driver += (ride.isHasDriver() ? 0 : 1);
-      row.passengers += ride.passengers();
+      row.inProgress += ([RideStatus.waitingForPickup, RideStatus.waitingForArrived].includes(r.status.value) ? 1 : 0);
+      row.w4Accept += (r.status.value == RideStatus.waitingForAccept ? 1 : 0);
+      row.w4Driver += (r.isHasDriver() ? 0 : 1);
+      row.passengers += r.passengers();//registerride.validkav(fd-td,fid-tid,days[,v.t])
+      row.registers += await this.context.for(RegisterDriver).count(cur => cur.rid.isEqualTo(r.id));
       row.ridesCount += 1;
     }
 
@@ -276,6 +279,7 @@ export class UsherComponent implements OnInit {
           from: fromName,
           to: toName,
           inProgress: 0,
+          registers: 0,
           w4Accept: 0,
           w4Driver: 0,
           passengers: 0,

@@ -13,7 +13,7 @@ import { DriverPrefs } from '../../drivers/driverPrefs';
 import { Location, LocationArea, LocationIdColumn, LocationType } from '../../locations/location';
 import { RegisterRide } from '../../rides/register-rides/registerRide';
 import { Ride, RideStatus } from '../../rides/ride';
-import { addDays, addHours } from '../usher';
+import { addDays, addHours, daysDiff } from '../usher';
 
 
 
@@ -728,7 +728,7 @@ class usherSuggestDrivers2 {
   bAreas: { border: string, area?: LocationArea, areaBorders: string[] }[] = [];
 
   @ServerMethod({ allowed: [Roles.admin, Roles.usher] })
-  async retrieveSuggestedDriversNew() {
+  async retrieveSuggestedDriversNew() {//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     let drivers: driver4UsherSuggest[] = [];
     let priority = 0;
 
@@ -757,7 +757,7 @@ class usherSuggestDrivers2 {
     }
 
     this.distinct(drivers,
-      (await this.driversWithSameLineTodayNew(++priority, 'same ride today')));
+      (await this.driversWithSameKavTodayNew(++priority, 'same ride today')));
 
     this.distinct(drivers,
       (await this.driversRegisteredSameKavTodayNew(++priority, 'register to kav')));
@@ -789,19 +789,18 @@ class usherSuggestDrivers2 {
   //   (await this.driversWithSamePrefsNew(++priority, 'same prefered borders')));
   //driversMadeRideWithSameKavButNoRideForLast5days
 
-  private distinct(source: driver4UsherSuggest[], add: driver4UsherSuggest[]) {
+  private distinct(source: driver4UsherSuggest[] = [], add: driver4UsherSuggest[] = []) {
     if (add.length > 0) {
       for (const row of add) {
         if (source.length > 0) {
-          let d = source.find(r => {
-            return r.did === row.did
-          });
+          let d = source.find(r => { return r.did === row.did });
           if (!d) {
             source.push(row);
           }
           else {
             let i = source.indexOf(d);
             if (row.priority < source[i].priority) {//less is more
+              // more importent, replace priority&reason
               source[i].reason = row.reason;
               source[i].priority = row.priority;
             }
@@ -815,7 +814,7 @@ class usherSuggestDrivers2 {
   }
 
 
-  private async driversWithSameLineTodayNew(priority: number, reason: string): Promise<driver4UsherSuggest[]> {
+  private async driversWithSameKavTodayNew(priority: number, reason: string): Promise<driver4UsherSuggest[]> {
     let drivers: driver4UsherSuggest[] = [];
     let dids: { did: string, taken: number }[] = [];
     for await (const r of this.context.for(Ride).iterate({
@@ -828,6 +827,7 @@ class usherSuggestDrivers2 {
       let f = dids.find(cur => cur.did === r.driverId.value);
       if (!(f)) {
         f = { did: r.driverId.value, taken: 0 };
+        dids.push(f);
       }
       f.taken += r.passengers();
     }
@@ -860,10 +860,15 @@ class usherSuggestDrivers2 {
           //if(ride.status.value == RideStatus.waitingForDriver)//look only for kav-details
           if (r.fid.value === this.fid.value && r.tid.value === this.tid.value) {
             if (r.pickupTime.value && (!(r.pickupTime.value === '00:00'))) {
-              if (rd.fh.value > r.pickupTime.value || r.pickupTime.value > rd.th.value) {//out of interval
-                continue;
+              if (rd.fh.value <= r.pickupTime.value && r.pickupTime.value <= rd.th.value) {//out of interval
+                let dRow: driver4UsherSuggest = await this.createDriverRowNew(
+                  priority,
+                  rd.did.value,
+                  reason);
+                dRow.freeSeats = rd.seats.value;
+                drivers.push(dRow);
               }
-            } else {
+            } else {// create if no pickup-time
               let dRow: driver4UsherSuggest = await this.createDriverRowNew(
                 priority,
                 rd.did.value,
@@ -883,8 +888,13 @@ class usherSuggestDrivers2 {
               pickupTime = addHours(-2, rr.visitTime.value);
             }
             if (pickupTime.length > 0) {
-              if (rd.fh.value > pickupTime || pickupTime > rd.th.value) {//out of interval
-                continue;
+              if (rd.fh.value <= pickupTime && pickupTime <= rd.th.value) {//out of interval
+                let dRow: driver4UsherSuggest = await this.createDriverRowNew(
+                  priority,
+                  rd.did.value,
+                  reason);
+                dRow.freeSeats = rd.seats.value;
+                drivers.push(dRow);
               }
             } else {
               let dRow: driver4UsherSuggest = await this.createDriverRowNew(
@@ -916,10 +926,15 @@ class usherSuggestDrivers2 {
           //if(ride.status.value == RideStatus.waitingForDriver)//look only for kav-details
           let fab = this.bAreas.find(cur => cur.border === this.fid.value).areaBorders;
           let tab = this.bAreas.find(cur => cur.border === this.tid.value).areaBorders;
-          if (fab.includes(r.fid.value) || tab.includes(r.tid.value)) {
+          if (fab.includes(r.fid.value) || tab.includes(r.tid.value)) {// from OR to
             if (r.pickupTime.value && (!(r.pickupTime.value === '00:00'))) {
-              if (rd.fh.value > r.pickupTime.value || r.pickupTime.value > rd.th.value) {//out of interval
-                continue;
+              if (rd.fh.value <= r.pickupTime.value && r.pickupTime.value <= rd.th.value) {//out of interval
+                let dRow: driver4UsherSuggest = await this.createDriverRowNew(
+                  priority,
+                  rd.did.value,
+                  reason);
+                dRow.freeSeats = rd.seats.value;
+                drivers.push(dRow);
               }
             } else {
               let dRow: driver4UsherSuggest = await this.createDriverRowNew(
@@ -943,8 +958,13 @@ class usherSuggestDrivers2 {
               pickupTime = addHours(-2, rr.visitTime.value);
             }
             if (pickupTime.length > 0) {
-              if (rd.fh.value > pickupTime || pickupTime > rd.th.value) {//out of interval
-                continue;
+              if (rd.fh.value <= pickupTime && pickupTime <= rd.th.value) {//out of interval
+                let dRow: driver4UsherSuggest = await this.createDriverRowNew(
+                  priority,
+                  rd.did.value,
+                  reason);
+                dRow.freeSeats = rd.seats.value;
+                drivers.push(dRow);
               }
             } else {
               let dRow: driver4UsherSuggest = await this.createDriverRowNew(
@@ -971,7 +991,7 @@ class usherSuggestDrivers2 {
     let fiveDaysAgo = addDays(-5, this.date.value);
     for await (const r of this.context.for(Ride).iterate({
       where: cur => cur.driverId.isDifferentFrom('')
-        .and(cur.date.isLessThan(this.date))
+        .and(cur.date.isLessThan(this.date))//date checked before (more importent priority), no need to get again.
         .and(cur.date.isGreaterOrEqualTo(fiveDaysAgo))
     })) {
       if (!(lastFiveDaysDIds.includes(r.driverId.value))) {
@@ -986,8 +1006,8 @@ class usherSuggestDrivers2 {
         .and(cur.fid.isEqualTo(this.fid))
         .and(cur.tid.isEqualTo(this.tid))
     })) {
-      if (!(dIds.includes(r.driverId.value))) {
-        if (!(lastFiveDaysDIds.includes(r.driverId.value))) {
+      if (!(lastFiveDaysDIds.includes(r.driverId.value))) {//not in last 5 days.
+        if (!(dIds.includes(r.driverId.value))) {// keep distinct
           dIds.push(r.driverId.value);
         }
       }
@@ -1023,10 +1043,10 @@ class usherSuggestDrivers2 {
     for await (const r of this.context.for(Ride).iterate({
       where: cur => cur.driverId.isDifferentFrom('')
         .and((cur.fid.isIn(...(this.bAreas.find(ar => ar.border === this.fid.value).areaBorders)))
-          .or(cur.tid.isIn(...(this.bAreas.find(ar => ar.border === this.tid.value).areaBorders))))
+          .or(cur.tid.isIn(...(this.bAreas.find(ar => ar.border === this.tid.value).areaBorders))))// from OR to
     })) {
-      if (!(dIds.includes(r.driverId.value))) {
-        if (!(lastFiveDaysDIds.includes(r.driverId.value))) {
+      if (!(lastFiveDaysDIds.includes(r.driverId.value))) {//not in last 5 days.
+        if (!(dIds.includes(r.driverId.value))) {// keep distinct
           dIds.push(r.driverId.value);
         }
       }
@@ -1047,31 +1067,28 @@ class usherSuggestDrivers2 {
     let result: driver4UsherSuggest[] = [];
 
     let lastFiveDaysDIds: string[] = [];
-    let fiveDaysAgo = addDays(-7, this.date.value);
+    let sixDaysAgo = addDays(-7, this.date.value);
     for await (const r of this.context.for(Ride).iterate({
       where: cur => cur.driverId.isDifferentFrom('')
-        .and(cur.date.isLessThan(this.date))
-        .and(cur.date.isGreaterOrEqualTo(fiveDaysAgo))
+        .and(cur.date.isLessThan(this.date))//without current date
+        .and(cur.date.isGreaterOrEqualTo(sixDaysAgo))
     })) {
       if (!(lastFiveDaysDIds.includes(r.driverId.value))) {
         lastFiveDaysDIds.push(r.driverId.value);
       }
     }
 
-    // let fab = this.bAreas.find(cur => cur.border === this.fid.value).areaBorders;
-    // let tab = this.bAreas.find(cur => cur.border === this.tid.value).areaBorders;
-
     let dIds: string[] = [];
     let sixteenDaysAgo = addDays(-60, this.date.value);
     for await (const r of this.context.for(Ride).iterate({
       where: cur => cur.driverId.isDifferentFrom('')
-        .and(cur.date.isLessThan(this.date))
+        .and(cur.date.isLessThan(this.date))//without current date
         .and(cur.date.isGreaterOrEqualTo(sixteenDaysAgo))
         .and((cur.fid.isIn(...this.bAreas.find(ar => ar.border === this.fid.value).areaBorders))
-          .or(cur.tid.isIn(...this.bAreas.find(ar => ar.border === this.tid.value).areaBorders)))
+          .or(cur.tid.isIn(...this.bAreas.find(ar => ar.border === this.tid.value).areaBorders)))// from OR to
     })) {
-      if (!(dIds.includes(r.driverId.value))) {
-        if (!(lastFiveDaysDIds.includes(r.driverId.value))) {
+      if (!(lastFiveDaysDIds.includes(r.driverId.value))) {//not in last 7 days.
+        if (!(dIds.includes(r.driverId.value))) {// keep distinct
           dIds.push(r.driverId.value);
         }
       }
@@ -1125,25 +1142,28 @@ class usherSuggestDrivers2 {
 
   private async createDriverRowNew(priority: number, did: string, reason: string): Promise<driver4UsherSuggest> {
     let lastRideDays = 0;
-    let lastRide = await this.context.for(Ride).findFirst({
-      where: r => r.driverId.isEqualTo(did),
+    let lastRide = await this.context.for(Ride).findFirst({//see even tommorrow and above
+      where: r => r.driverId.isEqualTo(did)
+        .and(r.status.isNotIn(RideStatus.waitingForAccept)),//DONE! any ride (at least w4_Start)
       orderBy: r => [{ column: r.date, descending: true }, { column: r.visitTime, descending: false }],
     });
     if (lastRide) {
-      let diff = (+(new Date())) - (+lastRide.date.value);
-      lastRideDays = (-1 * (Math.floor(diff / SuggestDriverComponent.ONE_DAY_MS)));
+      lastRideDays = daysDiff(new Date(), lastRide.date.value);
     }
     let d = await this.context.for(Driver).findId(did);
+    if (!(d)) {
+      throw 'NO DRIVER ????? (did=' + did + ')'
+    }
     let home = '';
-    if (d && d.city) {
+    if (d.hasCity()) {
       home = d.city.value;
     }
     let mobile = '';
-    if (d && d.hasMobile()) {
+    if (d.hasMobile()) {
       mobile = d.mobile.value;
     }
     let name = '';
-    if (d && d.name) {
+    if (d.hasName()) {
       name = d.name.value;
     }
     if ((!(name)) || (name.length == 0)) {
@@ -1151,7 +1171,7 @@ class usherSuggestDrivers2 {
       console.log(`${did}-${name}`);
     }
     let seats = 0;
-    if (d) {
+    if (d.hasSeats()) {
       seats = d.seats.value;
     }
 
@@ -1159,17 +1179,14 @@ class usherSuggestDrivers2 {
     let c = await this.context.for(DriverCall).findFirst(
       {
         where: cur => cur.dId.isEqualTo(did),
-        orderBy: cur => [{ column: cur.created, descending: true }]
+        orderBy: cur => [{ column: cur.created, descending: true }]// newest first
       }
     );
     if (c && c.created) {
-      let diff = (+(new Date())) - (+c.created.value);
-      console.log('diff=' + diff);
-      lastCallDays = (-1 * (Math.floor(diff / SuggestDriverComponent.ONE_DAY_MS)));
+      lastCallDays = daysDiff(new Date(), c.created.value);
       if (lastCallDays === 0) {
         lastCallDays = 1;
       }
-      console.log('lastCallDays=' + lastCallDays);
     }
 
     let row: driver4UsherSuggest = {
@@ -1443,7 +1460,7 @@ export class SuggestDriverComponent implements OnInit {
   async filter() {
     if (this.serach && this.serach.length > 0) {
       this.drivers = this.origin.filter(cur => cur.name.trim().toLowerCase().includes(this.serach.trim().toLowerCase()));
-    } 
+    }
     else {
       this.drivers = this.origin;
     }
