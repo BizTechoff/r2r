@@ -20,9 +20,14 @@
             <button style="height: 40px;" mat-raised-button color="primary" (click)="prevDay()">-</button>
             <data-control [column]="params.date"></data-control>
             <button style="height: 40px;" mat-raised-button color="primary" (click)="nextDay()">+</button>
-            <button mat-mini-fab title="Refresh" (click)="refresh()" color="primary" style="align-items: flex-end;"
+            <button mat-mini-fab title="Refresh" (click)="refresh()" color="primary" style="padding:5px;"
                 title="{{ clientLastRefreshDate | date: 'HH:mm' }}">
                 <mat-icon>refresh</mat-icon>
+            </button>
+            <button mat-mini-fab title="Show Rides History For Selected Date" (click)="history()"
+                color="{{ params.historyChanged.value ? 'accent':'primary' }}" style="-ms-flex-align: end"
+                title="{{ clientLastRefreshDate | date: 'HH:mm' }}">
+                <mat-icon>history</mat-icon>
             </button>
         </div>
         <div>
@@ -33,7 +38,7 @@
                 <mat-expansion-panel-header>
                     <mat-panel-title>
                         Last Retrieved: {{ clientLastRefreshDate | date: 'HH:mm' }}
-                        </mat-panel-title>
+                    </mat-panel-title>
                 </mat-expansion-panel-header>
                 <data-control [column]="params.fid"></data-control>
                 <data-control [column]="params.tid"></data-control>

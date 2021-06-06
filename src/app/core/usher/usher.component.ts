@@ -1,5 +1,7 @@
+import { formatDate } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { BoolColumn, Context, DateColumn, DateTimeColumn, Filter, GridSettings, IdEntity, ServerController, ServerFunction, ServerMethod, StringColumn } from '@remult/core';
+import { GridDialogComponent } from '../../common/grid-dialog/grid-dialog.component';
 import { ride4Usher } from '../../shared/types';
 import { Roles } from '../../users/roles';
 import { UserId } from '../../users/users';
@@ -9,6 +11,7 @@ import { Location, LocationIdColumn, LocationType } from '../locations/location'
 import { Patient } from '../patients/patient';
 import { PatientCrudComponent } from '../patients/patient-crud/patient-crud.component';
 import { openRide, Ride, RideStatus, RideStatusColumn } from '../rides/ride';
+import { RideHistory } from '../rides/rideHistory';
 import { MabatGroupBy } from './mabat';
 import { SetDriverComponent } from './set-driver/set-driver.component';
 import { ShowRidesComponent, UsherRowStatus } from './show-rides/show-rides.component';
@@ -67,8 +70,9 @@ class ridesProviderParams extends IdEntity {//componentParams
 @ServerController({ key: 'usherParams', allowed: true })//todo: MABAT = ServerController
 class usherParams {//dataControlSettings: () => ({width: '150px'}), 
   date = new DateColumn({ defaultValue: new Date() /*new Date(2021,2,3)*/, valueChange: async () => { await this.onChanged(); } });
-  fid = new LocationIdColumn({ caption: 'From', valueChange: async () => { await this.onChanged(); } }, this.context);
-  tid = new LocationIdColumn({ caption: 'To', valueChange: async () => { await this.onChanged(); } }, this.context);
+  fid = new LocationIdColumn({ caption: 'From Location', valueChange: async () => { await this.onChanged(); } }, this.context);
+  tid = new LocationIdColumn({ caption: 'To Location', valueChange: async () => { await this.onChanged(); } }, this.context);
+  historyChanged = new BoolColumn({ defaultValue: true });
   // date = new DateColumn({ defaultValue: new Date(), valueChange: async () => { if(this.ready) await this.retrieveRideList4Usher(1); } });
   // fid = new LocationIdColumn({ valueChange: async () => { if(this.ready) await this.retrieveRideList4Usher(2); } }, this.context);
   // tid = new LocationIdColumn({ valueChange: async () => { if(this.ready) await this.retrieveRideList4Usher(3); } }, this.context);
@@ -79,6 +83,7 @@ class usherParams {//dataControlSettings: () => ({width: '150px'}),
   @ServerMethod()
   async retrieveRideList4Usher(id: number): Promise<ride4Usher[]> {
     var result: ride4Usher[] = [];
+    // let rideMaxChanged = new Date(2000, 1, 1);
     // console.log(id);
     for await (const r of this.context.for(Ride).iterate({
       where: cur => cur.date.isEqualTo(this.date)
@@ -86,6 +91,11 @@ class usherParams {//dataControlSettings: () => ({width: '150px'}),
         .and(this.fid.value ? cur.fid.isEqualTo(this.fid) : new Filter(x => { /* true */ }))
         .and(this.tid.value ? cur.tid.isEqualTo(this.tid) : new Filter(x => { /* true */ })),
     })) {
+
+      // if (rideMaxChanged < r.changed.value) {
+      //   rideMaxChanged = r.changed.value;
+      // }
+
       let from = (await this.context.for(Location).findId(r.fid.value));
       let fromName = from.name.value;
       let fromIsBorder = from.type.value == LocationType.border;
@@ -122,6 +132,12 @@ class usherParams {//dataControlSettings: () => ({width: '150px'}),
       row.registers += await this.context.for(RegisterDriver).count(cur => cur.rid.isEqualTo(r.id));
       row.ridesCount += 1;
     }
+
+    // let h = await this.context.for(RideHistory).findFirst({//max(changed)
+    //   orderBy: cur => [{ column: cur.changed, descending: true }]
+    // });
+
+    // this.historyChanged.value = rideMaxChanged > h.changed.value;
 
     result.sort((r1, r2) => (r1.from + '-' + r1.to).localeCompare(r2.from + '-' + r2.to));
 
@@ -234,6 +250,33 @@ export class UsherComponent implements OnInit {
     this.rides = await this.params.retrieveRideList4Usher(0);// await UsherComponent.retrueveRideList4Usher(this.params);
     this.params.onChanged = async () => { await this.refresh(); };
   }
+
+  async history() {
+    let dateStart = new Date(this.params.date.value.getFullYear(), this.params.date.value.getMonth(), this.params.date.value.getDate());
+    let dateEnd = new Date(this.params.date.value.getFullYear(), this.params.date.value.getMonth(), this.params.date.value.getDate(), 23, 59);
+    await this.context.openDialog(GridDialogComponent, gd => gd.args = {
+      title: `Rides Changes For ${formatDate(this.params.date.value, 'dd.MM.yyyy', 'en-US')}`,
+      settings: this.context.for(RideHistory).gridSettings({
+        where: cur => cur.changed.isGreaterOrEqualTo(dateStart)
+          .and(cur.changed.isLessOrEqualTo(dateEnd)),
+        orderBy: cur => [{ column: cur.date, descending: true }],
+        allowCRUD: false,// this.context.isAllowed([Roles.admin, Roles.usher]),
+        allowDelete: false,
+        //showPagination: false,
+        numOfColumnsInGrid: 10,
+        columnSettings: cur => [
+          cur.date,
+          cur.pickupTime,
+          cur.status,
+          cur.changed,
+          cur.changedBy,
+        ],
+      })
+    });
+  }
+
+
+
 
   // async addRide() {
   //   let changed = await addRide('', this.context);

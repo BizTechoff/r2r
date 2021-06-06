@@ -17,6 +17,7 @@
                 <th>Home</th>
                 <th title="Days From Last Ride (any)">Last-Ride</th>
                 <th>Last-Call</th>
+                <th>freeSeats</th>
                 <th>Reason</th>
             </tr>
             <tr *ngFor="let d of drivers" (dblclick)="onDriverSelected(d)" title="Double Click To Select">
@@ -26,6 +27,10 @@
                         <mat-icon>more_vert</mat-icon>
                     </button>
                     <mat-menu #menu="matMenu">
+                        <button mat-menu-item *ngIf="d.reason && d.reason.trim().toLowerCase().includes('register')" (click)="showRegisterRide(d)">
+                            <mat-icon>directions_bus_filled</mat-icon>
+                            <label>Show Register Ride</label>
+                        </button>
                         <button mat-menu-item (click)="showDriverRides(d)">
                             <mat-icon>directions_bus_filled</mat-icon>
                             <label>Show Driver Rides</label>
@@ -40,6 +45,7 @@
                 <td>{{ d.home }}</td>
                 <td>{{ d.lastRideDays }}</td>
                 <td>{{ d.lastCallDays}}</td>
+                <td>{{ d.freeSeats}} {{ (d.seats === d.freeSeats)? '': '/' + d.seats }}</td>
                 <td>{{ d.reason}}</td>
             </tr>
         </table>

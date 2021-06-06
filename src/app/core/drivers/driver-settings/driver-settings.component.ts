@@ -79,11 +79,11 @@ export class DriverSettingsComponent implements OnInit {
     //     columnSettings: p => [
     //       {
     //         column: p.locationId,
-    //         caption: "'From' Border"
+    //         caption: "'From Location'"
     //       },
     //       {
     //         column: p.isAlsoBack,
-    //         caption: "Also 'To' That Border"
+    //         caption: "Also 'To Location' That Border"
     //       },
     //       // p.locationId,
     //       // p.isAlsoBack,

@@ -3,11 +3,11 @@ import { Roles } from "../../../users/roles";
 import { DriverIdColumn } from "../driver";
 
 @EntityClass
-export class RegisterDriver extends IdEntity {
+export class  RegisterDriver extends IdEntity {
  
-    date = new DateColumn();
-    rrid = new StringColumn({});
+    date = new DateColumn(); 
     rid = new StringColumn({});
+    rrid = new StringColumn({});
     did = new DriverIdColumn({});
     fh = new StringColumn({ caption: 'Pickup From' });
     th = new StringColumn({ caption: 'Pickup Till' });

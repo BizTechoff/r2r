@@ -14,8 +14,8 @@ import { RegisterRide } from './registerRide';
 @ServerController({ key: 'registerRidesProvider', allowed: [Roles.admin] })//mabatParams
 class registerRidesProviderParams {//componentParams
   date = new DateColumn({ defaultValue: new Date(), valueChange: async () => await this.onChanged() });//, dataControlSettings: () => ({cssClass: () => {return 'todaySelected';} })
-  fid?= new LocationIdColumn({ caption: 'From', defaultValue: null, allowNull: true }, this.context);
-  tid?= new LocationIdColumn({ caption: 'To', defaultValue: null, allowNull: true }, this.context);
+  fid?= new LocationIdColumn({ caption: 'From Location', defaultValue: null, allowNull: true }, this.context);
+  tid?= new LocationIdColumn({ caption: 'To Location', defaultValue: null, allowNull: true }, this.context);
   onChanged: () => void;
   constructor(private context: Context, onChanged: () => void) {
     this.onChanged = onChanged;

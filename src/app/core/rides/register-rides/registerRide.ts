@@ -8,7 +8,7 @@ import { Location, LocationIdColumn, LocationType } from "../../locations/locati
 export class RegisterRide extends IdEntity {
 
     fid = new LocationIdColumn({
-        caption: 'From',
+        caption: 'From Location',
         validate: async () => {
             if (!(this.fid.value)) {
                 this.fid.validationError = 'Required';
@@ -26,7 +26,7 @@ export class RegisterRide extends IdEntity {
     tid = new LocationIdColumn({
         // allowNull: true,
         // defaultValue: '',
-        caption: 'To',
+        caption: 'To Location',
         validate: async () => {
             if (!(this.tid.value)) {
                 this.tid.validationError = 'Required';
@@ -52,9 +52,9 @@ export class RegisterRide extends IdEntity {
             if (!(this.fdate.value)) {
                 this.fdate.validationError = " Date Required";
             }
-            else if (this.fdate.value < todayMidnight) {
-                this.fdate.validationError = " Must Be Today And Above";
-            }
+            // else if (this.fdate.wasChanged() && this.fdate.value < todayMidnight) {
+            //     this.fdate.validationError = " Must Be Today And Above";
+            // }
         },
         valueChange: () => {
             // if (this.fdate.value < new Date()) {
@@ -100,6 +100,7 @@ export class RegisterRide extends IdEntity {
         super({
             name: "ridesRegisters",
             allowApiCRUD: [Roles.admin],
+            allowApiUpdate: Roles.driver,
             allowApiRead: c => c.isSignedIn(),
         });
     }

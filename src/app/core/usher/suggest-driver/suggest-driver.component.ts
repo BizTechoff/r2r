@@ -757,13 +757,13 @@ class usherSuggestDrivers2 {
     }
 
     this.distinct(drivers,
-      (await this.driversWithSameKavTodayNew(++priority, 'same ride today')));
+      (await this.driversWithSameKavTodayNew(++priority, 'has same ride - at current date')));
 
     this.distinct(drivers,
-      (await this.driversRegisteredSameKavTodayNew(++priority, 'register to kav')));
+      (await this.driversRegisteredSameKavTodayNew(++priority, 'register to kav - at current date')));
 
     this.distinct(drivers,
-      (await this.driversRegisteredSameAreaTodayNew(++priority, 'register to area')));
+      (await this.driversRegisteredSameAreaTodayNew(++priority, 'register to area - at current date')));
 
     this.distinct(drivers,
       (await this.driversMadeRideWithSameKavButNoRideForLast5daysNew(++priority, 'done same kav - no ride last 5 days')));
@@ -1523,6 +1523,57 @@ export class SuggestDriverComponent implements OnInit {
         ],
       }),
     });
+  }
+
+  async showRegisterRide(d: driver4UsherSuggest) {
+
+    if (this.dialog) {
+      this.dialog.info('Coming Soon..');
+    }
+     let rd = await this.context.for(RegisterDriver).findFirst(cur=>cur.did.isEqualTo(d.did));
+     if(rd){
+       if(rd.rid.value){
+         await this.context.openDialog(GridDialogComponent, gd => gd.args = {
+          title: `${d.name} Rides`,
+          settings: this.context.for(Ride).gridSettings({
+            where: r => r.id.isEqualTo(rd.rid),
+            orderBy: r => [{ column: r.date, descending: true }],
+            allowCRUD: false,
+            allowDelete: false,
+            // showPagination: false,
+            numOfColumnsInGrid: 10,
+            columnSettings: r => [
+              r.fid,
+              r.tid,
+              r.date,
+              r.patientId,
+              r.status,
+            ],
+          }),
+        });
+       }
+       else if(rd.rrid.value){
+         await this.context.openDialog(GridDialogComponent, gd => gd.args = {
+      title: `${d.name} Register Rides`,
+      settings: this.context.for(RegisterRide).gridSettings({
+        where: r => r.id.isEqualTo(rd.rrid),
+        orderBy: r => [{ column: r.fdate, descending: true }],
+        allowCRUD: false,                                                                                                                                                                                                                                                                                                                                                           
+        allowDelete: false,
+        // showPagination: false,
+        numOfColumnsInGrid: 10,
+        columnSettings: r => [
+          r.fid,
+          r.tid,
+          r.fdate,
+          r.tdate,
+          // r.,
+          // r.status,
+        ],
+      }),
+    });
+       }
+     }
   }
 
   async showDriverRides(d: driver4UsherSuggest) {

@@ -313,18 +313,18 @@ export class PatientsComponent implements OnInit {
           ride.fid,
           ride.tid,
           [ride.date, ride.visitTime],
-          [ride.escortsCount, ride.pMobile],
+          [ride.escortsCount, ride.pMobile, p.birthDate],
           [ride.isHasBabyChair, ride.isHasWheelchair],
           ride.rRemark,
           ride.dRemark,
         ],
         buttons: [{
           text: 'Patient Contacts',
-          click: async () => { 
+          click: async () => {
             await this.context.openDialog(PatientContactsComponent, sr => sr.args = {
               pid: p.id.value,
             });
-           }
+          }
         }
         ],
         validate: async () => {
@@ -354,6 +354,12 @@ export class PatientsComponent implements OnInit {
           }
         },
         ok: async () => {
+          if (p.birthDate.wasChanged()) {
+            await p.save();
+          }
+          if(!(p.mobile.value)){
+            p.mobile.value = ride.pMobile.value;
+          }
           await ride.save();
           if (!(p.mobile.value)) {
             p.mobile.value = ride.pMobile.value;

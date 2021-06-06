@@ -1120,6 +1120,14 @@ export function addHours(hours: number, time: string) {
     return result;
 }
 
+export function timeDiff(big?: string, small?: string) {
+    //if(big && big.length &&)
+    let day_ms = 24 * 60 * 60 * 1000;//h*m*s*ms
+    let diff = +big - +small;
+    let days = -(Math.ceil(diff / day_ms) + 1);//ONE_DAY_MS = 24 * 60 * 60 * 1000;
+    return days;
+}
+
 export class ByDate {
     static yesterday = new ByDate(d => d.isEqualTo(addDays(-1)));
     static today = new ByDate(d => d.isEqualTo(new Date()));

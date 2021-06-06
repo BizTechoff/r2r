@@ -1,13 +1,16 @@
 import { BoolColumn, ColumnSettings, Context, DateColumn, DateTimeColumn, EntityClass, IdEntity, NumberColumn, StringColumn, ValueListColumn } from "@remult/core";
 import { DialogService } from "../../common/dialog";
+import { DynamicServerSideSearchDialogComponent } from "../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component";
 import { InputAreaComponent } from "../../common/input-area/input-area.component";
 import { MessageType, ServerEventsService } from "../../server/server-events-service";
+import { UserId } from "../../users/users";
 import { ApplicationSettings } from "../application-settings/applicationSettings";
 import { DriverIdColumn } from "../drivers/driver";
 import { DriverPrefs } from "../drivers/driverPrefs";
 import { LocationIdColumn } from "../locations/location";
 import { PatientIdColumn } from "../patients/patient";
 import { addHours } from "../usher/usher";
+import { RideHistory } from "./rideHistory";
 
 @EntityClass
 export class Ride extends IdEntity {
@@ -20,8 +23,8 @@ export class Ride extends IdEntity {
     importRideNum = new StringColumn();
 
     date = new DateColumn({});
-    fid = new LocationIdColumn({ caption: 'From', allowNull: false }, this.context);
-    tid = new LocationIdColumn({ caption: 'To', allowNull: false }, this.context);
+    fid = new LocationIdColumn({ caption: 'From Location', allowNull: false }, this.context);
+    tid = new LocationIdColumn({ caption: 'To Location', allowNull: false }, this.context);
 
     visitTime = new StringColumn({
         defaultValue: '00:00', inputType: 'time'//, 
@@ -51,8 +54,10 @@ export class Ride extends IdEntity {
     dRemark = new StringColumn({ caption: 'Remark For Driver' });
     rRemark = new StringColumn({ caption: 'Remark For Ride' });
     isBackRide = new BoolColumn({ defaultValue: false });
-    mApproved = new BoolColumn({ defaultValue: false });
+    mApproved = new BoolColumn({ defaultValue: false }); 
     isSplitted = new BoolColumn({ defaultValue: false });
+    changed = new DateTimeColumn();
+    changedBy = new UserId(this.context);
 
     constructor(private context: Context, private appSettings: ApplicationSettings, private dialog: DialogService) {
         super({
@@ -67,11 +72,20 @@ export class Ride extends IdEntity {
                     if (this.visitTime.wasChanged()) {
                         this.pickupTime.value = addHours(-2, this.visitTime.value);
                     }
+                    this.changed.value = new Date();
+                    this.changedBy.value = this.context.user.id;
                 }
             },
-            saved: async () => {//trigger from db on status changed
+            saved: async () => {//trigger from db on date OR status changed
                 if (context.onServer) {
-                    if (this.status.wasChanged()) {
+                    if (this.isNew() || this.date.wasChanged() || this.pickupTime.wasChanged() || this.status.wasChanged()) {
+                        let history = await this.context.for(RideHistory).create();
+                        history.rid.value = this.id.value;
+                        history.date.value = this.date.value;
+                        history.pickupTime.value = this.pickupTime.value;
+                        history.status.value = this.status.value;
+                        await history.save();
+
                         // if (appSettings.allowPublishMessages.value) {
                         if (false) {
                             ServerEventsService.OnServerSendMessageToChannel(
@@ -242,6 +256,7 @@ export class RideStatus {
     static waitingForUsherApproove = new RideStatus();//
     static waitingForUsherSelectDriver = new RideStatus();//
 
+    static waitingInHospital = new RideStatus();//ride-status OR patient-status
     static waitingForDriver = new RideStatus();
     static waitingForAccept = new RideStatus();
     static waitingForStart = new RideStatus();
@@ -307,6 +322,32 @@ export class RideStatusColumn extends ValueListColumn<RideStatus>{
     }
 }
 
+
+export class RideIdColumn extends StringColumn {
+    getName() {
+        return this.context.for(Ride).lookup(this).id.value;
+    }
+    async getValueName() {
+        return (await this.context.for(Ride).findId(this.value)).id.value;
+    }
+    constructor(private context?: Context, options?: ColumnSettings<string>) {
+        super({
+            dataControlSettings: () => ({
+                getValue: () => this.getName(),
+                hideDataOnInput: true,
+                clickIcon: 'search',
+                click: (d) => {
+                    this.context.openDialog(DynamicServerSideSearchDialogComponent,
+                        x => x.args(Ride, {
+                            onClear: () => this.value = '',
+                            onSelect: cur => this.value = cur.id.value,
+                            searchColumn: cur => cur.id
+                        }));
+                }
+            })
+        }, options);
+    }
+}
 
 
 export async function openRide(rid: string, context: Context): Promise<boolean> {
