@@ -15,7 +15,7 @@ export class Patient extends IdEntity {
       if (this.birthDate.value) {
         let y1 = new Date().getFullYear();
         let y2 = this.birthDate.value.getFullYear();
-        this.age.value = y1 - y2;
+        this.age.value = Math.max(1, y1 - y2);
       }
       else{
         this.age.value = 0;

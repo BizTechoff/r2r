@@ -1,0 +1,11 @@
+<div class="full-page">
+    <div class="header">
+        <h1>Edit Ride: {{ r.status.value.id }}</h1>
+    </div>
+    <div class="grow-item">
+        <data-area [settings]="rides"></data-area>
+    </div>
+    <div class="footer">
+        <button mat-raised-button color="accent" (click)="save()">Save</button>
+    </div>
+</div>

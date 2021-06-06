@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
 import { Context, DataAreaSettings, NumberColumn } from '@remult/core';
+import { SendSmsComponent } from '../../services/send-sms/send-sms.component';
 import { Patient } from '../patient';
 import { Contact } from '../patient-contacts/contact';
 import { PatientContactsComponent } from '../patient-contacts/patient-contacts.component';
@@ -15,16 +16,16 @@ export class PatientCrudComponent implements OnInit {
   okPressed = false;
   args: {
     pid: string,
-  } = { pid: ''};
+  } = { pid: '' };
   patient = this.context.for(Patient).create();
   areaSettings: DataAreaSettings = new DataAreaSettings({});
   contactsCount = 0;
 
-  
+
   constructor(private context: Context, private dialogRef: MatDialogRef<any>) { }
- 
+
   async ngOnInit() {
-    if(!(this.args.pid)){
+    if (!(this.args.pid)) {
       this.args.pid = '';
     }
     let isNew = (!(this.args.pid.length > 0));
@@ -38,7 +39,7 @@ export class PatientCrudComponent implements OnInit {
       columnSettings: () => [
         [this.patient.name, this.patient.hebName],
         [this.patient.mobile, this.patient.idNumber],
-        [{ column: this.patient.birthDate },{column: this.patient.age, readOnly: true, width: '25px'}],
+        [{ column: this.patient.birthDate }, { column: this.patient.age, readOnly: true, width: '25px' }],
         [this.patient.defaultBorder, this.patient.defaultHospital],
         this.patient.remark,
       ],
@@ -65,8 +66,13 @@ export class PatientCrudComponent implements OnInit {
   async sendMessage() {
     let message = 'תואמה לך נסיעה מחר ממחסום, בית חולים שעה וכו...';
     console.log(`Send message to patient: ${message}`);
-  }
 
+    await this.context.openDialog(SendSmsComponent, sms => sms.args = {
+      mobile: '0526526063',
+      message: 'Sms Works!'
+    });
+  }
+ 
   async contacts() {
 
     await this.context.openDialog(PatientContactsComponent, sr => sr.args = {

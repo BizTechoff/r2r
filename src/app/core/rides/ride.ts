@@ -1,3 +1,4 @@
+import { formatDate } from "@angular/common";
 import { BoolColumn, ColumnSettings, Context, DateColumn, DateTimeColumn, EntityClass, IdEntity, NumberColumn, StringColumn, ValueListColumn } from "@remult/core";
 import { DialogService } from "../../common/dialog";
 import { DynamicServerSideSearchDialogComponent } from "../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component";
@@ -25,6 +26,15 @@ export class Ride extends IdEntity {
     date = new DateColumn({});
     fid = new LocationIdColumn({ caption: 'From Location', allowNull: false }, this.context);
     tid = new LocationIdColumn({ caption: 'To Location', allowNull: false }, this.context);
+    immediate = new BoolColumn({
+        defaultValue: false, valueChange: () => {
+            if (this.immediate.value) {
+                let now = new Date();
+                this.date.value = now;
+                this.visitTime.value = formatDate(now, 'HH:mm', 'en-US');
+            }
+        }
+    });
 
     visitTime = new StringColumn({
         defaultValue: '00:00', inputType: 'time'//, 
@@ -54,7 +64,7 @@ export class Ride extends IdEntity {
     dRemark = new StringColumn({ caption: 'Remark For Driver' });
     rRemark = new StringColumn({ caption: 'Remark For Ride' });
     isBackRide = new BoolColumn({ defaultValue: false });
-    mApproved = new BoolColumn({ defaultValue: false }); 
+    mApproved = new BoolColumn({ defaultValue: false });
     isSplitted = new BoolColumn({ defaultValue: false });
     changed = new DateTimeColumn();
     changedBy = new UserId(this.context);

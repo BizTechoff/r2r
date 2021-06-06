@@ -53,6 +53,8 @@ import { SuggestDriverComponent } from './core/usher/suggest-driver/suggest-driv
 import { ApprovePatientRideComponent } from './core/patients/approve-patient-ride/approve-patient-ride.component';
 import { DemoComponent } from './demo/demo.component';
 import { GeneralReportComponent } from './reports/general-report/general-report.component';
+import { SendSmsComponent } from './core/services/send-sms/send-sms.component';
+import { RideCrudComponent } from './core/rides/ride-crud/ride-crud.component';
 
 
 @NgModule({
@@ -89,6 +91,8 @@ import { GeneralReportComponent } from './reports/general-report/general-report.
     ApprovePatientRideComponent,
     DemoComponent,
     GeneralReportComponent,
+    SendSmsComponent,
+    RideCrudComponent,
   ],
   imports: [
     BrowserModule,
@@ -129,7 +133,8 @@ import { GeneralReportComponent } from './reports/general-report/general-report.
   ],
   bootstrap: [AppComponent],
   entryComponents: [YesNoQuestionComponent, InputAreaComponent,    GridDialogComponent, DynamicServerSideSearchDialogComponent, 
-    SetDriverComponent, ApproveDriverComponent, ShowRidesComponent, PatientContactsComponent, LocationAreaComponent, PatientCrudComponent, SuggestDriverComponent]
+    SetDriverComponent, ApproveDriverComponent, ShowRidesComponent,SendSmsComponent,RideCrudComponent,
+    PatientContactsComponent, LocationAreaComponent, PatientCrudComponent, SuggestDriverComponent]
 })
 export class AppModule { }
 

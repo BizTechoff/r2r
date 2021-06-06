@@ -9,7 +9,6 @@
                 <th>To</th>
                 <th>Contacts</th>
                 <th>Date</th>
-                <th>Time</th>
                 <th>Visit Time</th>
                 <th>Passengers</th>
                 <th>Age</th>
@@ -29,7 +28,6 @@
                 <td *ngIf="r.pId && r.pId.length > 0"><button (click)="openContacts(r)"><u>{{ r.contactsCount }}</u></button></td>
                 <td *ngIf="!(r.pId && r.pId.length > 0)">{{ r.contactsCount }}</td>
                 <td>{{ r.date }}</td>
-                <td>{{ r.time }}</td>
                 <td>{{ r.visitTime }}</td>
                 <td>{{ r.passengers }}</td>
                 <td>{{ r.age }}</td>
