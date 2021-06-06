@@ -20,7 +20,8 @@
                 <td>
                     <div style="display:flex;">
                         <button style="height: 40px;" mat-raised-button color="primary" (click)="prevDay()">-</button>
-                        <data-control [column]="params.date"></data-control>
+                        <data-control [column]="params.date" title='day: {{params.date.getDayOfWeek() + 1}}'>
+                        </data-control>
                         <button style="height: 40px;" mat-raised-button color="primary" (click)="nextDay()">+</button>
                         <button mat-mini-fab title="Refresh" (click)="refresh()" color="primary"
                             title="{{ clientLastRefreshDate | date: 'HH:mm' }}">
@@ -74,7 +75,7 @@
                         <td>From: <i>{{ r.from }}</i></td>
                         <td rowspan="3">
                             <table *ngIf="!r.isRegistered" style="width: 100%;">
-                                <tr>
+                                <tr *ngIf="this.params.date.value>=this.todayMidnigth">
                                     <button class="mat-raised-button" (click)="register(r)">Register</button>
                                 </tr>
                             </table>
@@ -93,7 +94,10 @@
                         <td>rid: {{ r.rid }}</td>
                     </tr>
                     <tr>
-                        <td>rgid: {{ r.rrid }}</td>
+                        <td>rrid: {{ r.rrid }}</td>
+                    </tr>
+                    <tr>
+                        <td>reason: {{ r.reason }}</td>
                     </tr>
                 </table>
             </tr>
@@ -110,7 +114,7 @@
                         <td>From: <i>{{ r.from }}</i></td>
                         <td rowspan="4">
                             <table *ngIf="r.isRegistered" style="width: 100%;">
-                                <tr>
+                                <tr *ngIf="this.params.date.value>=this.todayMidnigth">
                                     <button class="mat-raised-button" (click)="unregister(r)">Unregister</button>
                                 </tr>
                             </table>
@@ -132,7 +136,7 @@
                         <td>rid: {{ r.rid }}</td>
                     </tr>
                     <tr>
-                        <td>rgid: {{ r.rrid }}</td>
+                        <td>rrid: {{ r.rrid }}</td>
                     </tr>
                     <!-- <tr *ngIf="r.dRemark&&r.dRemark.length > 0">
                         <td>Remark: <strong>{{ r.dRemark }}</strong></td>

@@ -107,68 +107,96 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
       where: cur => cur.did.isEqualTo(this.did)
         .and(cur.date.isEqualTo(this.date))
     })) {
-      let fcheck = (this.fid.value && this.fid.value.length > 0);
-      let tcheck = (this.tid.value && this.tid.value.length > 0);
-
-      let boderFunc = (r: Ride, fid: string, tid: string): Filter => {
-        return r.fid.isEqualTo(fid)
-          .or(r.tid.isEqualTo(tid))
-      };
-
-      let kavFunc = (r: Ride, fid: string, tid: string): Filter => {
-        return r.fid.isEqualTo(fid)
-          .and(r.tid.isEqualTo(tid))
-      };
-
-      let areaFunc = (r: Ride, fid: string, tid: string): Filter => {
-        return r.fid.isIn(...this.getLocArea(fid))
-          .or(r.tid.isIn(...this.getLocArea(tid)))
-      };
 
       if (rd.rid.value && rd.rid.value.length > 0) {
         let r = await this.context.for(Ride).findId(rd.rid.value);
         if (r) {
-          let row: ride4DriverRideRegister = {
-            rid: rd.rid.value,
-            rrid: '',
-            dId: this.did.value,
-            date: rd.date.value,
-            fId: r.fid.value,
-            tId: r.tid.value,
-            from: this.locAreas.find(cur => cur.id === r.fid.value).name,
-            to: this.locAreas.find(cur => cur.id === r.tid.value).name,
-            pass: r.passengers(),
-            isRegistered: true,
-            dFromHour: rd.fh.value,
-            dToHour: rd.th.value,
-            dPass: rd.seats.value,
-            pickupTime: r.pickupTime.value,
-            dRemark: r.dRemark.value,
+          let ok = false;
+          if (this.fid.value && this.fid.value.length > 0 && this.tid.value && this.tid.value.length > 0) {
+            if (r.fid.value === this.fid.value && r.tid.value === this.tid.value) {
+              ok = true;
+            }
           }
-          result.registered.push(row);
+          else if (this.fid.value && this.fid.value.length > 0) {
+            if (r.fid.value === this.fid.value) {
+              ok = true;
+            }
+          }
+          else if (this.tid.value && this.tid.value.length > 0) {
+            if (r.tid.value === this.tid.value) {
+              ok = true;
+            }
+          }
+          else {
+            ok = true;// no filter by this.fid/tid
+          }
+
+          if (ok) {
+            let row: ride4DriverRideRegister = {
+              rid: rd.rid.value,
+              rrid: '',
+              dId: this.did.value,
+              date: rd.date.value,
+              fId: r.fid.value,
+              tId: r.tid.value,
+              from: this.locAreas.find(cur => cur.id === r.fid.value).name,
+              to: this.locAreas.find(cur => cur.id === r.tid.value).name,
+              pass: r.passengers(),
+              isRegistered: true,
+              dFromHour: rd.fh.value,
+              dToHour: rd.th.value,
+              dPass: rd.seats.value,
+              pickupTime: r.pickupTime.value,
+              dRemark: r.dRemark.value,
+            }
+            result.registered.push(row);
+          }
         }
       }
+
       else if (rd.rrid.value && rd.rrid.value.length > 0) {
         let rr = await this.context.for(RegisterRide).findId(rd.rrid.value);
         if (rr) {
-          let row: ride4DriverRideRegister = {
-            rid: '',
-            rrid: rd.rrid.value,
-            dId: rd.did.value,
-            date: rd.date.value,
-            fId: rr.fid.value,
-            tId: rr.tid.value,
-            from: this.locAreas.find(cur => cur.id === rr.fid.value).name,
-            to: this.locAreas.find(cur => cur.id === rr.tid.value).name,
-            pass: 0,
-            isRegistered: true,
-            dFromHour: rd.fh.value,
-            dToHour: rd.th.value,
-            dPass: rd.seats.value,
-            pickupTime: addHours(-2, rr.visitTime.value),
-            dRemark: rr.remark.value,
+          let ok = false;
+          if (this.fid.value && this.fid.value.length > 0 && this.tid.value && this.tid.value.length > 0) {
+            if (rr.fid.value === this.fid.value && rr.tid.value === this.tid.value) {
+              ok = true;
+            }
           }
-          result.registered.push(row);
+          else if (this.fid.value && this.fid.value.length > 0) {
+            if (rr.fid.value === this.fid.value) {
+              ok = true;
+            }
+          }
+          else if (this.tid.value && this.tid.value.length > 0) {
+            if (rr.tid.value === this.tid.value) {
+              ok = true;
+            }
+          }
+          else {
+            ok = true;// no filter by this.fid/tid
+          }
+
+          if (ok) {
+            let row: ride4DriverRideRegister = {
+              rid: '',
+              rrid: rd.rrid.value,
+              dId: rd.did.value,
+              date: rd.date.value,
+              fId: rr.fid.value,
+              tId: rr.tid.value,
+              from: this.locAreas.find(cur => cur.id === rr.fid.value).name,
+              to: this.locAreas.find(cur => cur.id === rr.tid.value).name,
+              pass: 0,
+              isRegistered: true,
+              dFromHour: rd.fh.value,
+              dToHour: rd.th.value,
+              dPass: rd.seats.value,
+              pickupTime: addHours(-2, rr.visitTime.value),
+              dRemark: rr.remark.value,
+            }
+            result.registered.push(row);
+          }
         }
       }
     }
@@ -227,6 +255,7 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
           dPass: 0,
           pickupTime: r.pickupTime.value,
           dRemark: r.dRemark.value,
+          reason: matchPrefs ? 'By Prefs' : matchKavHistory ? `By Kav History` : matchFAreaHistory ? 'By Area(f) History' : matchTAreaHistory ? 'By Area(t) History' : ''
         }
         result.newregistered.push(row);
       }
@@ -244,14 +273,7 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
               ? cur.fid.isEqualTo(this.fid)
               : this.tid.value && this.tid.value.length > 0//this tid
                 ? cur.tid.isEqualTo(this.tid)
-                : new Filter(f => { return true; })
-          // : cur.fid.isIn(...dPrefs.map(i => i.lid)).or(cur.tid.isIn(...dPrefs.map(i => i.lid)))
-          //   .or(cur.fid.isIn(...dHistory.map(i => i.fid)).and(cur.tid.isIn(...dHistory.map(i => i.tid))))
-          //   .or(cur.fid.isIn(...this.getLocsArea(dHistory.map(i => i.fid))).and(cur.tid.isEqualTo(this.tid)))
-          //   .or(cur.tid.isIn(...this.getLocsArea(dHistory.map(i => i.tid))).and(cur.fid.isEqualTo(this.fid)))
-        )
-      // .and(this.fid.value ? cur.fid.isEqualTo(this.fid) : cur.fid.isIn(...dPrefs.map(l => l.lid)).or(cur.fid.isIn(...fBorders))
-      //   .or(this.tid.value ? cur.tid.isEqualTo(this.tid) : cur.tid.isIn(...dPrefs.map(l => l.lid)).or(cur.tid.isIn(...tBorders))))
+                : new Filter(f => { return true; }))
     })) {
 
       if (rr.isOneOdDayWeekSelected()) {
@@ -298,6 +320,7 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
           // dPass: nreg.seats.value,
           pickupTime: addHours(-2, rr.visitTime.value),
           dRemark: rr.remark.value,
+          reason: matchPrefs ? 'By Prefs' : matchKavHistory ? `By Kav History` : matchFAreaHistory ? 'By Area(f) History' : matchTAreaHistory ? 'By Area(t) History' : ''
         };
         result.newregistered.push(row);
       }
@@ -364,14 +387,14 @@ export class DriverRegisterComponent implements OnInit {
   clientLastRefreshDate: Date = new Date();
   demoDates: string;
   static lastRefreshDate: Date = new Date();//client time
+  todayMidnigth = new Date();
 
   constructor(private context: Context, private dialog: DialogService) { }
 
   async prevDay() {
     this.params.date.value = addDays(-1, this.params.date.value);
-    // console.log(this.params.date.value);
   }
-
+ 
   async nextDay() {
     this.params.date.value = addDays(+1, this.params.date.value);
     // console.log(this.params.date.value);
@@ -394,6 +417,8 @@ export class DriverRegisterComponent implements OnInit {
     if (!(this.driver)) {
       throw 'Error - You are not register to use app';
     }
+    this.todayMidnigth = new Date(this.todayMidnigth.getFullYear(), this.todayMidnigth.getMonth(), this.todayMidnigth.getDate());
+    
     this.params.fid.value = this.driver.defaultFromLocation ? this.driver.defaultFromLocation.value : null;
     this.params.tid.value = this.driver.defaultToLocation ? this.driver.defaultToLocation.value : null;
     this.params.did.value = this.driver.id.value;

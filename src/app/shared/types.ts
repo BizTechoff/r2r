@@ -56,6 +56,7 @@ export interface ride4DriverRideRegister {
   dPass?: number,
   pickupTime?:string,
   dRemark:string,
+  reason?:string,
 };
  
 export interface ride4Driver {
