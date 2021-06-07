@@ -1,8 +1,7 @@
-import { ThrowStmt } from "@angular/compiler";
 import { BoolColumn, Context, DateColumn, DateTimeColumn, EntityClass, IdEntity, NumberColumn, StringColumn } from "@remult/core";
 import { Roles } from "../../../users/roles";
 import { DriverIdColumn } from "../../drivers/driver";
-import { Location, LocationIdColumn, LocationType } from "../../locations/location";
+import { LocationIdColumn } from "../../locations/location";
 
 @EntityClass
 export class RegisterRide extends IdEntity {
@@ -84,15 +83,8 @@ export class RegisterRide extends IdEntity {
     thursday = new BoolColumn({ caption: 'thu', defaultValue: false });
     friday = new BoolColumn({ caption: 'fri', defaultValue: false });
     saturday = new BoolColumn({ caption: 'sat', defaultValue: false });
-    // passengers = new NumberColumn({
-    //     validate: () => {
-    //         if (this.passengers.value == 0) {
-    //             this.validationError = " Passengers Required";
-    //         }
-    //     }
-    // });
-    did?= new DriverIdColumn({ caption: 'Approved Driver' }, this.context);
-    didDate?= new DateTimeColumn({});
+    did = new DriverIdColumn({ caption: 'Approved Driver' }, this.context);
+    didDate = new DateTimeColumn({});
     dCount = new NumberColumn({ caption: 'RegisteredDrivers', defaultValue: 0 });
     remark = new StringColumn({});
 
@@ -105,8 +97,8 @@ export class RegisterRide extends IdEntity {
         });
     }
 
-    isOneOdDayWeekSelected(): boolean{
-        return this.sunday.value ||  this.monday.value ||  this.tuesday.value ||  this.wednesday.value ||  this.thursday.value ||  this.friday.value ||  this.saturday.value;
+    isOneOdDayWeekSelected(): boolean {
+        return this.sunday.value || this.monday.value || this.tuesday.value || this.wednesday.value || this.thursday.value || this.friday.value || this.saturday.value;
     }
 
 }

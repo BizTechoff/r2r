@@ -31,7 +31,7 @@
         <mat-expansion-panel [expanded]="params.fid.value || params.tid.value">
             <mat-expansion-panel-header>
                 <mat-panel-title>
-                    Last Retrieved: {{ clientLastRefreshDate | date: 'HH:mm' }}
+                    Data Retrieved At: {{ clientLastRefreshDate | date: 'HH:mm' }}
                 </mat-panel-title>
             </mat-expansion-panel-header>
             <data-control [column]="params.fid"></data-control>

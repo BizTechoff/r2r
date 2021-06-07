@@ -1,15 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { BusyService } from '@remult/angular';
 import { Context, StringColumn } from '@remult/core';
-import { Roles } from '../../users/roles';
-import { Location } from './location';
+import { Roles } from '../../../users/roles';
+import { Location } from './../location';
 
 @Component({
-  selector: 'app-locations',
-  templateUrl: './locations.component.html',
-  styleUrls: ['./locations.component.scss']
+  selector: 'app-locations-list',
+  templateUrl: './locations-list.component.html',
+  styleUrls: ['./locations-list.component.scss']
 })
-export class LocationsComponent implements OnInit {
+export class LocationsListComponent implements OnInit {
 
   search = new StringColumn({
     caption: 'search location name',

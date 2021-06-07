@@ -19,7 +19,7 @@ class reportParams {
   tid = new LocationIdColumn({ caption: 'To Location' }, this.context);
   did = new DriverIdColumn({ caption: 'Driver' }, this.context);
   pid = new PatientIdColumn(this.context, { caption: 'Patient' });
-
+ 
   where: EntityWhere<Ride> = cur => cur.date.isGreaterOrEqualTo(this.fdate)
     .and(cur.date.isLessOrEqualTo(this.tdate))
     .and(this.fid.value ? cur.fid.isEqualTo(this.fid) : new Filter(x => { /* true */ }))

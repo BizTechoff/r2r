@@ -1,14 +1,13 @@
 import { Context, ServerContext, SqlDatabase } from '@remult/core';
 import * as fs from 'fs';
 import * as fetch from 'node-fetch';
-import { ApplicationSettings } from '../core/application-settings/applicationSettings';
 import { Driver } from '../core/drivers/driver';
 import { DriverPrefs } from '../core/drivers/driverPrefs';
 import { Location, LocationArea, LocationType } from '../core/locations/location';
 import { Patient } from '../core/patients/patient';
 import { Ride, RideStatus } from '../core/rides/ride';
 import { Users } from '../users/users';
-
+ 
 let volunteersFolder = "c:/r2r/volunteers";
 let ridersFolder = "c:/r2r/rides";
 let daysToRetrieve = 90;//3 months
@@ -57,7 +56,7 @@ export async function importDataNew(db: SqlDatabase, fresh = false) {
     console.timeEnd("insert data to new db");
 
     //console.log("list tables with data");
-    console.log(`settings: ${await context.for(ApplicationSettings).count()} rows`);
+    // console.log(`settings: ${await context.for(ApplicationSettings).count()} rows`);
     console.log(`locations: ${await context.for(Location).count()} rows`);
     console.log(`users: ${await context.for(Users).count()} rows`);
     console.log(`drivers: ${await context.for(Driver).count()} rows`);
@@ -71,15 +70,15 @@ export async function importDataNew(db: SqlDatabase, fresh = false) {
 async function seed(context?: Context) {
 
     // Create admin user if not exists.
-    let count = await context.for(ApplicationSettings).count();
-    if (count == 0) {
-        let a = context.for(ApplicationSettings).create();
-        await a.save();
-        console.log("created ApplicationSettings");
-    }
+    // let count = await context.for(ApplicationSettings).count();
+    // if (count == 0) {
+    //     let a = context.for(ApplicationSettings).create();
+    //     await a.save();
+    //     console.log("created ApplicationSettings");
+    // }
 
     // Create admin user if not exists.
-    count = await context.for(Users).count();
+    let count = await context.for(Users).count();
     if (count == 0) {
         let u = context.for(Users).create();
         u.isAdmin.value = true;

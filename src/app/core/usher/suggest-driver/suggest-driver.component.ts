@@ -777,9 +777,14 @@ class usherSuggestDrivers2 {
     this.distinct(drivers,
       (await this.driversNoRideForLast7daysNew(++priority, 'no ride last 7 days')));
 
-    drivers.sort((d1, d2) => d1.priority - d2.priority == 0 /*same*/
-      ? d1.lastRideDays - d2.lastRideDays
-      : d1.priority - d2.priority);
+    drivers.sort((d1, d2) => // sort by: priority, lastRideDays, lastCallDays, freeSeats
+      d1.priority - d2.priority === 0 /*same*/
+        ? d1.lastRideDays - d2.lastRideDays === 0 /*same*/
+          ? d1.lastCallDays - d2.lastCallDays == 0 /*same*/
+            ? d1.freeSeats - d2.freeSeats // default compare
+            : d1.lastCallDays - d2.lastCallDays // default compare
+          : d1.lastRideDays - d2.lastRideDays // default compare
+        : d1.priority - d2.priority); // default compare
 
     return drivers;
   }
@@ -840,7 +845,9 @@ class usherSuggestDrivers2 {
           reason);
         // no free-seats, no relevent
         if (row.seats - itm.taken > 0) {
-          row.freeSeats -= itm.taken;
+          console.log('row.seats=' + row.seats);
+          console.log('itm.taken=' + itm.taken);
+          row.freeSeats = row.seats - itm.taken;
           drivers.push(row);
         }
       }
@@ -854,6 +861,7 @@ class usherSuggestDrivers2 {
     for await (const rd of this.context.for(RegisterDriver).iterate({
       where: cur => cur.date.isEqualTo(this.date)
     })) {
+
       if (rd.rid.value) {
         let r = await this.context.for(Ride).findId(rd.rid);
         if (r) {
@@ -861,24 +869,31 @@ class usherSuggestDrivers2 {
           if (r.fid.value === this.fid.value && r.tid.value === this.tid.value) {
             if (r.pickupTime.value && (!(r.pickupTime.value === '00:00'))) {
               if (rd.fh.value <= r.pickupTime.value && r.pickupTime.value <= rd.th.value) {//out of interval
-                let dRow: driver4UsherSuggest = await this.createDriverRowNew(
-                  priority,
-                  rd.did.value,
-                  reason);
-                dRow.freeSeats = rd.seats.value;
-                drivers.push(dRow);
+                let dRow: driver4UsherSuggest = drivers.find(cur => cur.did === rd.did.value);
+                if (!(dRow)) {
+                  dRow = await this.createDriverRowNew(
+                    priority,
+                    rd.did.value,
+                    reason + `(${rd.fh.value}-${rd.th.value})`);
+                  drivers.push(dRow);
+                }
+                dRow.freeSeats -= r.passengers();
               }
             } else {// create if no pickup-time
-              let dRow: driver4UsherSuggest = await this.createDriverRowNew(
-                priority,
-                rd.did.value,
-                reason);
-              dRow.freeSeats = rd.seats.value;
-              drivers.push(dRow);
+              let dRow: driver4UsherSuggest = drivers.find(cur => cur.did === rd.did.value);
+              if (!(dRow)) {
+                dRow = await this.createDriverRowNew(
+                  priority,
+                  rd.did.value,
+                  reason + `(anytime)`);
+                drivers.push(dRow);
+              }
+              dRow.freeSeats -= r.passengers();
             }
           }
         }
       }
+
       else if (rd.rrid.value) {
         let rr = await this.context.for(RegisterRide).findId(rd.rrid);
         if (rr) {
@@ -889,20 +904,26 @@ class usherSuggestDrivers2 {
             }
             if (pickupTime.length > 0) {
               if (rd.fh.value <= pickupTime && pickupTime <= rd.th.value) {//out of interval
-                let dRow: driver4UsherSuggest = await this.createDriverRowNew(
-                  priority,
-                  rd.did.value,
-                  reason);
-                dRow.freeSeats = rd.seats.value;
-                drivers.push(dRow);
+                let dRow = drivers.find(cur => cur.did === rd.did.value);
+                if (!(dRow)) {
+                  dRow = await this.createDriverRowNew(
+                    priority,
+                    rd.did.value,
+                    reason + `(${rd.fh.value}-${rd.th.value})`);
+                  drivers.push(dRow);
+                }
+                dRow.freeSeats -= rd.seats.value;
               }
             } else {
-              let dRow: driver4UsherSuggest = await this.createDriverRowNew(
-                priority,
-                rd.did.value,
-                reason);
-              dRow.freeSeats = rd.seats.value;
-              drivers.push(dRow);
+              let dRow = drivers.find(cur => cur.did === rd.did.value);
+              if (!(dRow)) {
+                dRow = await this.createDriverRowNew(
+                  priority,
+                  rd.did.value,
+                  reason + `(anytime)`);
+                drivers.push(dRow);
+              }
+              dRow.freeSeats -= rd.seats.value;
             }
           }
         }
@@ -910,6 +931,7 @@ class usherSuggestDrivers2 {
           console.log(`Should not be here (rd.id=${rd.id})`)
         }
       }
+
     }
     return drivers;
   }
@@ -1427,20 +1449,20 @@ class usherSuggestDrivers2 {
 }
 
 
-class SuggestDriver extends Entity {
+// class SuggestDriver extends Entity {
 
-  did = new DriverIdColumn({ caption: "Driver" });
-  name = new StringColumn();
-  mobile = new StringColumn();
-  home = new StringColumn();
-  seats = new NumberColumn();
-  freeSeats = new StringColumn();
-  lastRideDays = new StringColumn();
-  lastCallDays = new StringColumn();
-  priority = new StringColumn();
-  reason = new StringColumn();
+//   did = new DriverIdColumn({ caption: "Driver" }, this.context);
+//   name = new StringColumn();
+//   mobile = new StringColumn();
+//   home = new StringColumn();
+//   seats = new NumberColumn();
+//   freeSeats = new StringColumn();
+//   lastRideDays = new StringColumn();
+//   lastCallDays = new StringColumn();
+//   priority = new StringColumn();
+//   reason = new StringColumn();
 
-}
+// }
 
 @Component({
   selector: 'app-suggest-driver',
@@ -1527,13 +1549,13 @@ export class SuggestDriverComponent implements OnInit {
 
   async showRegisterRide(d: driver4UsherSuggest) {
 
-    if (this.dialog) {
-      this.dialog.info('Coming Soon..');
-    }
-     let rd = await this.context.for(RegisterDriver).findFirst(cur=>cur.did.isEqualTo(d.did));
-     if(rd){
-       if(rd.rid.value){
-         await this.context.openDialog(GridDialogComponent, gd => gd.args = {
+    // if (this.dialog) {
+    //   this.dialog.info('Coming Soon..');
+    // }
+    let rd = await this.context.for(RegisterDriver).findFirst(cur => cur.did.isEqualTo(d.did));
+    if (rd) {
+      if (rd.rid.value) {
+        await this.context.openDialog(GridDialogComponent, gd => gd.args = {
           title: `${d.name} Rides`,
           settings: this.context.for(Ride).gridSettings({
             where: r => r.id.isEqualTo(rd.rid),
@@ -1551,33 +1573,34 @@ export class SuggestDriverComponent implements OnInit {
             ],
           }),
         });
-       }
-       else if(rd.rrid.value){
-         await this.context.openDialog(GridDialogComponent, gd => gd.args = {
-      title: `${d.name} Register Rides`,
-      settings: this.context.for(RegisterRide).gridSettings({
-        where: r => r.id.isEqualTo(rd.rrid),
-        orderBy: r => [{ column: r.fdate, descending: true }],
-        allowCRUD: false,                                                                                                                                                                                                                                                                                                                                                           
-        allowDelete: false,
-        // showPagination: false,
-        numOfColumnsInGrid: 10,
-        columnSettings: r => [
-          r.fid,
-          r.tid,
-          r.fdate,
-          r.tdate,
-          // r.,
-          // r.status,
-        ],
-      }),
-    });
-       }
-     }
+      }
+      else if (rd.rrid.value) {
+        await this.context.openDialog(GridDialogComponent, gd => gd.args = {
+          title: `${d.name} Register Rides`,
+          settings: this.context.for(RegisterRide).gridSettings({
+            where: r => r.id.isEqualTo(rd.rrid),
+            orderBy: r => [{ column: r.fdate, descending: true }],
+            allowCRUD: false,
+            allowDelete: false,
+            // showPagination: false,
+            numOfColumnsInGrid: 10,
+            columnSettings: r => [
+              r.fid,
+              r.tid,
+              r.fdate,
+              r.tdate,
+              // r.,
+              // r.status,
+            ],
+          }),
+        });
+      }
+    }
   }
 
   async showDriverRides(d: driver4UsherSuggest) {
 
+    let pass = new NumberColumn({ caption: 'Pass' });
     await this.context.openDialog(GridDialogComponent, gd => gd.args = {
       title: `${d.name} Rides`,
       settings: this.context.for(Ride).gridSettings({
@@ -1587,12 +1610,14 @@ export class SuggestDriverComponent implements OnInit {
         allowDelete: false,
         // showPagination: false,
         numOfColumnsInGrid: 10,
-        columnSettings: r => [
-          r.fid,
-          r.tid,
-          r.date,
-          r.patientId,
-          r.status,
+        columnSettings: cur => [
+          cur.fid,
+          cur.tid,
+          cur.date,
+          cur.pickupTime,
+          { column: pass, getValue: (r) => { return r.passengers(); } },
+          cur.patientId,
+          cur.status,
         ],
         // rowButtons: [
         //   {

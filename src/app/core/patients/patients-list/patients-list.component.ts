@@ -1,15 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { BusyService } from '@remult/angular';
 import { BoolColumn, Context, DateColumn, NumberColumn, ServerController, ServerMethod, StringColumn } from '@remult/core';
-import { DialogService } from '../../common/dialog';
-import { GridDialogComponent } from '../../common/grid-dialog/grid-dialog.component';
-import { InputAreaComponent } from '../../common/input-area/input-area.component';
-import { Roles } from '../../users/roles';
-import { Ride, RideStatusColumn } from '../rides/ride';
-import { addDays } from '../usher/usher';
-import { Patient, PatientIdColumn } from './patient';
-import { PatientContactsComponent } from './patient-contacts/patient-contacts.component';
-import { PatientCrudComponent } from './patient-crud/patient-crud.component';
+import { DialogService } from '../../../common/dialog';
+import { GridDialogComponent } from '../../../common/grid-dialog/grid-dialog.component';
+import { InputAreaComponent } from '../../../common/input-area/input-area.component';
+import { Roles } from '../../../users/roles';
+import { Ride, RideStatusColumn } from '../../rides/ride';
+import { RideCrudComponent } from '../../rides/ride-crud/ride-crud.component';
+import { addDays } from '../../usher/usher';
+import { Patient, PatientIdColumn } from './../patient';
+import { PatientContactsComponent } from './../patient-contacts/patient-contacts.component';
+import { PatientCrudComponent } from './../patient-crud/patient-crud.component';
 
 export class patientRides {
   id = new StringColumn();
@@ -24,7 +25,7 @@ export class patientRides {
   isWaitingForStart = new BoolColumn();
   isWaitingForPickup = new BoolColumn();
   isWaitingForArrived = new BoolColumn();
-};
+}; 
 
 @ServerController({ key: 'p', allowed: [Roles.matcher, Roles.usher, Roles.admin] })
 class patientService {
@@ -52,11 +53,11 @@ class patientService {
 }
 
 @Component({
-  selector: 'app-patients',
-  templateUrl: './patients.component.html',
-  styleUrls: ['./patients.component.scss']
+  selector: 'app-patients-list',
+  templateUrl: './patients-list.component.html',
+  styleUrls: ['./patients-list.component.scss']
 })
-export class PatientsComponent implements OnInit {
+export class PatientsListComponent implements OnInit {
 
   search = new StringColumn({
     caption: 'search patient name',
@@ -182,65 +183,9 @@ export class PatientsComponent implements OnInit {
   }
 
   async editRide(r: Ride) {
-    let today = new Date();
-    let tomorrow = new Date();
-    tomorrow.setDate(today.getDate() + 1);
-    let tomorrow10am = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate(), 10);
-
-    // var isNeedReturnTrip = new BoolColumn({ caption: "Need Return Ride" });
-    await this.context.openDialog(
-      InputAreaComponent,
-      x => x.args = {
-        title: `Edit Ride: (${r.status.value.id})`,// ${p.name.value} (age: ${p.age.value})`,
-        columnSettings: () => [
-          { column: r.fid },
-          { column: r.tid },
-          [
-            { column: r.date },
-            { column: r.visitTime }
-          ],
-          { column: r.escortsCount },
-          [
-            r.isHasBabyChair,
-            r.isHasWheelchair
-          ],
-          // { column: ride.dRemark, readOnly: true },
-          // { column: r.rRemark, readOnly: true, caption: 'Remark' },
-          r.rRemark,
-          r.dRemark,
-        ],
-        // buttons: [{
-        //   text: 'Patient Details',
-        //   click: async () => { await this.editPatient(p); }
-        // }
-        // ],
-        validate: async () => {
-          if (!(r.fid.value && r.fid.value.length > 0)) {
-            r.fid.validationError = 'Required';
-            throw r.fid.defs.caption + ' ' + r.fid.validationError;
-          }
-          if (!(r.tid.value && r.tid.value.length > 0)) {
-            r.tid.validationError = 'Required';
-            throw r.tid.defs.caption + ' ' + r.tid.validationError;
-          }
-          if (!(r.isHasDate())) {
-            r.date.validationError = 'Required';
-            throw r.date.defs.caption + ' ' + r.date.validationError;
-          }
-          if (r.date.value < addDays(0)) {
-            r.date.validationError = 'Must be greater or equals today';
-            throw r.date.defs.caption + ' ' + r.date.validationError;
-          }
-          if (!(r.isHasVisitTime())) {
-            r.visitTime.validationError = 'Required';
-            throw r.visitTime.defs.caption + ' ' + r.visitTime.validationError;
-          }
-        },
-        ok: async () => {
-          await r.save();
-        }
-      },
-    )
+    await this.context.openDialog(RideCrudComponent, thus => thus.args = {
+      rid: r.id.value
+    });
   }
 
   async openScheduleRides(p: Patient) {
@@ -358,7 +303,7 @@ export class PatientsComponent implements OnInit {
           if (p.birthDate.wasChanged()) {
             await p.save();
           }
-          if(!(p.mobile.value)){
+          if (!(p.mobile.value)) {
             p.mobile.value = ride.pMobile.value;
           }
           await ride.save();

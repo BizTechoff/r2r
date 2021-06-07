@@ -1,9 +1,12 @@
 import { Component, OnInit } from '@angular/core';
+import { async } from '@angular/core/testing';
 import { BoolColumn, Context, DateColumn, Filter, NumberColumn, ServerController, ServerFunction, StringColumn } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
+import { GridDialogComponent } from '../../../common/grid-dialog/grid-dialog.component';
 import { InputAreaComponent } from '../../../common/input-area/input-area.component';
 import { ride4UsherRideRegister } from '../../../shared/types';
 import { Roles } from '../../../users/roles';
+import { Driver } from '../../drivers/driver';
 import { RegisterDriver } from '../../drivers/driver-register/registerDriver';
 import { Location, LocationIdColumn } from '../../locations/location';
 import { addDays } from '../../usher/usher';
@@ -117,6 +120,13 @@ export class RegisterRidesComponent implements OnInit {
       { column: cur.friday, caption: '6', width: '10', readOnly: true },
       { column: cur.saturday, caption: '7', width: '10', readOnly: true },
     ],
+    rowButtons: [
+      {
+        textInMenu: 'Registered Drivers',
+        click: async (cur) => { await this.openRegisteredDrivers(cur); },
+        visible: cur => cur.dCount.value > 0
+      }
+    ],
   });
 
   rides: ride4UsherRideRegister[];
@@ -142,19 +152,19 @@ export class RegisterRidesComponent implements OnInit {
   static async retrieveRegisterRides(context?: Context) {
     var result: ride4UsherRideRegister[] = [];
 
-    for await (const reg of context.for(RegisterRide).iterate({
+    for await (const rr of context.for(RegisterRide).iterate({
     })) {
-      let from = (await context.for(Location).findId(reg.fid)).name.value;
-      let to = (await context.for(Location).findId(reg.tid)).name.value;
+      let from = (await context.for(Location).findId(rr.fid)).name.value;
+      let to = (await context.for(Location).findId(rr.tid)).name.value;
       let registeredCount = (await context.for(RegisterDriver).count(
-        rg => rg.rid.isEqualTo(reg.id),
+        cur => cur.rrid.isEqualTo(rr.id),
       ));
 
       let row: ride4UsherRideRegister = {
-        rgId: reg.id.value,
-        date: reg.fdate.value,
-        fId: reg.fid.value,
-        tId: reg.tid.value,
+        rgId: rr.id.value,
+        date: rr.fdate.value,
+        fId: rr.fid.value,
+        tId: rr.tid.value,
         from: from,
         to: to,
         // pass: reg.passengers.value,
@@ -167,6 +177,27 @@ export class RegisterRidesComponent implements OnInit {
     result.sort((r1, r2) => +r1.date - +r2.date);
 
     return result;
+  } 
+ 
+  async openRegisteredDrivers(rr: RegisterRide) {
+    let from =( await this.context.for(Location).findId(rr.fid.value)).name.value;
+    let to =( await this.context.for(Location).findId(rr.tid.value)).name.value;
+    await this.context.openDialog(GridDialogComponent, gd => gd.args = {
+      title: `Registered Drivers For ${from}-${to}`,
+      settings: this.context.for(RegisterDriver).gridSettings({
+        where: cur => cur.rrid.isEqualTo(rr.id),
+        orderBy: cur => [{ column: cur.did, descending: false }],
+        allowCRUD: false,
+        allowDelete: false,
+        numOfColumnsInGrid: 10,
+        columnSettings: cur => [
+          cur.did,
+          cur.fh,
+          cur.th,
+          cur.seats
+        ],
+      }),
+    });
   }
 
   async openAddRegisterRide() {
@@ -195,13 +226,13 @@ export class RegisterRidesComponent implements OnInit {
           }
         },
         ok: async () => {
-            await reg.save();
-            if (this.params.date.value == reg.fdate.value) {
-              await this.refresh();
-            }
-            else {
-              this.params.date.value = reg.fdate.value;//auto-refresh-onchanged
-            }
+          await reg.save();
+          if (this.params.date.value == reg.fdate.value) {
+            await this.refresh();
+          }
+          else {
+            this.params.date.value = reg.fdate.value;//auto-refresh-onchanged
+          }
         }
       },
     );
@@ -216,6 +247,17 @@ export class RegisterRidesComponent implements OnInit {
   }
 
   async deleteSelected() {
+    let canDelete = true;
+    for (const reg of this.registerSettings.selectedRows) {
+      if(reg.dCount.value > 0){
+canDelete = false;
+break;
+      }
+    }
+    if(!(canDelete)){
+      await this.dialog.error(`Can NOT delete where drivers registered`);
+      return;
+    }
     let message = `${this.registerSettings.selectedRows.length} ${this.registerSettings.selectedRows.length == 1 ? 'row' : 'rows'}`;
     let yes = await this.dialog.confirmDelete(message);
     if (yes) {
@@ -248,3 +290,4 @@ export class RegisterRidesComponent implements OnInit {
   }
 
 }
+

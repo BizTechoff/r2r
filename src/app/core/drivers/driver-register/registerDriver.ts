@@ -8,9 +8,9 @@ export class  RegisterDriver extends IdEntity {
     date = new DateColumn(); 
     rid = new StringColumn({});
     rrid = new StringColumn({});
-    did = new DriverIdColumn({});
-    fh = new StringColumn({ caption: 'Pickup From' });
-    th = new StringColumn({ caption: 'Pickup Till' });
+    did = new DriverIdColumn({caption: 'Driver'}, this.context);
+    fh = new StringColumn({ caption: 'Pickup From', inputType: 'time' });
+    th = new StringColumn({ caption: 'Pickup Till', inputType: 'time' });
     seats = new NumberColumn({  
         caption: 'Free Seats',
         validate: () => {

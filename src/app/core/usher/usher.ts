@@ -1101,11 +1101,19 @@ export function addDays(days: number, date?: Date) {
     return xnotime;
 }
 
+export function resetTime(d:Date){
+    let result = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    return result;
+}
+
 export function daysDiff(big?: Date, small?: Date) {
-    let day_ms = 24 * 60 * 60 * 1000;//h*m*s*ms
-    let diff = +big - +small;
-    let days = -(Math.ceil(diff / day_ms) + 1);//ONE_DAY_MS = 24 * 60 * 60 * 1000;
-    return days;
+    let result = 0;
+    if (small && big) {
+        let day_ms = 24 * 60 * 60 * 1000;//h*m*s*ms
+        let diff = +resetTime(big) - +resetTime(small);
+        result = -(Math.ceil(diff / day_ms));//ONE_DAY_MS = 24 * 60 * 60 * 1000;
+    }
+    return result;
 }
 
 export function addHours(hours: number, time: string) {

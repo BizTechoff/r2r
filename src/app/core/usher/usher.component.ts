@@ -10,11 +10,11 @@ import { RegisterDriver } from '../drivers/driver-register/registerDriver';
 import { Location, LocationIdColumn, LocationType } from '../locations/location';
 import { Patient } from '../patients/patient';
 import { PatientCrudComponent } from '../patients/patient-crud/patient-crud.component';
-import { openRide, Ride, RideStatus, RideStatusColumn } from '../rides/ride';
+import { Ride, RideStatus, RideStatusColumn } from '../rides/ride';
+import { RideCrudComponent } from '../rides/ride-crud/ride-crud.component';
 import { RideHistory } from '../rides/rideHistory';
 import { MabatGroupBy } from './mabat';
 import { SetDriverComponent } from './set-driver/set-driver.component';
-import { ShowRidesComponent, UsherRowStatus } from './show-rides/show-rides.component';
 import { addDays, Usher, UsherRideGroup, UsherRideRow } from './usher';
 
 // @EntityClass
@@ -193,33 +193,33 @@ export class UsherComponent implements OnInit {
 
   async openBackRide(r: Ride): Promise<void> {
 
-    this.context.openDialog(ShowRidesComponent, sr => sr.args = {
-      date: this.params.date.value,
-      from: r.fid.value,
-      to: r.tid.value,
-      status: UsherRowStatus.backRide,
-    });
+    // this.context.openDialog(ShowRidesComponent, sr => sr.args = {
+    //   date: this.params.date.value,
+    //   from: r.fid.value,
+    //   to: r.tid.value,
+    //   status: UsherRowStatus.backRide,
+    // });
   }
 
   async openApproveDriver(r: ride4Usher) {
 
-    this.context.openDialog(ShowRidesComponent, sr => sr.args = {
-      date: this.params.date.value,
-      from: r.fromId,
-      to: r.toId,
-      status: UsherRowStatus.approve4Driver,
-    });
+    // this.context.openDialog(ShowRidesComponent, sr => sr.args = {
+    //   date: this.params.date.value,
+    //   from: r.fromId,
+    //   to: r.toId,
+    //   status: UsherRowStatus.approve4Driver,
+    // });
   }
 
 
 
   async openShowRides(r: ride4Usher) {
-    this.context.openDialog(ShowRidesComponent, sr => sr.args = {
-      date: this.params.date.value,
-      from: r.fromId,
-      to: r.toId,
-      status: UsherRowStatus.all,
-    });
+    // this.context.openDialog(ShowRidesComponent, sr => sr.args = {
+    //   date: this.params.date.value,
+    //   from: r.fromId,
+    //   to: r.toId,
+    //   status: UsherRowStatus.all,
+    // });
 
   }
 
@@ -352,17 +352,9 @@ export class UsherComponent implements OnInit {
   async addPatient(r: UsherRideRow) { }
   async addDriver(r: UsherRideRow) { }
   async editRide(r: UsherRideRow) {
-    console.log(r);
-    let changed = await openRide(r.id, this.context);
-    if (changed) {
-      // let ride = await this.context.for(Ride).findId(r.id);
-      // r.pid = ride.patientId.value;
-      // // r.pAge = ride.age();
-      // r.passengers = ride.passengers();
-      // // r.icons = ride.patientId.value;
-      // r.did = ride.driverId.value;
-      // r.status = ride.status.value;
-    }
+    await this.context.openDialog(RideCrudComponent, thus => thus.args = {
+      rid: r.id
+    });
   }
   async editPatient(r: UsherRideRow) {
     await this.context.openDialog(PatientCrudComponent, thus => thus.args = {

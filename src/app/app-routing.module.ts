@@ -7,14 +7,14 @@ import { DriverRegisterComponent } from './core/drivers/driver-register/driver-r
 import { DriverRidesComponent } from './core/drivers/driver-rides/driver-rides.component';
 import { DriverSettingsComponent } from './core/drivers/driver-settings/driver-settings.component';
 import { DriverUsefulInformationComponent } from './core/drivers/driver-useful-information/driver-useful-information.component';
-import { DriversComponent } from './core/drivers/drivers.component';
-import { LocationsComponent } from './core/locations/locations.component';
+import { DriversListComponent } from './core/drivers/drivers-list/drivers-list.component';
+import { LocationsListComponent } from './core/locations/locations-list/locations-list.component';
 import { ApprovePatientRideComponent } from './core/patients/approve-patient-ride/approve-patient-ride.component';
-import { PatientsComponent } from './core/patients/patients.component';
+import { PatientsListComponent } from './core/patients/patients-list/patients-list.component';
 import { RegisterRidesComponent } from './core/rides/register-rides/register-rides.component';
 import { ReturnRidesComponent } from './core/rides/return-rides/return-rides.component';
 import { UsherComponent } from './core/usher/usher.component';
-import { DemoComponent } from './demo/demo.component';
+// import { DemoComponent } from './demo/demo.component';
 import { HomeComponent } from './home/home.component';
 import { GeneralReportComponent } from './reports/general-report/general-report.component';
 import { AdminGuard, DriverGuard, MatcherGuard, OnlyDriverGuard, UsherGuard } from './users/roles';
@@ -31,19 +31,19 @@ const routes: Routes = [
   { path: 'd/defs', component: DriverSettingsComponent, canActivate: [OnlyDriverGuard], data: { name: "Settings" } },
 
   // Matcher
-  { path: 'm/patients', component: PatientsComponent, canActivate: [MatcherGuard], data: { name: "Patients" } },
+  { path: 'm/patients', component: PatientsListComponent, canActivate: [MatcherGuard], data: { name: "Patients" } },
   { path: 'm/approve', component: ApprovePatientRideComponent, canActivate: [MatcherGuard], data: { name: "Patients Rides" } },
 
   // Usher
   { path: 'Rides4Usher', component: UsherComponent, canActivate: [UsherGuard], data: { name: "Rides" } },
   { path: 'Return Rides', component: ReturnRidesComponent, canActivate: [UsherGuard], data: { name: "Return Rides" } },
   // { path: 'Rides', component: RidesComponent, canActivate: [UsherGuard] },
-  { path: 'Drivers', component: DriversComponent, canActivate: [UsherGuard] },
-  { path: 'PatientsUsher', component: PatientsComponent, canActivate: [UsherGuard], data: { name: "Patients" } },
+  { path: 'Drivers', component: DriversListComponent, canActivate: [UsherGuard] },
+  { path: 'PatientsUsher', component: PatientsListComponent, canActivate: [UsherGuard], data: { name: "Patients" } },
 
-  { path: 'Locations', component: LocationsComponent, canActivate: [UsherGuard] },
+  { path: 'Locations', component: LocationsListComponent, canActivate: [UsherGuard] },
 
-  { path: 'Register Rides', component: RegisterRidesComponent, canActivate: [AdminGuard], data: { name: "Rides For Register" } },
+  { path: 'Register Rides', component: RegisterRidesComponent, canActivate: [AdminGuard], data: { name: "Register Rides" } },
   // Admin
   { path: 'Reports', component: GeneralReportComponent, canActivate: [AdminGuard] },
   // { path: 'AppSettings', component: ApplicationSettingsComponent, canActivate: [AdminGuard], data: { name: "App Settings" } },

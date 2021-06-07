@@ -2,23 +2,23 @@ import { formatDate } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { BusyService, SelectValueDialogComponent } from '@remult/angular';
 import { Context, ServerFunction, StringColumn, ValueListItem } from '@remult/core';
-import { DialogService } from '../../common/dialog';
-import { GridDialogComponent } from '../../common/grid-dialog/grid-dialog.component';
-import { InputAreaComponent } from '../../common/input-area/input-area.component';
-import { Roles } from '../../users/roles';
-import { LocationAreaComponent } from '../locations/location-area/location-area.component';
-import { Ride, RideStatus } from '../rides/ride';
-import { addDays, Usher } from '../usher/usher';
-import { Driver, openDriver } from './driver';
-import { DriverCall } from './driverCall';
-import { DriverPrefs } from './driverPrefs';
+import { DialogService } from '../../../common/dialog';
+import { GridDialogComponent } from '../../../common/grid-dialog/grid-dialog.component';
+import { InputAreaComponent } from '../../../common/input-area/input-area.component';
+import { Roles } from '../../../users/roles';
+import { LocationAreaComponent } from '../../locations/location-area/location-area.component';
+import { Ride, RideStatus } from '../../rides/ride';
+import { addDays, resetTime, Usher } from '../../usher/usher';
+import { Driver, openDriver } from './../driver';
+import { DriverCall } from './../driverCall';
+import { DriverPrefs } from './../driverPrefs';
 
 @Component({
-  selector: 'app-drivers',
-  templateUrl: './drivers.component.html',
-  styleUrls: ['./drivers.component.scss']
+  selector: 'app-drivers-list',
+  templateUrl: './drivers-list.component.html',
+  styleUrls: ['./drivers-list.component.scss']
 })
-export class DriversComponent implements OnInit {
+export class DriversListComponent implements OnInit {
 
   search = new StringColumn({
     caption: 'Search here for driver name',
@@ -202,8 +202,7 @@ export class DriversComponent implements OnInit {
       });
     };
 
-    let today = new Date();
-    today = new Date(today.getFullYear(), today.getMonth(), today.getDate());//dd/mm/yyyy 00:00:00.0
+    let today = resetTime(new Date());
 
     await this.context.openDialog(GridDialogComponent, gd => gd.args = {
       title: `${d.name.value} Rides`,
@@ -300,7 +299,7 @@ export class DriversComponent implements OnInit {
   async openSuggestedRidesForDriverDialog(d: Driver) {
     let suggestedRides = await Usher.getSuggestedRidesForDriver(d.id.value);
     suggestedRides = [];
-    let rIds = await DriversComponent.suggestRidesForMe(d.id.value, this.context);
+    let rIds = await DriversListComponent.suggestRidesForMe(d.id.value, this.context);
     for await (const row of this.context.for(Ride).iterate({
       where: r => r.id.isIn(...rIds.map(itm => itm.rid)),
     })) {
@@ -359,7 +358,7 @@ export class DriversComponent implements OnInit {
       rid: string,
     }[] = [];
 
-    let borders = await DriversComponent.getBordersIds(did, context);
+    let borders = await DriversListComponent.getBordersIds(did, context);
     for await (const ride of context.for(Ride).iterate({
       where: r => r.fid.isIn(...borders)
         .and(r.status.isIn(RideStatus.waitingForDriver)),

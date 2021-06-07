@@ -7,7 +7,7 @@ import { ride4DriverRideRegister } from '../../../shared/types';
 import { Location, LocationArea, LocationIdColumn, LocationType } from '../../locations/location';
 import { RegisterRide } from '../../rides/register-rides/registerRide';
 import { Ride, RideStatus } from '../../rides/ride';
-import { addDays, addHours } from '../../usher/usher';
+import { addDays, addHours, resetTime } from '../../usher/usher';
 import { Driver, DriverIdColumn } from '../driver';
 import { DriverPrefs } from '../driverPrefs';
 import { RegisterDriver } from './registerDriver';
@@ -145,7 +145,7 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
               isRegistered: true,
               dFromHour: rd.fh.value,
               dToHour: rd.th.value,
-              dPass: rd.seats.value,
+              dPass: this.seats.value,
               pickupTime: r.pickupTime.value,
               dRemark: r.dRemark.value,
             }
@@ -191,7 +191,7 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
               isRegistered: true,
               dFromHour: rd.fh.value,
               dToHour: rd.th.value,
-              dPass: rd.seats.value,
+              dPass: this.seats.value,
               pickupTime: addHours(-2, rr.visitTime.value),
               dRemark: rr.remark.value,
             }
@@ -252,7 +252,7 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
           isRegistered: false,
           dFromHour: '',
           dToHour: '',
-          dPass: 0,
+          dPass: this.seats.value,
           pickupTime: r.pickupTime.value,
           dRemark: r.dRemark.value,
           reason: matchPrefs ? 'By Prefs' : matchKavHistory ? `By Kav History` : matchFAreaHistory ? 'By Area(f) History' : matchTAreaHistory ? 'By Area(t) History' : ''
@@ -317,7 +317,7 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
           isRegistered: false,
           // dFromHour: nreg.fh.value,
           // dToHour: nreg.th.value,
-          // dPass: nreg.seats.value,
+          dPass: this.seats.value,
           pickupTime: addHours(-2, rr.visitTime.value),
           dRemark: rr.remark.value,
           reason: matchPrefs ? 'By Prefs' : matchKavHistory ? `By Kav History` : matchFAreaHistory ? 'By Area(f) History' : matchTAreaHistory ? 'By Area(t) History' : ''
@@ -387,38 +387,27 @@ export class DriverRegisterComponent implements OnInit {
   clientLastRefreshDate: Date = new Date();
   demoDates: string;
   static lastRefreshDate: Date = new Date();//client time
-  todayMidnigth = new Date();
+  todayMidnigth = resetTime(new Date());
 
   constructor(private context: Context, private dialog: DialogService) { }
 
   async prevDay() {
     this.params.date.value = addDays(-1, this.params.date.value);
   }
- 
+
   async nextDay() {
     this.params.date.value = addDays(+1, this.params.date.value);
-    // console.log(this.params.date.value);
   }
 
   async ngOnInit() {
-
-    // let date = new Date(2021, 2, 3);
-    // this.selectedFrom = new LocationIdColumn({ caption: "From" }, this.context),
-    //   this.selectedTo = new LocationIdColumn({ caption: "To" }, this.context);
-    // this.selectedDate = new DateColumn({ caption: "Date", defaultValue: new Date(date.getFullYear(), date.getMonth(), date.getDate()) });
-    // this.toolbar = new DataAreaSettings({
-    //   columnSettings: () => [
-    //     this.selectedDate, this.selectedFrom, this.selectedTo,
-    //   ],
-    // });
     this.driver = await this.context.for(Driver).findFirst({
       where: d => d.userId.isEqualTo(this.context.user.id),
     });
     if (!(this.driver)) {
       throw 'Error - You are not register to use app';
     }
-    this.todayMidnigth = new Date(this.todayMidnigth.getFullYear(), this.todayMidnigth.getMonth(), this.todayMidnigth.getDate());
-    
+    // this.todayMidnigth = new Date(this.todayMidnigth.getFullYear(), this.todayMidnigth.getMonth(), this.todayMidnigth.getDate());
+
     this.params.fid.value = this.driver.defaultFromLocation ? this.driver.defaultFromLocation.value : null;
     this.params.tid.value = this.driver.defaultToLocation ? this.driver.defaultToLocation.value : null;
     this.params.did.value = this.driver.id.value;
@@ -427,224 +416,37 @@ export class DriverRegisterComponent implements OnInit {
     await this.refresh();
   }
 
+  retrieving = false;
   async refresh() {
+    if (!(this.retrieving)) {
+      this.retrieving = true;
+      try {
+        let changed = false;
+        if (this.driver.defaultFromLocation.value != this.params.fid.value) {
+          this.driver.defaultFromLocation.value = this.params.fid.value;
+          changed = true;
+        }
+        if (this.driver.defaultToLocation.value != this.params.tid.value) {
+          this.driver.defaultToLocation.value = this.params.tid.value;
+          changed = true;
+        }
+        if (changed) {
+          await this.driver.save();
+        }
 
-    if (this.driver) {
-      let changed = false;
-      if (this.driver.defaultFromLocation.value != this.params.fid.value) {
-        this.driver.defaultFromLocation.value = this.params.fid.value;
-        changed = true;
-      }
-      if (this.driver.defaultToLocation.value != this.params.tid.value) {
-        this.driver.defaultToLocation.value = this.params.tid.value;
-        changed = true;
-      }
-      if (changed) {
-        await this.driver.save();
+        this.params.onChanged = async () => { };
+        let result = await this.params.retrieveRideList4Usher();
+        this.params.onChanged = async () => { await this.refresh(); };
+
+        this.rides = result.registered;
+        this.ridesToRegister = result.newregistered;
+
+        this.clientLastRefreshDate = new Date();
+      } finally {
+        this.retrieving = false;
       }
     }
-
-    this.params.onChanged = async () => { };
-    let result = await this.params.retrieveRideList4Usher();
-    this.params.onChanged = async () => { await this.refresh(); };
-
-    this.rides = result.registered;
-    this.ridesToRegister = result.newregistered;
-
-    this.clientLastRefreshDate = new Date();
   }
-
-  // @ServerFunction({ allowed: Roles.driver })
-  // static async retrieveDriverRegister(driverId: string, dSeats: number, date: Date, fid: string, tid: string, context?: Context) {
-  //   date = new Date(2021, 2, 3);
-  //   var result: {
-  //     registered: ride4DriverRideRegister[],
-  //     newregistered: ride4DriverRideRegister[]
-  //   } = {
-  //     registered: [],
-  //     newregistered: []
-  //   };
-
-  //   let dLocs: string[] = [];
-  //   for await (const pref of context.for(DriverPrefs).iterate({
-  //     where: pf => pf.driverId.isEqualTo(driverId),
-  //   })) {
-  //     dLocs.push(pref.locationId.value);
-  //   }
-
-  //   for await (const reg of context.for(RegisterRide).iterate({//todo: display only records that not attach by usher
-  //     where: rg => rg.date.isEqualTo(date),
-  //     // .and(fid && (fid.trim().length > 0) ? rg.fromLoc.isEqualTo(fid) : rg.fromLoc.isIn(...dLocs))// new Filter(x => { /*true*/ }))
-  //     // .and(tid && (tid.trim().length > 0) ? rg.toLoc.isEqualTo(tid) : rg.toLoc.isIn(...dLocs)),// new Filter(x => { /*true*/ })),
-  //   })) {
-
-
-  //     let isok = true;
-  //     if ((fid && fid.length > 0) || (tid && tid.length > 0)) {
-  //       if (fid && fid.length > 0) {
-  //         if (!(reg.fromLoc.value == fid)) {
-  //           isok = false;
-  //         }
-  //       }
-  //       if (tid && tid.length > 0) {
-  //         if (!(reg.toLoc.value == tid)) {
-  //           isok = false;
-  //         }
-  //       }
-  //     }
-  //     else if (!(dLocs.includes(reg.fromLoc.value) || dLocs.includes(reg.toLoc.value))) {
-  //       isok = false;
-  //     }
-
-  //     if (!(isok)) {
-  //       continue;
-  //     }
-
-  //     let from = (await context.for(Location).findId(reg.fromLoc.value)).name.value;
-  //     let to = (await context.for(Location).findId(reg.toLoc.value)).name.value;
-  //     let registereds = (await context.for(RegisterDriver).find(
-  //       {
-  //         where: rg => rg.rgId.isEqualTo(reg.id)
-  //           .and(rg.dId.isEqualTo(driverId)),
-  //       }));
-
-  //     if (registereds && registereds.length > 0) {
-  //       for (const nreg of registereds) {
-  //         let row: ride4DriverRideRegister = {
-  //           rId: '',
-  //           rgId: reg.id.value,
-  //           dId: nreg.dId.value,
-  //           date: reg.date.value,
-  //           fId: reg.fromLoc.value,
-  //           tId: reg.toLoc.value,
-  //           from: from,
-  //           to: to,
-  //           pass: nreg.seats.value,
-  //           isRegistered: true,// (registereds && registereds.length > 0),
-  //           dFromHour: nreg.fromHour.value,
-  //           dToHour: nreg.toHour.value,
-  //           dPass: dSeats,
-  //         };
-  //         result.registered.push(row);
-  //       }
-  //     }
-  //     else {
-  //       if (reg.passengers.value <= dSeats) {
-  //         let row: ride4DriverRideRegister = {
-  //           rId: '',
-  //           rgId: reg.id.value,
-  //           // dId: nreg.driverId.value,
-  //           date: reg.date.value,
-  //           fId: reg.fromLoc.value,
-  //           tId: reg.toLoc.value,
-  //           from: from,
-  //           to: to,
-  //           pass: reg.passengers.value,
-  //           isRegistered: false,// (registereds && registereds.length > 0),
-  //           dPass: dSeats,
-  //         };
-  //         result.newregistered.push(row);
-  //       }
-  //     }
-  //   }
-
-  //   for await (const ride of context.for(Ride).iterate({//todo: display only records that not attach by usher
-  //     where: r => r.date.isEqualTo(date)
-  //       // .and(fid && (fid.trim().length > 0) ? r.fromLocation.isEqualTo(fid) : r.fromLocation.isIn(...dLocs))// new Filter(x => { /*true*/ }))
-  //       // .and(tid && (tid.trim().length > 0) ? r.toLocation.isEqualTo(tid) : new Filter(x => { /*true*/ }))
-  //       .and(r.status.isEqualTo(RideStatus.waitingForDriver)),
-  //   })) {
-
-  //     let isok = true;
-  //     if ((fid && fid.length > 0) || (tid && tid.length > 0)) {
-  //       if (fid && fid.length > 0) {
-  //         if (!(ride.fromLocation.value == fid)) {
-  //           isok = false;
-  //         }
-  //       }
-  //       if (tid && tid.length > 0) {
-  //         if (!(ride.toLocation.value == tid)) {
-  //           isok = false;
-  //         }
-  //       }
-  //     }
-  //     else if (!(dLocs.includes(ride.fromLocation.value) || dLocs.includes(ride.toLocation.value))) {
-  //       isok = false;
-  //     }
-
-  //     if (!(isok)) {
-  //       continue;
-  //     }
-
-  //     let from = (await context.for(Location).findId(ride.fromLocation.value)).name.value;
-  //     let to = (await context.for(Location).findId(ride.toLocation.value)).name.value;
-
-  //     let registereds = (await context.for(RegisterDriver).find(
-  //       {
-  //         where: rg => rg.rId.isEqualTo(ride.id)
-  //           .and(rg.dId.isEqualTo(driverId)),
-  //       }));
-
-  //     if (registereds && registereds.length > 0) {
-  //       for (const nreg of registereds) {
-  //         let row: ride4DriverRideRegister = {
-  //           rId: ride.id.value,
-  //           rgId: '',// ride.id.value,
-  //           dId: nreg.dId.value,
-  //           date: ride.date.value,
-  //           fId: ride.fromLocation.value,
-  //           tId: ride.toLocation.value,
-  //           from: from,
-  //           to: to,
-  //           pass: nreg.seats.value,// ride.passengers(),
-  //           isRegistered: true,// (registereds && registereds.length > 0),
-  //           dFromHour: nreg.fromHour.value,
-  //           dToHour: nreg.toHour.value,
-  //           dPass: dSeats,
-  //         };
-  //         result.registered.push(row);
-  //       }
-  //     }
-  //     else {
-  //       if (ride.passengers() <= dSeats) {
-  //         let row: ride4DriverRideRegister = {
-  //           rId: ride.id.value,
-  //           rgId: '',// ride.id.value,
-  //           // dId: nreg.driverId.value,
-  //           date: ride.date.value,
-  //           fId: ride.fromLocation.value,
-  //           tId: ride.toLocation.value,
-  //           from: from,
-  //           to: to,
-  //           pass: ride.passengers(),
-  //           dPass: dSeats,
-  //           isRegistered: false,// (registereds && registereds.length > 0),
-  //         };
-  //         result.newregistered.push(row);
-  //       }
-  //     }
-
-
-
-  //     // let row: ride4DriverRideRegister = {
-  //     //   rId: ride.id.value,
-  //     //   rgId: '',// ride.id.value,
-  //     //   date: ride.date.value,
-  //     //   fId: ride.fromLocation.value,
-  //     //   tId: ride.toLocation.value,
-  //     //   from: from,
-  //     //   to: to,
-  //     //   pass: ride.passengers(),
-  //     //   isRegistered: false,
-  //     // };
-  //     // result.newregistered.push(row);
-  //   }
-
-  //   result.registered.sort((r1, r2) => r1.from.localeCompare(r2.from));
-  //   result.newregistered.sort((r1, r2) => r1.from.localeCompare(r2.from));
-
-  //   return result;
-  // }
 
   async unregister(r: ride4DriverRideRegister) {
     let reg: RegisterDriver;
@@ -684,13 +486,35 @@ export class DriverRegisterComponent implements OnInit {
     let seats = r.dPass;// Math.min(r.pass, r.dPass);
     reg.seats.value = seats;
 
+    let f = await this.context.for(Location).findId(r.fId);
+    let from = f.name.value;
+    let fCaption = `Pickup From ${from}`;
+    let tCaption = 'Pickup Till';
+    let fReadonly = false;
+    let tReadonly = false;
+    if (f.type.value === LocationType.border) {
+      reg.fh.value = '00:00';
+      fCaption = `I Can Be At ${from} About`;
+      fReadonly = false;
+      tCaption = 'Max Pickup Time';
+      tReadonly = true;
+    }
+    else {
+      reg.fh.value = formatDate(new Date(),'HH:mm','en-US');
+      reg.th.value = '22:00';
+      fCaption = 'I Can Be There ASAP';
+      fReadonly = true;
+      tCaption = 'Max Pickup Time';
+      tReadonly = false;
+    }
+
     await this.context.openDialog(
       InputAreaComponent,
       x => x.args = {
         title: "Register To Ride",
         columnSettings: () => [
-          [{ column: reg.fh, inputType: 'time' },
-          { column: reg.th, inputType: 'time' }],
+          { column: reg.fh, caption: fCaption, readOnly: fReadonly },
+          { column: reg.th, caption: tCaption, readOnly: tReadonly },
           reg.seats,
         ],
         validate: async () => {

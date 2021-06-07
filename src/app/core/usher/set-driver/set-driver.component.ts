@@ -8,6 +8,7 @@ import { Driver, DriverIdColumn } from '../../drivers/driver';
 import { Location } from '../../locations/location';
 import { Patient, PatientIdColumn } from '../../patients/patient';
 import { Ride, RideStatus } from '../../rides/ride';
+import { RideCrudComponent } from '../../rides/ride-crud/ride-crud.component';
 import { SuggestDriverComponent } from '../suggest-driver/suggest-driver.component';
 import { addHours } from '../usher';
 
@@ -305,6 +306,7 @@ export class SetDriverComponent implements OnInit {
       await ride.save();
       r.driver = '';
       r.driverId = '';
+      r.freeSeats = undefined;
       r.status = RideStatus.waitingForDriver;
     }
   }
@@ -422,37 +424,9 @@ export class SetDriverComponent implements OnInit {
   }
 
   async editRide(r: ride4UsherSetDriver) {
-
-    let changed = false;
-    let ride = await this.context.for(Ride).findId(r.id);
-    await this.context.openDialog(
-      InputAreaComponent,
-      x => x.args = {
-        title: `Edit Ride: (${r.status.id})`,
-        columnSettings: () => [
-          { column: ride.fid, readOnly: true },
-          { column: ride.tid, readOnly: true },
-          [
-            { column: ride.date, readOnly: true },
-            { column: ride.visitTime, readOnly: false }
-          ],
-          { column: ride.escortsCount, readOnly: false },
-          [
-            { column: ride.isHasBabyChair, readOnly: true },
-            { column: ride.isHasWheelchair, readOnly: true }
-          ],
-          // { column: ride.dRemark, readOnly: true },
-          { column: ride.rRemark, caption: 'Ride Remark' },
-          { column: ride.dRemark, caption: 'Driver Remark' },
-        ],
-        ok: async () => { if (ride.wasChanged()) { await ride.save(); changed = true; } },//this.dialog.info("");
-        cancel: () => { }
-      },
-    );
-    if (changed) {
-      r.visitTime = ride.visitTime.value;
-      r.passengers = ride.passengers();
-    }
+    await this.context.openDialog(RideCrudComponent, thus => thus.args = {
+      rid: r.rid
+    });
   }
 
   // [{ column: ride.isHasBabyChair, readOnly: true, clickIcon: 'child_friendly', caption: '?' },

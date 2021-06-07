@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
 import { Context, DataAreaSettings, NumberColumn } from '@remult/core';
+import { Roles } from '../../../users/roles';
 import { Patient } from '../../patients/patient';
 import { Ride } from '../ride';
 
@@ -16,28 +17,7 @@ export class RideCrudComponent implements OnInit {
   r = this.context.for(Ride).create();
   age = new NumberColumn({ caption: 'Age' });
   lock = false;
-  rides = new DataAreaSettings({
-    columnSettings: () => [
-      { column: this.r.fid, readonly: this.lock },
-      // [{ column: new StringColumn(), clickIcon: 'vertical_align_center', click: () => this.swapLocations(r), width: '10' }, {column: new StringColumn({defaultValue: '                                                '})}],
-      { column: this.r.tid, readonly: this.lock },
-      this.r.immediate,
-      [
-        { column: this.r.date, visible: () => { return !this.r.immediate.value; } },
-        { column: this.r.visitTime, visible: () => { return !this.r.immediate.value; } }
-      ],
-      [
-        { column: this.r.escortsCount },
-        { column: this.age, readOnly: true, getValue: () => { return this.context.for(Patient).lookup(this.r.patientId).age.value; } },
-      ],
-      [
-        this.r.isHasBabyChair,
-        this.r.isHasWheelchair
-      ],
-      this.r.rRemark,
-      // r.dRemark,
-    ]
-  });
+  dataArea:DataAreaSettings;
   //   columnSettings: () => [
   //     { column: r.fid, readonly: lock },
   //     // [{ column: new StringColumn(), clickIcon: 'vertical_align_center', click: () => this.swapLocations(r), width: '10' }, {column: new StringColumn({defaultValue: '                                                '})}],
@@ -97,10 +77,45 @@ export class RideCrudComponent implements OnInit {
 
   constructor(private context: Context, private dialogRef: MatDialogRef<any>) { }
 
-  ngOnInit() {
+  async ngOnInit() {
+
+    let today = new Date();
+    let tomorrow = new Date();
+    tomorrow.setDate(today.getDate() + 1);
+    let tomorrow10am = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate(), 10);
+
+    this.r.date.value = tomorrow;
+
+    if (this.args.rid && this.args.rid.length > 0) {
+      console.log('this.args.rid='+this.args.rid);
+      this.r = await this.context.for(Ride).findId(this.args.rid);
+    }
+
+    this.dataArea = new DataAreaSettings({
+      columnSettings: () => [
+        { column: this.r.fid, readonly: this.lock },
+        { column: this.r.tid, readonly: this.lock },
+        this.r.immediate,
+        [
+          { column: this.r.date, visible: () => { return !this.r.immediate.value; } },
+          { column: this.r.visitTime, visible: () => { return !this.r.immediate.value; } }
+        ],
+        [
+          { column: this.r.escortsCount },
+          { column: this.age, readOnly: true, getValue: () => { return this.context.for(Patient).lookup(this.r.patientId).age.value; } },
+        ],
+        [
+          this.r.isHasBabyChair,
+          this.r.isHasWheelchair
+        ],
+        this.r.rRemark,
+        { column: this.r.dRemark }// visible: this.context.isAllowed([Roles.admin, Roles.usher, Roles.driver]) },
+      ],
+    });
   }
-  
+
   async save() {
+    // ok: async () => { if (ride.wasChanged()) { await ride.save(); changed = true; } }
     await this.r.save();
     this.args.rid = this.r.id.value;
     this.select();

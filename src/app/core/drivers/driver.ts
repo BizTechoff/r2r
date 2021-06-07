@@ -201,16 +201,16 @@ export class Driver extends IdEntity {
 
 
 export class DriverIdColumn extends StringColumn {
-  getName() {
-    return this.context.for(Driver).lookup(this).name.value;
-  }
-  async getValueName() {
-    return (await this.context.for(Driver).findId(this.value)).name.value;
-  }
+  // getName() {
+  //   return this.context.for(Driver).lookup(this).name.value;
+  // }
+  // async getValueName() {
+  //   return (await this.context.for(Driver).findId(this.value)).name.value;
+  // }
   constructor(options?: ColumnSettings<string>, private context?: Context) {
     super({
       dataControlSettings: () => ({
-        getValue: () => this.getName(),
+        getValue: () => this.context.for(Driver).lookup(this).name.value,
         hideDataOnInput: true,
         clickIcon: 'search',
         click: (d) => {
