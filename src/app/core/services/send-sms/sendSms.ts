@@ -12,7 +12,7 @@ export class SendSms {
         message: string
     } = { mobile: '0526526063', message: 'r2r: Test Message' };
 
-    constructor(mobile:string, message:string){
+    constructor(mobile: string, message: string) {
         this.args.mobile = mobile;
         this.args.message = message;
     }
@@ -25,7 +25,7 @@ export class SendSms {
     @ServerFunction({ allowed: c => c.isSignedIn() })
     static async SendSms(mobile: string, message: string): Promise<SendSmsResponse> {
         let result: SendSmsResponse = { success: false, error: '' };
-        let url = `https://api.multisend.co.il/MultiSendAPI/sendsms?` +
+        let url = process.env.SMS_URL +
             `user=${process.env.SMS_ACCOUNT}` +
             `&password=${process.env.SMS_PASSWORD}` +
             `&from=${process.env.SMS_FROM_NAME}` +
@@ -34,18 +34,20 @@ export class SendSms {
 
         console.log(`SendSms.send: ${url}`);
 
-        try {
-            let r = await fetch.default(url, {
-                method: 'GET'
-            });
-            let res = await r.text();
-            let succesfuly = "\"success\":\"true\"";
-            result.success = (res.includes(succesfuly));
-            result.error = res;
-            console.log(`SendSms.return: ${res}`);
-        } catch (error) {
-            console.log(`SendSms.error: ${error}`);
-            result.error = error;
+        if (false) {
+            try {
+                let r = await fetch.default(url, {
+                    method: 'GET'
+                });
+                let res = await r.text();
+                let succesfuly = "\"success\":\"true\"";
+                result.success = (res.includes(succesfuly));
+                result.error = res;
+                console.log(`SendSms.return: ${res}`);
+            } catch (error) {
+                console.log(`SendSms.error: ${error}`);
+                result.error = error;
+            }
         }
 
         return result;

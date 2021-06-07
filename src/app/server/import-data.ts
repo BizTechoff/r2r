@@ -411,8 +411,8 @@ function isBorder(name: string) {
 let borders: string[] = [];
 {
     borders.push(`Baqa El Garbia start`.trim().toLocaleLowerCase());
-    borders.push(`pardes hana`.trim().toLocaleLowerCase());
-    borders.push(`Shaare Zedec`.trim().toLocaleLowerCase());
+    // borders.push(`pardes hana`.trim().toLocaleLowerCase());
+    // borders.push(`Shaare Zedec`.trim().toLocaleLowerCase());
     borders.push(`Erez`.trim().toLocaleLowerCase());
     borders.push(`Husan`.trim().toLocaleLowerCase());
     borders.push(`Eliyahu`.trim().toLocaleLowerCase());
@@ -421,7 +421,7 @@ let borders: string[] = [];
     borders.push(`Macabim`.trim().toLocaleLowerCase());
     borders.push(`Reihan`.trim().toLocaleLowerCase());
     borders.push(`Tarkumia`.trim().toLocaleLowerCase());
-    borders.push(`Glilot`.trim().toLocaleLowerCase());
+    // borders.push(`Glilot`.trim().toLocaleLowerCase());
     borders.push(`ajenda`.trim().toLocaleLowerCase());
     borders.push(`Na'alin`.trim().toLocaleLowerCase());
     borders.push(`Bethlehem`.trim().toLocaleLowerCase());
