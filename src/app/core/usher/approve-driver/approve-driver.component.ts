@@ -111,7 +111,6 @@ export class ApproveDriverComponent implements OnInit {
     await this.context.openDialog(PatientCrudComponent, thus => thus.args = {
       pid: r.patientId,
     });
-    // openPatient(r.patientId, this.context);
   }
 
   async openDriver(r: ride4UsherApprove) {
