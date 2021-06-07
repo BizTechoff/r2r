@@ -47,8 +47,6 @@
                             (click)="arrived4Driver(r)">Set Arrived For Driver</button>
                         <button *ngIf="(r.w4End)" mat-menu-item (click)="end4Driver(r)">Set End
                             For Driver</button>
-                            <!-- <button *ngIf="r.driverId && r.driverId.length > 0" mat-menu-item
-                                (click)="showDriverRides(r)">Show Driver Rides</button> -->
                             <button *ngIf="r.driverId && r.driverId.length > 0" mat-menu-item
                                 (click)="removeDriver(r)">Remove Driver</button>
                             <hr>

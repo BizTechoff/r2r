@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Context, ServerFunction } from '@remult/core';
 import { ride4Driver } from '../../../shared/types';
+import { addDays, TODAY } from '../../../shared/utils';
 import { Roles } from '../../../users/roles';
 import { Location } from '../../locations/location';
 import { Patient } from '../../patients/patient';
@@ -17,11 +18,9 @@ import { Driver } from '../driver';
 export class DriverRidesComponent implements OnInit {
 
   rides: ride4Driver[];
-  today = new Date();
+  today = addDays(TODAY);
 
-  constructor(private context: Context) {
-    this.today = new Date(this.today.getFullYear(), this.today.getMonth(), this.today.getDate());
-  }
+  constructor(private context: Context) {}
 
   async ngOnInit() {
     this.refresh();
@@ -42,8 +41,7 @@ export class DriverRidesComponent implements OnInit {
       throw 'Error - You are not register to use app';
     }
 
-    let today = new Date();
-    today = new Date(today.getFullYear(), today.getMonth(), today.getDate());//dd/mm/yyyy 00:00:00.0
+    let today = addDays(TODAY);
     for await (const ride of context.for(Ride).iterate({
       where: r => r.driverId.isEqualTo(driver.id)
         .and(r.date.isGreaterOrEqualTo(today))

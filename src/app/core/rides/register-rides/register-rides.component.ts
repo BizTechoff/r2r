@@ -5,11 +5,11 @@ import { DialogService } from '../../../common/dialog';
 import { GridDialogComponent } from '../../../common/grid-dialog/grid-dialog.component';
 import { InputAreaComponent } from '../../../common/input-area/input-area.component';
 import { ride4UsherRideRegister } from '../../../shared/types';
+import { addDays } from '../../../shared/utils';
 import { Roles } from '../../../users/roles';
 import { Driver } from '../../drivers/driver';
 import { RegisterDriver } from '../../drivers/driver-register/registerDriver';
 import { Location, LocationIdColumn } from '../../locations/location';
-import { addDays } from '../../usher/usher';
 import { RegisterRide } from './registerRide';
 
 

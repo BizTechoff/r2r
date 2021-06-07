@@ -4,53 +4,13 @@ import { BoolColumn, Context, DateColumn, NumberColumn, ServerController, Server
 import { DialogService } from '../../../common/dialog';
 import { GridDialogComponent } from '../../../common/grid-dialog/grid-dialog.component';
 import { InputAreaComponent } from '../../../common/input-area/input-area.component';
+import { addDays, TODAY } from '../../../shared/utils';
 import { Roles } from '../../../users/roles';
 import { Ride, RideStatusColumn } from '../../rides/ride';
 import { RideCrudComponent } from '../../rides/ride-crud/ride-crud.component';
-import { addDays } from '../../usher/usher';
 import { Patient, PatientIdColumn } from './../patient';
 import { PatientContactsComponent } from './../patient-contacts/patient-contacts.component';
 import { PatientCrudComponent } from './../patient-crud/patient-crud.component';
-
-export class patientRides {
-  id = new StringColumn();
-  date = new DateColumn();
-  fid = new StringColumn();
-  tid = new StringColumn();
-  pass = new NumberColumn();
-  phones = new StringColumn();
-  status = new RideStatusColumn();
-  statusDate = new DateColumn();
-  isWaitingForUsherApproove = new BoolColumn();
-  isWaitingForStart = new BoolColumn();
-  isWaitingForPickup = new BoolColumn();
-  isWaitingForArrived = new BoolColumn();
-}; 
-
-@ServerController({ key: 'p', allowed: [Roles.matcher, Roles.usher, Roles.admin] })
-class patientService {
-
-  pid = new PatientIdColumn(this.context);
-  constructor(private context: Context) { }
-
-  @ServerMethod()
-  async rides(): Promise<patientRides[]> {
-    var result: patientRides[] = [];
-
-    for await (const r of this.context.for(Ride).iterate({
-      where: cur => cur.patientId.isEqualTo(this.pid)
-    })) {
-      let row: patientRides = new patientRides();
-      row.date.value = r.date.value;
-      row.fid.value = r.fid.value;
-      row.tid.value = r.tid.value;
-      result.push(row);
-    }
-
-    console.log('patientRidesRequest.result.length=' + result.length);
-    return result;
-  }
-}
 
 @Component({
   selector: 'app-patients-list',
@@ -131,16 +91,12 @@ export class PatientsListComponent implements OnInit {
 
   async retrievePatients() {
     this.patientsSettings.reloadData();
-
-    // this.patients = await this.context.for(Patient).find({
-    //   where:p=>this.search.value?p.name.isContains(this.search):undefined
-    // });
   }
 
   async addPatient() {
     let pid = await this.context.openDialog(PatientCrudComponent,
       cur => cur.args = { pid: '' },// input params
-      cur => cur.args.pid);// output param
+      cur => { if (cur && cur.args) return cur.args.pid; });// output param
 
     if (pid && pid.length > 0) {
       let p = await this.context.for(Patient).findId(pid);
@@ -150,27 +106,8 @@ export class PatientsListComponent implements OnInit {
           await this.openAddRideDialog(p)
         }
       }
+      await this.retrievePatients();
     }
-    // let changed = await openPatient('', this.context);
-    // var patient = this.context.for(Patient).create();
-    // this.context.openDialog(
-    //   InputAreaComponent,
-    //   x => x.args = {
-    //     title: "Add New Patient",
-    //     columnSettings: () => [
-    //       [patient.name, patient.hebName],
-    //       [patient.mobile, patient.idNumber],
-    //       [patient.defaultBorder, patient.defaultHospital],
-    //     ],
-    //     ok: async () => {
-    //       //PromiseThrottle
-    //       // ride.driverId.value = undefined;
-    //       await patient.save();
-    //       // this.patientsSettings.items.push(patient);
-    //       this.retrievePatients();
-    //     }
-    //   },
-    // )
   }
 
   async editPatient(p: Patient) {
@@ -189,22 +126,6 @@ export class PatientsListComponent implements OnInit {
   }
 
   async openScheduleRides(p: Patient) {
-
-
-    let params = new patientService(this.context);
-
-    // let grid:GridSettings;
-    // let mem = new InMemoryDataProvider();
-
-    params.pid.value = p.id.value;
-    let rides2 = await params.rides();
-    console.log('rides2.length=' + rides2.length);
-
-    // let rides = await Usher.getRegisteredRidesForPatient(p.id.value);
-
-    let today = new Date();
-    today = new Date(today.getFullYear(), today.getMonth(), today.getDate());//dd/mm/yyyy 00:00:00.0
-
     await this.context.openDialog(GridDialogComponent, gd => gd.args = {
       title: `${p.name.value} Rides`,
       settings: this.context.for(Ride).gridSettings({
@@ -235,85 +156,10 @@ export class PatientsListComponent implements OnInit {
   }
 
   async openAddRideDialog(p: Patient) {
-    if (!(p)) return;
-    let today = new Date();
-    let tomorrow = new Date();
-    tomorrow.setDate(today.getDate() + 1);
-    let tomorrow10am = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate(), 10);
 
-    var ride = this.context.for(Ride).create();
-    ride.date.value = tomorrow;
-    // ride.visitTime.value = tomorrow10am;
-    ride.patientId.value = p.id.value;
-    ride.fid.value = p.defaultBorder.value;
-    ride.tid.value = p.defaultHospital.value;
-    ride.pMobile.value = p.mobile.value;
-    ride.escortsCount.value = p.age.value > 0 && p.age.value <= 13 ? 1/*kid(as patient)+adult(atleast one)*/ : 0;
-    ride.isHasBabyChair.value = p.age.value > 0 && p.age.value <= 5;
-    this.context.openDialog(
-      InputAreaComponent,
-      x => x.args = {
-        title: `Add Ride For: ${p.name.value} (age: ${p.age.value})`,
-        columnSettings: () => [
-          ride.fid,
-          ride.tid,
-          [ride.date, ride.visitTime],
-          [ride.escortsCount, ride.pMobile],
-          [p.birthDate, p.age],
-          [ride.isHasBabyChair, ride.isHasWheelchair],
-          ride.rRemark,
-          ride.dRemark,
-        ],
-        buttons: [{
-          text: 'Patient Contacts',
-          click: async () => {
-            await this.context.openDialog(PatientContactsComponent, sr => sr.args = {
-              pid: p.id.value,
-            });
-          }
-        }
-        ],
-        validate: async () => {
-          if (!(ride.fid.value && ride.fid.value.length > 0)) {
-            ride.fid.validationError = 'Required';
-            throw ride.fid.defs.caption + ' ' + ride.fid.validationError;
-          }
-          if (!(ride.tid.value && ride.tid.value.length > 0)) {
-            ride.tid.validationError = 'Required';
-            throw ride.tid.defs.caption + ' ' + ride.tid.validationError;
-          }
-          if (!(ride.isHasDate())) {
-            ride.date.validationError = 'Required';
-            throw ride.date.defs.caption + ' ' + ride.date.validationError;
-          }
-          if (ride.date.value < addDays(0)) {
-            ride.date.validationError = 'Must be greater or equals today';
-            throw ride.date.defs.caption + ' ' + ride.date.validationError;
-          }
-          if (ride.date.value.getFullYear() < 2000 || ride.date.value.getFullYear() > 3000) {
-            ride.date.validationError = ' Invalid Format';
-            throw ride.date.defs.caption + ' ' + ride.date.validationError;
-          }
-          if (!(ride.isHasVisitTime())) {
-            ride.visitTime.validationError = 'Required';
-            throw ride.visitTime.defs.caption + ' ' + ride.visitTime.validationError;
-          }
-        },
-        ok: async () => {
-          if (p.birthDate.wasChanged()) {
-            await p.save();
-          }
-          if (!(p.mobile.value)) {
-            p.mobile.value = ride.pMobile.value;
-          }
-          await ride.save();
-          if (!(p.mobile.value)) {
-            p.mobile.value = ride.pMobile.value;
-            await p.save();
-          }
-        }
-      },
-    )
+    await this.context.openDialog(RideCrudComponent, thus => thus.args = {
+      pid: p.id.value
+    });
   }
 
 }

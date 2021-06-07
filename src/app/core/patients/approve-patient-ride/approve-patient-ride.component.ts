@@ -2,10 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { Context, DateColumn, NumberColumn, ServerController, StringColumn } from '@remult/core';
 import { InputAreaComponent } from '../../../common/input-area/input-area.component';
 import { YesNoQuestionComponent } from '../../../common/yes-no-question/yes-no-question.component';
+import { addDays, resetTime } from '../../../shared/utils';
 import { Roles } from '../../../users/roles';
 import { Ride, RideStatus } from '../../rides/ride';
 import { RideCrudComponent } from '../../rides/ride-crud/ride-crud.component';
-import { addDays } from '../../usher/usher';
 import { Patient } from '../patient';
 import { PatientContactsComponent } from '../patient-contacts/patient-contacts.component';
 import { PatientCrudComponent } from '../patient-crud/patient-crud.component';
@@ -72,7 +72,7 @@ export class ApprovePatientRideComponent implements OnInit {
 
   constructor(private context: Context) {
     // SetTime: 00:00:00.0 = MidNigth
-    this.params.date.value = new Date(this.params.date.value.getFullYear(), this.params.date.value.getMonth(), this.params.date.value.getDate());
+    this.params.date.value = resetTime(this.params.date.value);
   }
 
   async refresh() {
@@ -113,69 +113,6 @@ export class ApprovePatientRideComponent implements OnInit {
     await this.context.openDialog(RideCrudComponent, thus => thus.args = {
       rid: r.id.value,
     });
-    // let pAge = new NumberColumn({caption: 'Age'});
-    // let lock = ![RideStatus.waitingForAccept, RideStatus.waitingForDriver].includes(r.status.value);
-    // await this.context.openDialog(
-    //   InputAreaComponent,
-    //   x => x.args = {
-    //     title: `Edit Ride: (${r.status.value.id})`,// ${p.name.value} (age: ${p.age.value})`,
-    //     columnSettings: () => [
-    //       { column: r.fid, readonly: lock },
-    //       // [{ column: new StringColumn(), clickIcon: 'vertical_align_center', click: () => this.swapLocations(r), width: '10' }, {column: new StringColumn({defaultValue: '                                                '})}],
-    //       { column: r.tid, readonly: lock }, 
-    //       r.immediate,
-    //       [
-    //         { column: r.date, visible: () => { return !r.immediate.value; } },
-    //         { column: r.visitTime, visible: () => { return !r.immediate.value; } }
-    //       ],
-    //       [
-    //         { column: r.escortsCount },
-    //         { column: pAge, readOnly: true, getValue: () => { return this.context.for(Patient).lookup(r.patientId).age.value; } },
-    //       ],
-    //       [
-    //         r.isHasBabyChair,
-    //         r.isHasWheelchair
-    //       ],
-    //       r.rRemark,
-    //       // r.dRemark,
-    //     ],
-    //     validate: async () => {
-    //       if (!(r.fid.value && r.fid.value.length > 0)) {
-    //         r.fid.validationError = 'Required';
-    //         throw r.fid.defs.caption + ' ' + r.fid.validationError;
-    //       }
-    //       if (!(r.tid.value && r.tid.value.length > 0)) {
-    //         r.tid.validationError = 'Required';
-    //         throw r.tid.defs.caption + ' ' + r.tid.validationError;
-    //       }
-    //       if (!(r.isHasDate())) {
-    //         r.date.validationError = 'Required';
-    //         throw r.date.defs.caption + ' ' + r.date.validationError;
-    //       }
-    //       if (r.date.value < addDays(0)) {
-    //         r.date.validationError = 'Must be greater or equals today';
-    //         throw r.date.defs.caption + ' ' + r.date.validationError;
-    //       }
-    //       if (!(r.isHasVisitTime())) {
-    //         r.visitTime.validationError = 'Required';
-    //         throw r.visitTime.defs.caption + ' ' + r.visitTime.validationError;
-    //       }
-    //     },
-    //     buttons: [
-    //       {
-    //         text: 'Contacts',
-    //         click: async () => await this.openContacts(r)
-    //       },
-    //       {
-    //         text: 'Swap Locations',
-    //         click: async () => await this.swapLocations(r)
-    //       }
-    //     ],
-    //     ok: async () => {
-    //       await r.save();
-    //     }
-    //   },
-    // )
   }
 
   async openPatient(r: Ride) {
@@ -191,7 +128,7 @@ export class ApprovePatientRideComponent implements OnInit {
     });
   }
 
-  async swapLocations(r: Ride){
+  async swapLocations(r: Ride) {
     let temp = r.fid.value;
     r.fid.value = r.tid.value;
     r.tid.value = temp;

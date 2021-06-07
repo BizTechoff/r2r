@@ -1,9 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
 import { Context, DataAreaSettings, NumberColumn } from '@remult/core';
+import { DialogService } from '../../../common/dialog';
+import { addDays, TODAY } from '../../../shared/utils';
 import { Roles } from '../../../users/roles';
 import { Patient } from '../../patients/patient';
-import { Ride } from '../ride';
+import { PatientContactsComponent } from '../../patients/patient-contacts/patient-contacts.component';
+import { Ride, RideStatus } from '../ride';
 
 @Component({
   selector: 'app-ride-crud',
@@ -12,113 +15,126 @@ import { Ride } from '../ride';
 })
 export class RideCrudComponent implements OnInit {
 
+  args: { rid?: string, pid?: string } = { rid: '', pid: '' };
   okPressed = false;
-  args: { rid: string } = { rid: '' };
-  r = this.context.for(Ride).create();
-  age = new NumberColumn({ caption: 'Age' });
-  lock = false;
-  dataArea:DataAreaSettings;
-  //   columnSettings: () => [
-  //     { column: r.fid, readonly: lock },
-  //     // [{ column: new StringColumn(), clickIcon: 'vertical_align_center', click: () => this.swapLocations(r), width: '10' }, {column: new StringColumn({defaultValue: '                                                '})}],
-  //     { column: r.tid, readonly: lock },
-  //     r.immediate,
-  //     [
-  //       { column: r.date, visible: () => { return !r.immediate.value; } },
-  //       { column: r.visitTime, visible: () => { return !r.immediate.value; } }
-  //     ],
-  //     [
-  //       { column: r.escortsCount },
-  //       { column: age, readOnly: true, getValue: () => { return this.context.for(Patient).lookup(r.patientId).age.value; } },
-  //     ],
-  //     [
-  //       r.isHasBabyChair,
-  //       r.isHasWheelchair
-  //     ],
-  //     r.rRemark,
-  //     // r.dRemark,
-  //   ],
-  //   validate: async () => {
-  //     if (!(r.fid.value && r.fid.value.length > 0)) {
-  //       r.fid.validationError = 'Required';
-  //       throw r.fid.defs.caption + ' ' + r.fid.validationError;
-  //     }
-  //     if (!(r.tid.value && r.tid.value.length > 0)) {
-  //       r.tid.validationError = 'Required';
-  //       throw r.tid.defs.caption + ' ' + r.tid.validationError;
-  //     }
-  //     if (!(r.isHasDate())) {
-  //       r.date.validationError = 'Required';
-  //       throw r.date.defs.caption + ' ' + r.date.validationError;
-  //     }
-  //     if (r.date.value < addDays(0)) {
-  //       r.date.validationError = 'Must be greater or equals today';
-  //       throw r.date.defs.caption + ' ' + r.date.validationError;
-  //     }
-  //     if (!(r.isHasVisitTime())) {
-  //       r.visitTime.validationError = 'Required';
-  //       throw r.visitTime.defs.caption + ' ' + r.visitTime.validationError;
-  //     }
-  //   },
-  //   buttons: [
-  //     {
-  //       text: 'Contacts',
-  //       click: async () => await this.openContacts(r)
-  //     },
-  //     {
-  //       text: 'Swap Locations',
-  //       click: async () => await this.swapLocations(r)
-  //     }
-  //   ],
-  //   ok: async () => {
-  //     await r.save();
-  //   }
-  // },
+  dataArea: DataAreaSettings;
+  r: Ride;
+  p: Patient;
 
-  constructor(private context: Context, private dialogRef: MatDialogRef<any>) { }
+  constructor(private context: Context, private dialog: DialogService, private dialogRef: MatDialogRef<any>) { }
 
   async ngOnInit() {
-
-    let today = new Date();
-    let tomorrow = new Date();
-    tomorrow.setDate(today.getDate() + 1);
-    let tomorrow10am = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate(), 10);
-
-    this.r.date.value = tomorrow;
-
     if (this.args.rid && this.args.rid.length > 0) {
-      console.log('this.args.rid='+this.args.rid);
       this.r = await this.context.for(Ride).findId(this.args.rid);
+      if (this.r) {
+        this.args.pid = this.r.patientId.value;
+      }
     }
+    if (!(this.r)) {
+      this.r = this.context.for(Ride).create();
+      this.r.date.value = addDays(+1);
+    }
+    if (this.args.pid && this.args.pid.length > 0) {
+      this.p = await this.context.for(Patient).findId(this.args.pid);
+      if (this.p) {
+        if (this.r.isNew()) {
+          this.r.patientId.value = this.args.pid;
+          this.r.pMobile.value = this.p.mobile.value;
+          // this.r.visitTime.value = tomorrow10am;
+          this.r.patientId.value = this.p.id.value;
+          this.r.fid.value = this.p.defaultBorder.value;
+          this.r.tid.value = this.p.defaultHospital.value;
+          this.r.pMobile.value = this.p.mobile.value;
+          this.r.escortsCount.value = this.p.age.value > 0 && this.p.age.value <= 13 ? 1/*kid(as patient)+adult(atleast one)*/ : 0;
+          this.r.isHasBabyChair.value = this.p.age.value > 0 && this.p.age.value <= 5;
+        }
+      }
+      else {
+        await this.dialog.error("RideCrudComponent(pid==null)")
+        this.close();
+        return;
+      }
+    }
+
+    let rOnly = RideStatus.isInProgressStatuses.includes(this.r.status.value);
 
     this.dataArea = new DataAreaSettings({
       columnSettings: () => [
-        { column: this.r.fid, readonly: this.lock },
-        { column: this.r.tid, readonly: this.lock },
-        this.r.immediate,
+        { column: this.r.fid, readonly: rOnly },
+        { column: this.r.tid, readonly: rOnly },
+        { column: this.r.immediate, readOnly: rOnly },
         [
-          { column: this.r.date, visible: () => { return !this.r.immediate.value; } },
+          { column: this.r.date, readOnly: rOnly, visible: () => { return !this.r.immediate.value; } },
           { column: this.r.visitTime, visible: () => { return !this.r.immediate.value; } }
         ],
-        [
-          { column: this.r.escortsCount },
-          { column: this.age, readOnly: true, getValue: () => { return this.context.for(Patient).lookup(this.r.patientId).age.value; } },
-        ],
-        [
-          this.r.isHasBabyChair,
-          this.r.isHasWheelchair
-        ],
+        [this.r.escortsCount, this.r.pMobile],
+        [this.p.birthDate, this.p.age],
+        [this.r.isHasBabyChair, this.r.isHasWheelchair],
         this.r.rRemark,
-        { column: this.r.dRemark }// visible: this.context.isAllowed([Roles.admin, Roles.usher, Roles.driver]) },
+        { column: this.r.dRemark, readOnly: this.context.isAllowed([Roles.matcher]) },
       ],
     });
   }
 
   async save() {
-    // ok: async () => { if (ride.wasChanged()) { await ride.save(); changed = true; } }
-    await this.r.save();
-    this.args.rid = this.r.id.value;
-    this.select();
+    if (await this.validate()) {// ok: async () => { if (ride.wasChanged()) { await ride.save(); changed = true; } }
+      if (this.p) {
+        if (this.p.birthDate.wasChanged() || (!(this.p.mobile.value))) {
+          this.p.mobile.value = this.r.pMobile.value;
+          await this.p.save();
+        }
+      }
+      if (this.r) {
+        await this.r.save();
+        this.args.rid = this.r.id.value;
+      }
+      this.select();
+    }
+  }
+
+  async validate(): Promise<boolean> {
+    if (!(this.r.fid.value && this.r.fid.value.length > 0)) {
+      this.r.fid.validationError = 'Required';
+      await this.dialog.error(this.r.fid.defs.caption + ' ' + this.r.fid.validationError);
+      return false;
+    }
+    if (!(this.r.tid.value && this.r.tid.value.length > 0)) {
+      this.r.tid.validationError = 'Required';
+      await this.dialog.error(this.r.tid.defs.caption + ' ' + this.r.tid.validationError);
+      return false;
+    }
+    if (!(this.r.isHasDate())) {
+      this.r.date.validationError = 'Required';
+      await this.dialog.error(this.r.date.defs.caption + ' ' + this.r.date.validationError);
+      return false;
+    }
+    if (this.r.date.value < addDays(TODAY)) {
+      this.r.date.validationError = 'Must be greater or equals today';
+      await this.dialog.error(this.r.date.defs.caption + ' ' + this.r.date.validationError);
+      return false;
+    }
+    if (this.r.date.value.getFullYear() < 2000 || this.r.date.value.getFullYear() > 3000) {
+      this.r.date.validationError = ' Invalid Format';
+      await this.dialog.error(this.r.date.defs.caption + ' ' + this.r.date.validationError);
+      return false;
+    }
+    if (!(this.r.isHasVisitTime())) {
+      this.r.visitTime.validationError = 'Required';
+      await this.dialog.error(this.r.visitTime.defs.caption + ' ' + this.r.visitTime.validationError);
+      return false;
+    }
+    if (!(this.p.hasBirthDate())) {
+      this.r.visitTime.validationError = 'Required';
+      await this.dialog.error(this.r.visitTime.defs.caption + ' ' + this.r.visitTime.validationError);
+      return false;
+    }
+    return true;
+  }
+
+  async openPatientContacts() {
+    await this.context.openDialog(PatientContactsComponent, sr => sr.args = {
+      pid: this.args.pid,
+    });
   }
 
   close() {

@@ -4,13 +4,13 @@ import { DialogService } from '../../../common/dialog';
 import { GridDialogComponent } from '../../../common/grid-dialog/grid-dialog.component';
 import { InputAreaComponent } from '../../../common/input-area/input-area.component';
 import { ride4UsherSetDriver } from '../../../shared/types';
+import { addHours } from '../../../shared/utils';
 import { Driver, DriverIdColumn } from '../../drivers/driver';
 import { Location } from '../../locations/location';
 import { Patient, PatientIdColumn } from '../../patients/patient';
 import { Ride, RideStatus } from '../../rides/ride';
 import { RideCrudComponent } from '../../rides/ride-crud/ride-crud.component';
 import { SuggestDriverComponent } from '../suggest-driver/suggest-driver.component';
-import { addHours } from '../usher';
 
 
 @ServerController({ key: 'usherSerDriver', allowed: true })
@@ -391,38 +391,7 @@ export class SetDriverComponent implements OnInit {
       },
     )
   }
-
-
-  async showDriverRides(r: ride4UsherSetDriver) {
-    let pass = new NumberColumn({ caption: 'pass' });
-    await this.context.openDialog(GridDialogComponent, gd => gd.args = {
-      title: `${r.driver} - History Rides`,
-      settings: this.context.for(Ride).gridSettings({
-        where: cur => cur.driverId.isEqualTo(r.driverId),
-        orderBy: cur => [{ column: cur.date, descending: true }],
-        allowCRUD: false,// this.context.isAllowed([Roles.admin, Roles.usher, Roles.matcher]),
-        allowDelete: false,
-        // showPagination: false,
-        numOfColumnsInGrid: 10,
-        columnSettings: cur => [
-          cur.fid,
-          cur.tid,
-          // {column: pass, getValue: r => r.passengers() },
-          cur.date,
-          // cur.status
-          // cur.patientId,
-        ],
-        // rowButtons: [
-        //   {
-        //     textInMenu: 'Edit',
-        //     icon: 'edit',
-        //     click: async (r) => { await this.editRide(r); },
-        //   },
-        // ],
-      }),
-    });
-  }
-
+  
   async editRide(r: ride4UsherSetDriver) {
     await this.context.openDialog(RideCrudComponent, thus => thus.args = {
       rid: r.rid

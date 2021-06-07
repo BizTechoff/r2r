@@ -2,27 +2,18 @@ import { formatDate } from "@angular/common";
 import { BoolColumn, ColumnSettings, Context, DateColumn, DateTimeColumn, EntityClass, IdEntity, NumberColumn, StringColumn, ValueListColumn } from "@remult/core";
 import { DialogService } from "../../common/dialog";
 import { DynamicServerSideSearchDialogComponent } from "../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component";
-import { InputAreaComponent } from "../../common/input-area/input-area.component";
 import { MessageType, ServerEventsService } from "../../server/server-events-service";
+import { addDays, addHours, TODAY } from "../../shared/utils";
+import { Roles } from "../../users/roles";
 import { UserId } from "../../users/users";
 import { DriverIdColumn } from "../drivers/driver";
-import { DriverPrefs } from "../drivers/driverPrefs";
 import { LocationIdColumn } from "../locations/location";
 import { PatientIdColumn } from "../patients/patient";
-import { addHours } from "../usher/usher";
 import { RideHistory } from "./rideHistory";
 
 @EntityClass
 export class Ride extends IdEntity {
 
-    //driverRemark = new StringColumn({});
-    driverId = new DriverIdColumn({ caption: 'Driver' }, this.context);
-    patientId = new PatientIdColumn(this.context);
-    status = new RideStatusColumn();
-    statusDate = new DateTimeColumn();
-    importRideNum = new StringColumn();
-
-    date = new DateColumn({});
     fid = new LocationIdColumn({ caption: 'From Location', allowNull: false }, this.context);
     tid = new LocationIdColumn({ caption: 'To Location', allowNull: false }, this.context);
     immediate = new BoolColumn({
@@ -34,49 +25,40 @@ export class Ride extends IdEntity {
             }
         }
     });
-
-    visitTime = new StringColumn({
-        defaultValue: '00:00', inputType: 'time'//, 
-        // valueChange: () => {
-        //     if (this.visitTime.value) {
-        //         if (!(this.isHasPickupTime())) {
-        //             let pickup = '00:00';
-        //             let hour = this.visitTime.value.split(':');
-        //             if (hour.length > 1) {
-        //                 pickup = ('' + (parseInt(hour[0]) - 2)).padStart(2, "0") + ":" + hour[1];
-        //             }
-        //             this.pickupTime.value = pickup;
-        //         }
-        //     }
-        // }
-    });
+    date = new DateColumn({});
+    visitTime = new StringColumn({ defaultValue: '00:00', inputType: 'time' });
     pickupTime = new StringColumn({ defaultValue: '00:00', inputType: 'time' });
-    // dayPeriod = new DayPeriodColumn();
-    // dayOfWeek = new DayOfWeekColumn({});
-    isHasBabyChair = new BoolColumn({ caption: 'Has Babyseat?' });
-    isHasWheelchair = new BoolColumn({ caption: 'Wheelchair?' });
-    //isHasExtraEquipment = new BoolColumn({ caption: 'Has Extra Equipment' });
-    // isHasEscort = new BoolColumn({ caption: 'Has Escort', defaultValue: false });
+    status = new RideStatusColumn();
+    statusDate = new DateTimeColumn();
+
+    isHasBabyChair = new BoolColumn({ caption: 'Has Babyseat?', defaultValue: false });
+    isHasWheelchair = new BoolColumn({ caption: 'Wheelchair?', defaultValue: false });
     escortsCount = new NumberColumn({});
-    backId = new StringColumn({});
+
+
+    driverId = new DriverIdColumn({ caption: 'Driver' }, this.context);
+    patientId = new PatientIdColumn(this.context);
     pMobile = new StringColumn({ caption: 'Patient Mobile' });
-    dRemark = new StringColumn({ caption: 'Remark For Driver' });
-    rRemark = new StringColumn({ caption: 'Remark For Ride' });
+    importRideNum = new StringColumn();
+
+    backId = new StringColumn({});
     isBackRide = new BoolColumn({ defaultValue: false });
     mApproved = new BoolColumn({ defaultValue: false });
     isSplitted = new BoolColumn({ defaultValue: false });
+    dRemark = new StringColumn({ caption: 'Remark For Driver' });
+    rRemark = new StringColumn({ caption: 'Remark For Ride' });
     changed = new DateTimeColumn();
     changedBy = new UserId(this.context);
 
     constructor(private context: Context, private dialog: DialogService) {
         super({
             name: "rides",
-            allowApiCRUD: c => c.isSignedIn(),
+            allowApiCRUD: [Roles.admin, Roles.usher, Roles.matcher],
             allowApiRead: c => c.isSignedIn(),
             saving: async () => {
                 if (context.onServer) {
                     if (this.status.wasChanged()) {
-                        this.statusDate.value = new Date();
+                        this.statusDate.value = addDays(TODAY);
                     }
                     if (this.visitTime.wasChanged()) {
                         this.pickupTime.value = addHours(-2, this.visitTime.value);
@@ -88,7 +70,9 @@ export class Ride extends IdEntity {
             saved: async () => {//trigger from db on date OR status changed
                 if (context.onServer) {
                     if (this.isNew() || this.date.wasChanged() || this.pickupTime.wasChanged() || this.status.wasChanged()) {
-                        let history = await this.context.for(RideHistory).create();
+                        let history = this.context.for(RideHistory).create();
+                        history.fid.value = this.fid.value;
+                        history.tid.value = this.tid.value;
                         history.rid.value = this.id.value;
                         history.date.value = this.date.value;
                         history.pickupTime.value = this.pickupTime.value;
@@ -155,10 +139,6 @@ export class Ride extends IdEntity {
 
     isExsistDriver(): boolean {
         return this.driverId && this.driverId.value && this.driverId.value.length > 0;
-    }
-
-    getDayOfWeek() {
-        return DriverPrefs.getDayOfWeek(this.date.getDayOfWeek());
     }
 
     isDriverCurrentlyDriving() {
@@ -274,6 +254,8 @@ export class RideStatus {
     static waitingForEnd = new RideStatus();
     static succeeded = new RideStatus();
     static failed = new RideStatus();
+    static stayInHospital = new RideStatus();
+    static goneByHimself = new RideStatus();
     static rejected = new RideStatus();
     constructor(public color = 'green') { }
     id: string;

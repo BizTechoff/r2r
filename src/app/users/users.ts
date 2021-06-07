@@ -112,22 +112,6 @@ export class Users extends IdEntity {
         }
     }
 
-    private async createEntityForUserByRole(role: Allowed, user: Users) {
-        switch (role.valueOf()) {
-
-            case Roles.driver: {
-                if (user.isDriver.value) {
-                    const d = this.context.for(Driver).create();
-                    d.userId.value = user.id.value;
-                    d.name.value = user.name.value;
-                    d.mobile.value = user.mobile.value;
-                    await d.save();
-                }
-                break;
-            }
-        }
-    }
-
     private async deleteEntityForUserByRole(role: Allowed, userId: string) {
         if (userId && userId.length > 0) {
 

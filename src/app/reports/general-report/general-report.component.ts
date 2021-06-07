@@ -19,7 +19,7 @@ class reportParams {
   tid = new LocationIdColumn({ caption: 'To Location' }, this.context);
   did = new DriverIdColumn({ caption: 'Driver' }, this.context);
   pid = new PatientIdColumn(this.context, { caption: 'Patient' });
- 
+
   where: EntityWhere<Ride> = cur => cur.date.isGreaterOrEqualTo(this.fdate)
     .and(cur.date.isLessOrEqualTo(this.tdate))
     .and(this.fid.value ? cur.fid.isEqualTo(this.fid) : new Filter(x => { /* true */ }))
@@ -28,6 +28,7 @@ class reportParams {
 
   settings: GridSettings = this.context.for(Ride).gridSettings({
     get: { limit: 25 },
+    orderBy: (cur) => [{ column: cur.date, descending: true }, { column: cur.visitTime, descending: true }],
     // get:  {where: this.where},
     // where: this.where,
     allowCRUD: false,

@@ -2,11 +2,10 @@ import { ColumnSettings, Context, DateColumn, DateTimeColumn, EntityClass, IdEnt
 import { DialogService } from "../../common/dialog";
 import { DynamicServerSideSearchDialogComponent } from "../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component";
 import { InputAreaComponent } from "../../common/input-area/input-area.component";
-import { Utils } from "../../shared/utils";
+import { addDays, fixMobile, isValidMobile, TODAY } from "../../shared/utils";
 import { Roles } from "../../users/roles";
 import { LocationIdColumn } from "../locations/location";
 import { RideStatus, RideStatusColumn } from "../rides/ride";
-import { addDays } from "../usher/usher";
 
 @EntityClass
 export class Driver extends IdEntity {
@@ -30,11 +29,11 @@ export class Driver extends IdEntity {
         // this.mobile.value = "0"
         // this.mobile.validationError = " Is Too Short";
       }
-      else if (!Utils.isValidMobile(this.mobile.value)) {
+      else if (!isValidMobile(this.mobile.value)) {
         this.mobile.validationError = " Not Valid";
       }
       else {
-        this.mobile.value = Utils.fixMobile(this.mobile.value);
+        this.mobile.value = fixMobile(this.mobile.value);
       }
     },
   });
@@ -55,11 +54,11 @@ export class Driver extends IdEntity {
 
   lastStatus = new RideStatusColumn({});
   lastStatusDate = new DateColumn({});
-  defaultFromLocation?= new LocationIdColumn({allowNull: true}, this.context);
-  defaultToLocation?= new LocationIdColumn({allowNull: true}, this.context);
-  defaultFromTime = new StringColumn({defaultValue: '00:00'});//{ defaultValue: "00:00", dataControlSettings: () => ({ inputType: 'time', width: '110' }) });
-  defaultToTime = new StringColumn({defaultValue: '00:00'});//{ defaultValue: "00:00", dataControlSettings: () => ({ inputType: 'time', width: '110' }) });
-  defaultSeats = new NumberColumn({defaultValue: 1});
+  defaultFromLocation?= new LocationIdColumn({ allowNull: true }, this.context);
+  defaultToLocation?= new LocationIdColumn({ allowNull: true }, this.context);
+  defaultFromTime = new StringColumn({ defaultValue: '00:00' });//{ defaultValue: "00:00", dataControlSettings: () => ({ inputType: 'time', width: '110' }) });
+  defaultToTime = new StringColumn({ defaultValue: '00:00' });//{ defaultValue: "00:00", dataControlSettings: () => ({ inputType: 'time', width: '110' }) });
+  defaultSeats = new NumberColumn({ defaultValue: 1 });
   freezeTillDate?= new DateColumn({});
 
   constructor(private context: Context, private dialog: DialogService) {
@@ -155,8 +154,8 @@ export class Driver extends IdEntity {
 
   async freeze(): Promise<boolean> {
     let result = false;
-    let today = new Date();
-    let endOfMonth = addDays(-1, new Date(today.getFullYear(), today.getMonth() + 1, 1));
+    let today = addDays(TODAY);
+    let endOfMonth = addDays(-1, new Date(today.getFullYear(), today.getMonth() + 1, 1));//(1 in next-month)-1
 
     let freezeDate = new DateColumn({ defaultValue: endOfMonth });
     await this.context.openDialog(InputAreaComponent, ia => ia.args = {
@@ -168,7 +167,7 @@ export class Driver extends IdEntity {
         },
       ],
       validate: async () => {
-        let ok = freezeDate && freezeDate.value && (freezeDate.value > new Date());
+        let ok = freezeDate && freezeDate.value && (freezeDate.value > addDays(TODAY));
         if (!(ok)) {
           this.validationError = 'Date must be greater then today';
           throw this.validationError;
@@ -184,15 +183,15 @@ export class Driver extends IdEntity {
     });
     return result;
   }
- 
+
   async unfreeze(): Promise<boolean> {
     let result = false;
     // let yes = await this.dialog.yesNoQuestion(`Unfreeze driver ${this.name.value}`);
     // if (yes) {
-      this.freezeTillDate.value = null;
-      await this.save();
-      console.log('@#@#@#@#');
-      result = true;
+    this.freezeTillDate.value = null;
+    await this.save();
+    console.log('@#@#@#@#');
+    result = true;
     // }
     return result;
   }
@@ -241,7 +240,7 @@ export async function openDriver(id: string, context: Context): Promise<boolean>
           d.birthDate,
           d.email,
           [d.city, d.address],
-          {column: d.freezeTillDate, readOnly: true, visible: () => {return (!(d.freezeTillDate.value === null));} },
+          { column: d.freezeTillDate, readOnly: true, visible: () => { return (!(d.freezeTillDate.value === null)); } },
         ],
         buttons: [
           {
@@ -264,7 +263,7 @@ export async function openDriver(id: string, context: Context): Promise<boolean>
             return true;
           }
         },
-        
+
       },
     )
   }

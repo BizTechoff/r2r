@@ -1,7 +1,8 @@
 import { Context, DateTimeColumn, EntityClass, IdEntity, StringColumn } from "@remult/core";
+import { GridDialogComponent } from "../../common/grid-dialog/grid-dialog.component";
 import { Roles } from "../../users/roles";
 import { UserId } from "../../users/users";
-import { DriverIdColumn } from "./driver";
+import { Driver, DriverIdColumn } from "./driver";
 
 @EntityClass
 export class DriverCall extends IdEntity {
@@ -31,6 +32,30 @@ export class DriverCall extends IdEntity {
                     }
                 }
             },
+        });
+    }
+
+    static async openCallDocumentationDialog(context:Context, did: string, dname?: string) {
+        if(!(dname)){
+            dname = (await context.for(Driver).findId(did)).name.value;
+        }
+        await context.openDialog(GridDialogComponent, gd => gd.args = {
+            title: `Call Documentation For ${dname}`,
+            settings: context.for(DriverCall).gridSettings({
+                where: c => c.dId.isEqualTo(did),
+                orderBy: c => [{ column: c.modified.value ? c.modified : c.created, descending: true }, { column: c.created.value ? c.created : c.modified, descending: true }],
+                newRow: c => { c.dId.value = did; },
+                allowCRUD: context.isAllowed([Roles.admin, Roles.usher]),
+                allowDelete: false,
+                numOfColumnsInGrid: 10,
+                columnSettings: c => [
+                    c.doc,
+                    { column: c.createdBy, readOnly: true },
+                    { column: c.created, readOnly: true },
+                    { column: c.modified, readOnly: true },
+                    { column: c.modifiedBy, readOnly: true },
+                ],
+            }),
         });
     }
 }

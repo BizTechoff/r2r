@@ -32,47 +32,78 @@ export function isDesktop() {
         await Promise.all(this.todo);
     }
   }
-export class Utils {
+  
+  export const TODAY:number = 0;
 
-    @ServerFunction({ allowed: true })
-    static async getServerDate() {
-        return new Date(2021,3,7);
+  export function addDays(days: number, date?: Date) {
+    var x = date ? date : new Date();
+    var xnotime = new Date(x.getFullYear(), x.getMonth(), x.getDate());
+    xnotime.setDate(xnotime.getDate() + days);
+    return xnotime;
+}
+
+export function resetTime(d: Date) {
+    let result = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    return result;
+}
+
+export function daysDiff(big?: Date, small?: Date) {
+    let result = 0;
+    if (small && big) {
+        let day_ms = 24 * 60 * 60 * 1000;//h*m*s*ms
+        let diff = +resetTime(big) - +resetTime(small);
+        result = -(Math.ceil(diff / day_ms));//ONE_DAY_MS = 24 * 60 * 60 * 1000;
     }
+    return result;
+}
 
-    static isLoginByMobile = true;
-
-    static fixMobile(value: string) {
-        if (!(value)) {
-            return value;
+export function addHours(hours: number, time: string) {
+    console.log(time);
+    let result = time;
+    if (time && time.length > 0 && time.includes(':')) {
+        let hour = time.split(':');
+        if (hour.length > 1) {
+            result = ('' + (parseInt(hour[0]) + hours)).padStart(2, "0") + ":" + hour[1];
         }
-        value = value.replace('-', '').trim();
-        value = value.slice(0, 3) + "-" + value.slice(3);
+    }
+    return result;
+}
+
+export function timeDiff(big?: string, small?: string) {
+    //if(big && big.length &&)
+    let day_ms = 24 * 60 * 60 * 1000;//h*m*s*ms
+    let diff = +big - +small;
+    let days = -(Math.ceil(diff / day_ms) + 1);//ONE_DAY_MS = 24 * 60 * 60 * 1000;
+    return days;
+}
+
+export function fixMobile(value: string) {
+    if (!(value)) {
         return value;
     }
+    value = value.replace('-', '').replace('-', '').replace('-', '').replace('-', '').replace('-', '').trim();
+    value = value.slice(0, 3) + '-' + value.slice(3);
+    return value;
+}
 
-    static isValidMobile(value: string) {
-        if (!(value)) {
-            return false;
-        }
-        value = value.replace('-', '').trim();
-        if (value.length < 9) {
-            return false;
-        }
-        if (value.length == 9) {
-            value = "0" + value;
-        }
-        if (!value.startsWith('05')) {
-            return false;
-        }
-        for (let i = 0; i < value.length; ++i) {
-            if (!['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(value[i])) {
-                return false;
-            }
-        }
-        return true;
+export function isValidMobile(value: string) {
+    if (!(value)) {
+        return false;
     }
-
-    static getDatePart(date: Date) {
-        return date.setHours(0, 0, 0, 0);
+    value = value.replace('-', '').trim();
+    if (value.length < 9) {
+        return false;
     }
+    if (value.length == 9) {
+        value = "0" + value;
+    }
+    if (!value.startsWith('05')) {
+        return false;
+    }
+    for (let i = 0; i < value.length; ++i) {
+        if (!['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(value[i])) {
+            return false;
+        }
+    }
+    return true;
 }

@@ -42,7 +42,6 @@ import { UsherComponent } from './core/usher/usher.component';
 import { HomeComponent } from './home/home.component';
 import { GeneralReportComponent } from './reports/general-report/general-report.component';
 import { ServerEventsService } from './server/server-events-service';
-import { Utils } from './shared/utils';
 import { AdminGuard, DriverGuard, MatcherGuard, OnlyDriverGuard, UsherGuard } from './users/roles';
 import { UsersComponent } from './users/users.component';
 import { LocationsListComponent } from './core/locations/locations-list/locations-list.component';
@@ -100,7 +99,7 @@ import { PatientsListComponent } from './core/patients/patients-list/patients-li
     RemultModule,
     BrowserAnimationsModule
   ],
-  providers: [DialogService, AdminGuard, UsherGuard, MatcherGuard, DriverGuard, OnlyDriverGuard, ServerEventsService, Utils,
+  providers: [DialogService, AdminGuard, UsherGuard, MatcherGuard, DriverGuard, OnlyDriverGuard, ServerEventsService,
 
     // {
     //   provide: ApplicationSettings, useFactory: (service: SettingsService) => {

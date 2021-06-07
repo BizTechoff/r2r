@@ -1,15 +1,56 @@
-import { DateTimeColumn } from "@remult/core";
+import { ColumnSettings, DateTimeColumn, StringColumn } from "@remult/core";
 import { RideStatus } from "../core/rides/ride";
 
 export class changeDate extends DateTimeColumn {
   readonly = true;
 };
 
-export interface getRideList4UsherParams {
+export class TimeColumn extends StringColumn {
+  constructor(options?: ColumnSettings<string>) {
+    super({
+      inputType: 'time',
+      defaultValue: '00:00',
+    }, options);
+  }
+
+  setHour(hour: number) {
+    if (hour >= 0 && hour <= 23) {
+      if (this.isEmpty) {
+        this.value = ('' + hour).padStart(2, '0');
+      }
+      else {
+        let split = this.value.split(':');
+        if (split && split.length > 1) {
+          this.value = ('' + hour).padStart(2, '0') + ':' + split[1];
+        }
+      }
+    }
+  }
+
+  isEmpty() {
+    return this.value.length == 0 || this.value === '00:00';
+  }
+}
+
+export interface UsherRideRow {
+  id: string,
   date: Date,
-  fromId?: string,
-  toId?: string,
-};
+  visitTime: string,
+  from: string,
+  to: string,
+  passengers: number,
+  days: number,
+  status: RideStatus,
+  statusDate: Date,
+  pid: string,
+  pName?: string,
+  pAge?: number,
+  pMobile?: string,
+  did: string,
+  dName?: string,
+  dMobile?: string,
+  icons?: string[],
+}
 
 export interface driver4UsherSuggest {
   did: string,
@@ -24,7 +65,7 @@ export interface driver4UsherSuggest {
   home: string,
   seats: number,
 };
- 
+
 export interface ride4UsherRideRegister {
   rgId: string,
   date: Date,
@@ -44,7 +85,7 @@ export interface ride4DriverRideRegister {
   rid: string,
   rrid: string,
   dId?: string,
-  date: Date, 
+  date: Date,
   fId: string,
   tId: string,
   from: string,
@@ -52,13 +93,13 @@ export interface ride4DriverRideRegister {
   pass: number,
   isRegistered: boolean,
   dFromHour?: string,
-  dToHour?: string, 
+  dToHour?: string,
   dPass?: number,
-  pickupTime?:string,
-  dRemark:string,
-  reason?:string,
+  pickupTime?: string,
+  dRemark: string,
+  reason?: string,
 };
- 
+
 export interface ride4Driver {
   rId: string,
   pId: string,
@@ -86,7 +127,7 @@ export interface ride4Driver {
   w4Pickup: boolean,
   w4Arrived: boolean,
   w4End: boolean,
-  dRemark:string,
+  dRemark: string,
 };
 
 export interface ride4Usher {
@@ -153,7 +194,7 @@ export interface ride4UsherSetDriver {
   patient: string,
   rid: string,
   status: RideStatus,
-  freeSeats?:number;
+  freeSeats?: number;
   w4Accept: boolean,
   w4Start: boolean,
   w4Pickup: boolean,

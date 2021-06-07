@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
 import { Context, DataAreaSettings, NumberColumn } from '@remult/core';
+import { DialogService } from '../../../common/dialog';
+import { addDays, fixMobile, TODAY } from '../../../shared/utils';
 import { SendSmsComponent } from '../../services/send-sms/send-sms.component';
 import { Patient } from '../patient';
 import { Contact } from '../patient-contacts/contact';
@@ -17,12 +19,12 @@ export class PatientCrudComponent implements OnInit {
   args: {
     pid: string,
   } = { pid: '' };
-  patient = this.context.for(Patient).create();
+  p = this.context.for(Patient).create();
   areaSettings: DataAreaSettings = new DataAreaSettings({});
   contactsCount = 0;
 
 
-  constructor(private context: Context, private dialogRef: MatDialogRef<any>) { }
+  constructor(private context: Context, private dialog: DialogService, private dialogRef: MatDialogRef<any>) { }
 
   async ngOnInit() {
     if (!(this.args.pid)) {
@@ -31,17 +33,20 @@ export class PatientCrudComponent implements OnInit {
     let isNew = (!(this.args.pid.length > 0));
     if (!(isNew)) {
       let res = await this.retrieve(this.args.pid);
-      this.patient = res.p;
+      this.p = res.p;
+      if (this.p.mobile.value) {
+        this.p.mobile.value = fixMobile(this.p.mobile.value);
+      }
       this.contactsCount = res.c;
     }
 
     this.areaSettings = new DataAreaSettings({
       columnSettings: () => [
-        [this.patient.name, this.patient.hebName],
-        [this.patient.mobile, this.patient.idNumber],
-        [{ column: this.patient.birthDate }, { column: this.patient.age, readOnly: true, width: '25px' }],
-        [this.patient.defaultBorder, this.patient.defaultHospital],
-        this.patient.remark,
+        [this.p.name],// this.patient.hebName],
+        [this.p.mobile, this.p.idNumber],
+        [{ column: this.p.birthDate }, { column: this.p.age, readOnly: true, width: '25px' }],
+        [this.p.defaultBorder, this.p.defaultHospital],
+        this.p.remark,
       ],
     });
 
@@ -58,9 +63,62 @@ export class PatientCrudComponent implements OnInit {
   }
 
   async save() {
-    await this.patient.save();
-    this.args.pid = this.patient.id.value;
-    this.select();
+    if (await this.validate()) {
+      await this.p.save();
+      this.args.pid = this.p.id.value;
+      this.select();
+    }
+  }
+
+  async validate(): Promise<boolean> {
+    if (!this.p.name.value) {
+      this.p.name.validationError = `Required`;
+      this.dialog.error(`${this.p.name.defs.caption}: ${this.p.name.validationError}`);
+      return false;
+    }
+    this.p.name.value = this.p.name.value.trim();
+    if (this.p.name.value.length < 2) {
+      this.p.name.validationError = `at least 2 letters`;
+      this.dialog.error(`${this.p.name.defs.caption}: ${this.p.name.validationError}`);
+      return false;
+    }
+    if (!this.p.mobile.value) {
+      this.p.mobile.validationError = `Required`;
+      this.dialog.error(`${this.p.mobile.defs.caption}: ${this.p.mobile.validationError}`);
+      return false;
+    }
+    this.p.mobile.value = this.p.mobile.value.trim();
+    let mobile = this.p.mobile.value;
+    mobile = mobile.replace('-', '').replace('-', '').replace('-', '').replace('-', '');
+    if (mobile.length != 10) {
+      this.p.mobile.validationError = `should be 10 digits`;
+      this.dialog.error(`${this.p.mobile.defs.caption}: ${this.p.mobile.validationError} : ${mobile}`);
+      return false;
+    }
+    if (mobile.slice(0, 2) != '05') {
+      this.p.mobile.validationError = `must start with '05'`;
+      this.dialog.error(`${this.p.mobile.defs.caption}: ${this.p.mobile.validationError}`);
+      return false;
+    }
+    for (const c of mobile) {
+      if (!['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(c)) {
+        this.p.mobile.validationError = `should be ONLY digits`;
+        this.dialog.error(`${this.p.mobile.defs.caption}: ${this.p.mobile.validationError}`);
+        return false;
+      }
+    }
+    if (!this.p.birthDate || !this.p.birthDate.value) {
+      this.p.birthDate.validationError = 'Required';
+      this.dialog.error(`${this.p.birthDate.defs.caption}: ${this.p.birthDate.validationError}`);
+      return false;
+    }
+    if (!(this.p.birthDate.value.getFullYear() > 1900 && this.p.birthDate.value.getFullYear() <= addDays(TODAY).getFullYear())) {
+      this.p.birthDate.validationError = 'Not Valid';
+      this.dialog.error(`${this.p.birthDate.defs.caption}: ${this.p.birthDate.validationError}`);
+      return false;
+    }
+    this.p.mobile.value = mobile;
+    return true;
   }
 
   async sendMessage() {
@@ -72,11 +130,13 @@ export class PatientCrudComponent implements OnInit {
       message: 'Sms Works!'
     });
   }
- 
-  async contacts() {
 
+  async contacts() {
+    if (this.p.isNew()) {
+      await this.p.save();
+    }
     await this.context.openDialog(PatientContactsComponent, sr => sr.args = {
-      pid: this.patient.id.value,
+      pid: this.p.id.value,
     });
   }
 

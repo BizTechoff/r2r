@@ -1,14 +1,12 @@
-import { formatDate } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { BusyService, SelectValueDialogComponent } from '@remult/angular';
-import { Context, ServerFunction, StringColumn, ValueListItem } from '@remult/core';
+import { BusyService } from '@remult/angular';
+import { Context, ServerFunction, StringColumn } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
 import { GridDialogComponent } from '../../../common/grid-dialog/grid-dialog.component';
 import { InputAreaComponent } from '../../../common/input-area/input-area.component';
 import { Roles } from '../../../users/roles';
 import { LocationAreaComponent } from '../../locations/location-area/location-area.component';
 import { Ride, RideStatus } from '../../rides/ride';
-import { addDays, resetTime, Usher } from '../../usher/usher';
 import { Driver, openDriver } from './../driver';
 import { DriverCall } from './../driverCall';
 import { DriverPrefs } from './../driverPrefs';
@@ -47,7 +45,7 @@ export class DriversListComponent implements OnInit {
       d.defaultFromTime,
       d.defaultToTime,
       //prefsCount, await this.context.for(DriverPrefs).count(p=>p.driverId.isEqualTo(d.id));
-    ], 
+    ],
     allowCRUD: false,
     rowButtons: [{
       name: "Show Rides",
@@ -78,19 +76,19 @@ export class DriversListComponent implements OnInit {
       click: async (p) => {
         await this.editDriver(p);
       },
-    }, 
-    // {
-    //   textInMenu: "Delete Driver",
-    //   icon: "delete",
-    //   visible: (p) => !p.isNew(),
-    //   click: async (p) => {
-    //     let name = (await this.context.for(Driver).findId(p.id.value)).name.value;
-    //     if (await this.dialog.confirmDelete(name)) {
-    //       await p.delete();
-    //     }
-    //   },
-    // },
-  ],
+    },
+      // {
+      //   textInMenu: "Delete Driver",
+      //   icon: "delete",
+      //   visible: (p) => !p.isNew(),
+      //   click: async (p) => {
+      //     let name = (await this.context.for(Driver).findId(p.id.value)).name.value;
+      //     if (await this.dialog.confirmDelete(name)) {
+      //       await p.delete();
+      //     }
+      //   },
+      // },
+    ],
     gridButtons: [{
       name: 'Add New Driver',
       icon: 'add',
@@ -130,7 +128,7 @@ export class DriversListComponent implements OnInit {
           [driver.mobile],
           [driver.seats, driver.birthDate],
           [driver.email],
-          [driver.home, ],
+          [driver.home,],
           [driver.city, driver.address],
         ],
         ok: async () => {
@@ -147,24 +145,7 @@ export class DriversListComponent implements OnInit {
   }
 
   async openCallDocumentationDialog(d: Driver) {
-    await this.context.openDialog(GridDialogComponent, gd => gd.args = {
-      title: `Call Documentation For ${d.name.value}`,
-      settings: this.context.for(DriverCall).gridSettings({
-        where: c => c.dId.isEqualTo(d.id),
-        orderBy: c => [{ column: c.modified.value ? c.modified : c.created, descending: true }, { column: c.created.value ? c.created : c.modified, descending: true }],
-        newRow: c => { c.dId.value = d.id.value; },
-        allowCRUD: this.context.isAllowed([Roles.admin, Roles.usher]),
-        allowDelete: false,
-        numOfColumnsInGrid: 10,
-        columnSettings: c => [
-          c.doc,
-          { column: c.createdBy, readOnly: true },
-          { column: c.created, readOnly: true },
-          { column: c.modified, readOnly: true },
-          { column: c.modifiedBy, readOnly: true },
-        ],
-      }),
-    });
+    await DriverCall.openCallDocumentationDialog(this.context, d.id.value, d.name.value);
   }
 
   async openScheduleDialog(p: Driver) {
@@ -191,26 +172,11 @@ export class DriversListComponent implements OnInit {
 
   async openScheduleRides(d: Driver) {
 
-    let values: ValueListItem[] = [];
-    // console.log(r.date);
-    let rides = await Usher.getRegisteredRidesForDriver(d.id.value);
-    console.log(rides.length);
-    for (const r of rides) {
-      values.push({
-        id: r.id,
-        caption: r.from + '|' + r.to + '|' + formatDate(r.date, 'dd.MM.yyyy', 'en-US') + '|' + r.status.id,
-      });
-    };
-
-    let today = resetTime(new Date());
-
     await this.context.openDialog(GridDialogComponent, gd => gd.args = {
       title: `${d.name.value} Rides`,
       settings: this.context.for(Ride).gridSettings({
-        where: r => r.id.isIn(...rides.map(rm => rm.id)),
-        // where: r => r.driverId.isEqualTo(d.id)
-        //   .and(r.date.isGreaterOrEqualTo(today)),
-        orderBy: r => [{ column: r.date, descending: true }],
+        where: r => r.driverId.isEqualTo(d.id),
+        orderBy: r => [{ column: r.date, descending: false }],
         allowCRUD: false,// this.context.isAllowed([Roles.admin, Roles.usher, Roles.matcher]),
         allowDelete: false,
         // showPagination: false,
@@ -232,14 +198,14 @@ export class DriversListComponent implements OnInit {
       }),
     });
   }
-  
+
 
   // async editRide(r:Ride){
   //   let today = new Date();
   //   let tomorrow = new Date();
   //   tomorrow.setDate(today.getDate() + 1);
   //   let tomorrow10am = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate(), 10);
-    
+
   //   // var isNeedReturnTrip = new BoolColumn({ caption: "Need Return Ride" });
   //   await this.context.openDialog(
   //     InputAreaComponent,
@@ -275,7 +241,7 @@ export class DriversListComponent implements OnInit {
   //           r.date.validationError = 'Required';
   //           throw r.date.defs.caption + ' ' + r.date.validationError;
   //         }
-  //         if (r.date.value < addDays(0)) {
+  //         if (r.date.value < addDays(TODAY)) {
   //           r.date.validationError = 'Must be greater or equals today';
   //           throw r.date.defs.caption + ' ' + r.date.validationError;
   //         }
@@ -295,52 +261,6 @@ export class DriversListComponent implements OnInit {
   //     },
   //   )
   // }
-
-  async openSuggestedRidesForDriverDialog(d: Driver) {
-    let suggestedRides = await Usher.getSuggestedRidesForDriver(d.id.value);
-    suggestedRides = [];
-    let rIds = await DriversListComponent.suggestRidesForMe(d.id.value, this.context);
-    for await (const row of this.context.for(Ride).iterate({
-      where: r => r.id.isIn(...rIds.map(itm => itm.rid)),
-    })) {
-      suggestedRides.push({
-        id: row.id.value,
-        date: row.date.value,
-        from: row.fid.value,
-        to: row.tid.value,
-        passengers: row.passengers(),
-        phones: '',
-        status: row.status.value,
-        groupByLocation: false,
-        icons: [],
-        ids: [],
-        isWaitingForArrived: row.isWaitingForArrived(),
-        isWaitingForPickup: row.isWaitingForPickup(),
-        isWaitingForStart: row.isWaitingForStart(),
-        isWaitingForUsherApproove: row.isWaitingForUsherApproove(),
-      });
-    }
-
-    let values: ValueListItem[] = [];
-    for (const ride of suggestedRides) {
-      let caption = `${ride.date} | ${ride.from} | ${ride.to} | ${ride.passengers} | ${ride.phones}`;
-      values.push({
-        id: ride.id,
-        caption: caption
-      });
-    }
-
-    this.context.openDialog(SelectValueDialogComponent, x => x.args({
-      title: `Suggested Rides`,
-      values: values,
-      onSelect: async x => {
-        let ride = await this.context.for(Ride).findId(x.id);
-        ride.driverId.value = d.id.value;
-        await ride.save();
-        // this.retrieveDrivers();
-      },
-    }));
-  }
 
   static async getBordersIds(did: string, context?: Context): Promise<string[]> {
     let borders: string[] = [];

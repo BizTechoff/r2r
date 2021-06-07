@@ -1,5 +1,6 @@
 import { ColumnSettings, Context, DateColumn, EntityClass, IdEntity, NumberColumn, StringColumn } from "@remult/core";
 import { DynamicServerSideSearchDialogComponent } from "../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component";
+import { addDays, TODAY } from "../../shared/utils";
 import { LocationIdColumn } from "../locations/location";
 
 @EntityClass
@@ -40,21 +41,7 @@ export class Patient extends IdEntity {
   hasBirthDate() {
     return this.birthDate && this.birthDate.value && this.birthDate.value.getFullYear() > 1900;
   }
-
-  private calcAge(today?: Date) {
-    today = new Date();
-    if (this.hasBirthDate())
-      return today.getFullYear() - this.birthDate.value.getFullYear();
-    return 0;
-    if (!(this.hasBirthDate())) {
-      return 0;
-    }
-    if (!(today)) {
-      //  today = await Utils.getServerDate();
-    }
-    let age = today.getFullYear() - this.birthDate.value.getFullYear();
-    return age;
-  }
+  
 }
 export class PatientIdColumn extends StringColumn {
 
@@ -77,41 +64,3 @@ export class PatientIdColumn extends StringColumn {
     });
   }
 }
-
-// export async function openPatient(pid: string, context: Context): Promise<boolean> {
-//   await context.openDialog(PatientCrudComponent, thus => thus.args = {
-//     pid: pid, isNew: false,
-//  });
-//  return true;
-//   //let result:UsherRideRow = {};
-//   // let p = await context.for(Patient).findId(pid);
-//   // if (p) {
-
-
-//   //   await context.openDialog(PatientCrudComponent, thus => thus.args = {
-//   //      pid: pid, isNew: false,
-//   //   });
-
-//   //   // context.openDialog(
-//   //   //   InputAreaComponent,
-//   //   //   x => x.args = {
-//   //   //     title: `Edit Patient: ${p.name.value}`,
-//   //   //     columnSettings: () => [
-//   //   //       [p.name, p.hebName],
-//   //   //       [p.mobile, p.idNumber],
-//   //   //       [p.defaultBorder, p.defaultHospital],
-//   //   //     ],
-//   //   //     ok: async () => {
-//   //   //       if (p.wasChanged()) {
-//   //   //         await p.save();
-//   //   //         // r.pName = p.name.value;
-//   //   //         // r.pAge = p.age();
-//   //   //         // r.pMobile = p.mobile.value;
-//   //   //         return true;
-//   //   //       }
-//   //   //     }
-//   //   //   },
-//   //   // )
-//   // }
-//   // return false;
-// }

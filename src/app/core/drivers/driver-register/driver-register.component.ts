@@ -4,10 +4,10 @@ import { Context, DateColumn, Filter, NumberColumn, ServerController, ServerMeth
 import { DialogService } from '../../../common/dialog';
 import { InputAreaComponent } from '../../../common/input-area/input-area.component';
 import { ride4DriverRideRegister } from '../../../shared/types';
+import { addDays, addHours, resetTime, TODAY } from '../../../shared/utils';
 import { Location, LocationArea, LocationIdColumn, LocationType } from '../../locations/location';
 import { RegisterRide } from '../../rides/register-rides/registerRide';
 import { Ride, RideStatus } from '../../rides/ride';
-import { addDays, addHours, resetTime } from '../../usher/usher';
 import { Driver, DriverIdColumn } from '../driver';
 import { DriverPrefs } from '../driverPrefs';
 import { RegisterDriver } from './registerDriver';
@@ -20,7 +20,7 @@ export interface response {
 @ServerController({ key: 'driverRegister', allowed: true })
 class driverRegister {//dataControlSettings: () => ({width: '150px'}), 
   date = new DateColumn({
-    defaultValue: new Date(), valueChange: async () => {
+    defaultValue: addDays(TODAY), valueChange: async () => {
       await this.onChanged();
     }
   });
@@ -387,7 +387,7 @@ export class DriverRegisterComponent implements OnInit {
   clientLastRefreshDate: Date = new Date();
   demoDates: string;
   static lastRefreshDate: Date = new Date();//client time
-  todayMidnigth = resetTime(new Date());
+  todayMidnigth = addDays(TODAY);
 
   constructor(private context: Context, private dialog: DialogService) { }
 

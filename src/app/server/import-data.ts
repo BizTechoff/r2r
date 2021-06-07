@@ -7,13 +7,13 @@ import { Location, LocationArea, LocationType } from '../core/locations/location
 import { Patient } from '../core/patients/patient';
 import { Ride, RideStatus } from '../core/rides/ride';
 import { Users } from '../users/users';
- 
+
 let volunteersFolder = "c:/r2r/volunteers";
 let ridersFolder = "c:/r2r/rides";
 let daysToRetrieve = 90;//3 months
 
 var counter = 0;
- 
+
 export async function importDataNew(db: SqlDatabase, fresh = false) {
 
     if (fresh) {
@@ -22,14 +22,14 @@ export async function importDataNew(db: SqlDatabase, fresh = false) {
         await importRidesAndToFiles();
         console.timeEnd("finished import fresh");
         console.log("finished import fresh");
-    } 
+    }
     // return;
-  
+
     console.log("starting import");
     var context = new ServerContext(db);
 
     await seed(context);
-// return;
+    // return;
     var rides = fs.readdirSync(ridersFolder);
     console.log("rides.length = " + rides.length);
 
@@ -88,26 +88,29 @@ async function seed(context?: Context) {
         console.log("created admin");
     }
 }
-
+ 
 async function createFromRideRecordNew(record: any, context?: Context) {
-    // console.log("createFromRideRecordNew called");
+    let clean = process.env.IMPORT_DATA_CLEAN && process.env.IMPORT_DATA_CLEAN === 'true';
+
     let fromId = await findOrCreateLocationNew(record.Origin, context);
     let toId = await findOrCreateLocationNew(record.Destination, context);
-    let patientId = await findOrCreatePatientNew(record.Pat, context);
-    let userId = await findOrCreateUserNew(record.Drivers[0], context);// user auto-create driver
-    if (!(userId && userId.length > 0)) {
-        console.log("userId null");
-        return;
+    if (!(clean)) {
+        let patientId = await findOrCreatePatientNew(record.Pat, context);
+        let userId = await findOrCreateUserNew(record.Drivers[0], context);// user auto-create driver
+        if (!(userId && userId.length > 0)) {
+            console.log("userId null");
+            return;
+        }
+        let driverId = await findOrCreateDriverNew(record.Drivers[0], userId, context);
+        if (!(driverId && driverId.length > 0)) {
+            console.log("driverId null");
+            return;
+        }
+        let driverPrefIds = await findOrCreateDriverPrefsNew(record.Drivers[0], driverId, context);
+        let rideId = await findOrCreateRideNew(record, driverId, patientId, fromId, toId, context);
     }
-    let driverId = await findOrCreateDriverNew(record.Drivers[0], userId, context);
-    if (!(driverId && driverId.length > 0)) {
-        console.log("driverId null");
-        return; 
-    }
-    let driverPrefIds = await findOrCreateDriverPrefsNew(record.Drivers[0], driverId, context);
-    let rideId = await findOrCreateRideNew(record, driverId, patientId, fromId, toId, context);
 }
- 
+
 async function findOrCreateLocationNew(locationRecord: any, context: Context) {
     let name = locationRecord.EnglishName;
     if (name) {
@@ -117,7 +120,7 @@ async function findOrCreateLocationNew(locationRecord: any, context: Context) {
         where: l => l.name.isEqualTo(name),
     });
     location.type.value = isBorder(name) ? LocationType.border : LocationType.hospital;
-    if(location.type.value == LocationType.border){
+    if (location.type.value == LocationType.border) {
         location.area.value = LocationArea.get(name);
     }
     await location.save();
@@ -284,7 +287,7 @@ async function findOrCreateRideNew(rideRecord: any, driverId: string, patientId:
             }
         }
     }
-    
+
     // all ride from import are in-the-past so all should be closed.
     ride.status.value = RideStatus.succeeded;
 
@@ -350,7 +353,7 @@ async function importRidesAndToFiles(rewrite: boolean = false) {
                     ++vWriteCounter;
                 }
             }
-            else{
+            else {
                 console.log(`ride ${r.RideNum} has bo driver.DisplayName`);
             }
         }
