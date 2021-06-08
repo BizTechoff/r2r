@@ -78,7 +78,7 @@ export class PatientsListComponent implements OnInit {
           await p.delete();
         }
       },
-    },],
+    }],
   });
 
   constructor(private context: Context, private busy: BusyService, private dialog: DialogService) {

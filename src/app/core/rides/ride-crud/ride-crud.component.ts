@@ -64,26 +64,14 @@ export class RideCrudComponent implements OnInit {
       columnSettings: () => [
         { column: this.r.fid, readonly: rOnly },
         { column: this.r.tid, readonly: rOnly },
-        [{ column: this.r.immediate, readOnly: rOnly }, {
-          column: this.createBackRide, visible: () => {
-            let result = true;
-            let selected = false;
-            if (this.r.fid.selected && this.r.fid.selected.id.value) {
-              selected = true;
-            }
-            if (selected) {
-              if (![LocationType.border].includes(this.r.fid.selected.type.value)) {
-                result = false;
-              }
-            }
-            result = result && this.r.isNew();
-            if (!(result)) {
-              this.createBackRide.value = false;
-            }
-            return result;
-          },
-          readOnly: rOnly
-        }],
+        [
+          { column: this.r.immediate, readOnly: rOnly },
+          {
+            column: this.createBackRide,
+            visible: () => this.setBackRideVisible(),
+            readOnly: rOnly
+          }
+        ],
         [
           { column: this.r.date, readOnly: rOnly, visible: () => { return !this.r.immediate.value; } },
           { column: this.r.visitTime, visible: () => { return !this.r.immediate.value; } }
@@ -95,6 +83,24 @@ export class RideCrudComponent implements OnInit {
         { column: this.r.dRemark, readOnly: this.context.isAllowed([Roles.matcher]) },
       ],
     });
+  }
+
+  setBackRideVisible() {
+    let result = true;
+    let selected = false;
+    if (this.r.fid.selected && this.r.fid.selected.id.value) {
+      selected = true;
+    }
+    if (selected) {
+      if (![LocationType.border].includes(this.r.fid.selected.type.value)) {
+        result = false;
+      }
+    }
+    result = selected && result && this.r.isNew();
+    if (!(result)) {
+      this.createBackRide.value = false;
+    }
+    return result;
   }
 
   async save() {
@@ -210,6 +216,11 @@ export class RideCrudComponent implements OnInit {
     await this.context.openDialog(PatientContactsComponent, sr => sr.args = {
       pid: this.args.pid,
     });
+  }
+
+  swapLocations() {
+    this.r.swapLocations();
+    this.setBackRideVisible();
   }
 
   close() {

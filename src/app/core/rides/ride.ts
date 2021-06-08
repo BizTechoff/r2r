@@ -108,7 +108,7 @@ export class Ride extends IdEntity {
 
         });
     }
-    hadBackId() {
+    hadBackRide() {
         return this.backId && this.backId.value && this.backId.value.length > 0;
     }
 
@@ -212,10 +212,13 @@ export class Ride extends IdEntity {
         return this.status.value === RideStatus.succeeded;
     }
 
-    async swapLocations() {
+    swapLocations() {
         let temp = this.fid.value;
+        let slected = this.fid.selected;
         this.fid.value = this.tid.value;
+        this.fid.selected = this.tid.selected;
         this.tid.value = temp;
+        this.tid.selected = slected;
     }
 
     async createBackRide(): Promise<Ride> {
@@ -233,6 +236,7 @@ export class Ride extends IdEntity {
 
     copyTo(target: Ride) {
         target.date.value = this.date.value;
+        target.pMobile.value = this.pMobile.value;
         target.isHasBabyChair.value = this.isHasBabyChair.value;
         target.isHasWheelchair.value = this.isHasWheelchair.value;
         target.escortsCount.value = this.escortsCount.value;
@@ -292,6 +296,11 @@ export class RideStatus {
     static isInDriving = [
         RideStatus.waitingForPickup,
         RideStatus.waitingForArrived
+    ];
+
+    static isDriverStarted = [
+        RideStatus.waitingForDriver,
+        RideStatus.waitingForAccept
     ];
 
     static isInCanBackRideStatuses = [

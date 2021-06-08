@@ -73,37 +73,28 @@ export class LocationTypeColumn extends ValueListColumn<LocationType>{
 }
 
 export class LocationIdColumn extends StringColumn {
-  selected:Location= undefined;
+  selected: Location = undefined;
   private types: LocationType[] = [LocationType.border, LocationType.hospital];
   constructor(options?: ColumnSettings<string>, private context?: Context) {
     super({
-      validate: () => {
-        // console.log(this.defs.allowNull);
-        // if (this.defs.allowNull) { }
-        // else if (this.value && this.value.length > 0) { }
-        // else {
-        //   this.validationError = " No Location Seleceted";
-        // }
-      },
       dataControlSettings: () => ({
-        getValue: () => this.context.for(Location).lookup(this).name.value,
+        getValue: () => {
+          this.selected = this.context.for(Location).lookup(this);
+          return this.selected.name.value;
+        },
         hideDataOnInput: true,
         clickIcon: 'search',
         width: "150px",
         click: () => {
-          console.log(this.types);
-          let trueFilter = new Filter((f) => { return true; });
           this.context.openDialog(DynamicServerSideSearchDialogComponent,
             x => x.args(Location, {
-              onClear: () => {this.value = '';this.selected = undefined;},
-              onSelect: l => {this.value = l.id.value;this.selected = l;},
-              searchColumn: l => l.name,
-              // where: l => l.type.isIn(this.types),
+              onClear: () => { this.value = ''; },
+              onSelect: l => { this.value = l.id.value; },
+              searchColumn: l => l.name
             }));
         }
-      }),//...options
-    },
-      options);
+      }),
+    }, options);
   };
   async area(): Promise<string[]> {
     let result: string[] = [];
@@ -111,11 +102,14 @@ export class LocationIdColumn extends StringColumn {
     if (loc.type === LocationType.border) {
       for await (const l of this.context.for(Location).iterate({
         where: cur => cur.area.isEqualTo(loc.area)
-      })) { 
+      })) {
         result.push(l.id.value);
       }
     }
     return result;
+  }
+  hasSelected(){
+    return this.selected && this.selected.id && this.selected.id.value && this.selected.id.value.length > 0;
   }
 }
 export class BorderAreaIdColumn extends StringColumn {
