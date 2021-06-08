@@ -15,7 +15,7 @@ export class RideHistory extends IdEntity {
     tid = new LocationIdColumn({},this.context);
     rid = new RideIdColumn(this.context);
     date = new DateColumn();
-    // visitTime = new StringColumn({defaultValue: '00:00', inputType: 'time'});
+    // visitTime = new TimeColumn();
     pickupTime = new TimeColumn();
     status = new RideStatusColumn();
     // escortsCount = new NumberColumn({});

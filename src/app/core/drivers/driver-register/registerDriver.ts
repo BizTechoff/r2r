@@ -1,4 +1,5 @@
 import { Context, DateColumn, DateTimeColumn, EntityClass, IdEntity, NumberColumn, StringColumn } from "@remult/core";
+import { TimeColumn } from "../../../shared/types";
 import { Roles } from "../../../users/roles";
 import { DriverIdColumn } from "../driver";
 
@@ -9,8 +10,8 @@ export class  RegisterDriver extends IdEntity {
     rid = new StringColumn({});
     rrid = new StringColumn({});
     did = new DriverIdColumn({caption: 'Driver'}, this.context);
-    fh = new StringColumn({ caption: 'Pickup From', inputType: 'time' });
-    th = new StringColumn({ caption: 'Pickup Till', inputType: 'time' });
+    fh = new TimeColumn({ caption: 'Pickup From' });
+    th = new TimeColumn({ caption: 'Pickup Till' });
     seats = new NumberColumn({  
         caption: 'Free Seats',
         validate: () => {
@@ -41,11 +42,11 @@ export class  RegisterDriver extends IdEntity {
     };
 
     isHasFromHour() {
-        return this.fh && this.fh.value && this.fh.value.length > 0 && (!(this.fh.value === '00:00' || this.fh.value === '--:--'));
+        return this.fh && this.fh.value && this.fh.value.length > 0 && (!(this.fh.value === TimeColumn.Empty || this.fh.value === '--:--'));
     }
 
     isHasToHour() {
-        return this.th && this.th.value && this.th.value.length > 0 && (!(this.th.value === '00:00'));
+        return this.th && this.th.value && this.th.value.length > 0 && (!(this.th.value === TimeColumn.Empty));
     }
     
 }

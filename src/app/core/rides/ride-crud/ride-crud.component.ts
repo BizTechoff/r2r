@@ -1,9 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
-import { Context, DataAreaSettings, NumberColumn } from '@remult/core';
+import { BoolColumn, Context, DataAreaSettings, NumberColumn } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
-import { addDays, TODAY } from '../../../shared/utils';
+import { TODAY } from '../../../shared/types';
+import { addDays } from '../../../shared/utils';
 import { Roles } from '../../../users/roles';
+import { LocationType } from '../../locations/location';
 import { Patient } from '../../patients/patient';
 import { PatientContactsComponent } from '../../patients/patient-contacts/patient-contacts.component';
 import { Ride, RideStatus } from '../ride';
@@ -20,6 +22,7 @@ export class RideCrudComponent implements OnInit {
   dataArea: DataAreaSettings;
   r: Ride;
   p: Patient;
+  createBackRide = new BoolColumn({ caption: 'Create Back Ride', defaultValue: false });
 
   constructor(private context: Context, private dialog: DialogService, private dialogRef: MatDialogRef<any>) { }
 
@@ -57,12 +60,30 @@ export class RideCrudComponent implements OnInit {
     }
 
     let rOnly = RideStatus.isInProgressStatuses.includes(this.r.status.value);
-
     this.dataArea = new DataAreaSettings({
       columnSettings: () => [
         { column: this.r.fid, readonly: rOnly },
         { column: this.r.tid, readonly: rOnly },
-        { column: this.r.immediate, readOnly: rOnly },
+        [{ column: this.r.immediate, readOnly: rOnly }, {
+          column: this.createBackRide, visible: () => {
+            let result = true;
+            let selected = false;
+            if (this.r.fid.selected && this.r.fid.selected.id.value) {
+              selected = true;
+            }
+            if (selected) {
+              if (![LocationType.border].includes(this.r.fid.selected.type.value)) {
+                result = false;
+              }
+            }
+            result = result && this.r.isNew();
+            if (!(result)) {
+              this.createBackRide.value = false;
+            }
+            return result;
+          },
+          readOnly: rOnly
+        }],
         [
           { column: this.r.date, readOnly: rOnly, visible: () => { return !this.r.immediate.value; } },
           { column: this.r.visitTime, visible: () => { return !this.r.immediate.value; } }
@@ -87,6 +108,9 @@ export class RideCrudComponent implements OnInit {
       if (this.r) {
         await this.r.save();
         this.args.rid = this.r.id.value;
+        if (this.createBackRide.value) {
+          await this.r.createBackRide();
+        }
       }
       this.select();
     }
@@ -118,20 +142,71 @@ export class RideCrudComponent implements OnInit {
       await this.dialog.error(this.r.date.defs.caption + ' ' + this.r.date.validationError);
       return false;
     }
-    if (!(this.r.isHasVisitTime())) {
-      this.r.visitTime.validationError = 'Required';
-      await this.dialog.error(this.r.visitTime.defs.caption + ' ' + this.r.visitTime.validationError);
+    if (!(this.r.immediate.value)) {
+      if (!(this.r.isHasVisitTime())) {
+        this.r.visitTime.validationError = 'Required';
+        await this.dialog.error(this.r.visitTime.defs.caption + ' ' + this.r.visitTime.validationError);
+        return false;
+      }
+    }
+
+    if (!this.p.mobile.value) {
+      this.p.mobile.validationError = `Required`;
+      this.dialog.error(`${this.p.mobile.defs.caption}: ${this.p.mobile.validationError}`);
       return false;
     }
-    if (!(this.p.hasBirthDate())) {
-      this.r.visitTime.validationError = 'Required';
-      await this.dialog.error(this.r.visitTime.defs.caption + ' ' + this.r.visitTime.validationError);
+    this.p.mobile.value = this.p.mobile.value.trim();
+    let mobile = this.p.mobile.value;
+    mobile = mobile.replace('-', '').replace('-', '').replace('-', '').replace('-', '');
+    if (mobile.length != 10) {
+      this.p.mobile.validationError = `should be 10 digits`;
+      this.dialog.error(`${this.p.mobile.defs.caption}: ${this.p.mobile.validationError} : ${mobile}`);
       return false;
     }
+    if (mobile.slice(0, 2) != '05') {
+      this.p.mobile.validationError = `must start with '05'`;
+      this.dialog.error(`${this.p.mobile.defs.caption}: ${this.p.mobile.validationError}`);
+      return false;
+    }
+    for (const c of mobile) {
+      if (!['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(c)) {
+        this.p.mobile.validationError = `should be ONLY digits`;
+        this.dialog.error(`${this.p.mobile.defs.caption}: ${this.p.mobile.validationError}`);
+        return false;
+      }
+    }
+    if (!this.p.birthDate || !this.p.birthDate.value) {
+      this.p.birthDate.validationError = 'Required';
+      this.dialog.error(`${this.p.birthDate.defs.caption}: ${this.p.birthDate.validationError}`);
+      return false;
+    }
+    if (!(this.p.birthDate.value.getFullYear() > 1900 && this.p.birthDate.value.getFullYear() <= addDays(TODAY).getFullYear())) {
+      this.p.birthDate.validationError = 'Not Valid';
+      this.dialog.error(`${this.p.birthDate.defs.caption}: ${this.p.birthDate.validationError}`);
+      return false;
+    }
+    this.p.mobile.value = mobile;
+
     return true;
   }
 
   async openPatientContacts() {
+    // if (this.r.isNew()) {
+    //   let yes = await this.dialog.yesNoQuestion(`Ride didn't saved. Save and Create the ride?`);
+    //   if (!yes) {
+    //     return;
+    //   }
+    // }
+    if (this.r.wasChanged()) {// || isNew()
+      let yes = await this.dialog.yesNoQuestion(`Ride didn't saved. Save and ${this.r.isNew() ? 'Create the ride' : 'Open Contacts'}?`);
+      if (yes) {
+        await this.r.save();
+      }
+      else {
+        return;
+      }
+    }
+
     await this.context.openDialog(PatientContactsComponent, sr => sr.args = {
       pid: this.args.pid,
     });

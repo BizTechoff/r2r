@@ -1,6 +1,6 @@
 import { ColumnSettings, Context, DateColumn, EntityClass, IdEntity, NumberColumn, StringColumn } from "@remult/core";
 import { DynamicServerSideSearchDialogComponent } from "../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component";
-import { addDays, TODAY } from "../../shared/utils";
+import { addDays } from "../../shared/utils";
 import { LocationIdColumn } from "../locations/location";
 
 @EntityClass

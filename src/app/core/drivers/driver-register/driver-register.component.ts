@@ -3,8 +3,8 @@ import { Component, OnInit } from '@angular/core';
 import { Context, DateColumn, Filter, NumberColumn, ServerController, ServerMethod } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
 import { InputAreaComponent } from '../../../common/input-area/input-area.component';
-import { ride4DriverRideRegister } from '../../../shared/types';
-import { addDays, addHours, resetTime, TODAY } from '../../../shared/utils';
+import { PickupTimePrevHours, ride4DriverRideRegister, TimeColumn, TODAY } from '../../../shared/types';
+import { addDays, addHours } from '../../../shared/utils';
 import { Location, LocationArea, LocationIdColumn, LocationType } from '../../locations/location';
 import { RegisterRide } from '../../rides/register-rides/registerRide';
 import { Ride, RideStatus } from '../../rides/ride';
@@ -192,7 +192,7 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
               dFromHour: rd.fh.value,
               dToHour: rd.th.value,
               dPass: this.seats.value,
-              pickupTime: addHours(-2, rr.visitTime.value),
+              pickupTime: addHours(PickupTimePrevHours, rr.visitTime.value),
               dRemark: rr.remark.value,
             }
             result.registered.push(row);
@@ -318,7 +318,7 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
           // dFromHour: nreg.fh.value,
           // dToHour: nreg.th.value,
           dPass: this.seats.value,
-          pickupTime: addHours(-2, rr.visitTime.value),
+          pickupTime: addHours(PickupTimePrevHours, rr.visitTime.value),
           dRemark: rr.remark.value,
           reason: matchPrefs ? 'By Prefs' : matchKavHistory ? `By Kav History` : matchFAreaHistory ? 'By Area(f) History' : matchTAreaHistory ? 'By Area(t) History' : ''
         };
@@ -493,14 +493,14 @@ export class DriverRegisterComponent implements OnInit {
     let fReadonly = false;
     let tReadonly = false;
     if (f.type.value === LocationType.border) {
-      reg.fh.value = '00:00';
+      reg.fh.value = TimeColumn.Empty;
       fCaption = `I Can Be At ${from} About`;
       fReadonly = false;
       tCaption = 'Max Pickup Time';
       tReadonly = true;
     }
     else {
-      reg.fh.value = formatDate(new Date(),'HH:mm','en-US');
+      reg.fh.value = formatDate(new Date(), 'HH:mm', 'en-US');
       reg.th.value = '22:00';
       fCaption = 'I Can Be There ASAP';
       fReadonly = true;
@@ -532,7 +532,6 @@ export class DriverRegisterComponent implements OnInit {
           await reg.save();
           this.driver.defaultFromTime.value = reg.fh.value;
           this.driver.defaultToTime.value = reg.th.value;
-          this.driver.defaultSeats.value = reg.seats.value;
           await this.driver.save();
           await this.updateRegisterRides(reg.rrid.value, 1);
           await this.refresh();

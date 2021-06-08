@@ -24,6 +24,7 @@ export class PatientContactsComponent implements OnInit {
     columnSettings: (c) => [
       c.mobile,
       c.name,
+      c.relation
     ],
     gridButtons: [{name: 'Add Contact', click: () => {this.contactsSettings.addNewRow();}}],
     validation: c => {

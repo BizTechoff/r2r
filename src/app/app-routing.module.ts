@@ -9,7 +9,7 @@ import { DriverSettingsComponent } from './core/drivers/driver-settings/driver-s
 import { DriverUsefulInformationComponent } from './core/drivers/driver-useful-information/driver-useful-information.component';
 import { DriversListComponent } from './core/drivers/drivers-list/drivers-list.component';
 import { LocationsListComponent } from './core/locations/locations-list/locations-list.component';
-import { ApprovePatientRideComponent } from './core/patients/approve-patient-ride/approve-patient-ride.component';
+import { PatientRidesComponent } from './core/patients/patient-rides/patient-rides.component';
 import { PatientsListComponent } from './core/patients/patients-list/patients-list.component';
 import { RegisterRidesComponent } from './core/rides/register-rides/register-rides.component';
 import { ReturnRidesComponent } from './core/rides/return-rides/return-rides.component';
@@ -32,7 +32,7 @@ const routes: Routes = [
 
   // Matcher
   { path: 'm/patients', component: PatientsListComponent, canActivate: [MatcherGuard], data: { name: "Patients" } },
-  { path: 'm/approve', component: ApprovePatientRideComponent, canActivate: [MatcherGuard], data: { name: "Patients Rides" } },
+  { path: 'm/approve', component: PatientRidesComponent, canActivate: [MatcherGuard], data: { name: "Patients Rides" } },
 
   // Usher
   { path: 'Rides4Usher', component: UsherComponent, canActivate: [UsherGuard], data: { name: "Rides" } },

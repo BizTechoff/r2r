@@ -33,8 +33,6 @@ export function isDesktop() {
     }
   }
   
-  export const TODAY:number = 0;
-
   export function addDays(days: number, date?: Date) {
     var x = date ? date : new Date();
     var xnotime = new Date(x.getFullYear(), x.getMonth(), x.getDate());
@@ -63,7 +61,12 @@ export function addHours(hours: number, time: string) {
     if (time && time.length > 0 && time.includes(':')) {
         let hour = time.split(':');
         if (hour.length > 1) {
-            result = ('' + (parseInt(hour[0]) + hours)).padStart(2, "0") + ":" + hour[1];
+            let newH = (parseInt(hour[0]) + hours);
+            if(newH < 0)
+            {
+                newH = 24 + newH;//+-=-
+            }
+            result = ('' + newH).padStart(2, "0") + ":" + hour[1];
         }
     }
     return result;

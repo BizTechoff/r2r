@@ -4,7 +4,7 @@ import { BoolColumn, Context, DateColumn, NumberColumn, ServerController, Server
 import { DialogService } from '../../../common/dialog';
 import { GridDialogComponent } from '../../../common/grid-dialog/grid-dialog.component';
 import { InputAreaComponent } from '../../../common/input-area/input-area.component';
-import { addDays, TODAY } from '../../../shared/utils';
+import { addDays } from '../../../shared/utils';
 import { Roles } from '../../../users/roles';
 import { Ride, RideStatusColumn } from '../../rides/ride';
 import { RideCrudComponent } from '../../rides/ride-crud/ride-crud.component';

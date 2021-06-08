@@ -97,6 +97,7 @@ export class Users extends IdEntity {
                             d.name.value = user.name.value;
                             d.mobile.value = user.mobile.value;
                             d.userId.value = user.id.value;
+                            d.seats.value = 4;
                             await d.save();
                         }
                     }

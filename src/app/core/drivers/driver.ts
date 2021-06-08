@@ -1,8 +1,9 @@
-import { ColumnSettings, Context, DateColumn, DateTimeColumn, EntityClass, IdEntity, NumberColumn, StringColumn } from "@remult/core";
+import { ColumnSettings, Context, DateColumn, EntityClass, IdEntity, NumberColumn, StringColumn } from "@remult/core";
 import { DialogService } from "../../common/dialog";
 import { DynamicServerSideSearchDialogComponent } from "../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component";
 import { InputAreaComponent } from "../../common/input-area/input-area.component";
-import { addDays, fixMobile, isValidMobile, TODAY } from "../../shared/utils";
+import { TimeColumn, TODAY } from "../../shared/types";
+import { addDays, fixMobile, isValidMobile } from "../../shared/utils";
 import { Roles } from "../../users/roles";
 import { LocationIdColumn } from "../locations/location";
 import { RideStatus, RideStatusColumn } from "../rides/ride";
@@ -56,9 +57,8 @@ export class Driver extends IdEntity {
   lastStatusDate = new DateColumn({});
   defaultFromLocation?= new LocationIdColumn({ allowNull: true }, this.context);
   defaultToLocation?= new LocationIdColumn({ allowNull: true }, this.context);
-  defaultFromTime = new StringColumn({ defaultValue: '00:00' });//{ defaultValue: "00:00", dataControlSettings: () => ({ inputType: 'time', width: '110' }) });
-  defaultToTime = new StringColumn({ defaultValue: '00:00' });//{ defaultValue: "00:00", dataControlSettings: () => ({ inputType: 'time', width: '110' }) });
-  defaultSeats = new NumberColumn({ defaultValue: 1 });
+  defaultFromTime = new TimeColumn();
+  defaultToTime = new TimeColumn();
   freezeTillDate?= new DateColumn({});
 
   constructor(private context: Context, private dialog: DialogService) {

@@ -29,7 +29,6 @@ import { DriverRidesComponent } from './core/drivers/driver-rides/driver-rides.c
 import { DriverSettingsComponent } from './core/drivers/driver-settings/driver-settings.component';
 import { DriverUsefulInformationComponent } from './core/drivers/driver-useful-information/driver-useful-information.component';
 import { LocationAreaComponent } from './core/locations/location-area/location-area.component';
-import { ApprovePatientRideComponent } from './core/patients/approve-patient-ride/approve-patient-ride.component';
 import { PatientContactsComponent } from './core/patients/patient-contacts/patient-contacts.component';
 import { PatientCrudComponent } from './core/patients/patient-crud/patient-crud.component';
 import { RegisterRidesComponent } from './core/rides/register-rides/register-rides.component';
@@ -47,6 +46,7 @@ import { UsersComponent } from './users/users.component';
 import { LocationsListComponent } from './core/locations/locations-list/locations-list.component';
 import { DriversListComponent } from './core/drivers/drivers-list/drivers-list.component';
 import { PatientsListComponent } from './core/patients/patients-list/patients-list.component';
+import { PatientRidesComponent } from './core/patients/patient-rides/patient-rides.component';
 
  
 @NgModule({
@@ -71,13 +71,13 @@ import { PatientsListComponent } from './core/patients/patients-list/patients-li
     PatientCrudComponent,
     ReturnRidesComponent,
     SuggestDriverComponent,
-    ApprovePatientRideComponent,
     GeneralReportComponent,
     SendSmsComponent,
     RideCrudComponent,
     LocationsListComponent,
     DriversListComponent,
     PatientsListComponent,
+    PatientRidesComponent,
   ],
   imports: [
     BrowserModule,

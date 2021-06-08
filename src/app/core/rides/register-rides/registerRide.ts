@@ -1,4 +1,5 @@
 import { BoolColumn, Context, DateColumn, DateTimeColumn, EntityClass, IdEntity, NumberColumn, StringColumn } from "@remult/core";
+import { TimeColumn } from "../../../shared/types";
 import { Roles } from "../../../users/roles";
 import { DriverIdColumn } from "../../drivers/driver";
 import { LocationIdColumn } from "../../locations/location";
@@ -75,7 +76,7 @@ export class RegisterRide extends IdEntity {
             }
         }
     });
-    visitTime = new StringColumn({ inputType: 'time' });
+    visitTime = new TimeColumn();
     sunday = new BoolColumn({ caption: 'sun', defaultValue: false });
     monday = new BoolColumn({ caption: 'mon', defaultValue: false });
     tuesday = new BoolColumn({ caption: 'tue', defaultValue: false });

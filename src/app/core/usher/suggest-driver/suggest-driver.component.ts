@@ -3,8 +3,8 @@ import { MatDialogRef } from '@angular/material/dialog';
 import { Context, DateColumn, NumberColumn, ServerController, ServerMethod, StringColumn } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
 import { GridDialogComponent } from '../../../common/grid-dialog/grid-dialog.component';
-import { driver4UsherSuggest } from '../../../shared/types';
-import { addDays, addHours, daysDiff, resetTime, TODAY } from '../../../shared/utils';
+import { driver4UsherSuggest, PickupTimePrevHours, TimeColumn, TODAY } from '../../../shared/types';
+import { addDays, addHours, daysDiff, resetTime } from '../../../shared/utils';
 import { Roles } from '../../../users/roles';
 import { Driver } from '../../drivers/driver';
 import { RegisterDriver } from '../../drivers/driver-register/registerDriver';
@@ -134,7 +134,7 @@ class usherSuggestDrivers2 {
         if (r) {
           //if(ride.status.value == RideStatus.waitingForDriver)//look only for kav-details
           if (r.fid.value === this.fid.value && r.tid.value === this.tid.value) {
-            if (r.pickupTime.value && (!(r.pickupTime.value === '00:00'))) {
+            if (r.pickupTime.value && (!(r.pickupTime.value === TimeColumn.Empty))) {
               if (rd.fh.value <= r.pickupTime.value && r.pickupTime.value <= rd.th.value) {//out of interval
                 let dRow: driver4UsherSuggest = drivers.find(cur => cur.did === rd.did.value);
                 if (!(dRow)) {
@@ -166,8 +166,8 @@ class usherSuggestDrivers2 {
         if (rr) {
           if (rr.fid.value === this.fid.value && rr.tid.value === this.tid.value) {
             let pickupTime = '';
-            if (rr.visitTime.value && (!(rr.visitTime.value === '00:00'))) {
-              pickupTime = addHours(-2, rr.visitTime.value);
+            if (rr.visitTime.value && (!(rr.visitTime.value === TimeColumn.Empty))) {
+              pickupTime = addHours(PickupTimePrevHours, rr.visitTime.value);
             }
             if (pickupTime.length > 0) {
               if (rd.fh.value <= pickupTime && pickupTime <= rd.th.value) {//out of interval
@@ -216,7 +216,7 @@ class usherSuggestDrivers2 {
           let fab = this.bAreas.find(cur => cur.border === this.fid.value).areaBorders;
           let tab = this.bAreas.find(cur => cur.border === this.tid.value).areaBorders;
           if (fab.includes(r.fid.value) || tab.includes(r.tid.value)) {// from OR to
-            if (r.pickupTime.value && (!(r.pickupTime.value === '00:00'))) {
+            if (r.pickupTime.value && (!(r.pickupTime.value === TimeColumn.Empty))) {
               if (rd.fh.value <= r.pickupTime.value && r.pickupTime.value <= rd.th.value) {//out of interval
                 let dRow: driver4UsherSuggest = await this.createDriverRow(
                   priority,
@@ -243,10 +243,10 @@ class usherSuggestDrivers2 {
           let tab = this.bAreas.find(cur => cur.border === this.tid.value).areaBorders;
           if (fab.includes(rr.fid.value) || tab.includes(rr.tid.value)) {
             let pickupTime = '';
-            if (rr.visitTime.value && (!(rr.visitTime.value === '00:00'))) {
-              pickupTime = addHours(-2, rr.visitTime.value);
+            if (rr.visitTime.value && (!(rr.visitTime.value === TimeColumn.Empty))) {
+              pickupTime = addHours(PickupTimePrevHours, rr.visitTime.value);
             }
-            if (pickupTime.length > 0) {
+            if (pickupTime.length > 0) { 
               if (rd.fh.value <= pickupTime && pickupTime <= rd.th.value) {//out of interval
                 let dRow: driver4UsherSuggest = await this.createDriverRow(
                   priority,

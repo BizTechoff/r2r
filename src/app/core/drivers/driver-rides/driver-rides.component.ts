@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Context, ServerFunction } from '@remult/core';
-import { ride4Driver } from '../../../shared/types';
-import { addDays, TODAY } from '../../../shared/utils';
+import { ride4Driver, TODAY } from '../../../shared/types';
+import { addDays } from '../../../shared/utils';
 import { Roles } from '../../../users/roles';
 import { Location } from '../../locations/location';
 import { Patient } from '../../patients/patient';

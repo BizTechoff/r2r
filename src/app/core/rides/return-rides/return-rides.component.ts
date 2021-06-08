@@ -101,20 +101,12 @@ export class ReturnRidesComponent implements OnInit {
       });
     }
 
-    let back = this.context.for(Ride).create();
-    r.copyTo(back, true);
-    let id = r.fid.value;
-    back.fid.value = r.tid.value;
-    back.tid.value = r.fid.value;
-    back.status.value = RideStatus.waitingForDriver;
-    back.isBackRide.value = true;
+    let back = await r.createBackRide();
     if (foundDriver) {
       back.driverId.value = more[0].driverId.value;
       back.status.value = RideStatus.waitingForStart;
     }
     await back.save();
-    r.backId.value = back.id.value;
-    await r.save();
     await this.refresh();
   }
 

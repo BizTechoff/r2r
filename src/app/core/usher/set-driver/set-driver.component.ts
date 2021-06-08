@@ -3,7 +3,7 @@ import { BoolColumn, Context, DataAreaSettings, DateColumn, Entity, Filter, Grid
 import { DialogService } from '../../../common/dialog';
 import { GridDialogComponent } from '../../../common/grid-dialog/grid-dialog.component';
 import { InputAreaComponent } from '../../../common/input-area/input-area.component';
-import { ride4UsherSetDriver } from '../../../shared/types';
+import { PickupTimePrevHours, ride4UsherSetDriver } from '../../../shared/types';
 import { addHours } from '../../../shared/utils';
 import { Driver, DriverIdColumn } from '../../drivers/driver';
 import { Location } from '../../locations/location';
@@ -126,7 +126,7 @@ export class SetDriverComponent implements OnInit {
           this.driverId.value = selected.did;
         }
       },
-    }),
+    }), 
     valueChange: async () => {
       this.driverSeats = (await this.context.for(Driver).findId(this.driverId.value)).seats.value;
       if (this.selectedPassengers > this.driverSeats) {
@@ -224,7 +224,7 @@ export class SetDriverComponent implements OnInit {
       }
     }
     if (minChanged) {
-      this.selectedPickupTime = addHours(-2, min);
+      this.selectedPickupTime = addHours(PickupTimePrevHours, min);
     }
     // console.log(min);
     // console.log(this.selectedPickupTime);

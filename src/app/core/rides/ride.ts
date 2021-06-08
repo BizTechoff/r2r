@@ -3,7 +3,8 @@ import { BoolColumn, ColumnSettings, Context, DateColumn, DateTimeColumn, Entity
 import { DialogService } from "../../common/dialog";
 import { DynamicServerSideSearchDialogComponent } from "../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component";
 import { MessageType, ServerEventsService } from "../../server/server-events-service";
-import { addDays, addHours, TODAY } from "../../shared/utils";
+import { PickupTimePrevHours, TimeColumn, TODAY } from "../../shared/types";
+import { addDays, addHours } from "../../shared/utils";
 import { Roles } from "../../users/roles";
 import { UserId } from "../../users/users";
 import { DriverIdColumn } from "../drivers/driver";
@@ -17,17 +18,18 @@ export class Ride extends IdEntity {
     fid = new LocationIdColumn({ caption: 'From Location', allowNull: false }, this.context);
     tid = new LocationIdColumn({ caption: 'To Location', allowNull: false }, this.context);
     immediate = new BoolColumn({
+        caption: 'As Soon As Possible',
         defaultValue: false, valueChange: () => {
             if (this.immediate.value) {
                 let now = new Date();
                 this.date.value = now;
-                this.visitTime.value = formatDate(now, 'HH:mm', 'en-US');
+                this.visitTime.value = TimeColumn.Empty;// formatDate(now, 'HH:mm', 'en-US');
             }
         }
     });
     date = new DateColumn({});
-    visitTime = new StringColumn({ defaultValue: '00:00', inputType: 'time' });
-    pickupTime = new StringColumn({ defaultValue: '00:00', inputType: 'time' });
+    visitTime = new TimeColumn();
+    pickupTime = new TimeColumn();
     status = new RideStatusColumn();
     statusDate = new DateTimeColumn();
 
@@ -59,9 +61,14 @@ export class Ride extends IdEntity {
                 if (context.onServer) {
                     if (this.status.wasChanged()) {
                         this.statusDate.value = addDays(TODAY);
-                    }
+                    } 
                     if (this.visitTime.wasChanged()) {
-                        this.pickupTime.value = addHours(-2, this.visitTime.value);
+                        if (this.immediate.value) {
+                            this.pickupTime.value = this.visitTime.value;
+                        }
+                        else {
+                            this.pickupTime.value = addHours(PickupTimePrevHours, this.visitTime.value);
+                        }
                     }
                     this.changed.value = new Date();
                     this.changedBy.value = this.context.user.id;
@@ -122,11 +129,11 @@ export class Ride extends IdEntity {
     }
 
     isHasVisitTime() {
-        return this.visitTime && this.visitTime.value && this.visitTime.value.length > 0 && (!(this.visitTime.value === '00:00'));
+        return this.visitTime && this.visitTime.value && this.visitTime.value.length > 0 && (!(this.visitTime.value === TimeColumn.Empty));
     }
 
     isHasPickupTime() {
-        return this.pickupTime && this.pickupTime.value && this.pickupTime.value.length > 0 && (!(this.pickupTime.value === '00:00'));
+        return this.pickupTime && this.pickupTime.value && this.pickupTime.value.length > 0 && (!(this.pickupTime.value === TimeColumn.Empty));
     }
 
     isExsistPatient(): boolean {
@@ -205,31 +212,45 @@ export class Ride extends IdEntity {
         return this.status.value === RideStatus.succeeded;
     }
 
+    async swapLocations() {
+        let temp = this.fid.value;
+        this.fid.value = this.tid.value;
+        this.tid.value = temp;
+    }
 
-    copyTo(target: Ride, forBackRide: boolean = false) {
-        // target.dayOfWeek.value = this.dayOfWeek.value;
-        // target.dayPeriod.value = this.dayPeriod.value;
+    async createBackRide(): Promise<Ride> {
+        let back = this.context.for(Ride).create();
+        this.copyTo(back);
+        back.swapLocations();
+        back.status.value = RideStatus.waitingForDriver;
+        back.isBackRide.value = true;
+        back.driverId.value = '';
+        await back.save();
+        this.backId.value = back.id.value;
+        await this.save();
+        return back;
+    }
+
+    copyTo(target: Ride) {
         target.date.value = this.date.value;
         target.isHasBabyChair.value = this.isHasBabyChair.value;
         target.isHasWheelchair.value = this.isHasWheelchair.value;
-        //     target.isHasExtraEquipment.value = this.isHasExtraEquipment.value;
-        // target.isHasEscort.value = this.isHasEscort.value;
         target.escortsCount.value = this.escortsCount.value;
         target.patientId.value = this.patientId.value;
-        if (!(forBackRide)) {
-            target.fid.value = this.fid.value;
-            target.tid.value = this.tid.value;
-            target.pickupTime.value = this.pickupTime.value;
-            target.visitTime.value = this.visitTime.value;
-            target.driverId.value = this.driverId.value;
-            target.backId.value = this.backId.value;
-            target.status = this.status;
-            target.statusDate.value = this.statusDate.value;
-            target.importRideNum.value = this.importRideNum.value;
-            target.dRemark.value = this.dRemark.value;
-            target.rRemark.value = this.rRemark.value;
-            //       target.driverRemark.value = this.driverRemark.value;
-        }
+        target.isSplitted.value = this.isSplitted.value;
+        target.fid.value = this.fid.value;
+        target.tid.value = this.tid.value;
+        target.pickupTime.value = this.pickupTime.value;
+        target.visitTime.value = this.visitTime.value;
+        target.immediate.value = this.immediate.value;
+        target.driverId.value = this.driverId.value;
+        target.backId.value = this.backId.value;
+        target.isBackRide.value = this.isBackRide.value;
+        target.status = this.status;
+        target.statusDate.value = this.statusDate.value;
+        target.importRideNum.value = this.importRideNum.value;
+        target.dRemark.value = this.dRemark.value;
+        target.rRemark.value = this.rRemark.value;
     }
 
     toString() {

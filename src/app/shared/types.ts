@@ -1,15 +1,20 @@
 import { ColumnSettings, DateTimeColumn, StringColumn } from "@remult/core";
 import { RideStatus } from "../core/rides/ride";
 
+
+export const TODAY:number = 0;
+export const PickupTimePrevHours = -2;
+
 export class changeDate extends DateTimeColumn {
   readonly = true;
 };
 
 export class TimeColumn extends StringColumn {
+  static Empty: string = '00:00';
   constructor(options?: ColumnSettings<string>) {
     super({
       inputType: 'time',
-      defaultValue: '00:00',
+      defaultValue: TimeColumn.Empty,
     }, options);
   }
 
@@ -28,28 +33,8 @@ export class TimeColumn extends StringColumn {
   }
 
   isEmpty() {
-    return this.value.length == 0 || this.value === '00:00';
+    return !this.value || this.value.length == 0 || this.value === TimeColumn.Empty;
   }
-}
-
-export interface UsherRideRow {
-  id: string,
-  date: Date,
-  visitTime: string,
-  from: string,
-  to: string,
-  passengers: number,
-  days: number,
-  status: RideStatus,
-  statusDate: Date,
-  pid: string,
-  pName?: string,
-  pAge?: number,
-  pMobile?: string,
-  did: string,
-  dName?: string,
-  dMobile?: string,
-  icons?: string[],
 }
 
 export interface driver4UsherSuggest {
@@ -165,21 +150,6 @@ export interface driver4Usher {
   ids?: string[],
 };
 
-export interface ride4UsherApprove {
-  id: string,
-  patientId: string,
-  driverId?: string,
-  selected: boolean,
-  from: string,
-  to: string,
-  driver: string,
-  dMobile: string,
-  visitTime: string,
-  passengers: number,
-  patient: string,
-  status: string,
-};
-
 export interface ride4UsherSetDriver {
   id: string,
   patientId: string,
@@ -200,9 +170,4 @@ export interface ride4UsherSetDriver {
   w4Pickup: boolean,
   w4Arrived: boolean,
   w4End: boolean,
-};
-
-export interface usherDriversResponse {
-  driverId: string,
-  display: string,
 };

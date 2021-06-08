@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { Context, DateColumn, NumberColumn, ServerController, StringColumn } from '@remult/core';
-import { InputAreaComponent } from '../../../common/input-area/input-area.component';
 import { YesNoQuestionComponent } from '../../../common/yes-no-question/yes-no-question.component';
 import { addDays, resetTime } from '../../../shared/utils';
 import { Roles } from '../../../users/roles';
@@ -22,30 +21,33 @@ class matcherService {
 
 
 @Component({
-  selector: 'app-approve-patient-ride',
-  templateUrl: './approve-patient-ride.component.html',
-  styleUrls: ['./approve-patient-ride.component.scss']
+  selector: 'app-patient-rides',
+  templateUrl: './patient-rides.component.html',
+  styleUrls: ['./patient-rides.component.scss']
 })
-export class ApprovePatientRideComponent implements OnInit {
+export class PatientRidesComponent implements OnInit {
 
+  vt = new StringColumn({caption: 'Visit Time'});
   age = new NumberColumn({ caption: 'Age' });
   pass = new NumberColumn();
   params = new matcherService(async () => await this.refresh());
   ridesSettings = this.context.for(Ride).gridSettings({
     where: r => r.date.isEqualTo(this.params.date)
       .and(r.status.isNotIn(RideStatus.succeeded)),
+    orderBy: (cur) => [{ column: cur.visitTime, descending: true }, { column: cur.patientId, descending: true }],
     numOfColumnsInGrid: 10,
-    columnSettings: (r) => [
-      r.patientId,
+    columnSettings: (cur) => [
+      cur.patientId,
       { column: this.age, readOnly: true, getValue: (cur) => { return this.context.for(Patient).lookup(cur.patientId).age.value; } },
       // r.driverId,
-      r.fid,
-      r.tid,
+      cur.fid,
+      cur.tid,
       { column: this.pass, getValue: (cur) => { return cur.passengers(); }, caption: 'Pass' },
-      r.status,
+      cur.status,
       // r.date,
-      r.visitTime,//,
-      r.rRemark,
+      { column:this.vt, getValue: (r)=> r.immediate.value? 'A.S.A.P' : r.visitTime.value},
+      // r.visitTime,//,
+      cur.rRemark,
       // { column: r.mApproved, caption: 'Approved' }
     ],
     rowButtons: [
@@ -126,12 +128,6 @@ export class ApprovePatientRideComponent implements OnInit {
     this.context.openDialog(PatientContactsComponent, sr => sr.args = {
       pid: r.patientId.value,
     });
-  }
-
-  async swapLocations(r: Ride) {
-    let temp = r.fid.value;
-    r.fid.value = r.tid.value;
-    r.tid.value = temp;
   }
 
 }

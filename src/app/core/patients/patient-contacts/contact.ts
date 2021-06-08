@@ -9,6 +9,7 @@ export class Contact extends IdEntity {
     name = new StringColumn({});
     mobile = new StringColumn({});
     idNumber = new StringColumn({});
+    relation = new StringColumn({});
 
  
     constructor(private context: Context) {
