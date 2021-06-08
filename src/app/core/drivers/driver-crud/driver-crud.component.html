@@ -1,0 +1,19 @@
+<div class="full-page">
+    <div class="header">
+        <h3 *ngIf="d">Edit Driver {{ this.d.name.value }}</h3>
+        <h2 *ngIf="d && d.hasFreezeDate()" style="color: red;">Driver Is Freezed !</h2>
+    </div>
+    <div class="grow-item">
+        <data-area *ngIf="this.dataArea" [settings]="this.dataArea"></data-area>
+    </div>
+    <div class="footer">
+        <hr>
+        <div style="display:flex;flex-direction: row;flex-grow: 1;justify-content: space-between;">
+            <button *ngIf="!(d && d.hasFreezeDate())" mat-raised-button color="primary" (click)="freeze()">Freeze
+                Driver</button>
+            <button *ngIf="d && d.hasFreezeDate()" mat-raised-button color="primary" (click)="unfreeze()">Unfreeze
+                Driver</button>
+            <button mat-raised-button color="accent" (click)="save()">Save</button>
+        </div>
+    </div>
+</div>

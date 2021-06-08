@@ -289,7 +289,7 @@ export class RideStatus {
         return status === this.id;
     }
 
-    static isInProgressStatuses = [
+    static isInDriving = [
         RideStatus.waitingForPickup,
         RideStatus.waitingForArrived
     ];

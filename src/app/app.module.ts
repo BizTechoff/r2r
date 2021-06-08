@@ -47,6 +47,7 @@ import { LocationsListComponent } from './core/locations/locations-list/location
 import { DriversListComponent } from './core/drivers/drivers-list/drivers-list.component';
 import { PatientsListComponent } from './core/patients/patients-list/patients-list.component';
 import { PatientRidesComponent } from './core/patients/patient-rides/patient-rides.component';
+import { DriverCrudComponent } from './core/drivers/driver-crud/driver-crud.component';
 
  
 @NgModule({
@@ -78,6 +79,7 @@ import { PatientRidesComponent } from './core/patients/patient-rides/patient-rid
     DriversListComponent,
     PatientsListComponent,
     PatientRidesComponent,
+    DriverCrudComponent,
   ],
   imports: [
     BrowserModule,
@@ -119,7 +121,7 @@ import { PatientRidesComponent } from './core/patients/patient-rides/patient-rid
   bootstrap: [AppComponent],
   entryComponents: [YesNoQuestionComponent, InputAreaComponent, GridDialogComponent, 
     DynamicServerSideSearchDialogComponent,
-    SetDriverComponent, SendSmsComponent, RideCrudComponent,
+    SetDriverComponent, SendSmsComponent, RideCrudComponent, DriverCrudComponent,
     PatientContactsComponent, LocationAreaComponent, PatientCrudComponent, SuggestDriverComponent]
 }) 
 export class AppModule { }

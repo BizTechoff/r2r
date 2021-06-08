@@ -14,8 +14,8 @@ import { RegisterRide } from '../../rides/register-rides/registerRide';
 import { Ride, RideStatus } from '../../rides/ride';
 
 
-@ServerController({ key: 'usherSuggestDrivers2', allowed: [Roles.admin, Roles.usher] })
-class usherSuggestDrivers2 {
+@ServerController({ key: 'u/suggest', allowed: [Roles.admin, Roles.usher] })
+class usherSuggestDrivers {
 
   date = new DateColumn();
   fid = new LocationIdColumn();
@@ -27,7 +27,7 @@ class usherSuggestDrivers2 {
   constructor(private context: Context) { }
 
   @ServerMethod({ allowed: [Roles.admin, Roles.usher] })
-  async retrieveSuggestedDrivers() {
+  async retrieve() {
     let drivers: driver4UsherSuggest[] = [];
     let priority = 0;
 
@@ -542,7 +542,7 @@ export class SuggestDriverComponent implements OnInit {
 
   origin: driver4UsherSuggest[] = [];
   drivers: driver4UsherSuggest[] = [];
-  params = new usherSuggestDrivers2(this.context);
+  params = new usherSuggestDrivers(this.context);
   constructor(private context: Context, private dialogRef: MatDialogRef<any>, private dialog: DialogService) {
   }
 
@@ -565,7 +565,7 @@ export class SuggestDriverComponent implements OnInit {
   }
 
   async refresh() {
-    this.drivers = await this.params.retrieveSuggestedDrivers();
+    this.drivers = await this.params.retrieve();
   }
 
   async openCallDocumentationDialog(d: driver4UsherSuggest) {

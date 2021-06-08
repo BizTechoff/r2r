@@ -17,7 +17,7 @@ export interface response {
   newregistered: ride4DriverRideRegister[],
 };
 
-@ServerController({ key: 'driverRegister', allowed: true })
+@ServerController({ key: 'd/reg', allowed: true })
 class driverRegister {//dataControlSettings: () => ({width: '150px'}), 
   date = new DateColumn({
     defaultValue: addDays(TODAY), valueChange: async () => {
@@ -34,7 +34,7 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
 
   locAreas: { id: string, name: string, area: string[] }[] = [];
   @ServerMethod()
-  async retrieveRideList4Usher(): Promise<response> {//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+  async retrieve(): Promise<response> {//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     var result: response = {
       registered: [],
       newregistered: []
@@ -435,7 +435,7 @@ export class DriverRegisterComponent implements OnInit {
         }
 
         this.params.onChanged = async () => { };
-        let result = await this.params.retrieveRideList4Usher();
+        let result = await this.params.retrieve();
         this.params.onChanged = async () => { await this.refresh(); };
 
         this.rides = result.registered;

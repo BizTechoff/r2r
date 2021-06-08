@@ -13,7 +13,7 @@ import { RideCrudComponent } from '../../rides/ride-crud/ride-crud.component';
 import { SuggestDriverComponent } from '../suggest-driver/suggest-driver.component';
 
 
-@ServerController({ key: 'usherSerDriver', allowed: true })
+@ServerController({ key: 'u/set', allowed: true })
 class usherSerDriver {
   date = new DateColumn();
   fid = new StringColumn();
@@ -21,7 +21,7 @@ class usherSerDriver {
   constructor(private context: Context) { }
 
   @ServerMethod()
-  async retrieveRideList4UsherSetDriver(): Promise<ride4UsherSetDriver[]> {
+  async retrieve(): Promise<ride4UsherSetDriver[]> {
     var result: ride4UsherSetDriver[] = [];
     var alwaysTrue = new Filter(x => { /* true */ });
 
@@ -125,7 +125,7 @@ export class SetDriverComponent implements OnInit {
         if (selected && selected.did && selected.did.length > 0) {//if press back on browser will window was open.
           this.driverId.value = selected.did;
         }
-      },
+      }, 
     }), 
     valueChange: async () => {
       this.driverSeats = (await this.context.for(Driver).findId(this.driverId.value)).seats.value;
@@ -165,7 +165,7 @@ export class SetDriverComponent implements OnInit {
   grid: GridSettings;
   async retrieve() {
 
-    this.rides = await this.params.retrieveRideList4UsherSetDriver();
+    this.rides = await this.params.retrieve();
     // var mem = new InMemoryDataProvider();
     // mem.rows["ride4UsherSetDriverEntity"] = this.rides;
     // this.grid =this.context.for(ride4UsherSetDriverEntity,mem).gridSettings({

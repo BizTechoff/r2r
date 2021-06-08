@@ -55,8 +55,8 @@ export class ShowDialogOnErrorErrorHandler extends ErrorHandler {
             return;
         this.lastErrorString = error.toString();
         this.lastErrorTime = new Date().valueOf();
-        this.zone.run(() => {
-            this.dialog.error(error);
+        this.zone.run(async () => {//added async
+            await this.dialog.error(error);//added await
         });
 
     }

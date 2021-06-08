@@ -59,7 +59,7 @@ export class RideCrudComponent implements OnInit {
       }
     }
 
-    let rOnly = RideStatus.isInProgressStatuses.includes(this.r.status.value);
+    let rOnly = RideStatus.isInDriving.includes(this.r.status.value);
     this.dataArea = new DataAreaSettings({
       columnSettings: () => [
         { column: this.r.fid, readonly: rOnly },
@@ -152,7 +152,7 @@ export class RideCrudComponent implements OnInit {
 
     if (!this.p.mobile.value) {
       this.p.mobile.validationError = `Required`;
-      this.dialog.error(`${this.p.mobile.defs.caption}: ${this.p.mobile.validationError}`);
+      await this.dialog.error(`${this.p.mobile.defs.caption}: ${this.p.mobile.validationError}`);
       return false;
     }
     this.p.mobile.value = this.p.mobile.value.trim();
@@ -160,29 +160,29 @@ export class RideCrudComponent implements OnInit {
     mobile = mobile.replace('-', '').replace('-', '').replace('-', '').replace('-', '');
     if (mobile.length != 10) {
       this.p.mobile.validationError = `should be 10 digits`;
-      this.dialog.error(`${this.p.mobile.defs.caption}: ${this.p.mobile.validationError} : ${mobile}`);
+      await this.dialog.error(`${this.p.mobile.defs.caption}: ${this.p.mobile.validationError} : ${mobile}`);
       return false;
     }
     if (mobile.slice(0, 2) != '05') {
       this.p.mobile.validationError = `must start with '05'`;
-      this.dialog.error(`${this.p.mobile.defs.caption}: ${this.p.mobile.validationError}`);
+      await this.dialog.error(`${this.p.mobile.defs.caption}: ${this.p.mobile.validationError}`);
       return false;
     }
     for (const c of mobile) {
       if (!['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(c)) {
         this.p.mobile.validationError = `should be ONLY digits`;
-        this.dialog.error(`${this.p.mobile.defs.caption}: ${this.p.mobile.validationError}`);
+        await this.dialog.error(`${this.p.mobile.defs.caption}: ${this.p.mobile.validationError}`);
         return false;
       }
     }
     if (!this.p.birthDate || !this.p.birthDate.value) {
       this.p.birthDate.validationError = 'Required';
-      this.dialog.error(`${this.p.birthDate.defs.caption}: ${this.p.birthDate.validationError}`);
+      await this.dialog.error(`${this.p.birthDate.defs.caption}: ${this.p.birthDate.validationError}`);
       return false;
     }
     if (!(this.p.birthDate.value.getFullYear() > 1900 && this.p.birthDate.value.getFullYear() <= addDays(TODAY).getFullYear())) {
       this.p.birthDate.validationError = 'Not Valid';
-      this.dialog.error(`${this.p.birthDate.defs.caption}: ${this.p.birthDate.validationError}`);
+      await this.dialog.error(`${this.p.birthDate.defs.caption}: ${this.p.birthDate.validationError}`);
       return false;
     }
     this.p.mobile.value = mobile;

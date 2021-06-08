@@ -19,25 +19,7 @@ export class Driver extends IdEntity {
     },
   });
   hebName = new StringColumn({});
-  mobile = new StringColumn({
-    dataControlSettings: () => ({
-      // getValue: (r => Utils.fixMobile(r.mobile.value)),
-    }),
-    inputType: "tel",
-
-    validate: () => {
-      if (!this.mobile.value) {
-        // this.mobile.value = "0"
-        // this.mobile.validationError = " Is Too Short";
-      }
-      else if (!isValidMobile(this.mobile.value)) {
-        this.mobile.validationError = " Not Valid";
-      }
-      else {
-        this.mobile.value = fixMobile(this.mobile.value);
-      }
-    },
-  });
+  mobile = new StringColumn({});
   home?= new StringColumn({});
   email = new StringColumn({});
   seats = new NumberColumn({
@@ -59,14 +41,14 @@ export class Driver extends IdEntity {
   defaultToLocation?= new LocationIdColumn({ allowNull: true }, this.context);
   defaultFromTime = new TimeColumn();
   defaultToTime = new TimeColumn();
-  freezeTillDate?= new DateColumn({});
-
+  freezeTillDate = new DateColumn({caption: 'Driver Freezed Last Date'});
+ 
   constructor(private context: Context, private dialog: DialogService) {
     super({
       name: "drivers",
       allowApiDelete: false,
       allowApiInsert: false,
-      allowApiUpdate: [Roles.driver, Roles.admin],
+      allowApiUpdate: [Roles.admin, Roles.usher, Roles.driver],
       allowApiRead: c => c.isSignedIn(),
 
       // allowApiDelete:false,
@@ -152,50 +134,6 @@ export class Driver extends IdEntity {
     console.log(`Send message to patient: ${message}`);
   }
 
-  async freeze(): Promise<boolean> {
-    let result = false;
-    let today = addDays(TODAY);
-    let endOfMonth = addDays(-1, new Date(today.getFullYear(), today.getMonth() + 1, 1));//(1 in next-month)-1
-
-    let freezeDate = new DateColumn({ defaultValue: endOfMonth });
-    await this.context.openDialog(InputAreaComponent, ia => ia.args = {
-      title: `Freeze Driver: ${this.name.value}`,
-      columnSettings: () => [
-        {
-          column: freezeDate,
-          caption: 'Till Date',
-        },
-      ],
-      validate: async () => {
-        let ok = freezeDate && freezeDate.value && (freezeDate.value > addDays(TODAY));
-        if (!(ok)) {
-          this.validationError = 'Date must be greater then today';
-          throw this.validationError;
-        }
-      },
-      ok: async () => {
-        if (freezeDate.value) {
-          this.freezeTillDate.value = freezeDate.value;
-          await this.save();
-          result = true;
-        }
-      },
-    });
-    return result;
-  }
-
-  async unfreeze(): Promise<boolean> {
-    let result = false;
-    // let yes = await this.dialog.yesNoQuestion(`Unfreeze driver ${this.name.value}`);
-    // if (yes) {
-    this.freezeTillDate.value = null;
-    await this.save();
-    console.log('@#@#@#@#');
-    result = true;
-    // }
-    return result;
-  }
-
 }
 
 
@@ -240,22 +178,13 @@ export async function openDriver(id: string, context: Context): Promise<boolean>
           d.birthDate,
           d.email,
           [d.city, d.address],
-          { column: d.freezeTillDate, readOnly: true, visible: () => { return (!(d.freezeTillDate.value === null)); } },
+          { column: d.freezeTillDate, readOnly: true, visible: () => { return d.hasFreezeDate(); } },
         ],
         buttons: [
           {
             text: 'Send Message',
             click: async () => { await d.sendMessage(); }
-          },
-          {
-            text: (d.freezeTillDate.value ? 'Unfreeze Driver' : 'Freeze Driver'),
-            click: async () => {
-              let changed = (d.freezeTillDate.value ? await d.unfreeze() : await d.freeze());
-              if (changed) {
-                // this.
-              }
-            }
-          },
+          }
         ],
         ok: async () => {
           if (d.wasChanged()) {

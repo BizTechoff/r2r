@@ -10,7 +10,7 @@ import { PatientContactsComponent } from '../patient-contacts/patient-contacts.c
 import { PatientCrudComponent } from '../patient-crud/patient-crud.component';
 
 
-@ServerController({ key: 'm', allowed: [Roles.matcher, Roles.admin] })
+@ServerController({ key: 'm/rides', allowed: [Roles.matcher, Roles.admin] })
 class matcherService {
   date = new DateColumn({ defaultValue: new Date(), valueChange: async () => await this.onChanged() });
   onChanged: () => void;

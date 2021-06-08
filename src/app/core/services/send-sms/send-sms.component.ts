@@ -37,7 +37,7 @@ export class SendSmsComponent implements OnInit {
       this.select();
     }
     else {
-      this.dialog.error(response.error);
+      await this.dialog.error(response.error);
     }
   }
 

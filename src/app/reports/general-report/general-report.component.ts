@@ -11,7 +11,7 @@ export class driverRidesCountRow {
   rCount = new NumberColumn({ caption: 'Rides Count' });
 }
 
-@ServerController({ key: 'u/r', allowed: Roles.admin })
+@ServerController({ key: 'a/rep', allowed: Roles.admin })
 class reportParams {
   fdate = new DateColumn({ caption: 'From Date', defaultValue: new Date() });
   tdate = new DateColumn({ caption: 'To Date', defaultValue: new Date() });

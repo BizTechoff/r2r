@@ -74,18 +74,18 @@ export class PatientCrudComponent implements OnInit {
   async validate(): Promise<boolean> {
     if (!this.p.name.value) {
       this.p.name.validationError = `Required`;
-      this.dialog.error(`${this.p.name.defs.caption}: ${this.p.name.validationError}`);
+      await this.dialog.error(`${this.p.name.defs.caption}: ${this.p.name.validationError}`);
       return false;
     }
     this.p.name.value = this.p.name.value.trim();
     if (this.p.name.value.length < 2) {
       this.p.name.validationError = `at least 2 letters`;
-      this.dialog.error(`${this.p.name.defs.caption}: ${this.p.name.validationError}`);
+      await this.dialog.error(`${this.p.name.defs.caption}: ${this.p.name.validationError}`);
       return false;
     }
     if (!this.p.mobile.value) {
       this.p.mobile.validationError = `Required`;
-      this.dialog.error(`${this.p.mobile.defs.caption}: ${this.p.mobile.validationError}`);
+      await this.dialog.error(`${this.p.mobile.defs.caption}: ${this.p.mobile.validationError}`);
       return false;
     }
     this.p.mobile.value = this.p.mobile.value.trim();
@@ -93,29 +93,29 @@ export class PatientCrudComponent implements OnInit {
     mobile = mobile.replace('-', '').replace('-', '').replace('-', '').replace('-', '');
     if (mobile.length != 10) {
       this.p.mobile.validationError = `should be 10 digits`;
-      this.dialog.error(`${this.p.mobile.defs.caption}: ${this.p.mobile.validationError} : ${mobile}`);
+      await this.dialog.error(`${this.p.mobile.defs.caption}: ${this.p.mobile.validationError} : ${mobile}`);
       return false;
     }
     if (mobile.slice(0, 2) != '05') {
       this.p.mobile.validationError = `must start with '05'`;
-      this.dialog.error(`${this.p.mobile.defs.caption}: ${this.p.mobile.validationError}`);
+      await this.dialog.error(`${this.p.mobile.defs.caption}: ${this.p.mobile.validationError}`);
       return false;
     }
     for (const c of mobile) {
       if (!['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(c)) {
         this.p.mobile.validationError = `should be ONLY digits`;
-        this.dialog.error(`${this.p.mobile.defs.caption}: ${this.p.mobile.validationError}`);
+        await this.dialog.error(`${this.p.mobile.defs.caption}: ${this.p.mobile.validationError}`);
         return false;
       }
     }
     if (!this.p.birthDate || !this.p.birthDate.value) {
       this.p.birthDate.validationError = 'Required';
-      this.dialog.error(`${this.p.birthDate.defs.caption}: ${this.p.birthDate.validationError}`);
+      await this.dialog.error(`${this.p.birthDate.defs.caption}: ${this.p.birthDate.validationError}`);
       return false;
     }
     if (!(this.p.birthDate.value.getFullYear() > 1900 && this.p.birthDate.value.getFullYear() <= addDays(TODAY).getFullYear())) {
       this.p.birthDate.validationError = 'Not Valid';
-      this.dialog.error(`${this.p.birthDate.defs.caption}: ${this.p.birthDate.validationError}`);
+      await this.dialog.error(`${this.p.birthDate.defs.caption}: ${this.p.birthDate.validationError}`);
       return false;
     }
     this.p.mobile.value = mobile;
@@ -128,7 +128,7 @@ export class PatientCrudComponent implements OnInit {
 
     await this.context.openDialog(SendSmsComponent, sms => sms.args = {
       mobile: '0526526063',
-      message: 'Sms Works!'
+      message: message
     });
   }
 

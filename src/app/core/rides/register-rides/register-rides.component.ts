@@ -14,7 +14,7 @@ import { RegisterRide } from './registerRide';
 
 
 // @EntityClass
-@ServerController({ key: 'registerRidesProvider', allowed: [Roles.admin] })//mabatParams
+@ServerController({ key: 'u/reg', allowed: [Roles.admin] })//mabatParams
 class registerRidesProviderParams {//componentParams
   date = new DateColumn({ defaultValue: new Date(), valueChange: async () => await this.onChanged() });//, dataControlSettings: () => ({cssClass: () => {return 'todaySelected';} })
   fid?= new LocationIdColumn({ caption: 'From Location', defaultValue: null, allowNull: true }, this.context);
@@ -148,7 +148,7 @@ export class RegisterRidesComponent implements OnInit {
     // this.lastRefreshDate = new Date();
   }
 
-  @ServerFunction({ allowed: [Roles.admin] })
+  @ServerFunction({ allowed: [Roles.admin]})
   static async retrieveRegisterRides(context?: Context) {
     var result: ride4UsherRideRegister[] = [];
 

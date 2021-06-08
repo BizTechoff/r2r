@@ -7,7 +7,8 @@ import { InputAreaComponent } from '../../../common/input-area/input-area.compon
 import { Roles } from '../../../users/roles';
 import { LocationAreaComponent } from '../../locations/location-area/location-area.component';
 import { Ride, RideStatus } from '../../rides/ride';
-import { Driver, openDriver } from './../driver';
+import { DriverCrudComponent } from '../driver-crud/driver-crud.component';
+import { Driver } from './../driver';
 import { DriverCall } from './../driverCall';
 import { DriverPrefs } from './../driverPrefs';
 
@@ -26,55 +27,55 @@ export class DriversListComponent implements OnInit {
 
   // prefsCount = new NumberColumn({});
   driversSettings = this.context.for(Driver).gridSettings({
-    where: p => this.search.value ? p.name.isContains(this.search) : undefined,
+    where: cur => this.search.value ? cur.name.isContains(this.search) : undefined,
     numOfColumnsInGrid: 10,
     // allowSelection: true,
-    columnSettings: (d) => [
+    columnSettings: (cur) => [
       // d.name,
       // {
       //   column: this.prefsCount,
       //   // getValue:async() => await this.context.for(DriverPrefs).count(p=>p.driverId.isEqualTo(d.id)),
       // },
-      d.name,
-      d.idNumber,
-      d.birthDate,
-      d.seats,
-      d.mobile,
-      d.email,
-      d.home,
-      d.defaultFromTime,
-      d.defaultToTime,
+      cur.name,
+      cur.idNumber,
+      cur.birthDate,
+      cur.seats,
+      cur.mobile,
+      cur.email,
+      cur.home,
+      cur.defaultFromTime,
+      cur.defaultToTime,
       //prefsCount, await this.context.for(DriverPrefs).count(p=>p.driverId.isEqualTo(d.id));
     ],
     allowCRUD: false,
     rowButtons: [{
       name: "Show Rides",
-      click: async (d) => await this.openScheduleRides(d),
+      click: async (cur) => await this.openScheduleRides(cur),
       icon: "directions_bus_filled",
-      visible: (d) => !d.isNew(),
+      visible: (cur) => !cur.isNew(),
       //showInLine: (this.context.for(DriverPrefs).count(p => p.driverId.isEqualTo("")).then(() => { return true; })),
     }, {
       name: "Call Documentation",
-      click: async (d) => await this.openCallDocumentationDialog(d),
+      click: async (cur) => await this.openCallDocumentationDialog(cur),
       icon: "tty",
-      visible: (d) => !d.isNew(),
+      visible: (cur) => !cur.isNew(),
       //showInLine: (this.context.for(DriverPrefs).count(p => p.driverId.isEqualTo("")).then(() => { return true; })),
     }, {
       textInMenu: "______________________",//seperator
     }, {
       name: "Prefered Borders",
-      click: async (d) => await this.openPreferencesDialog(d),
+      click: async (cur) => await this.openPreferencesDialog(cur),
       icon: "settings_suggest",
-      visible: (d) => !d.isNew(),
+      visible: (cur) => !cur.isNew(),
       //showInLine: (this.context.for(DriverPrefs).count(p => p.driverId.isEqualTo("")).then(() => { return true; })),
     }, {
       textInMenu: "______________________",//seperator
     }, {
       textInMenu: "Edit Driver",
       icon: "edit",
-      visible: (p) => !p.isNew(),
-      click: async (p) => {
-        await this.editDriver(p);
+      visible: (cur) => !cur.isNew(),
+      click: async (cur) => {
+        await this.openDriver(cur);
       },
     },
       // {
@@ -113,8 +114,10 @@ export class DriversListComponent implements OnInit {
     // });
   }
 
-  async editDriver(d: Driver) {
-    await openDriver(d.id.value, this.context);
+  async openDriver(d: Driver) {
+    await this.context.openDialog(DriverCrudComponent, thus => thus.args = {
+      did: d.id.value,
+    });
   }
 
   async addDriver() {

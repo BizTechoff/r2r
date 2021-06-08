@@ -8,7 +8,7 @@ import { Ride, RideStatus } from '../rides/ride';
 import { RideHistory } from '../rides/rideHistory';
 import { SetDriverComponent } from './set-driver/set-driver.component';
 
-@ServerController({ key: 'usherParams', allowed: true })
+@ServerController({ key: 'u/rides', allowed: true })
 class usherParams {
   date = new DateColumn({ defaultValue: new Date() /*new Date(2021,2,3)*/, valueChange: async () => { await this.onChanged(); } });
   fid = new LocationIdColumn({ caption: 'From Location', valueChange: async () => { await this.onChanged(); } }, this.context);
@@ -19,7 +19,7 @@ class usherParams {
   onChanged = async () => { };
 
   @ServerMethod()
-  async retrieveRideList4Usher(): Promise<ride4Usher[]> {
+  async retrieve(): Promise<ride4Usher[]> {
     var result: ride4Usher[] = [];
     // let rideMaxChanged = new Date(2000, 1, 1);
     // console.log(id);
@@ -107,7 +107,7 @@ export class UsherComponent implements OnInit {
   async refresh() {
     this.clientLastRefreshDate = new Date();
     this.params.onChanged = async () => { };
-    this.rides = await this.params.retrieveRideList4Usher();
+    this.rides = await this.params.retrieve();
     this.params.onChanged = async () => { await this.refresh(); };
   }
 
