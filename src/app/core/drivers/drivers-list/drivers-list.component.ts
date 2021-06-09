@@ -1,14 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { BusyService } from '@remult/angular';
-import { Context, ServerFunction, StringColumn } from '@remult/core';
+import { Context, NumberColumn, ServerFunction, StringColumn } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
-import { GridDialogComponent } from '../../../common/grid-dialog/grid-dialog.component';
 import { InputAreaComponent } from '../../../common/input-area/input-area.component';
 import { Roles } from '../../../users/roles';
 import { LocationAreaComponent } from '../../locations/location-area/location-area.component';
 import { Ride, RideStatus } from '../../rides/ride';
 import { DriverCrudComponent } from '../driver-crud/driver-crud.component';
-import { Driver } from './../driver';
+import { Driver, openDriverRides } from './../driver';
 import { DriverCall } from './../driverCall';
 import { DriverPrefs } from './../driverPrefs';
 
@@ -25,17 +24,12 @@ export class DriversListComponent implements OnInit {
 
   });
 
-  // prefsCount = new NumberColumn({});
+  prefsCount = new NumberColumn({ caption: "Prefs Count" });
   driversSettings = this.context.for(Driver).gridSettings({
     where: cur => this.search.value ? cur.name.isContains(this.search) : undefined,
     numOfColumnsInGrid: 10,
     // allowSelection: true,
     columnSettings: (cur) => [
-      // d.name,
-      // {
-      //   column: this.prefsCount,
-      //   // getValue:async() => await this.context.for(DriverPrefs).count(p=>p.driverId.isEqualTo(d.id)),
-      // },
       cur.name,
       cur.idNumber,
       cur.birthDate,
@@ -44,8 +38,14 @@ export class DriversListComponent implements OnInit {
       cur.email,
       cur.home,
       cur.defaultFromTime,
-      cur.defaultToTime,
-      //prefsCount, await this.context.for(DriverPrefs).count(p=>p.driverId.isEqualTo(d.id));
+      cur.defaultToTime
+      // ,
+      // {
+      //   column: this.prefsCount,
+      //   getValue: async (d) => {
+      //     return await this.context.for(DriverPrefs).count(prf => prf.did.isEqualTo(d.id));
+      //   }
+      // }
     ],
     allowCRUD: false,
     rowButtons: [{
@@ -77,28 +77,7 @@ export class DriversListComponent implements OnInit {
       click: async (cur) => {
         await this.openDriver(cur);
       },
-    },
-      // {
-      //   textInMenu: "Delete Driver",
-      //   icon: "delete",
-      //   visible: (p) => !p.isNew(),
-      //   click: async (p) => {
-      //     let name = (await this.context.for(Driver).findId(p.id.value)).name.value;
-      //     if (await this.dialog.confirmDelete(name)) {
-      //       await p.delete();
-      //     }
-      //   },
-      // },
-    ],
-    gridButtons: [{
-      name: 'Add New Driver',
-      icon: 'add',
-      // cssClass: 'color="primary"',
-      click: async () => {
-        await this.addDriver();
-      }
-
-    },],
+    }]
   });
 
   constructor(private context: Context, private busy: BusyService, private dialog: DialogService) { }
@@ -109,9 +88,6 @@ export class DriversListComponent implements OnInit {
   }
   async retrieveDrivers() {
     this.driversSettings.reloadData();
-    // this.patients = await this.context.for(Patient).find({
-    //   where:p=>this.search.value?p.name.isContains(this.search):undefined
-    // });
   }
 
   async openDriver(d: Driver) {
@@ -137,11 +113,6 @@ export class DriversListComponent implements OnInit {
         ok: async () => {
           await driver.save();
           this.retrieveDrivers();
-          //PromiseThrottle 
-          // ride.driverId.value = undefined;
-          // await driver.save();
-          // // this.patientsSettings.items.push(patient);
-          // this.retrieveDrivers();
         }
       },
     )
@@ -157,120 +128,18 @@ export class DriversListComponent implements OnInit {
   async openPreferencesDialog(d: Driver) {
 
     await this.context.openDialog(LocationAreaComponent, dlg => dlg.args = { dId: d.id.value });
-
-    // this.context.openDialog(GridDialogComponent, gd => gd.args = {
-    //   title: "Preferenses",
-    //   settings: this.context.for(DriverPrefs).gridSettings({
-    //     where: p => p.driverId.isEqualTo(d.id),
-    //     newRow: p => p.driverId.value = d.id.value,
-    //     allowCRUD: true,
-    //     columnSettings: p => [
-    //       p.locationId,
-    //       p.dayOfWeek,
-    //       p.dayPeriod,
-    //     ],
-    //   })
-    // });
   }
 
   async openScheduleRides(d: Driver) {
-
-    await this.context.openDialog(GridDialogComponent, gd => gd.args = {
-      title: `${d.name.value} Rides`,
-      settings: this.context.for(Ride).gridSettings({
-        where: r => r.did.isEqualTo(d.id),
-        orderBy: r => [{ column: r.date, descending: false }],
-        allowCRUD: false,// this.context.isAllowed([Roles.admin, Roles.usher, Roles.matcher]),
-        allowDelete: false,
-        // showPagination: false,
-        numOfColumnsInGrid: 10,
-        columnSettings: r => [
-          r.fid,
-          r.tid,
-          r.date,
-          r.pid,
-          r.status,
-        ],
-        // rowButtons: [
-        //   {
-        //     textInMenu: 'Edit',
-        //     icon: 'edit',
-        //     click: async (r) => { await this.editRide(r); },
-        //   },
-        // ],
-      }),
-    });
+    await openDriverRides(d.id.value, this.context);
   }
-
-
-  // async editRide(r:Ride){
-  //   let today = new Date();
-  //   let tomorrow = new Date();
-  //   tomorrow.setDate(today.getDate() + 1);
-  //   let tomorrow10am = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate(), 10);
-
-  //   // var isNeedReturnTrip = new BoolColumn({ caption: "Need Return Ride" });
-  //   await this.context.openDialog(
-  //     InputAreaComponent,
-  //     x => x.args = {
-  //       title: `Edit Ride: (${r.status.value.id})`,// ${p.name.value} (age: ${p.age.value})`,
-  //       columnSettings: () => [
-  //         r.fid,
-  //         r.tid,
-  //         r.date, 
-  //         // r.dayPeriod,
-  //         r.visitTime,
-  //         r.isHasBabyChair,
-  //         r.isHasWheelchair,
-  //         r.escortsCount,
-  //         r.dRemark,
-  //         r.rRemark,
-  //       ],
-  //       // buttons: [{
-  //       //   text: 'Patient Details',
-  //       //   click: async () => { await this.editPatient(p); }
-  //       // }
-  //       // ],
-  //       validate: async () => {
-  //         if (!(r.fid.value && r.fid.value.length > 0)) {
-  //           r.fid.validationError = 'Required';
-  //           throw r.fid.defs.caption + ' ' + r.fid.validationError;
-  //         }
-  //         if (!(r.tid.value && r.tid.value.length > 0)) {
-  //           r.tid.validationError = 'Required';
-  //           throw r.tid.defs.caption + ' ' + r.tid.validationError;
-  //         }
-  //         if (!(r.isHasDate())) {
-  //           r.date.validationError = 'Required';
-  //           throw r.date.defs.caption + ' ' + r.date.validationError;
-  //         }
-  //         if (r.date.value < addDays(TODAY)) {
-  //           r.date.validationError = 'Must be greater or equals today';
-  //           throw r.date.defs.caption + ' ' + r.date.validationError;
-  //         }
-  //         if (!(r.isHasVisitTime())) {
-  //           r.visitTime.validationError = 'Required';
-  //           throw r.visitTime.defs.caption + ' ' + r.visitTime.validationError;
-  //         }
-  //       },
-  //       ok: () => async () => {
-  //         if (this.context.isAllowed(Roles.admin)) {
-  //           await r.save();
-  //         }
-  //         else {
-  //           this.dialog.info("Not Allowed");
-  //         }
-  //       },
-  //     },
-  //   )
-  // }
 
   static async getBordersIds(did: string, context?: Context): Promise<string[]> {
     let borders: string[] = [];
     for await (const pref of await context.for(DriverPrefs).iterate({
-      where: pf => pf.driverId.isEqualTo(did),
+      where: pf => pf.did.isEqualTo(did),
     })) {
-      borders.push(pref.locationId.value);
+      borders.push(pref.lid.value);
     }
     return borders;
   }

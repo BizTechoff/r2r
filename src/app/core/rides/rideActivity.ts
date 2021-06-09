@@ -12,7 +12,7 @@ import { RideIdColumn, RideStatusColumn } from "./ride";
 import { RideCrudComponent } from "./ride-crud/ride-crud.component";
 
 @EntityClass
-export class RideHistory extends IdEntity {
+export class RideActivity extends IdEntity {
 
   rid = new RideIdColumn(this.context);
   pid = new PatientIdColumn(this.context);
@@ -24,7 +24,7 @@ export class RideHistory extends IdEntity {
 
   constructor(private context: Context) {
     super({
-      name: 'ridesHistory',
+      name: 'ridesActivities',
       allowApiInsert: [Roles.matcher, Roles.usher, Roles.admin],
       allowApiUpdate: false,
       allowApiDelete: false,
@@ -41,12 +41,12 @@ export class RideHistory extends IdEntity {
     });
   }
 
-  static async openRideHistoryDialog(context: Context, date: Date) {
+  static async openRideActivityDialog(context: Context, date: Date) {
     let dateStart = resetTime(date);
     let dateEnd = addDays(+1, dateStart);
     await context.openDialog(GridDialogComponent, gd => gd.args = {
       title: `Rides Activities For ${formatDate(dateStart, 'dd.MM.yyyy', 'en-US')}`,
-      settings: context.for(RideHistory).gridSettings({
+      settings: context.for(RideActivity).gridSettings({
         where: cur => cur.changed.isGreaterOrEqualTo(dateStart)
           .and(cur.changed.isLessThan(dateEnd)),
         orderBy: cur => [{ column: cur.changed, descending: true }],

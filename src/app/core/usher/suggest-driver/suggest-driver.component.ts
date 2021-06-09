@@ -6,8 +6,8 @@ import { GridDialogComponent } from '../../../common/grid-dialog/grid-dialog.com
 import { driver4UsherSuggest, PickupTimePrevHours, TimeColumn, TODAY } from '../../../shared/types';
 import { addDays, addHours, daysDiff, resetTime } from '../../../shared/utils';
 import { Roles } from '../../../users/roles';
-import { Driver } from '../../drivers/driver';
-import { RegisterDriver } from '../../drivers/driver-register/registerDriver';
+import { Driver, openDriverRides } from '../../drivers/driver';
+import { RegisterDriver } from '../../drivers/registerDriver';
 import { DriverCall } from '../../drivers/driverCall';
 import { Location, LocationArea, LocationIdColumn, LocationType } from '../../locations/location';
 import { RegisterRide } from '../../rides/register-rides/registerRide';
@@ -663,35 +663,7 @@ export class SuggestDriverComponent implements OnInit {
   }
 
   async showDriverRides(d: driver4UsherSuggest) {
-
-    let pass = new NumberColumn({ caption: 'Pass' });
-    await this.context.openDialog(GridDialogComponent, gd => gd.args = {
-      title: `${d.name} Rides`,
-      settings: this.context.for(Ride).gridSettings({
-        where: r => r.did.isEqualTo(d.did),
-        orderBy: r => [{ column: r.date, descending: true }],
-        allowCRUD: false,
-        allowDelete: false,
-        // showPagination: false,
-        numOfColumnsInGrid: 10,
-        columnSettings: cur => [
-          cur.fid,
-          cur.tid,
-          cur.date,
-          cur.pickupTime,
-          { column: pass, getValue: (r) => { return r.passengers(); } },
-          cur.pid,
-          cur.status,
-        ],
-        // rowButtons: [
-        //   {
-        //     textInMenu: 'Edit',
-        //     icon: 'edit',
-        //     click: async (r) => { await this.editRide(r); },
-        //   },
-        // ],
-      }),
-    });
+    await openDriverRides(d.did, this.context);
   }
 
 }

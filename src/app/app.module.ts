@@ -117,7 +117,7 @@ import { DriverCrudComponent } from './core/drivers/driver-crud/driver-crud.comp
 
     // },
     // SettingsService,
-  ],
+  ], 
   bootstrap: [AppComponent],
   entryComponents: [YesNoQuestionComponent, InputAreaComponent, GridDialogComponent, 
     DynamicServerSideSearchDialogComponent,

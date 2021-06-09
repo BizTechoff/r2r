@@ -2,10 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { BoolColumn, Context, DateColumn, Filter, ServerController, ServerMethod } from '@remult/core';
 import { ride4Usher, TODAY } from '../../shared/types';
 import { addDays } from '../../shared/utils';
-import { RegisterDriver } from '../drivers/driver-register/registerDriver';
+import { RegisterDriver } from '../drivers/registerDriver';
 import { Location, LocationIdColumn, LocationType } from '../locations/location';
 import { Ride, RideStatus } from '../rides/ride';
-import { RideHistory } from '../rides/rideHistory';
+import { RideActivity } from '../rides/rideActivity';
 import { SetDriverComponent } from './set-driver/set-driver.component';
 
 @ServerController({ key: 'u/rides', allowed: true })
@@ -71,7 +71,7 @@ class usherParams {
       row.ridesCount += 1;
     }
 
-    // let h = await this.context.for(RideHistory).findFirst({//max(changed)
+    // let h = await this.context.for(RideActivity).findFirst({//max(changed)
     //   orderBy: cur => [{ column: cur.changed, descending: true }]
     // });
 
@@ -139,7 +139,7 @@ export class UsherComponent implements OnInit {
   }
 
   async history() {
-    await RideHistory.openRideHistoryDialog(this.context, this.params.date.value);
+    await RideActivity.openRideActivityDialog(this.context, this.params.date.value);
   }
 
 }

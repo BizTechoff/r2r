@@ -10,7 +10,7 @@ import { RegisterRide } from '../../rides/register-rides/registerRide';
 import { Ride, RideStatus } from '../../rides/ride';
 import { Driver, DriverIdColumn } from '../driver';
 import { DriverPrefs } from '../driverPrefs';
-import { RegisterDriver } from './registerDriver';
+import { RegisterDriver } from '../registerDriver';
 
 export interface response {
   registered: ride4DriverRideRegister[],
@@ -71,11 +71,11 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
       this.locAreas.push(row);
     }
 
-    let dPrefs: { lid: string, both: boolean }[] = [];
+    let dPrefs: { lid: string }[] = [];
     for await (const dp of this.context.for(DriverPrefs).iterate({
-      where: cur => cur.driverId.isEqualTo(this.did)
+      where: cur => cur.did.isEqualTo(this.did)
     })) {
-      dPrefs.push({ lid: dp.locationId.value, both: dp.tBorder.value });
+      dPrefs.push({ lid: dp.lid.value });
     }
 
     let dHistory: { fid: string, tid: string }[] = [];
@@ -380,6 +380,7 @@ export class DriverRegisterComponent implements OnInit {
   params = new driverRegister(this.context);
 
   driver: Driver;
+  todayMidnigth: Date;
 
   ridesToRegister: ride4DriverRideRegister[];
   rides: ride4DriverRideRegister[];
@@ -403,7 +404,7 @@ export class DriverRegisterComponent implements OnInit {
     if (!(this.driver)) {
       throw 'Error - You are not register to use app';
     }
-    // this.todayMidnigth = new Date(this.todayMidnigth.getFullYear(), this.todayMidnigth.getMonth(), this.todayMidnigth.getDate());
+    this.todayMidnigth = addDays(0);
 
     this.params.fid.value = this.driver.defaultFromLocation ? this.driver.defaultFromLocation.value : null;
     this.params.tid.value = this.driver.defaultToLocation ? this.driver.defaultToLocation.value : null;

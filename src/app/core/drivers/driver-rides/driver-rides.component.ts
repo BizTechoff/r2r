@@ -4,8 +4,8 @@ import { ride4Driver, TODAY } from '../../../shared/types';
 import { addDays } from '../../../shared/utils';
 import { Roles } from '../../../users/roles';
 import { Location } from '../../locations/location';
+import { Contact } from '../../patients/contact';
 import { Patient } from '../../patients/patient';
-import { Contact } from '../../patients/patient-contacts/contact';
 import { PatientContactsComponent } from '../../patients/patient-contacts/patient-contacts.component';
 import { Ride, RideStatus } from '../../rides/ride';
 import { Driver } from '../driver';
@@ -20,7 +20,7 @@ export class DriverRidesComponent implements OnInit {
   rides: ride4Driver[];
   today = addDays(TODAY);
 
-  constructor(private context: Context) {}
+  constructor(private context: Context) { }
 
   async ngOnInit() {
     this.refresh();
@@ -53,7 +53,7 @@ export class DriverRidesComponent implements OnInit {
       let age = ride.isHasPatient() ? (await context.for(Patient).findId(ride.pid.value)).age.value : undefined;
       let pMobile = ride.isHasPatient() ? (await context.for(Patient).findId(ride.pid.value)).mobile.value : "";
       let contactsCount = await context.for(Contact).count(
-        c => c.patientId.isEqualTo(ride.pid),
+        c => c.pid.isEqualTo(ride.pid),
       );
       let equipment: string[] = [];
       if (ride.isHasBabyChair) {
@@ -62,9 +62,6 @@ export class DriverRidesComponent implements OnInit {
       if (ride.isHasWheelchair) {
         equipment.push('accessible');
       }
-      // if (ride.isHasExtraEquipment) {
-      //   equipment.push('home_repair_service');
-      // }
       console.log('---- ' + ride.passengers());
       let row = result.find(r => r.rId === ride.id.value);
       if (!(row)) {
@@ -78,7 +75,6 @@ export class DriverRidesComponent implements OnInit {
           to: to,
           contactsCount: contactsCount,
           date: ride.date.value,
-          // pickupTime: ride.pickupTime.value,
           visitTime: ride.visitTime.value,
           pickupTime: ride.pickupTime.value,
           passengers: ride.passengers(),

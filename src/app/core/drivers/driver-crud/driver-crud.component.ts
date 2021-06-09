@@ -30,11 +30,7 @@ export class DriverCrudComponent implements OnInit {
       console.log(` (DriverCrudComponent(this.args.did=${this.args.did})`);
       throw `Allow only modifing driver, Creating Driver is Only from users)`;
     }
-    // if (this.d.mobile.value) {
-    //   this.d.mobile.value = fixMobile(this.d.mobile.value);
-    // }
 
-    //, getValue: () => {fixMobile(this.d.mobile.value);}
     this.dataArea = new DataAreaSettings({
       columnSettings: () => [
         [this.d.name, this.d.idNumber],
@@ -55,7 +51,7 @@ export class DriverCrudComponent implements OnInit {
   }
 
   async save(thenClose = true) {
-    if (await this.validate()) {// ok: async () => { if (ride.wasChanged()) { await ride.save(); changed = true; } }
+    if (await this.validate()) {
       if (this.d && this.d.wasChanged()) {// || isNew()
         await this.d.save();
       }

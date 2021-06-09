@@ -16,7 +16,7 @@ export class LocationsListComponent implements OnInit {
     valueChange: () => this.busy.donotWait(async () => this.retrieveLocations())
 
   });
- 
+
   locationsSettings = this.context.for(Location).gridSettings({
     //allowCRUD: this.context.isAllowed(Roles.admin),
     allowInsert: true,// this.context.isAllowed([Roles.admin, Roles.usher, Roles.matcher]),
@@ -30,22 +30,6 @@ export class LocationsListComponent implements OnInit {
     ],
     where: l => this.search.value ? l.name.isContains(this.search) : undefined,
     orderBy: l => [{ column: l.type, descending: false }, { column: l.name, descending: false }],
-    // rowButtons: [
-    //   {
-    //     textInMenu: "Delete Location",
-    //     // click: async (p) => await this.openRideDialog(p),
-    //     icon: "delete",
-    //     visible: (d) => !d.isNew(),
-    //     // showInLine: true,
-  
-    //     click: async (r) => {
-    //       let name = (await this.context.for(Patient).findId(r.patientId.value)).name.value;
-    //       if (await this.snakebar.confirmDelete(name)) {
-    //         await r.delete();
-    //       }
-    //     },
-    //   },
-    // ],
   });
 
   constructor(private context: Context, private busy: BusyService) { }
@@ -55,9 +39,6 @@ export class LocationsListComponent implements OnInit {
   }
   async retrieveLocations() {
     this.locationsSettings.reloadData();
-    // this.patients = await this.context.for(Patient).find({
-    //   where:p=>this.search.value?p.name.isContains(this.search):undefined
-    // });
   }
   async addLocation() { }
 

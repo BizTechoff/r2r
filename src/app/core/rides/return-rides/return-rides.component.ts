@@ -55,7 +55,6 @@ export class ReturnRidesComponent implements OnInit {
     if (!(this.ridesSettings.items.length > 0)) {
       this.dialog.info("No Rides From TODAY");
     }
-    // await ReturnRidesComponent.retrieve();
   }
 
   @ServerFunction({ allowed: [Roles.usher, Roles.admin] })
@@ -82,7 +81,7 @@ export class ReturnRidesComponent implements OnInit {
 
       await this.dialog.info("Found Other Drivers Same Locations")
       await this.context.openDialog(GridDialogComponent, gd => gd.args = {
-        title: `Same Bakc Ride Locations`,
+        title: `Same Back Ride Locations`,
         settings: this.context.for(Ride).gridSettings({
           where: cur => cur.date.isEqualTo(this.today)
             .and(cur.fid.isEqualTo(r.tid))

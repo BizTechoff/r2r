@@ -1,12 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
-import { Context, DataAreaSettings, NumberColumn } from '@remult/core';
+import { Context, DataAreaSettings } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
 import { TODAY } from '../../../shared/types';
 import { addDays, fixMobile } from '../../../shared/utils';
 import { SendSmsComponent } from '../../services/send-sms/send-sms.component';
+import { Contact } from '../contact';
 import { Patient } from '../patient';
-import { Contact } from '../patient-contacts/contact';
 import { PatientContactsComponent } from '../patient-contacts/patient-contacts.component';
 
 @Component({
@@ -57,7 +57,7 @@ export class PatientCrudComponent implements OnInit {
     let p = await this.context.for(Patient).findId(
       pid);
     let c = await this.context.for(Contact).count(
-      c => c.patientId.isEqualTo(pid),
+      c => c.pid.isEqualTo(pid),
     );
 
     return { p: p, c: c };

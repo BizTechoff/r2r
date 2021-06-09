@@ -1,15 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { BusyService } from '@remult/angular';
-import { BoolColumn, Context, DateColumn, NumberColumn, ServerController, ServerMethod, StringColumn } from '@remult/core';
+import { Context, StringColumn } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
 import { GridDialogComponent } from '../../../common/grid-dialog/grid-dialog.component';
-import { InputAreaComponent } from '../../../common/input-area/input-area.component';
-import { addDays } from '../../../shared/utils';
 import { Roles } from '../../../users/roles';
-import { Ride, RideStatusColumn } from '../../rides/ride';
+import { Ride } from '../../rides/ride';
 import { RideCrudComponent } from '../../rides/ride-crud/ride-crud.component';
-import { Patient, PatientIdColumn } from './../patient';
-import { PatientContactsComponent } from './../patient-contacts/patient-contacts.component';
+import { Patient } from './../patient';
 import { PatientCrudComponent } from './../patient-crud/patient-crud.component';
 
 @Component({
@@ -33,11 +30,7 @@ export class PatientsListComponent implements OnInit {
     numOfColumnsInGrid: 10,
     columnSettings: p => [
       p.name,
-      // p.hebName,
       p.mobile,
-      // p.idNumber,
-      // p.defaultBorder,
-      // p.defaultHospital,
     ],
     gridButtons: [{
       name: 'Add New Patient',
@@ -139,9 +132,7 @@ export class PatientsListComponent implements OnInit {
           r.fid,
           r.tid,
           r.date,
-          // r.patientId,
           r.status,
-          // r.driverId,//??
         ],
         rowButtons: [
           {

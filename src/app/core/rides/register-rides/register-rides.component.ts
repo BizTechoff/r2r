@@ -1,14 +1,12 @@
 import { Component, OnInit } from '@angular/core';
-import { async } from '@angular/core/testing';
-import { BoolColumn, Context, DateColumn, Filter, NumberColumn, ServerController, ServerFunction, StringColumn } from '@remult/core';
+import { BoolColumn, Context, DateColumn, Filter, NumberColumn, ServerController, ServerFunction } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
 import { GridDialogComponent } from '../../../common/grid-dialog/grid-dialog.component';
 import { InputAreaComponent } from '../../../common/input-area/input-area.component';
 import { ride4UsherRideRegister, TODAY } from '../../../shared/types';
 import { addDays } from '../../../shared/utils';
 import { Roles } from '../../../users/roles';
-import { Driver } from '../../drivers/driver';
-import { RegisterDriver } from '../../drivers/driver-register/registerDriver';
+import { RegisterDriver } from '../../drivers/registerDriver';
 import { Location, LocationIdColumn } from '../../locations/location';
 import { RegisterRide } from './registerRide';
 
@@ -106,10 +104,7 @@ export class RegisterRidesComponent implements OnInit {
           }
         }
       },
-      {
-        column: cur.dCount, caption: 'Registered Drivers', cssClass: 'color: red'
-        // ,value: async() => true?1:  (await this.context.for(RegisterDriver).count(d => d.rrId.isEqualTo(cur.id)))
-      },
+      { column: cur.dCount, caption: 'Registered Drivers', cssClass: 'color: red' },
       { column: cur.sunday, caption: '1', width: '10', readOnly: true },
       { column: cur.monday, caption: '2', width: '10', readOnly: true },
       { column: cur.tuesday, caption: '3', width: '10', readOnly: true },
@@ -128,7 +123,7 @@ export class RegisterRidesComponent implements OnInit {
   });
 
   rides: ride4UsherRideRegister[];
-  clientLastRefreshDate: Date =addDays(TODAY, undefined, false);
+  clientLastRefreshDate: Date = addDays(TODAY, undefined, false);
   registerRidesCount = 0;
   selectedCount = 0;
 
@@ -140,11 +135,9 @@ export class RegisterRidesComponent implements OnInit {
   async refresh() {
     await this.registerSettings.reloadData();
     this.clientLastRefreshDate = addDays(TODAY, undefined, false);
-    // this.rides = await RegisterRidesComponent.retrieveRegisterRides(this.context);
-    // this.lastRefreshDate = new Date();
   }
 
-  @ServerFunction({ allowed: [Roles.admin]})
+  @ServerFunction({ allowed: [Roles.admin] })
   static async retrieveRegisterRides(context?: Context) {
     var result: ride4UsherRideRegister[] = [];
 
@@ -173,11 +166,11 @@ export class RegisterRidesComponent implements OnInit {
     result.sort((r1, r2) => +r1.date - +r2.date);
 
     return result;
-  } 
- 
+  }
+
   async openRegisteredDrivers(rr: RegisterRide) {
-    let from =( await this.context.for(Location).findId(rr.fid.value)).name.value;
-    let to =( await this.context.for(Location).findId(rr.tid.value)).name.value;
+    let from = (await this.context.for(Location).findId(rr.fid.value)).name.value;
+    let to = (await this.context.for(Location).findId(rr.tid.value)).name.value;
     await this.context.openDialog(GridDialogComponent, gd => gd.args = {
       title: `Registered Drivers For ${from}-${to}`,
       settings: this.context.for(RegisterDriver).gridSettings({
@@ -244,12 +237,12 @@ export class RegisterRidesComponent implements OnInit {
   async deleteSelected() {
     let canDelete = true;
     for (const reg of this.registerSettings.selectedRows) {
-      if(reg.dCount.value > 0){
-canDelete = false;
-break;
+      if (reg.dCount.value > 0) {
+        canDelete = false;
+        break;
       }
     }
-    if(!(canDelete)){
+    if (!(canDelete)) {
       await this.dialog.error(`Can NOT delete where drivers registered`);
       return;
     }

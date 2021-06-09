@@ -1,8 +1,8 @@
 import { Context, DateColumn, DateTimeColumn, EntityClass, IdEntity, NumberColumn, StringColumn } from "@remult/core";
-import { TimeColumn, TODAY } from "../../../shared/types";
-import { addDays } from "../../../shared/utils";
-import { Roles } from "../../../users/roles";
-import { DriverIdColumn } from "../driver";
+import { TimeColumn, TODAY } from "../../shared/types";
+import { addDays } from "../../shared/utils";
+import { Roles } from "../../users/roles";
+import { DriverIdColumn } from "./driver";
 
 @EntityClass
 export class RegisterDriver extends IdEntity {

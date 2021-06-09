@@ -11,7 +11,7 @@ import { DriverIdColumn } from "../drivers/driver";
 import { LocationIdColumn } from "../locations/location";
 import { PatientIdColumn } from "../patients/patient";
 import { Location } from "./../locations/location";
-import { RideHistory } from "./rideHistory";
+import { RideActivity } from "./rideActivity";
 
 @EntityClass
 export class Ride extends IdEntity {
@@ -94,7 +94,7 @@ export class Ride extends IdEntity {
         let remark = '';
         if (deleted || r.id.wasChanged() || r.date.wasChanged() || r.visitTime.wasChanged() || r.status.wasChanged() || r.escortsCount.wasChanged() || r.did.wasChanged()) {
 
-            let history = r.context.for(RideHistory).create();
+            let history = r.context.for(RideActivity).create();
             history.rid.value = r.id.value;
             history.pid.value = r.pid.value;
             let from = (await r.context.for(Location).findId(r.fid.value)).name.value;//r.fid.selected ? r.fid.selected.name.value

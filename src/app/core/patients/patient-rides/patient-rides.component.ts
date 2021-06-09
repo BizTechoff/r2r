@@ -3,7 +3,7 @@ import { Context, DateColumn, NumberColumn, ServerController, StringColumn } fro
 import { DialogService } from '../../../common/dialog';
 import { YesNoQuestionComponent } from '../../../common/yes-no-question/yes-no-question.component';
 import { TODAY } from '../../../shared/types';
-import { addDays, resetTime } from '../../../shared/utils';
+import { addDays } from '../../../shared/utils';
 import { Roles } from '../../../users/roles';
 import { LocationType } from '../../locations/location';
 import { Ride, RideStatus } from '../../rides/ride';
@@ -16,7 +16,7 @@ import { PatientCrudComponent } from '../patient-crud/patient-crud.component';
 
 @ServerController({ key: 'm/rides', allowed: [Roles.matcher, Roles.admin] })
 class matcherService {
-  date = new DateColumn({ defaultValue: addDays(TODAY), valueChange: async () => await this.onChanged() });
+  date = new DateColumn({ valueChange: async () => await this.onChanged() });
   onChanged: () => void;
   constructor(onChanged: () => void) {
     this.onChanged = onChanged;
@@ -43,18 +43,14 @@ export class PatientRidesComponent implements OnInit {
     columnSettings: (cur) => [
       cur.pid,
       { column: this.age, readOnly: true, getValue: (cur) => { return this.context.for(Patient).lookup(cur.pid).age.value; } },
-      // r.driverId,
       cur.fid,
       cur.tid,
       { column: this.pass, getValue: (cur) => { return cur.passengers(); }, caption: 'Pass' },
       cur.status,
-      // r.date,
       { column: this.vt, getValue: (r) => r.immediate.value ? 'A.S.A.P' : r.visitTime.value },
-      // r.visitTime,//,
       cur.rRemark,
       cur.changed,
       cur.changedBy
-      // { column: r.mApproved, caption: 'Approved' }
     ],
     rowButtons: [
       {
@@ -97,8 +93,7 @@ export class PatientRidesComponent implements OnInit {
   });
 
   constructor(private context: Context, private dialog: DialogService) {
-    // SetTime: 00:00:00.0 = MidNigth
-    this.params.date.value = resetTime(this.params.date.value);
+    this.params.date.value = addDays(TODAY);
   }
 
 
@@ -112,7 +107,7 @@ export class PatientRidesComponent implements OnInit {
       message: message
     });
   }
-  
+
   async deleteRide(r: Ride) {
     if (RideStatus.isDriverNotStarted.includes(r.status.value)) {
       let yes = await this.dialog.confirmDelete(' Ride');

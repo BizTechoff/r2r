@@ -31,13 +31,8 @@ export class DriverSettingsComponent implements OnInit {
       d.name, d.hebName,
       d.mobile, d.email,
       d.idNumber, d.birthDate,
-      /*d.home*/, d.seats,
+      d.seats,
       d.city, d.address,
-      // [d.name, d.hebName],
-      // [d.mobile, d.email],
-      // [d.idNumber, d.birthDate],
-      // [d.home, d.seats],
-      // [d.city, d.address],
     ],
 
   });
@@ -46,16 +41,6 @@ export class DriverSettingsComponent implements OnInit {
 
 
   async openPreferedBorders() {
-
-    // this.context.openDialog(GridDialogComponent, gd => gd.args = {
-    //   title: "Prefered Borders",
-    //   // cancel: () => {this.snakebar.info("Closed")},
-    //   settings: this.context.for(Location).gridSettings({
-    //     allowSelection: true,
-    //     where: l => l.type.isEqualTo(LocationType.border),
-    //     allowCRUD: false,
-    //   })
-    // });
 
     if (!(this.args)) {
       this.args = { driverId: '' };
@@ -66,36 +51,7 @@ export class DriverSettingsComponent implements OnInit {
     await this.context.openDialog(LocationAreaComponent, dlg => dlg.args = { dId: this.args.driverId });
 
     this.selectedCount = await this.context.for(DriverPrefs).count(
-      prf => prf.driverId.isEqualTo(this.driverId)
-        .and(prf.active.isEqualTo(true)));
-
-
-    // await this.context.openDialog(GridDialogComponent, gd => gd.args = {
-    //   title: "Preferred Borders",
-    //   settings: this.context.for(DriverPrefs).gridSettings({
-    //     where: p => p.driverId.isEqualTo(this.driverId),
-    //     newRow: p => p.driverId.value = this.driverId,
-    //     allowCRUD: true,
-    //     columnSettings: p => [
-    //       {
-    //         column: p.locationId,
-    //         caption: "'From Location'"
-    //       },
-    //       {
-    //         column: p.isAlsoBack,
-    //         caption: "Also 'To Location' That Border"
-    //       },
-    //       // p.locationId,
-    //       // p.isAlsoBack,
-    //       // {column: p.locationId,
-    //       // caption: "B->"},
-    //       // {column:  p.isAlsoBack,
-    //       //   caption: "<-B"},
-    //       // p.dayOfWeek,
-    //       // p.dayPeriod,
-    //     ],
-    //   })
-    // });
+      prf => prf.did.isEqualTo(this.driverId));
   }
   driverId;
   async ngOnInit() {
@@ -107,21 +63,12 @@ export class DriverSettingsComponent implements OnInit {
     })).id.value;
 
     this.selectedCount = await this.context.for(DriverPrefs).count(
-      prf => prf.driverId.isEqualTo(this.driverId)
-        .and(prf.active.isEqualTo(true)));
-
-    // let driverId = (await this.context.for(Driver).findFirst({
-    //   where: d=>d.userId.isEqualTo(this.context.user.id),
-    // })).id.value;
-
-    // this.driverLocations = await this.context.for(DriverPrefs).find({
-    //   where: pf => pf.driverId.isEqualTo(driverId),
-    // });
+      prf => prf.did.isEqualTo(this.driverId));
   }
 
   async update() {
     let prefs = await this.context.for(DriverPrefs).find({
-      where: pf => pf.driverId.isEqualTo(this.driverId),
+      where: pf => pf.did.isEqualTo(this.driverId),
     });
     if (prefs && prefs.length > 0) {
       if (this.driverSettings.items.length > 0) {

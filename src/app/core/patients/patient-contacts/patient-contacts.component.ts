@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Context } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
 import { Roles } from '../../../users/roles';
-import { Contact } from './contact';
+import { Contact } from '../contact';
 
 @Component({
   selector: 'app-patient-contacts',
@@ -16,9 +16,9 @@ export class PatientContactsComponent implements OnInit {
   };
 
   contactsSettings = this.context.for(Contact).gridSettings({
-    where: c => c.patientId.isEqualTo(this.args.pid),
+    where: c => c.pid.isEqualTo(this.args.pid),
     orderBy: c => c.name,
-    newRow: c => c.patientId.value = this.args.pid,
+    newRow: c => c.pid.value = this.args.pid,
     allowCRUD: this.context.isAllowed([Roles.admin, Roles.usher, Roles.matcher]),
     showPagination: false,
     columnSettings: (c) => [
@@ -26,17 +26,17 @@ export class PatientContactsComponent implements OnInit {
       c.name,
       c.relation
     ],
-    gridButtons: [{name: 'Add Contact', click: () => {this.contactsSettings.addNewRow();}}],
+    gridButtons: [{ name: 'Add Contact', click: () => { this.contactsSettings.addNewRow(); } }],
     validation: c => {
-      if((!c.mobile.value)){
+      if ((!c.mobile.value)) {
         c.mobile.validationError = ' Required';
         throw c.mobile.defs.caption + c.mobile.validationError;
       }
-      if(c.mobile.value.length < 10){
+      if (c.mobile.value.length < 10) {
         c.mobile.validationError = ' Invalid Format (10 digits)';
         throw c.mobile.defs.caption + c.mobile.validationError;
       }
-      if(!(c.mobile.value.startsWith('05'))){
+      if (!(c.mobile.value.startsWith('05'))) {
         c.mobile.validationError = ' Invalid Format (start 05..)';
         throw c.mobile.defs.caption + c.mobile.validationError;
       }

@@ -20,7 +20,6 @@
                 <th>Company Short Call</th>
                 <th>Company Whatsapp</th>
                 <th>Status</th>
-                <!-- <th>Useful</th> -->
             </tr>
             <tr *ngFor="let r of rides">
                 <td>{{ r.from }}</td>
@@ -39,7 +38,6 @@
                 <td>{{ r.companyShortCall }}</td>
                 <td>{{ r.companyWhatsapp }}</td>
                 <td>{{ r.status.id }}</td>
-                <!-- <td><button mat-raised-button (click)="approveDriver(r)">approve</button></td> -->
             </tr>
         </table>
     </div>

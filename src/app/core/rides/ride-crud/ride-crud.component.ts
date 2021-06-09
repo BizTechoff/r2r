@@ -86,7 +86,7 @@ export class RideCrudComponent implements OnInit {
           { column: this.r.visitTime, visible: () => { return !this.r.immediate.value; } }
         ],
         [
-          { column: this.r.escortsCount /*, readOnly: RideStatus.alreadyPickedup*/ },
+          { column: this.r.escortsCount },
           this.r.pMobile
         ],
         [
@@ -132,13 +132,10 @@ export class RideCrudComponent implements OnInit {
         result = false;
       }
     }
-    result = selected && result;// && this.r.isNew();
+    result = selected && result;
     if (!(result)) {
       this.r.immediate.value = false;
     }
-    // else if (!this.r.immediate.wasChanged) {
-    //   this.r.immediate.value = true;
-    // }
     return result;
   }
 
@@ -236,12 +233,6 @@ export class RideCrudComponent implements OnInit {
   }
 
   async openPatientContacts() {
-    // if (this.r.isNew()) {
-    //   let yes = await this.dialog.yesNoQuestion(`Ride didn't saved. Save and Create the ride?`);
-    //   if (!yes) {
-    //     return;
-    //   }
-    // }
     if (this.r.wasChanged()) {// || isNew()
       let yes = await this.dialog.yesNoQuestion(`Ride didn't saved. Save and ${this.r.isNew() ? 'Create the ride' : 'Open Contacts'}?`);
       if (yes) {

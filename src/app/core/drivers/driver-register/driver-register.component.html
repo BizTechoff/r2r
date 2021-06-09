@@ -29,9 +29,6 @@
                         </button>
                     </div>
                     <div>
-                        <!-- <span style="padding-left: 15px;">Last Retrieved: {{ clientLastRefreshDate | date:
-                            'HH:mm'
-                            }}</span> -->
                         <mat-expansion-panel [expanded]="params.fid.value || params.tid.value">
                             <mat-expansion-panel-header>
                                 <mat-panel-title>
@@ -43,24 +40,6 @@
                         </mat-expansion-panel>
                     </div>
                 </td>
-                <!-- <td style="padding-left: 15px;">
-                    <table style="width: 100%;">
-                        <tr>
-                            <td>
-                                <button mat-mini-fab title="Refresh" (click)="refresh()" color="primary">
-                                    <mat-icon>refresh</mat-icon>
-                                </button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <span style="padding-left: 15px;">{{ clientLastRefreshDate | date:
-                                    'HH:mm'
-                                    }}</span>
-                            </td>
-                        </tr>
-                    </table>
-                </td> -->
             </tr>
         </table>
     </div>
@@ -87,9 +66,6 @@
                     <tr>
                         <td>Pickup: {{ r.pickupTime }}</td>
                     </tr>
-                    <!-- <tr *ngIf="r.dRemark&&r.dRemark.length > 0">
-                        <td>Remark: <strong>{{ r.dRemark }}</strong></td>
-                    </tr> -->
                     <tr>
                         <td>rid: {{ r.rid }}</td>
                     </tr>
@@ -114,7 +90,7 @@
                         <td>From: <i>{{ r.from }}</i></td>
                         <td rowspan="4">
                             <table *ngIf="r.isRegistered" style="width: 100%;">
-                                <tr *ngIf="this.params.date.value>=this.todayMidnigth">
+                                <tr *ngIf="this.params.date.value >= this.todayMidnigth">
                                     <button class="mat-raised-button" (click)="unregister(r)">Unregister</button>
                                 </tr>
                             </table>
@@ -138,9 +114,6 @@
                     <tr>
                         <td>rrid: {{ r.rrid }}</td>
                     </tr>
-                    <!-- <tr *ngIf="r.dRemark&&r.dRemark.length > 0">
-                        <td>Remark: <strong>{{ r.dRemark }}</strong></td>
-                    </tr> -->
                 </table>
             </tr>
         </table>

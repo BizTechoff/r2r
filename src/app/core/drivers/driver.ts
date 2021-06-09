@@ -1,11 +1,12 @@
 import { ColumnSettings, Context, DateColumn, EntityClass, IdEntity, NumberColumn, StringColumn } from "@remult/core";
 import { DialogService } from "../../common/dialog";
 import { DynamicServerSideSearchDialogComponent } from "../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component";
+import { GridDialogComponent } from "../../common/grid-dialog/grid-dialog.component";
 import { InputAreaComponent } from "../../common/input-area/input-area.component";
 import { TimeColumn } from "../../shared/types";
 import { Roles } from "../../users/roles";
 import { LocationIdColumn } from "../locations/location";
-import { RideStatus, RideStatusColumn } from "../rides/ride";
+import { Ride, RideStatus, RideStatusColumn } from "../rides/ride";
 
 @EntityClass
 export class Driver extends IdEntity {
@@ -49,20 +50,6 @@ export class Driver extends IdEntity {
       allowApiInsert: false,
       allowApiUpdate: [Roles.admin, Roles.usher, Roles.driver],
       allowApiRead: c => c.isSignedIn(),
-
-      // allowApiDelete:false,
-      // saving:async()=>{
-      //     if (context.onServer)
-      //     {if(this.isNew())
-      //     {if(this.status.value!=this.status.originalValue){
-      //     let u  =await  context.for(Users).findId(this.id);
-      //     i.status.value = this.status.value;
-      //     await u.save();}
-      //     }
-      //     }
-
-      // },
-      // deleting:async()=>{}
     })
   }
 
@@ -134,12 +121,6 @@ export class Driver extends IdEntity {
 
 export class DriverIdColumn extends StringColumn {
   selected: Driver = undefined;
-  // getName() {
-  //   return this.context.for(Driver).lookup(this).name.value;
-  // }
-  // async getValueName() {
-  //   return (await this.context.for(Driver).findId(this.value)).name.value;
-  // }
   constructor(options?: ColumnSettings<string>, private context?: Context) {
     super({
       dataControlSettings: () => ({
@@ -196,4 +177,32 @@ export async function openDriver(id: string, context: Context): Promise<boolean>
     )
   }
   return false;
+}
+
+export async function openDriverRides(did: string, context: Context): Promise<boolean> {
+  let d = await context.for(Driver).findId(did);
+  if (d) {
+    let pass = new NumberColumn({ caption: 'Pass' });
+    await context.openDialog(GridDialogComponent, dlg => dlg.args = {
+      title: `${d.name.value} Rides`,
+      settings: context.for(Ride).gridSettings({
+        where: cur => cur.did.isEqualTo(d.id),
+        orderBy: cur => [{ column: cur.date, descending: false }],
+        allowCRUD: false,// context.isAllowed([Roles.admin, Roles.usher, Roles.matcher]),
+        allowDelete: false,
+        // showPagination: false,
+        numOfColumnsInGrid: 10,
+        columnSettings: cur => [
+          cur.fid,
+          cur.tid,
+          cur.date,
+          cur.pickupTime,
+          { column: pass, getValue: (r) => { return r.passengers(); } },
+          cur.pid,
+          cur.status,
+        ],
+      }),
+    });
+  }
+  return true;
 }

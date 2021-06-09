@@ -5,30 +5,17 @@
     </div>
     <div class="grow-item">
         <table style="width: 100%;">
-            <!-- <tr>
-                <th>Border</th>
-                <th>From?</th>
-                <th>To?</th>
-            </tr> -->
             <tr *ngFor="let b of borders" style="border: 1px solid black;">
-                <!-- <div *ngIf="b.ivisible" class="display:flex;flex-direction: column;justify-content: space-between"> -->
-                    <div *ngIf="b.ivisible">
-                <!-- <td style="flex-grow: 1"> -->
-                <td style="width: 90%;">
-                    <mat-checkbox [(ngModel)]="b.selected" (change)="onSelection(b.id)">{{ b.name }}</mat-checkbox>
-                </td>
-                <td style="width: 10%;">
-                    <mat-checkbox [(ngModel)]="b.tBorder" *ngIf="b.selected" (change)="onSelection(b.id, true)" title="{{b.tBorder? 'Both Sides (From Border & To The Border)':'One Side (Only From Border)'}}">
-                        <mat-icon>compare_arrows</mat-icon>
-                    </mat-checkbox>
-                </td>
-            </div>
+                <div *ngIf="b.ivisible">
+                    <td style="width: 90%;">
+                        <mat-checkbox [(ngModel)]="b.selected">{{ b.name }}</mat-checkbox>
+                    </td>
+                </div>
             </tr>
         </table>
     </div>
     <div class="footer">
         <mat-label style="padding: 5px; color:blue">selected: {{ selectedCount }}</mat-label>
-        <!-- <span>selected: {{ this.borders.filter(i =>i.selected).length }}</span> -->
         <button mat-raised-button color="accent" (click)="saveSelected()">Save</button>
     </div>
 </div>

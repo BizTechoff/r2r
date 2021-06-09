@@ -1,4 +1,4 @@
-import { ColumnOptions, ColumnSettings, Context, EntityClass, Filter, IdEntity, StringColumn, ValueListColumn } from "@remult/core";
+import { ColumnOptions, ColumnSettings, Context, EntityClass, IdEntity, StringColumn, ValueListColumn } from "@remult/core";
 import { DynamicServerSideSearchDialogComponent } from "../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component";
 import { Roles } from "../../users/roles";
 
@@ -62,7 +62,6 @@ export class LocationAreaColumn extends ValueListColumn<LocationArea>{
 export class LocationType {
   static hospital = new LocationType();
   static border = new LocationType();
-  // static driver = new LocationType();
   constructor() { }
   // id;
 }
@@ -76,13 +75,10 @@ export class LocationIdColumn extends StringColumn {
   selected: Location = undefined;
   private types: LocationType[] = [LocationType.border, LocationType.hospital];
   constructor(options?: ColumnSettings<string>, private context?: Context) {
-    super({//valueChange
-      //caption: this.defs.caption + '',
+    super({
       dataControlSettings: () => ({
         getValue: () => {
-          // console.log('@@@@ LocationIdColumn.getValue called');
           this.selected = this.context.for(Location).lookup(this);
-          // console.log('@@@@ LocationIdColumn.getValue called: '  +this.selected.name.value);
           return this.selected.name.value;
         },
         hideDataOnInput: true,
@@ -111,7 +107,7 @@ export class LocationIdColumn extends StringColumn {
     }
     return result;
   }
-  hasSelected(){
+  hasSelected() {
     return this.selected && this.selected.id && this.selected.id.value && this.selected.id.value.length > 0;
   }
 }
@@ -132,16 +128,13 @@ export class BorderAreaIdColumn extends StringColumn {
         clickIcon: 'search',
         width: "150px",
         click: () => {
-          // selected = new BorderAreaList({});
           this.context.openDialog(DynamicServerSideSearchDialogComponent,
             x => x.args(Location, {
               onSelect: l => this.value = l.id.value,
               searchColumn: l => l.name,
-              // where: l => selected?l.area.isEqualTo(selected):new Filter(() => {}),
             }));
         }
-      }),//...options
-    },
-      options);
+      }),
+    }, options);
   }
 }

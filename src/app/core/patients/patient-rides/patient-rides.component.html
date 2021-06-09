@@ -6,18 +6,10 @@
             <data-control [column]="params.date"></data-control>
             <button style="height: 40px;" mat-raised-button color="primary" (click)="nextDay()"
                 title="Show Next Day">+</button>
-            <button mat-mini-fab title="Refresh" (click)="refresh()" color="primary"
-                style="align-items: flex-end;">
-                <!-- title="{{ clientLastRefreshDate | date: 'HH:mm' }}" -->
+            <button mat-mini-fab title="Refresh" (click)="refresh()" color="primary" style="align-items: flex-end;">
                 <mat-icon>refresh</mat-icon>
             </button>
-    <!-- <td style="padding-left: 15px;width: 100%;text-align: end;">
-        <button mat-mini-fab title="Add New Requested Rides" (click)="openAddRegisterRide()"
-            color="primary">
-            <mat-icon>add</mat-icon>
-        </button>
-    </td> -->
-</div>
+        </div>
     </div>
     <div class="grow-item">
         <data-grid [settings]="ridesSettings"></data-grid>

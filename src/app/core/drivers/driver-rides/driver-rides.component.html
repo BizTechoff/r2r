@@ -18,11 +18,6 @@
                         <mat-icon>send</mat-icon>
                     </button>
                 </td>
-                <!-- <td><button mat-flat-button style="color: blue;background-color: transparent;">
-                        <u>{{ '*1234' }}</u>
-                        <mat-icon>call</mat-icon>
-                    </button>
-                </td> -->
             </tr>
         </table>
         <hr style="height:2px;border-width:0;color:gray;background-color:gray">
@@ -36,7 +31,6 @@
                 <mat-card>
                     <td>
                         <table>
-                            <!-- <hr *ngIf="rides.indexOf(r) > 0"> -->
                             <tr>
                                 <td>
                                     <u>{{ r.date | date: 'dd.MM.yyyy' }}</u>
@@ -76,11 +70,6 @@
                                                     r.passengers > 1? '+' + (r.passengers -1) : '0' }}</u>
                                             </button>
                                         </button>
-                                        <!-- <div *ngIf="r.contactsCount > 0 || r.passengers >1">
-                                    <button mat-flat-button style="color: blue;background-color: transparent;"
-                                        (click)="openContacts(r)"><u>{{ r.contactsCount > 0? '+' + r.contactsCount:
-                                            r.passengers > 1? '+' + (r.passengers -1) : '0' }}(escort)</u></button>
-                                </div> -->
                                     </div>
                                 </td>
                             </tr>
@@ -88,19 +77,8 @@
                                 <td *ngIf="r.dRemark&&r.dRemark.length > 0">
                                     <mat-icon>info</mat-icon>
                                     <strong style="color: red;"> {{'*'+r.dRemark+'*' }}</strong>
-                                    <!-- <button mat-flat-button>
-                                    <mat-icon>call</mat-icon>
-                                </button> -->
                                 </td>
                             </tr>
-                            <!-- <tr>
-                            <td><button mat-flat-button style="color: blue;background-color: transparent;"
-                                    (click)="openContacts(r)"><u>{{ r.contactsCount == 0? r.passengers +' seats': r.contactsCount +' escorts' }}</u></button></td>
-                        </tr> -->
-
-                            <!-- <tr *ngIf="r.dRemark&&r.dRemark.length > 0">
-                        <td>Remark: <strong>{{ r.dRemark }}</strong></td>
-                    </tr> -->
                         </table>
                     </td>
                     <td>

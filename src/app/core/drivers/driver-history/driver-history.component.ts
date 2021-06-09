@@ -3,12 +3,12 @@ import { Context, ServerFunction } from '@remult/core';
 import { ride4Driver } from '../../../shared/types';
 import { Roles } from '../../../users/roles';
 import { Location } from '../../locations/location';
+import { Contact } from '../../patients/contact';
 import { Patient } from '../../patients/patient';
-import { Contact } from '../../patients/patient-contacts/contact';
 import { PatientContactsComponent } from '../../patients/patient-contacts/patient-contacts.component';
 import { Ride, RideStatus } from '../../rides/ride';
 import { Driver } from '../driver';
- 
+
 @Component({
   selector: 'app-driver-history',
   templateUrl: './driver-history.component.html',
@@ -27,7 +27,7 @@ export class DriverHistoryComponent implements OnInit {
   @ServerFunction({ allowed: Roles.driver })
   static async retrieveDriverHistory(context?: Context) {
     var result: ride4Driver[] = [];
- 
+
     let driver = await context.for(Driver).findFirst({
       where: d => d.userId.isEqualTo(context.user.id),
     });
@@ -45,7 +45,7 @@ export class DriverHistoryComponent implements OnInit {
       let age = ride.isHasPatient() ? (await context.for(Patient).findId(ride.pid.value)).age.value : undefined;
       let mobile = ride.isHasPatient() ? (await context.for(Patient).findId(ride.pid.value)).mobile.value : "";
       let contactsCount = await context.for(Contact).count(
-        c => c.patientId.isEqualTo(ride.pid),
+        c => c.pid.isEqualTo(ride.pid),
       );
       let equipment: string[] = [];
       if (ride.isHasBabyChair) {
@@ -54,16 +54,13 @@ export class DriverHistoryComponent implements OnInit {
       if (ride.isHasWheelchair) {
         equipment.push('');
       }
-      // if (ride.isHasExtraEquipment) {
-      //   equipment.push('');
-      // }
 
       let row = result.find(r => r.rId === ride.id.value);
       if (!(row)) {
         row = {
           rId: ride.id.value,
           pId: ride.pid.value,
-          dId: ride.isHasDriver()? ride.did.value: '',
+          dId: ride.isHasDriver() ? ride.did.value : '',
           fId: ride.fid.value,
           pName: pName,
           from: from,
@@ -91,7 +88,7 @@ export class DriverHistoryComponent implements OnInit {
         };
         result.push(row);
       }
-    } 
+    }
 
     // console.log(result)
     result.sort((r1, r2) => +r1.date - +r2.date);
@@ -99,8 +96,8 @@ export class DriverHistoryComponent implements OnInit {
     return result;
   }
 
-  async openContacts(r:ride4Driver){
-     
+  async openContacts(r: ride4Driver) {
+
     this.context.openDialog(PatientContactsComponent, sr => sr.args = {
       pid: r.pId,
     });

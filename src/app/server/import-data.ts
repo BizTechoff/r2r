@@ -92,7 +92,7 @@ async function seed(context?: Context) {
 }
  
 async function createFromRideRecordNew(record: any, context?: Context) {
-    let clean = process.env.IMPORT_DATA_CLEAN && process.env.IMPORT_DATA_CLEAN === 'true';
+    let clean = process.env.IMPORT_DATA_BASE && process.env.IMPORT_DATA_BASE === 'true';
 
     let fromId = await findOrCreateLocationNew(record.Origin, context);
     let toId = await findOrCreateLocationNew(record.Destination, context);
@@ -262,9 +262,6 @@ async function findOrCreateRideNew(rideRecord: any, driverId: string, patientId:
     ride.fid.value = fromId;
     ride.tid.value = toId;
     ride.date.value = toDate(rideRecord.Date);
-    // ride.dayOfWeek.value = DriverPrefs.getDayOfWeek((ride.date.value.getDay() + 1));
-    // ride.dayPeriod.value = DriverPrefs.getDayPeriod(ride.date.value.getHours() > 12 ? "afternoon" : "morning");
-
     ride.status.value = RideStatus.waitingForDriver;
 
     if (rideRecord.Statuses) {
