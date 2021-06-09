@@ -43,17 +43,17 @@ export class DriverRidesComponent implements OnInit {
 
     let today = addDays(TODAY);
     for await (const ride of context.for(Ride).iterate({
-      where: r => r.driverId.isEqualTo(driver.id)
+      where: r => r.did.isEqualTo(driver.id)
         .and(r.date.isGreaterOrEqualTo(today))
         .and(r.status.isIn(...RideStatus.isInDriverWaitingStatuses)),
     })) {
       let from = (await context.for(Location).findId(ride.fid.value)).name.value;
       let to = (await context.for(Location).findId(ride.tid.value)).name.value;
-      let pName = ride.isHasPatient() ? (await context.for(Patient).findId(ride.patientId.value)).name.value : "";
-      let age = ride.isHasPatient() ? (await context.for(Patient).findId(ride.patientId.value)).age.value : undefined;
-      let pMobile = ride.isHasPatient() ? (await context.for(Patient).findId(ride.patientId.value)).mobile.value : "";
+      let pName = ride.isHasPatient() ? (await context.for(Patient).findId(ride.pid.value)).name.value : "";
+      let age = ride.isHasPatient() ? (await context.for(Patient).findId(ride.pid.value)).age.value : undefined;
+      let pMobile = ride.isHasPatient() ? (await context.for(Patient).findId(ride.pid.value)).mobile.value : "";
       let contactsCount = await context.for(Contact).count(
-        c => c.patientId.isEqualTo(ride.patientId),
+        c => c.patientId.isEqualTo(ride.pid),
       );
       let equipment: string[] = [];
       if (ride.isHasBabyChair) {
@@ -70,8 +70,8 @@ export class DriverRidesComponent implements OnInit {
       if (!(row)) {
         row = {
           rId: ride.id.value,
-          pId: ride.patientId.value,
-          dId: ride.isHasDriver() ? ride.driverId.value : '',
+          pId: ride.pid.value,
+          dId: ride.isHasDriver() ? ride.did.value : '',
           fId: ride.fid.value,
           pName: pName,
           from: from,

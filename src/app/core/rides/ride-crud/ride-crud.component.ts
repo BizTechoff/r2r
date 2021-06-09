@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
-import { BoolColumn, Context, DataAreaSettings, NumberColumn } from '@remult/core';
+import { BoolColumn, Context, DataAreaSettings } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
 import { TODAY } from '../../../shared/types';
 import { addDays } from '../../../shared/utils';
@@ -22,7 +22,7 @@ export class RideCrudComponent implements OnInit {
   dataArea: DataAreaSettings;
   r: Ride;
   p: Patient;
-  createBackRide = new BoolColumn({ caption: 'Create Back Ride', defaultValue: false });
+  createBackRide = new BoolColumn({ caption: 'Need Back Ride', defaultValue: false });
 
   constructor(private context: Context, private dialog: DialogService, private dialogRef: MatDialogRef<any>) { }
 
@@ -30,7 +30,7 @@ export class RideCrudComponent implements OnInit {
     if (this.args.rid && this.args.rid.length > 0) {
       this.r = await this.context.for(Ride).findId(this.args.rid);
       if (this.r) {
-        this.args.pid = this.r.patientId.value;
+        this.args.pid = this.r.pid.value;
       }
     }
     if (!(this.r)) {
@@ -41,10 +41,10 @@ export class RideCrudComponent implements OnInit {
       this.p = await this.context.for(Patient).findId(this.args.pid);
       if (this.p) {
         if (this.r.isNew()) {
-          this.r.patientId.value = this.args.pid;
+          this.r.pid.value = this.args.pid;
           this.r.pMobile.value = this.p.mobile.value;
           // this.r.visitTime.value = tomorrow10am;
-          this.r.patientId.value = this.p.id.value;
+          this.r.pid.value = this.p.id.value;
           this.r.fid.value = this.p.defaultBorder.value;
           this.r.tid.value = this.p.defaultHospital.value;
           this.r.pMobile.value = this.p.mobile.value;
@@ -53,10 +53,15 @@ export class RideCrudComponent implements OnInit {
         }
       }
       else {
-        await this.dialog.error("RideCrudComponent(pid==null)")
+        await this.dialog.error("Ride NOT Found !")
         this.close();
         return;
       }
+    }
+    else {
+      await this.dialog.error("Ride NOT Found !")
+      this.close();
+      return;
     }
 
     let rOnly = RideStatus.isInDriving.includes(this.r.status.value);
@@ -65,7 +70,11 @@ export class RideCrudComponent implements OnInit {
         { column: this.r.fid, readonly: rOnly },
         { column: this.r.tid, readonly: rOnly },
         [
-          { column: this.r.immediate, readOnly: rOnly },
+          {
+            column: this.r.immediate,
+            visible: () => this.setImmediateVisible(),
+            readOnly: rOnly
+          },
           {
             column: this.createBackRide,
             visible: () => this.setBackRideVisible(),
@@ -76,9 +85,18 @@ export class RideCrudComponent implements OnInit {
           { column: this.r.date, readOnly: rOnly, visible: () => { return !this.r.immediate.value; } },
           { column: this.r.visitTime, visible: () => { return !this.r.immediate.value; } }
         ],
-        [this.r.escortsCount, this.r.pMobile],
-        [this.p.birthDate, this.p.age],
-        [this.r.isHasBabyChair, this.r.isHasWheelchair],
+        [
+          { column: this.r.escortsCount /*, readOnly: RideStatus.alreadyPickedup*/ },
+          this.r.pMobile
+        ],
+        [
+          this.p.birthDate,
+          { column: this.p.age, readOnly: true }
+        ],
+        [
+          this.r.isHasBabyChair,
+          this.r.isHasWheelchair
+        ],
         this.r.rRemark,
         { column: this.r.dRemark, readOnly: this.context.isAllowed([Roles.matcher]) },
       ],
@@ -100,6 +118,27 @@ export class RideCrudComponent implements OnInit {
     if (!(result)) {
       this.createBackRide.value = false;
     }
+    return result;
+  }
+
+  setImmediateVisible() {
+    let result = true;
+    let selected = false;
+    if (this.r.fid.selected && this.r.fid.selected.id.value) {
+      selected = true;
+    }
+    if (selected) {
+      if (![LocationType.hospital].includes(this.r.fid.selected.type.value)) {
+        result = false;
+      }
+    }
+    result = selected && result;// && this.r.isNew();
+    if (!(result)) {
+      this.r.immediate.value = false;
+    }
+    // else if (!this.r.immediate.wasChanged) {
+    //   this.r.immediate.value = true;
+    // }
     return result;
   }
 
@@ -139,7 +178,7 @@ export class RideCrudComponent implements OnInit {
       return false;
     }
     if (this.r.date.value < addDays(TODAY)) {
-      this.r.date.validationError = 'Must be greater or equals today';
+      this.r.date.validationError = 'Must be greater or equals today';// ' + this.r.date.value + '|' + addDays(TODAY);
       await this.dialog.error(this.r.date.defs.caption + ' ' + this.r.date.validationError);
       return false;
     }
@@ -221,6 +260,7 @@ export class RideCrudComponent implements OnInit {
   swapLocations() {
     this.r.swapLocations();
     this.setBackRideVisible();
+    this.setImmediateVisible();
   }
 
   close() {

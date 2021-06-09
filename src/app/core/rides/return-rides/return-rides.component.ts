@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { Context, Filter, ServerFunction } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
 import { GridDialogComponent } from '../../../common/grid-dialog/grid-dialog.component';
+import { TODAY } from '../../../shared/types';
+import { addDays } from '../../../shared/utils';
 import { Roles } from '../../../users/roles';
 import { Ride, RideStatus } from '../ride';
 
@@ -13,7 +15,7 @@ import { Ride, RideStatus } from '../ride';
 })
 export class ReturnRidesComponent implements OnInit {
 
-  today = new Date();
+  today = addDays(TODAY);
   ridesSettings = this.context.for(Ride).gridSettings({
     where: r => r.date.isEqualTo(this.today)//only empty
       .and(r.status.isIn(...[RideStatus.waitingForEnd, RideStatus.succeeded]))
@@ -21,10 +23,10 @@ export class ReturnRidesComponent implements OnInit {
     // .and((new Filter(f => f.isDifferentFrom(r.backId, ''))).or(new Filter(f => f.isNull(r.backId))))
     , numOfColumnsInGrid: 10,
     columnSettings: r => [
-      r.patientId,
+      r.pid,
       r.fid,
       r.tid,
-      r.driverId,
+      r.did,
       r.status,
       r.statusDate,
       r.date,
@@ -68,8 +70,8 @@ export class ReturnRidesComponent implements OnInit {
       where: cur => cur.date.isEqualTo(this.today)
         .and(cur.fid.isEqualTo(r.tid))
         .and(cur.tid.isEqualTo(r.fid))
-        .and(new Filter(f => f.isNotNull(cur.driverId)))
-        .and(new Filter(f => f.isDifferentFrom(cur.driverId, '')))
+        .and(new Filter(f => f.isNotNull(cur.did)))
+        .and(new Filter(f => f.isDifferentFrom(cur.did, '')))
         .and(r.status.isNotIn(RideStatus.waitingForArrived))//not start yet
     })) {
       more.push(ride);
@@ -85,8 +87,8 @@ export class ReturnRidesComponent implements OnInit {
           where: cur => cur.date.isEqualTo(this.today)
             .and(cur.fid.isEqualTo(r.tid))
             .and(cur.tid.isEqualTo(r.fid))
-            .and(new Filter(f => f.isNotNull(cur.driverId)))
-            .and(new Filter(f => f.isDifferentFrom(cur.driverId, '')))
+            .and(new Filter(f => f.isNotNull(cur.did)))
+            .and(new Filter(f => f.isDifferentFrom(cur.did, '')))
             .and(r.status.isNotIn(RideStatus.waitingForArrived)),//not start yet
           // orderBy: cur => [{ column: cur.modified.value ? cur.modified : cur.created, descending: true }, { column: cur.created.value ? cur.created : cur.modified, descending: true }],
           // newRow: c => { c.dId.value = d.id.value; },
@@ -95,15 +97,15 @@ export class ReturnRidesComponent implements OnInit {
           showPagination: false,
           numOfColumnsInGrid: 10,
           columnSettings: c => [
-            c.driverId,
+            c.did,
           ],
         }),
       });
     }
 
-    let back = await r.createBackRide();
+    let back = await r.createBackRide(this.dialog);
     if (foundDriver) {
-      back.driverId.value = more[0].driverId.value;
+      back.did.value = more[0].did.value;
       back.status.value = RideStatus.waitingForStart;
     }
     await back.save();

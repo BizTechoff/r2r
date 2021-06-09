@@ -82,7 +82,7 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
     let dHistoryArea: { fids: string[], tids: string[] } = { fids: [], tids: [] };
     // let borderArea: { key: string }[] = [];
     for await (const r of this.context.for(Ride).iterate({
-      where: cur => cur.driverId.isEqualTo(this.did)
+      where: cur => cur.did.isEqualTo(this.did)
     })) {
       let kav = dHistory.find(cur => cur.fid === r.fid.value && cur.tid === r.tid.value);
       if (!(kav)) {
@@ -108,7 +108,7 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
         .and(cur.date.isEqualTo(this.date))
     })) {
 
-      if (rd.rid.value && rd.rid.value.length > 0) {
+      if (rd.hasRideId()) {
         let r = await this.context.for(Ride).findId(rd.rid.value);
         if (r) {
           let ok = false;
@@ -154,7 +154,7 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
         }
       }
 
-      else if (rd.rrid.value && rd.rrid.value.length > 0) {
+      else if (rd.hasRideRegisterId()) {
         let rr = await this.context.for(RegisterRide).findId(rd.rrid.value);
         if (rr) {
           let ok = false;
@@ -212,7 +212,7 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
     for await (const r of this.context.for(Ride).iterate({
       where: cur => cur.date.isEqualTo(this.date)
         .and(cur.id.isNotIn(...result.registered.map(i => i.rid)))
-        .and(cur.status.isIn(...[RideStatus.waitingForAccept, RideStatus.waitingForDriver]))
+        .and(cur.status.isIn(...RideStatus.isDriverNotStarted))
         .and(
           this.fid.value && this.fid.value.length > 0 && this.tid.value && this.tid.value.length > 0//this fid&tid
             ? cur.fid.isEqualTo(this.fid).and(cur.tid.isEqualTo(this.tid))
@@ -384,10 +384,7 @@ export class DriverRegisterComponent implements OnInit {
   ridesToRegister: ride4DriverRideRegister[];
   rides: ride4DriverRideRegister[];
 
-  clientLastRefreshDate: Date = new Date();
-  demoDates: string;
-  static lastRefreshDate: Date = new Date();//client time
-  todayMidnigth = addDays(TODAY);
+  clientLastRefreshDate: Date = addDays(TODAY, undefined, false);
 
   constructor(private context: Context, private dialog: DialogService) { }
 
@@ -441,7 +438,7 @@ export class DriverRegisterComponent implements OnInit {
         this.rides = result.registered;
         this.ridesToRegister = result.newregistered;
 
-        this.clientLastRefreshDate = new Date();
+        this.clientLastRefreshDate = addDays(TODAY, undefined, false);
       } finally {
         this.retrieving = false;
       }
@@ -500,7 +497,7 @@ export class DriverRegisterComponent implements OnInit {
       tReadonly = true;
     }
     else {
-      reg.fh.value = formatDate(new Date(), 'HH:mm', 'en-US');
+      reg.fh.value = formatDate(addDays(TODAY, undefined, false), 'HH:mm', 'en-US');
       reg.th.value = '22:00';
       fCaption = 'I Can Be There ASAP';
       fReadonly = true;

@@ -37,10 +37,10 @@ export class AppComponent {
       ],
       ok: async () => {
         let needPw = await AppComponent.isSpecial(mobile.value);
-        if (needPw == undefined) {
+        if (needPw === undefined) {
           this.dialogService.error("User not found, please contact Avishai");
         }
-        else if (needPw == false) {
+        else if (needPw === false) {
           this.session.setToken(await AppComponent.signIn(mobile.value, ''));
         }
         else {

@@ -1,11 +1,12 @@
 import { ColumnSettings, Context, DateColumn, EntityClass, IdEntity, NumberColumn, StringColumn } from "@remult/core";
 import { DynamicServerSideSearchDialogComponent } from "../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component";
+import { TODAY } from "../../shared/types";
 import { addDays } from "../../shared/utils";
 import { LocationIdColumn } from "../locations/location";
 
 @EntityClass
 export class Patient extends IdEntity {
-
+ 
   name = new StringColumn({});
   hebName = new StringColumn({});
   mobile = new StringColumn({});
@@ -14,7 +15,7 @@ export class Patient extends IdEntity {
     allowNull: true,
     valueChange: () => {
       if (this.birthDate.value) {
-        let y1 = new Date().getFullYear();
+        let y1 = addDays(TODAY).getFullYear();
         let y2 = this.birthDate.value.getFullYear();
         this.age.value = Math.max(1, y1 - y2);
       }

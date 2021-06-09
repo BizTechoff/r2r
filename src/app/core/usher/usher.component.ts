@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { BoolColumn, Context, DateColumn, Filter, ServerController, ServerMethod } from '@remult/core';
-import { ride4Usher } from '../../shared/types';
+import { ride4Usher, TODAY } from '../../shared/types';
 import { addDays } from '../../shared/utils';
 import { RegisterDriver } from '../drivers/driver-register/registerDriver';
 import { Location, LocationIdColumn, LocationType } from '../locations/location';
@@ -10,7 +10,7 @@ import { SetDriverComponent } from './set-driver/set-driver.component';
 
 @ServerController({ key: 'u/rides', allowed: true })
 class usherParams {
-  date = new DateColumn({ defaultValue: new Date() /*new Date(2021,2,3)*/, valueChange: async () => { await this.onChanged(); } });
+  date = new DateColumn({ defaultValue: addDays(TODAY), valueChange: async () => { await this.onChanged(); } });
   fid = new LocationIdColumn({ caption: 'From Location', valueChange: async () => { await this.onChanged(); } }, this.context);
   tid = new LocationIdColumn({ caption: 'To Location', valueChange: async () => { await this.onChanged(); } }, this.context);
   historyChanged = new BoolColumn({ defaultValue: true });
@@ -93,7 +93,7 @@ export class UsherComponent implements OnInit {
   params = new usherParams(this.context);
 
   rides: ride4Usher[];
-  clientLastRefreshDate: Date = new Date();
+  clientLastRefreshDate: Date = addDays(TODAY, undefined, false);
 
   constructor(public context: Context) {
   }
@@ -105,7 +105,7 @@ export class UsherComponent implements OnInit {
   }
 
   async refresh() {
-    this.clientLastRefreshDate = new Date();
+    this.clientLastRefreshDate = addDays(TODAY,undefined,false);
     this.params.onChanged = async () => { };
     this.rides = await this.params.retrieve();
     this.params.onChanged = async () => { await this.refresh(); };

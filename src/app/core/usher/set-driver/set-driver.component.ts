@@ -36,8 +36,8 @@ class usherSerDriver {
     })) {
       let from = (await this.context.for(Location).findId(ride.fid.value)).name.value;
       let to = (await this.context.for(Location).findId(ride.tid.value)).name.value;
-      let patient = ride.isHasPatient() ? (await this.context.for(Patient).findId(ride.patientId.value)).name.value : "";
-      let d = (await this.context.for(Driver).findId(ride.driverId.value));
+      let patient = ride.isHasPatient() ? (await this.context.for(Patient).findId(ride.pid.value)).name.value : "";
+      let d = (await this.context.for(Driver).findId(ride.did.value));
 
       let dName = '';
       let seats = 0;
@@ -50,8 +50,8 @@ class usherSerDriver {
       if (!(row)) {
         row = {
           id: ride.id.value,
-          patientId: ride.patientId.value,
-          driverId: ride.driverId.value,
+          patientId: ride.pid.value,
+          driverId: ride.did.value,
           from: from,
           to: to,
           driver: dName,
@@ -126,7 +126,7 @@ export class SetDriverComponent implements OnInit {
           this.driverId.value = selected.did;
         }
       }, 
-    }), 
+    }),  
     valueChange: async () => {
       this.driverSeats = (await this.context.for(Driver).findId(this.driverId.value)).seats.value;
       if (this.selectedPassengers > this.driverSeats) {
@@ -192,7 +192,7 @@ export class SetDriverComponent implements OnInit {
       if (r.selected) {
         let ride = await this.context.for(Ride).findId(r.id);
         ride.pickupTime.value = this.selectedPickupTime;
-        ride.driverId.value = this.driverId.value;
+        ride.did.value = this.driverId.value;
         ride.status.value = RideStatus.waitingForAccept;
         if (setStatusToApproved) {
           ride.status.value = RideStatus.waitingForStart;
@@ -301,7 +301,7 @@ export class SetDriverComponent implements OnInit {
     let setStatusToApproved = await this.dialog.confirmDelete(r.driver + ' from selected ride');
     if (setStatusToApproved) {
       let ride = await this.context.for(Ride).findId(r.rid);
-      ride.driverId.value = '';
+      ride.did.value = '';
       ride.status.value = RideStatus.waitingForDriver;
       await ride.save();
       r.driver = '';
@@ -393,7 +393,7 @@ export class SetDriverComponent implements OnInit {
   }
   
   async editRide(r: ride4UsherSetDriver) {
-    await this.context.openDialog(RideCrudComponent, thus => thus.args = {
+    await this.context.openDialog(RideCrudComponent, dlg => dlg.args = {
       rid: r.rid
     });
   }

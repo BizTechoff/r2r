@@ -1,7 +1,8 @@
 
 import { Allowed, BoolColumn, checkForDuplicateValue, ColumnOptions, ColumnSettings, Context, EntityClass, IdColumn, IdEntity, ServerMethod, StringColumn } from "@remult/core";
 import { Driver } from "../core/drivers/driver";
-import { changeDate } from '../shared/types';
+import { changeDate, TODAY } from '../shared/types';
+import { addDays } from "../shared/utils";
 import { Roles } from './roles';
 
 @EntityClass
@@ -46,7 +47,7 @@ export class Users extends IdEntity {
             saving: async () => {
                 if (context.onServer) {
                     if (this.isNew()) {
-                        this.createDate.value = new Date();
+                        this.createDate.value = addDays(TODAY);
                         if ((await context.for(Users).count()) == 0) {
                             this.isAdmin.value = true;// If it's the first user, make it an admin
                         }

@@ -4,7 +4,7 @@ import { BoolColumn, Context, DateColumn, Filter, NumberColumn, ServerController
 import { DialogService } from '../../../common/dialog';
 import { GridDialogComponent } from '../../../common/grid-dialog/grid-dialog.component';
 import { InputAreaComponent } from '../../../common/input-area/input-area.component';
-import { ride4UsherRideRegister } from '../../../shared/types';
+import { ride4UsherRideRegister, TODAY } from '../../../shared/types';
 import { addDays } from '../../../shared/utils';
 import { Roles } from '../../../users/roles';
 import { Driver } from '../../drivers/driver';
@@ -16,7 +16,7 @@ import { RegisterRide } from './registerRide';
 // @EntityClass
 @ServerController({ key: 'u/reg', allowed: [Roles.admin] })//mabatParams
 class registerRidesProviderParams {//componentParams
-  date = new DateColumn({ defaultValue: new Date(), valueChange: async () => await this.onChanged() });//, dataControlSettings: () => ({cssClass: () => {return 'todaySelected';} })
+  date = new DateColumn({ defaultValue: addDays(TODAY), valueChange: async () => await this.onChanged() });//, dataControlSettings: () => ({cssClass: () => {return 'todaySelected';} })
   fid?= new LocationIdColumn({ caption: 'From Location', defaultValue: null, allowNull: true }, this.context);
   tid?= new LocationIdColumn({ caption: 'To Location', defaultValue: null, allowNull: true }, this.context);
   onChanged: () => void;
@@ -36,8 +36,6 @@ export class RegisterRidesComponent implements OnInit {
   all = new BoolColumn({ caption: 'Show All', defaultValue: false, valueChange: async () => { await this.refresh(); } });
   params = new registerRidesProviderParams(this.context, async () => await this.refresh());
   ridesCount = new NumberColumn({ caption: 'Total Rides' });
-  // days = new NumberColumn({});//{caption: ''});
-  daysOfWeek = new StringColumn({ caption: 'DaysOfWeek' })
   registerSettings = this.context.for(RegisterRide).gridSettings({
     where: cur =>
       this.all.value ? new Filter(f => { return true; }) : (cur.fdate.isLessOrEqualTo(this.params.date)
@@ -130,9 +128,7 @@ export class RegisterRidesComponent implements OnInit {
   });
 
   rides: ride4UsherRideRegister[];
-  clientLastRefreshDate: Date = new Date();
-  demoDates: string;
-  lastRefreshDate: Date = new Date();//client time
+  clientLastRefreshDate: Date =addDays(TODAY, undefined, false);
   registerRidesCount = 0;
   selectedCount = 0;
 
@@ -143,7 +139,7 @@ export class RegisterRidesComponent implements OnInit {
 
   async refresh() {
     await this.registerSettings.reloadData();
-    this.clientLastRefreshDate = new Date();
+    this.clientLastRefreshDate = addDays(TODAY, undefined, false);
     // this.rides = await RegisterRidesComponent.retrieveRegisterRides(this.context);
     // this.lastRefreshDate = new Date();
   }
@@ -203,9 +199,8 @@ export class RegisterRidesComponent implements OnInit {
   async openAddRegisterRide() {
 
     let reg = this.context.for(RegisterRide).create();
-    reg.fdate.value = new Date();
+    reg.fdate.value = addDays(TODAY);
     reg.tdate.value = addDays(-1, new Date(reg.fdate.value.getFullYear(), reg.fdate.value.getMonth() + 1, 1));
-    // let toDate = new DateColumn({ defaultValue: new Date() });
     await this.context.openDialog(
       InputAreaComponent,
       x => x.args = {

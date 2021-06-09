@@ -2,8 +2,7 @@ import { ColumnSettings, Context, DateColumn, EntityClass, IdEntity, NumberColum
 import { DialogService } from "../../common/dialog";
 import { DynamicServerSideSearchDialogComponent } from "../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component";
 import { InputAreaComponent } from "../../common/input-area/input-area.component";
-import { TimeColumn, TODAY } from "../../shared/types";
-import { addDays, fixMobile, isValidMobile } from "../../shared/utils";
+import { TimeColumn } from "../../shared/types";
 import { Roles } from "../../users/roles";
 import { LocationIdColumn } from "../locations/location";
 import { RideStatus, RideStatusColumn } from "../rides/ride";
@@ -41,8 +40,8 @@ export class Driver extends IdEntity {
   defaultToLocation?= new LocationIdColumn({ allowNull: true }, this.context);
   defaultFromTime = new TimeColumn();
   defaultToTime = new TimeColumn();
-  freezeTillDate = new DateColumn({caption: 'Driver Freezed Last Date'});
- 
+  freezeTillDate = new DateColumn({ caption: 'Driver Freezed Last Date' });
+
   constructor(private context: Context, private dialog: DialogService) {
     super({
       name: "drivers",
@@ -113,10 +112,6 @@ export class Driver extends IdEntity {
     return this.lastStatus.value === RideStatus.waitingForDriver;
   }
 
-  isWaitingForUsherApproove() {
-    return this.lastStatus.value === RideStatus.waitingForUsherApproove;
-  }
-
   isWaitingForStart() {
     return this.lastStatus.value === RideStatus.waitingForStart;
   }
@@ -138,6 +133,7 @@ export class Driver extends IdEntity {
 
 
 export class DriverIdColumn extends StringColumn {
+  selected: Driver = undefined;
   // getName() {
   //   return this.context.for(Driver).lookup(this).name.value;
   // }
@@ -147,7 +143,10 @@ export class DriverIdColumn extends StringColumn {
   constructor(options?: ColumnSettings<string>, private context?: Context) {
     super({
       dataControlSettings: () => ({
-        getValue: () => this.context.for(Driver).lookup(this).name.value,
+        getValue: () => {
+          this.selected = this.context.for(Driver).lookup(this);
+          return this.selected.name.value;
+        },
         hideDataOnInput: true,
         clickIcon: 'search',
         click: (d) => {

@@ -42,7 +42,7 @@
                         </button>
                     </mat-menu>
                 </td>
-                <td>{{ d.name }}</td>
+                <td>{{ d.name }}<span *ngIf="d.freeze && (d.freeze| date: 'yyyy.MM.dd') >= (this.params.date.value| date: 'yyyy.MM.dd')" style="color: red;">(FREEZE)</span></td>
                 <td>{{ d.mobile }}</td>
                 <td>{{ d.home }}</td>
                 <td>{{ d.lastRideDays === -999999 ? '' : d.lastRideDays === 0? 'Today' : d.lastRideDays }}</td>

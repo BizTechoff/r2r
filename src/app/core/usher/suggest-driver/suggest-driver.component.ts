@@ -74,6 +74,9 @@ class usherSuggestDrivers {
     this.distinct(drivers,
       (await this.driversNoRideForLast7days(++priority, 'no ride last 7 days')));
 
+      // this.distinct(drivers,
+      //   (await this.driversFreezed(++priority, 'no ride last 7 days')));
+
     drivers.sort((d1, d2) => // sort by: priority, lastRideDays, lastCallDays, freeSeats
       d1.priority - d2.priority === 0 /*same*/
         ? d1.lastRideDays - d2.lastRideDays === 0 /*same*/
@@ -94,11 +97,11 @@ class usherSuggestDrivers {
         .and(cur.fid.isEqualTo(this.fid))
         .and(cur.tid.isEqualTo(this.tid))
         .and(cur.status.isIn(RideStatus.waitingForStart))
-        .and(cur.driverId.isDifferentFrom(''))
+        .and(cur.did.isDifferentFrom(''))
     })) {
-      let f = dids.find(cur => cur.did === r.driverId.value);
+      let f = dids.find(cur => cur.did === r.did.value);
       if (!(f)) {
-        f = { did: r.driverId.value, taken: 0 };
+        f = { did: r.did.value, taken: 0 };
         dids.push(f);
       }
       f.taken += r.passengers();
@@ -279,25 +282,25 @@ class usherSuggestDrivers {
     let lastFiveDaysDIds: string[] = [];
     let fiveDaysAgo = addDays(-5, this.date.value);
     for await (const r of this.context.for(Ride).iterate({
-      where: cur => cur.driverId.isDifferentFrom('')
+      where: cur => cur.did.isDifferentFrom('')
         .and(cur.date.isLessThan(this.date))//date checked before (more importent priority), no need to get again.
         .and(cur.date.isGreaterOrEqualTo(fiveDaysAgo))
     })) {
-      if (!(lastFiveDaysDIds.includes(r.driverId.value))) {
-        lastFiveDaysDIds.push(r.driverId.value);
+      if (!(lastFiveDaysDIds.includes(r.did.value))) {
+        lastFiveDaysDIds.push(r.did.value);
       }
     }
 
 
     let dIds: string[] = [];
     for await (const r of this.context.for(Ride).iterate({
-      where: cur => cur.driverId.isDifferentFrom('')
+      where: cur => cur.did.isDifferentFrom('')
         .and(cur.fid.isEqualTo(this.fid))
         .and(cur.tid.isEqualTo(this.tid))
     })) {
-      if (!(lastFiveDaysDIds.includes(r.driverId.value))) {//not in last 5 days.
-        if (!(dIds.includes(r.driverId.value))) {// keep distinct
-          dIds.push(r.driverId.value);
+      if (!(lastFiveDaysDIds.includes(r.did.value))) {//not in last 5 days.
+        if (!(dIds.includes(r.did.value))) {// keep distinct
+          dIds.push(r.did.value);
         }
       }
     }
@@ -319,24 +322,24 @@ class usherSuggestDrivers {
     let lastFiveDaysDIds: string[] = [];
     let fiveDaysAgo = addDays(-5, this.date.value);
     for await (const r of this.context.for(Ride).iterate({
-      where: cur => cur.driverId.isDifferentFrom('')
+      where: cur => cur.did.isDifferentFrom('')
         .and(cur.date.isLessThan(this.date))
         .and(cur.date.isGreaterOrEqualTo(fiveDaysAgo))
     })) {
-      if (!(lastFiveDaysDIds.includes(r.driverId.value))) {
-        lastFiveDaysDIds.push(r.driverId.value);
+      if (!(lastFiveDaysDIds.includes(r.did.value))) {
+        lastFiveDaysDIds.push(r.did.value);
       }
     }
 
     let dIds: string[] = [];
     for await (const r of this.context.for(Ride).iterate({
-      where: cur => cur.driverId.isDifferentFrom('')
+      where: cur => cur.did.isDifferentFrom('')
         .and((cur.fid.isIn(...(this.bAreas.find(ar => ar.border === this.fid.value).areaBorders)))
           .or(cur.tid.isIn(...(this.bAreas.find(ar => ar.border === this.tid.value).areaBorders))))// from OR to
     })) {
-      if (!(lastFiveDaysDIds.includes(r.driverId.value))) {//not in last 5 days.
-        if (!(dIds.includes(r.driverId.value))) {// keep distinct
-          dIds.push(r.driverId.value);
+      if (!(lastFiveDaysDIds.includes(r.did.value))) {//not in last 5 days.
+        if (!(dIds.includes(r.did.value))) {// keep distinct
+          dIds.push(r.did.value);
         }
       }
     }
@@ -358,27 +361,27 @@ class usherSuggestDrivers {
     let lastFiveDaysDIds: string[] = [];
     let sixDaysAgo = addDays(-7, this.date.value);
     for await (const r of this.context.for(Ride).iterate({
-      where: cur => cur.driverId.isDifferentFrom('')
+      where: cur => cur.did.isDifferentFrom('')
         .and(cur.date.isLessThan(this.date))//without current date
         .and(cur.date.isGreaterOrEqualTo(sixDaysAgo))
     })) {
-      if (!(lastFiveDaysDIds.includes(r.driverId.value))) {
-        lastFiveDaysDIds.push(r.driverId.value);
+      if (!(lastFiveDaysDIds.includes(r.did.value))) {
+        lastFiveDaysDIds.push(r.did.value);
       }
     }
 
     let dIds: string[] = [];
     let sixteenDaysAgo = addDays(-60, this.date.value);
     for await (const r of this.context.for(Ride).iterate({
-      where: cur => cur.driverId.isDifferentFrom('')
+      where: cur => cur.did.isDifferentFrom('')
         .and(cur.date.isLessThan(this.date))//without current date
         .and(cur.date.isGreaterOrEqualTo(sixteenDaysAgo))
         .and((cur.fid.isIn(...this.bAreas.find(ar => ar.border === this.fid.value).areaBorders))
           .or(cur.tid.isIn(...this.bAreas.find(ar => ar.border === this.tid.value).areaBorders)))// from OR to
     })) {
-      if (!(lastFiveDaysDIds.includes(r.driverId.value))) {//not in last 7 days.
-        if (!(dIds.includes(r.driverId.value))) {// keep distinct
-          dIds.push(r.driverId.value);
+      if (!(lastFiveDaysDIds.includes(r.did.value))) {//not in last 7 days.
+        if (!(dIds.includes(r.did.value))) {// keep distinct
+          dIds.push(r.did.value);
         }
       }
     }
@@ -400,12 +403,12 @@ class usherSuggestDrivers {
     let lastFiveDaysDIds: string[] = [];
     let fiveDaysAgo = addDays(-7, this.date.value);
     for await (const r of this.context.for(Ride).iterate({
-      where: cur => cur.driverId.isDifferentFrom('')
+      where: cur => cur.did.isDifferentFrom('')
         .and(cur.date.isLessThan(this.date))
         .and(cur.date.isGreaterOrEqualTo(fiveDaysAgo))
     })) {
-      if (!(lastFiveDaysDIds.includes(r.driverId.value))) {
-        lastFiveDaysDIds.push(r.driverId.value);
+      if (!(lastFiveDaysDIds.includes(r.did.value))) {
+        lastFiveDaysDIds.push(r.did.value);
       }
     }
 
@@ -429,15 +432,50 @@ class usherSuggestDrivers {
     return result;
   }
 
+  // private async driversFreezed(priority: number, reason: string): Promise<driver4UsherSuggest[]> {
+  //   let result: driver4UsherSuggest[] = [];
+
+  //   let lastFiveDaysDIds: string[] = [];
+  //   let today = addDays(0);
+  //   for await (const d of this.context.for(Driver).iterate({
+  //     where: cur => cur.freezeTillDate.isDifferentFrom('')
+  //       .and(cur.date.isLessThan(this.date))
+  //       .and(cur.date.isGreaterOrEqualTo(fiveDaysAgo))
+  //   })) {
+  //     if (!(lastFiveDaysDIds.includes(d.did.value))) {
+  //       lastFiveDaysDIds.push(d.did.value);
+  //     }
+  //   }
+
+  //   let dIds: string[] = [];
+  //   for await (const r of this.context.for(Driver).iterate({
+  //     where: cur => cur.id.isNotIn(...lastFiveDaysDIds)
+  //   })) {
+  //     if (!(dIds.includes(r.id.value))) {
+  //       dIds.push(r.id.value);
+  //     }
+  //   }
+
+  //   for (const id of dIds) {
+  //     let dRow: driver4UsherSuggest = await this.createDriverRow(
+  //       priority,
+  //       id,
+  //       reason);
+  //     result.push(dRow);
+  //   }
+
+  //   return result;
+  // }
+
   private async createDriverRow(priority: number, did: string, reason: string): Promise<driver4UsherSuggest> {
     let lastRideDays = -999999;
     let lastRide = await this.context.for(Ride).findFirst({//see even tommorrow and above
-      where: r => r.driverId.isEqualTo(did)
+      where: r => r.did.isEqualTo(did)
         .and(r.status.isNotIn(RideStatus.waitingForAccept)),//DONE! any ride (at least w4_Start)
       orderBy: r => [{ column: r.date, descending: true }, { column: r.visitTime, descending: false }],
     });
     if (lastRide) {
-      lastRideDays = daysDiff(new Date(), lastRide.date.value);
+      lastRideDays = daysDiff(addDays(TODAY), lastRide.date.value);
     }
     let d = await this.context.for(Driver).findId(did);
     if (!(d)) {
@@ -463,6 +501,10 @@ class usherSuggestDrivers {
     if (d.hasSeats()) {
       seats = d.seats.value;
     }
+    let freeze:Date = undefined;
+    if (d.hasFreezeDate()) {
+      freeze = d.freezeTillDate.value;
+    }
 
     let lastCallDays = -999999;
     let c = await this.context.for(DriverCall).findFirst(
@@ -486,6 +528,7 @@ class usherSuggestDrivers {
       freeSeats: seats,
       seats: seats,
       priority: priority,
+      freeze: freeze
     };
     return row;
   }
@@ -589,7 +632,7 @@ export class SuggestDriverComponent implements OnInit {
               r.fid,
               r.tid,
               r.date,
-              r.patientId,
+              r.pid,
               r.status,
             ],
           }),
@@ -625,7 +668,7 @@ export class SuggestDriverComponent implements OnInit {
     await this.context.openDialog(GridDialogComponent, gd => gd.args = {
       title: `${d.name} Rides`,
       settings: this.context.for(Ride).gridSettings({
-        where: r => r.driverId.isEqualTo(d.did),
+        where: r => r.did.isEqualTo(d.did),
         orderBy: r => [{ column: r.date, descending: true }],
         allowCRUD: false,
         allowDelete: false,
@@ -637,7 +680,7 @@ export class SuggestDriverComponent implements OnInit {
           cur.date,
           cur.pickupTime,
           { column: pass, getValue: (r) => { return r.passengers(); } },
-          cur.patientId,
+          cur.pid,
           cur.status,
         ],
         // rowButtons: [

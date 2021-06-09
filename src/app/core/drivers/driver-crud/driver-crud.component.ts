@@ -4,7 +4,7 @@ import { Context, DataAreaSettings, DateColumn, DateTimeColumn, NumberColumn } f
 import { DialogService } from '../../../common/dialog';
 import { InputAreaComponent } from '../../../common/input-area/input-area.component';
 import { TODAY } from '../../../shared/types';
-import { addDays, fixMobile } from '../../../shared/utils';
+import { addDays } from '../../../shared/utils';
 import { Driver } from '../driver';
 
 @Component({

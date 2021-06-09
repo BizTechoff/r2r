@@ -1,5 +1,6 @@
 import { BoolColumn, Context, DateColumn, DateTimeColumn, EntityClass, IdEntity, NumberColumn, StringColumn } from "@remult/core";
 import { TimeColumn } from "../../../shared/types";
+import { addDays } from "../../../shared/utils";
 import { Roles } from "../../../users/roles";
 import { DriverIdColumn } from "../../drivers/driver";
 import { LocationIdColumn } from "../../locations/location";
@@ -47,19 +48,11 @@ export class RegisterRide extends IdEntity {
     fdate = new DateColumn({
         caption: 'From Date',
         validate: () => {
-            let now = new Date();// server date
-            let todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
             if (!(this.fdate.value)) {
                 this.fdate.validationError = " Date Required";
             }
-            // else if (this.fdate.wasChanged() && this.fdate.value < todayMidnight) {
-            //     this.fdate.validationError = " Must Be Today And Above";
-            // }
         },
         valueChange: () => {
-            // if (this.fdate.value < new Date()) {
-            //     this.fdate.value = new Date();
-            // }
             if (this.tdate.value <= this.fdate.value) {
                 this.tdate.value = this.fdate.value;
             }

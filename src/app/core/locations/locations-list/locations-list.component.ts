@@ -16,9 +16,11 @@ export class LocationsListComponent implements OnInit {
     valueChange: () => this.busy.donotWait(async () => this.retrieveLocations())
 
   });
-
+ 
   locationsSettings = this.context.for(Location).gridSettings({
-    allowCRUD: this.context.isAllowed(Roles.admin),
+    //allowCRUD: this.context.isAllowed(Roles.admin),
+    allowInsert: true,// this.context.isAllowed([Roles.admin, Roles.usher, Roles.matcher]),
+    allowUpdate: this.context.isAllowed([Roles.admin]),
     allowDelete: false,
     numOfColumnsInGrid: 10,
     columnSettings: (d) => [

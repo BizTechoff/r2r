@@ -115,7 +115,7 @@ export class DriversListComponent implements OnInit {
   }
 
   async openDriver(d: Driver) {
-    await this.context.openDialog(DriverCrudComponent, thus => thus.args = {
+    await this.context.openDialog(DriverCrudComponent, dlg => dlg.args = {
       did: d.id.value,
     });
   }
@@ -156,7 +156,7 @@ export class DriversListComponent implements OnInit {
 
   async openPreferencesDialog(d: Driver) {
 
-    await this.context.openDialog(LocationAreaComponent, thus => thus.args = { dId: d.id.value });
+    await this.context.openDialog(LocationAreaComponent, dlg => dlg.args = { dId: d.id.value });
 
     // this.context.openDialog(GridDialogComponent, gd => gd.args = {
     //   title: "Preferenses",
@@ -178,7 +178,7 @@ export class DriversListComponent implements OnInit {
     await this.context.openDialog(GridDialogComponent, gd => gd.args = {
       title: `${d.name.value} Rides`,
       settings: this.context.for(Ride).gridSettings({
-        where: r => r.driverId.isEqualTo(d.id),
+        where: r => r.did.isEqualTo(d.id),
         orderBy: r => [{ column: r.date, descending: false }],
         allowCRUD: false,// this.context.isAllowed([Roles.admin, Roles.usher, Roles.matcher]),
         allowDelete: false,
@@ -188,7 +188,7 @@ export class DriversListComponent implements OnInit {
           r.fid,
           r.tid,
           r.date,
-          r.patientId,
+          r.pid,
           r.status,
         ],
         // rowButtons: [

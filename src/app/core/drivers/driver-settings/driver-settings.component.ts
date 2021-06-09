@@ -63,7 +63,7 @@ export class DriverSettingsComponent implements OnInit {
     if (!(this.args.driverId && this.args.driverId.length > 0)) {
       this.args.driverId = (await this.context.for(Driver).findFirst(d => d.userId.isEqualTo(this.context.user.id))).id.value;
     }
-    await this.context.openDialog(LocationAreaComponent, thus => thus.args = { dId: this.args.driverId });
+    await this.context.openDialog(LocationAreaComponent, dlg => dlg.args = { dId: this.args.driverId });
 
     this.selectedCount = await this.context.for(DriverPrefs).count(
       prf => prf.driverId.isEqualTo(this.driverId)

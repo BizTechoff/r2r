@@ -33,11 +33,13 @@ export class PromiseThrottle {
     }
 }
 
-export function addDays(days: number, date?: Date) {
-    var x = date ? date : new Date();
-    var xnotime = new Date(x.getFullYear(), x.getMonth(), x.getDate());
-    xnotime.setDate(xnotime.getDate() + days);
-    return xnotime;
+export function addDays(days: number, date?: Date, setTimeToZero: boolean = true) {
+    var result = date ? date : new Date();
+    if (setTimeToZero) {
+        result = new Date(result.getFullYear(), result.getMonth(), result.getDate());
+    }
+    result.setDate(result.getDate() + days);
+    return result;
 }
 
 export function resetTime(d: Date) {
@@ -71,12 +73,22 @@ export function addHours(hours: number, time: string) {
     return result;
 }
 
-export function timeDiff(big?: string, small?: string) {
+export function timeDiff(big?: string, small?: string, asDays = true) {
     //if(big && big.length &&)
-    let day_ms = 24 * 60 * 60 * 1000;//h*m*s*ms
-    let diff = +big - +small;
-    let days = -(Math.ceil(diff / day_ms) + 1);//ONE_DAY_MS = 24 * 60 * 60 * 1000;
-    return days;
+    // big:11:33 
+    console.log(big);
+    console.log(small);
+    // sml:11:09
+    let t1parts = big.split(':');//[11,33]
+    let t2parts = small.split(':');//[11,09]
+    
+    let t1 = parseInt(t1parts[0]) * 60 + parseInt(t1parts[1]);//11*60+33 (min)
+    let t2 = parseInt(t2parts[0]) * 60 + parseInt(t2parts[1]);//11*60+09 (min)
+    let diff = t1 - t2;//24 (min)
+    let h = Math.floor(diff/60)//0
+    let m =Math.abs( diff%60);//24
+    console.log(diff);
+    return ('' + h).padStart(2, '0') + ':' + ('' + m).padStart(2, '0');//00:24
 }
 
 export function fixMobile(value: string) {

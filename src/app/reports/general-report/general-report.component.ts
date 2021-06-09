@@ -4,6 +4,8 @@ import { DriverIdColumn } from '../../core/drivers/driver';
 import { LocationIdColumn } from '../../core/locations/location';
 import { PatientIdColumn } from '../../core/patients/patient';
 import { Ride, RideStatus } from '../../core/rides/ride';
+import { TODAY } from '../../shared/types';
+import { addDays } from '../../shared/utils';
 import { Roles } from '../../users/roles';
 
 export class driverRidesCountRow {
@@ -13,8 +15,8 @@ export class driverRidesCountRow {
 
 @ServerController({ key: 'a/rep', allowed: Roles.admin })
 class reportParams {
-  fdate = new DateColumn({ caption: 'From Date', defaultValue: new Date() });
-  tdate = new DateColumn({ caption: 'To Date', defaultValue: new Date() });
+  fdate = new DateColumn({ caption: 'From Date', defaultValue: addDays(TODAY) });
+  tdate = new DateColumn({ caption: 'To Date', defaultValue: addDays(TODAY) });
   fid = new LocationIdColumn({ caption: 'From Location', dataControlSettings: () => ({ width: '300' }) }, this.context);
   tid = new LocationIdColumn({ caption: 'To Location' }, this.context);
   did = new DriverIdColumn({ caption: 'Driver' }, this.context);

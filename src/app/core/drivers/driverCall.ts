@@ -1,5 +1,7 @@
 import { Context, DateTimeColumn, EntityClass, IdEntity, StringColumn } from "@remult/core";
 import { GridDialogComponent } from "../../common/grid-dialog/grid-dialog.component";
+import { TODAY } from "../../shared/types";
+import { addDays } from "../../shared/utils";
 import { Roles } from "../../users/roles";
 import { UserId } from "../../users/users";
 import { Driver, DriverIdColumn } from "./driver";
@@ -24,10 +26,10 @@ export class DriverCall extends IdEntity {
             saving: async () => {
                 if (context.onServer) {
                     if (this.isNew()) {
-                        this.created.value = new Date();
+                        this.created.value = addDays(TODAY, undefined, false);
                         this.createdBy.value = this.context.user.id;
                     } else {
-                        this.modified.value = new Date();
+                        this.modified.value = addDays(TODAY, undefined, false);
                         this.modifiedBy.value = this.context.user.id;
                     }
                 }
@@ -35,8 +37,8 @@ export class DriverCall extends IdEntity {
         });
     }
 
-    static async openCallDocumentationDialog(context:Context, did: string, dname?: string) {
-        if(!(dname)){
+    static async openCallDocumentationDialog(context: Context, did: string, dname?: string) {
+        if (!(dname)) {
             dname = (await context.for(Driver).findId(did)).name.value;
         }
         await context.openDialog(GridDialogComponent, gd => gd.args = {

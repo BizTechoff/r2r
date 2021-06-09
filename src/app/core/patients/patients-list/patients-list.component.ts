@@ -111,7 +111,7 @@ export class PatientsListComponent implements OnInit {
   }
 
   async editPatient(p: Patient) {
-    if (await this.context.openDialog(PatientCrudComponent, thus => thus.args = {
+    if (await this.context.openDialog(PatientCrudComponent, dlg => dlg.args = {
       pid: p.id.value
     })) {
       await p.reload();
@@ -120,7 +120,7 @@ export class PatientsListComponent implements OnInit {
   }
 
   async editRide(r: Ride) {
-    await this.context.openDialog(RideCrudComponent, thus => thus.args = {
+    await this.context.openDialog(RideCrudComponent, dlg => dlg.args = {
       rid: r.id.value
     });
   }
@@ -129,7 +129,7 @@ export class PatientsListComponent implements OnInit {
     await this.context.openDialog(GridDialogComponent, gd => gd.args = {
       title: `${p.name.value} Rides`,
       settings: this.context.for(Ride).gridSettings({
-        where: r => r.patientId.isEqualTo(p.id),
+        where: r => r.pid.isEqualTo(p.id),
         orderBy: r => [{ column: r.date, descending: true }],
         allowCRUD: false,
         allowDelete: false,
@@ -149,6 +149,7 @@ export class PatientsListComponent implements OnInit {
             icon: 'edit',
             click: async (r) => { await this.editRide(r); },
             visible: this.context.isAllowed([Roles.matcher]),//[Roles.admin, Roles.usher, Roles.matcher]),
+            showInLine: true
           },
         ],
       }),
@@ -157,7 +158,7 @@ export class PatientsListComponent implements OnInit {
 
   async openAddRideDialog(p: Patient) {
 
-    await this.context.openDialog(RideCrudComponent, thus => thus.args = {
+    await this.context.openDialog(RideCrudComponent, dlg => dlg.args = {
       pid: p.id.value
     });
   }

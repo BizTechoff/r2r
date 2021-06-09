@@ -6,6 +6,8 @@ import { DriverPrefs } from '../core/drivers/driverPrefs';
 import { Location, LocationArea, LocationType } from '../core/locations/location';
 import { Patient } from '../core/patients/patient';
 import { Ride, RideStatus } from '../core/rides/ride';
+import { TODAY } from '../shared/types';
+import { addDays } from '../shared/utils';
 import { Users } from '../users/users';
 
 let volunteersFolder = "c:/r2r/volunteers";
@@ -163,7 +165,7 @@ async function findOrCreateUserNew(driverRecord: any, context: Context) {
         user.mobile.value = mobile;
         user.name.value = driverName;
         user.isDriver.value = true;
-        user.createDate.value = new Date();
+        user.createDate.value = addDays(TODAY,undefined,false);
         await user.create(/*password:*/ mobile);
     }
 
@@ -250,13 +252,13 @@ async function findOrCreateDriverPrefsNew(driverRecord: any, driverId: string, c
     }
     return result;
 }
-
+ 
 async function findOrCreateRideNew(rideRecord: any, driverId: string, patientId: string, fromId: string, toId: string, context: Context) {
     // try{
     let ride = context.for(Ride).create();
     ride.importRideNum.value = rideRecord.RideNum;
-    ride.driverId.value = driverId;
-    ride.patientId.value = patientId;
+    ride.did.value = driverId;
+    ride.pid.value = patientId;
     ride.fid.value = fromId;
     ride.tid.value = toId;
     ride.date.value = toDate(rideRecord.Date);

@@ -49,6 +49,7 @@ export interface driver4UsherSuggest {
   mobile: string,
   home: string,
   seats: number,
+  freeze?: Date
 };
 
 export interface ride4UsherRideRegister {

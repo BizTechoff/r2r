@@ -1,13 +1,9 @@
 <div class="full-page">
-    <div class="patients-top" style="display: flex;
-    align-content: space-between;">
+    <div class="header">
         <data-control [column]="search"></data-control>
-        <button mat-mini-fab color="accent" (click)="addLocation()">
-            <mat-icon>add</mat-icon>
-        </button>
     </div>
-
     <div class="grow-item">
         <data-grid [settings]="locationsSettings"></data-grid>
     </div>
+    <div class="footer"></div>
 </div>

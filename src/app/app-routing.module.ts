@@ -32,7 +32,7 @@ const routes: Routes = [
 
   // Matcher
   { path: 'm/patients', component: PatientsListComponent, canActivate: [MatcherGuard], data: { name: "Patients" } },
-  { path: 'm/approve', component: PatientRidesComponent, canActivate: [MatcherGuard], data: { name: "Patients Rides" } },
+  { path: 'm/rides', component: PatientRidesComponent, canActivate: [MatcherGuard], data: { name: "Rides" } },
 
   // Usher
   { path: 'Rides4Usher', component: UsherComponent, canActivate: [UsherGuard], data: { name: "Rides" } },

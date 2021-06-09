@@ -12,7 +12,7 @@ export class Location extends IdEntity {
   constructor(private context: Context) {
     super({
       name: "locations",
-      allowApiInsert: [Roles.matcher, Roles.usher, Roles.admin],
+      allowApiInsert: [Roles.admin, Roles.usher, Roles.matcher],
       allowApiUpdate: [Roles.admin],
       allowApiDelete: false,
       allowApiRead: c => c.isSignedIn(),
@@ -76,10 +76,13 @@ export class LocationIdColumn extends StringColumn {
   selected: Location = undefined;
   private types: LocationType[] = [LocationType.border, LocationType.hospital];
   constructor(options?: ColumnSettings<string>, private context?: Context) {
-    super({
+    super({//valueChange
+      //caption: this.defs.caption + '',
       dataControlSettings: () => ({
         getValue: () => {
+          // console.log('@@@@ LocationIdColumn.getValue called');
           this.selected = this.context.for(Location).lookup(this);
+          // console.log('@@@@ LocationIdColumn.getValue called: '  +this.selected.name.value);
           return this.selected.name.value;
         },
         hideDataOnInput: true,
