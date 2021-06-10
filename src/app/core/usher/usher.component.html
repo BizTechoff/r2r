@@ -48,8 +48,7 @@
     <div class="grow-item">
         <table style="width: 100%">
             <tr>
-                <th><u>From</u></th>
-                <th><u>To</u></th>
+                <th><u>Kav</u></th>
                 <th><u>Pass</u></th>
                 <th><u>Rides</u></th>
                 <th><u>w4-Driver</u></th>
@@ -59,10 +58,20 @@
             </tr>
             <!-- <tr ng-repeat="r in rides | orderBy:'-age'"></tr> -->
             <tr *ngFor="let r of rides">
+
+                
+                <td>
+                    <strong *ngIf="r.fromIsBorder"> {{ r.from }} </strong>
+                    <span *ngIf="!r.fromIsBorder"> {{ r.from }} </span>
+                    >
+                    <strong *ngIf="r.toIsBorder"> {{ r.to }} </strong>
+                    <span *ngIf="!r.toIsBorder"> {{ r.to }} </span>
+                </td>
+                <!-- <td *ngIf="!r.fromIsBorder">{{ r.from }}</td>
                 <td *ngIf="r.fromIsBorder"><strong> {{ r.from }} </strong></td>
                 <td *ngIf="!r.fromIsBorder">{{ r.from }}</td>
                 <td *ngIf="r.toIsBorder"><strong> {{ r.to }} </strong></td>
-                <td *ngIf="!r.toIsBorder">{{ r.to }}</td>
+                <td *ngIf="!r.toIsBorder">{{ r.to }}</td> -->
                 <td>{{ r.passengers }}</td>
                 <td *ngIf="r.ridesCount == 0">{{ r.ridesCount }}</td>
                 <td *ngIf="r.ridesCount > 0"><button (click)="openSetDriver(r)"><u>{{ r.ridesCount }}</u></button></td>

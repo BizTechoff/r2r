@@ -3,7 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { Context, DateColumn, Filter, NumberColumn, ServerController, ServerMethod } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
 import { InputAreaComponent } from '../../../common/input-area/input-area.component';
-import { PickupTimePrevHours, ride4DriverRideRegister, TimeColumn, TODAY } from '../../../shared/types';
+import { MaxPickupHospital, PickupTimePrevHours, ride4DriverRideRegister, TimeColumn, TODAY } from '../../../shared/types';
 import { addDays, addHours } from '../../../shared/utils';
 import { Location, LocationArea, LocationIdColumn, LocationType } from '../../locations/location';
 import { RegisterRide } from '../../rides/register-rides/registerRide';
@@ -196,8 +196,8 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
               dToHour: rd.th.value,
               dPass: this.seats.value,
               dRemark: rr.remark.value,
-              pickupTime:rr.pickupTime.value,
-              visitTime:rr.visitTime.value,
+              pickupTime: rr.pickupTime.value,
+              visitTime: rr.visitTime.value,
               whenPickup: this.setWhenPickupRegisterRide(rr)
             }
             result.registered.push(row);
@@ -270,8 +270,8 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
           dPass: this.seats.value,
           dRemark: r.dRemark.value,
           reason: matchBy,
-          pickupTime:r.pickupTime.value,
-          visitTime:r.visitTime.value,
+          pickupTime: r.pickupTime.value,
+          visitTime: r.visitTime.value,
           whenPickup: this.setWhenPickupRide(r)
         }
         result.newregistered.push(row);
@@ -350,8 +350,8 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
           dPass: this.seats.value,
           dRemark: rr.remark.value,
           reason: matchBy,
-          pickupTime:rr.pickupTime.value,
-          visitTime:rr.visitTime.value,
+          pickupTime: rr.pickupTime.value,
+          visitTime: rr.visitTime.value,
           whenPickup: this.setWhenPickupRegisterRide(rr)
         };
         result.newregistered.push(row);
@@ -359,14 +359,14 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
     }
 
     result.registered.sort((r1, r2) =>
-       r1.pickupTime.localeCompare(r2.pickupTime) == 0
-          ? r1.from.localeCompare(r2.from)
-          : r1.pickupTime.localeCompare(r2.pickupTime));
-          
+      r1.pickupTime.localeCompare(r2.pickupTime) == 0
+        ? r1.from.localeCompare(r2.from)
+        : r1.pickupTime.localeCompare(r2.pickupTime));
+
     result.newregistered.sort((r1, r2) =>
-    r1.pickupTime.localeCompare(r2.pickupTime) == 0
-       ? r1.from.localeCompare(r2.from)
-       : r1.pickupTime.localeCompare(r2.pickupTime));
+      r1.pickupTime.localeCompare(r2.pickupTime) == 0
+        ? r1.from.localeCompare(r2.from)
+        : r1.pickupTime.localeCompare(r2.pickupTime));
 
 
     // result.newregistered.sort((r1, r2) =>
@@ -379,53 +379,53 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
     return result;
   }
 
-  setWhenPickupRegisterRide(rr:RegisterRide){
-    
+  setWhenPickupRegisterRide(rr: RegisterRide) {
 
-            
-            //  isBorder | visitTime | pickupTime
-            //  ---------------------------------
-            //  immediate = isborder && visitTime.empty || !isborder && pickupTime.empty
-            //  isBorder &  immediate  ==> pickupTime: asap (MinPickupBorder - MaxPickupBorder)
-            //  isBorder & !immediate  ==> max-pickup-time: vt-2
-            // !isBorder &  immediate  ==> pickupTime: asap - (now - MaxPickupHospital)
-            // !isBorder & !immediate  ==> max-pickup-time: vt
+
+
+    //  isBorder | visitTime | pickupTime
+    //  ---------------------------------
+    //  immediate = isborder && visitTime.empty || !isborder && pickupTime.empty
+    //  isBorder &  immediate  ==> pickupTime: asap (MinPickupBorder - MaxPickupBorder)
+    //  isBorder & !immediate  ==> max-pickup-time: vt-2
+    // !isBorder &  immediate  ==> pickupTime: asap - (now - MaxPickupHospital)
+    // !isBorder & !immediate  ==> max-pickup-time: vt
 
 
     let when = '';
     let isBorder = this.locAreas.find(cur => cur.id === rr.fid.value).isBorder;
     let immediate = isBorder && rr.visitTime.isEmpty() || !isBorder && rr.pickupTime.isEmpty();
-    if(isBorder && immediate){
+    if (isBorder && immediate) {
       when = 'Pickup: A.S.A.P';
     }
-    else if(isBorder && !immediate){
-      when = 'Max Pickup: '+addHours(PickupTimePrevHours, rr.visitTime.value);
+    else if (isBorder && !immediate) {
+      when = 'Max Pickup: ' + addHours(PickupTimePrevHours, rr.visitTime.value);
     }
-    else if(!isBorder && immediate){
+    else if (!isBorder && immediate) {
       when = 'Pickup: A.S.A.P';
     }
-    else if(!isBorder && !immediate){
-      when = 'Max Pickup: '+rr.pickupTime.value;
+    else if (!isBorder && !immediate) {
+      when = 'Max Pickup: ' + rr.pickupTime.value;
     }
     return when;
   }
 
-  setWhenPickupRide(r:Ride){
-    
+  setWhenPickupRide(r: Ride) {
+
     let when = '';
     let isBorder = this.locAreas.find(cur => cur.id === r.fid.value).isBorder;
     let immediate = isBorder && r.visitTime.isEmpty() || !isBorder && r.pickupTime.isEmpty();
-    if(isBorder && immediate){
-      when = 'Pickup: A.S.A.P';
+    if (isBorder && immediate) {//border
+      when = `Pickup: A.S.A.P`;
     }
-    else if(isBorder && !immediate){
-      when = 'Max Pickup: '+addHours(PickupTimePrevHours, r.visitTime.value);
+    else if (isBorder && !immediate) {//border
+      when = `Max Pickup: ` + addHours(PickupTimePrevHours, r.visitTime.value);
     }
-    else if(!isBorder && immediate){
-      when = 'Pickup: A.S.A.P';
+    else if (!isBorder && immediate) {//hospital
+      when = `Pickup: A.S.A.P (max ${MaxPickupHospital})`;
     }
-    else if(!isBorder && !immediate){
-      when = 'Max Pickup: '+r.pickupTime.value;
+    else if (!isBorder && !immediate) {//hospital
+      when = `Pickup About: ${r.pickupTime.value} (max ${MaxPickupHospital})`;
     }
     return when;
   }
@@ -463,12 +463,12 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
       dPass: this.seats.value,
       isRegistered: false,// (registereds && registereds.length > 0),
       dRemark: ride.dRemark.value,
-      pickupTime:ride.pickupTime.value,
-      visitTime:ride.visitTime.value,
+      pickupTime: ride.pickupTime.value,
+      visitTime: ride.visitTime.value,
       whenPickup: this.setWhenPickupRide(ride)
     };
     return result;
-  } 
+  }
 }
 
 @Component({

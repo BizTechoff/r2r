@@ -3,11 +3,12 @@ import { RideStatus } from "../core/rides/ride";
 
 
 export const TODAY:number = 0;
-export const PickupTimePrevHours = -2;
-export const MinPickupBorder = '05:00';
-export const MaxPickupBorder = '19:00';
-export const MinPickupHospital = '10:00';
-export const MaxPickupHospital = '18:00';
+export const PickupTimePrevHours:number = -2;
+export const MinPickupBorder:string = '05:00';
+export const MaxPickupBorder:string = '19:00';
+export const MinPickupHospital:string = '10:00';
+export const MaxPickupHospital:string = '18:00';
+export const IsDevMode:boolean = true;
 
 export class changeDate extends DateTimeColumn {
   readonly = true;

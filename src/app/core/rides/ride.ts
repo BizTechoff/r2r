@@ -2,13 +2,12 @@ import { formatDate } from "@angular/common";
 import { BoolColumn, ColumnSettings, Context, DateColumn, DateTimeColumn, EntityClass, IdEntity, NumberColumn, StringColumn, ValueListColumn } from "@remult/core";
 import { DialogService } from "../../common/dialog";
 import { DynamicServerSideSearchDialogComponent } from "../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component";
-import { MessageType, ServerEventsService } from "../../server/server-events-service";
-import { PickupTimePrevHours, TimeColumn, TODAY } from "../../shared/types";
+import { MaxPickupHospital, TimeColumn, TODAY } from "../../shared/types";
 import { addDays, addHours } from "../../shared/utils";
 import { Roles } from "../../users/roles";
 import { UserId } from "../../users/users";
 import { DriverIdColumn } from "../drivers/driver";
-import { LocationIdColumn } from "../locations/location";
+import { LocationIdColumn, LocationType } from "../locations/location";
 import { PatientIdColumn } from "../patients/patient";
 import { Location } from "./../locations/location";
 import { RideActivity } from "./rideActivity";
@@ -57,18 +56,38 @@ export class Ride extends IdEntity {
             name: "rides",
             allowApiCRUD: [Roles.admin, Roles.usher, Roles.matcher],
             allowApiRead: c => c.isSignedIn(),
+            validation: () => {
+                if (this.fid.selected) {
+                    let border = this.fid.selected.type === LocationType.border;
+                    let immediate = this.immediate.value;
+                    if (border) {//border
+                        this.pickupTime.value = addHours(-2, this.visitTime.value);
+                    }
+                    else if (!border && immediate) {//hospital
+                        this.visitTime.value = TimeColumn.Empty;
+                        this.pickupTime.value = TimeColumn.Empty;
+                        // if current time if after business working hours so set ride to tomorrow
+                        let today = addDays(0);
+                        if (today === this.date.value) {
+                            let time = formatDate(addDays(0, undefined, false), 'HH:mm', 'en-US');
+                            if (time > MaxPickupHospital) {
+                                this.date.value = addDays(+1);
+                            }
+                        }
+                    }
+                    else if (!border && !immediate) {//hospital
+                        this.visitTime.value = TimeColumn.Empty;
+                    }
+                    return true;
+                }
+                else {
+                    console.error(`this.fid.selected=null (id=${this.fid.value})`);
+                }
+            },
             saving: async () => {
                 if (context.onServer) {
                     if (this.status.wasChanged()) {
                         this.statusDate.value = addDays(TODAY);
-                    }
-                    if (this.visitTime.wasChanged()) {
-                        if (this.immediate.value) {
-                            this.pickupTime.value = this.visitTime.value;
-                        }
-                        else {
-                            this.pickupTime.value = addHours(PickupTimePrevHours, this.visitTime.value);
-                        }
                     }
                     this.changed.value = addDays(TODAY, undefined, false);
                     this.changedBy.value = this.context.user.id;

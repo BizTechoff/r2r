@@ -68,8 +68,14 @@ export class RideCrudComponent implements OnInit {
     let rOnly = RideStatus.isInDriving.includes(this.r.status.value);
     this.dataArea = new DataAreaSettings({
       columnSettings: () => [
-        { column: this.r.fid, readonly: rOnly },
-        { column: this.r.tid, readonly: rOnly },
+        {
+          column: this.r.fid, readonly: rOnly,
+          caption: 'From ' + (this.r.fid && this.r.fid.selected ? this.r.fid.selected.type === LocationType.border ? 'Border' : 'Hospital' : 'Location')
+        },
+        {
+          column: this.r.tid, readonly: rOnly,
+          caption: 'To ' + (this.r.tid && this.r.tid.selected ? this.r.tid.selected.type === LocationType.border ? 'Border' : 'Hospital' : 'Location')
+        },
         [
           {
             column: this.r.immediate,
@@ -98,7 +104,7 @@ export class RideCrudComponent implements OnInit {
           {
             column: this.r.pickupTime,
             visible: () => {
-              let v = this.r.fid.selected && this.r.fid.selected.type.value === LocationType.hospital;
+              let v = this.r.fid.selected && this.r.fid.selected.type.value === LocationType.hospital && !this.r.immediate.value;
               return v;
             }
           }
@@ -228,8 +234,7 @@ export class RideCrudComponent implements OnInit {
       }
     }
     else {
-      console.log('Herereeee');
-      // this.dialog.info('here');
+
       if (!(this.r.immediate.value)) {
         if (!(this.r.isHasPickupTime())) {
           this.r.pickupTime.validationError = 'Required';

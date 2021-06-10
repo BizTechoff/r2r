@@ -64,9 +64,13 @@
                         <td>To: <i>{{ r.to }}</i></td>
                     </tr>
                     <tr>
-                        <td>{{ r.whenPickup }}</td>
+                        <td>
+                            <strong *ngIf="r.whenPickup.includes('Max') || r.whenPickup.includes('Min')">{{ r.whenPickup }}</strong>
+                            <span *ngIf="!(r.whenPickup.includes('Max') || r.whenPickup.includes('Min'))">{{ r.whenPickup }}</span>
+                        </td>
                     </tr>
-                    <tr>
+                    <!-- IsDevMode -->
+                    <!-- <tr>
                         <td>rid: {{ r.rid }}</td>
                     </tr>
                     <tr>
@@ -74,7 +78,7 @@
                     </tr>
                     <tr>
                         <td>reason: {{ r.reason }}</td>
-                    </tr>
+                    </tr> -->
                 </table>
             </tr>
         </table>
@@ -108,12 +112,13 @@
                     <tr>
                         <td>Remark: <u>{{ r.dRemark }}</u> </td>
                     </tr>
-                    <tr>
+                    <!-- IsDevMode -->
+                    <!-- <tr>
                         <td>rid: {{ r.rid }}</td>
                     </tr>
                     <tr>
                         <td>rrid: {{ r.rrid }}</td>
-                    </tr>
+                    </tr> -->
                 </table>
             </tr>
         </table>
