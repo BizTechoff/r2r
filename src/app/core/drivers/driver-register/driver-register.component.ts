@@ -677,7 +677,7 @@ export class DriverRegisterComponent implements OnInit {
           if (r.immediate) {
             if (!isHospital) {
               let curTime = formatDate(addDays(0, undefined, false), 'HH:mm', 'en-US');
-              if (curTime > reg.fh.value) {
+              if (curTime < reg.fh.value) {
                 reg.fh.validationError = 'Must Be Now And Above';
                 throw reg.fh.defs.caption + ' ' + reg.fh.validationError;
               }
@@ -694,7 +694,7 @@ export class DriverRegisterComponent implements OnInit {
           else {
             if (!isHospital) {
               let curTime = r.pickupTime;
-              if (curTime > reg.fh.value) {
+              if (curTime < reg.fh.value) {
                 reg.fh.validationError = 'Must Be Now And Above';
                 throw reg.fh.defs.caption + ' ' + reg.fh.validationError;
               }
@@ -709,7 +709,7 @@ export class DriverRegisterComponent implements OnInit {
             }
             else {
               let curTime = formatDate(addDays(0, undefined, false), 'HH:mm', 'en-US');
-              if (curTime > reg.fh.value) {
+              if (curTime < reg.fh.value) {
                 reg.fh.validationError = 'Must Be Now And Above';
                 throw reg.fh.defs.caption + ' ' + reg.fh.validationError;
               }
