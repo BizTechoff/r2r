@@ -262,7 +262,7 @@ export class Ride extends IdEntity {
 
     async createBackRide(ds?: DialogService): Promise<Ride> {
         let yes = false;
-        if (!(ds)) {
+        if (ds) {
             yes = await ds.yesNoQuestion('Did patient release from hospital?');
         }
         let back = this.context.for(Ride).create();
@@ -360,6 +360,7 @@ export class RideStatus {
     ];
 
     static isDriverNotStarted = [
+        // RideStatus.waitingForHospital,
         RideStatus.waitingForDriver,
         RideStatus.waitingForAccept
     ];

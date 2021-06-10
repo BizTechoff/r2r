@@ -4,6 +4,10 @@ import { RideStatus } from "../core/rides/ride";
 
 export const TODAY:number = 0;
 export const PickupTimePrevHours = -2;
+export const MinPickupBorder = '05:00';
+export const MaxPickupBorder = '19:00';
+export const MinPickupHospital = '10:00';
+export const MaxPickupHospital = '18:00';
 
 export class changeDate extends DateTimeColumn {
   readonly = true;
@@ -82,8 +86,10 @@ export interface ride4DriverRideRegister {
   dToHour?: string,
   dPass?: number,
   pickupTime?: string,
+  visitTime?: string,
   dRemark: string,
   reason?: string,
+  whenPickup: string
 };
 
 export interface ride4Driver {

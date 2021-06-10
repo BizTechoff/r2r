@@ -7,7 +7,7 @@ import { ride4UsherRideRegister, TODAY } from '../../../shared/types';
 import { addDays } from '../../../shared/utils';
 import { Roles } from '../../../users/roles';
 import { RegisterDriver } from '../../drivers/registerDriver';
-import { Location, LocationIdColumn } from '../../locations/location';
+import { Location, LocationIdColumn, LocationType } from '../../locations/location';
 import { RegisterRide } from './registerRide';
 
 
@@ -185,7 +185,7 @@ export class RegisterRidesComponent implements OnInit {
           cur.th,
           cur.seats
         ],
-      }),
+      })
     });
   }
 
@@ -205,12 +205,26 @@ export class RegisterRidesComponent implements OnInit {
           [reg.sunday, reg.monday, reg.tuesday],
           [reg.wednesday, reg.thursday, reg.friday],
           reg.saturday,
-          reg.visitTime,
+          {
+            column: reg.visitTime,
+            visible: () => {
+              let v = reg.fid.selected && reg.fid.selected.type.value === LocationType.border;
+              return v;
+            }
+          },
+          {
+            column: reg.pickupTime,
+            visible: () => {
+              let v = reg.fid.selected && reg.fid.selected.type.value === LocationType.hospital;
+              return v;
+            }
+          },
           reg.remark,
         ],
         validate: async () => {
           if (await this.foundConflicts(reg)) {
             throw 'Found Conflicts';
+            //await this.dialog.error( 'Found Conflicts' );
           }
         },
         ok: async () => {

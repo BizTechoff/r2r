@@ -9,6 +9,7 @@ import { LocationType } from '../../locations/location';
 import { Patient } from '../../patients/patient';
 import { PatientContactsComponent } from '../../patients/patient-contacts/patient-contacts.component';
 import { Ride, RideStatus } from '../ride';
+import { Location } from '../../locations/location';
 
 @Component({
   selector: 'app-ride-crud',
@@ -83,7 +84,25 @@ export class RideCrudComponent implements OnInit {
         ],
         [
           { column: this.r.date, readOnly: rOnly, visible: () => { return !this.r.immediate.value; } },
-          { column: this.r.visitTime, visible: () => { return !this.r.immediate.value; } }
+          // { column: this.r.visitTime, visible: () => { return !this.r.immediate.value; } }
+
+
+
+          {
+            column: this.r.visitTime,
+            visible: () => {
+              let v = this.r.fid.selected && this.r.fid.selected.type.value === LocationType.border && !this.r.immediate.value;
+              return v;
+            }
+          },
+          {
+            column: this.r.pickupTime,
+            visible: () => {
+              let v = this.r.fid.selected && this.r.fid.selected.type.value === LocationType.hospital;
+              return v;
+            }
+          }
+
         ],
         [
           { column: this.r.escortsCount },
@@ -109,6 +128,14 @@ export class RideCrudComponent implements OnInit {
     if (this.r.fid.selected && this.r.fid.selected.id.value) {
       selected = true;
     }
+    // else {
+    //   if (this.r.fid.value && this.r.fid.value.length > 0) {
+    //     this.r.fid.selected = await this.context.for(Location).findId(this.r.fid.value);
+    //     if (this.r.fid.selected) {
+    //       selected = true;
+    //     }
+    //   }
+    // }
     if (selected) {
       if (![LocationType.border].includes(this.r.fid.selected.type.value)) {
         result = false;
@@ -127,6 +154,14 @@ export class RideCrudComponent implements OnInit {
     if (this.r.fid.selected && this.r.fid.selected.id.value) {
       selected = true;
     }
+    // else {
+    //   if (this.r.fid.value && this.r.fid.value.length > 0) {
+    //     this.r.fid.selected = await this.context.for(Location).findId(this.r.fid.value);
+    //     if (this.r.fid.selected) {
+    //       selected = true;
+    //     }
+    //   }
+    // }
     if (selected) {
       if (![LocationType.hospital].includes(this.r.fid.selected.type.value)) {
         result = false;
@@ -184,11 +219,23 @@ export class RideCrudComponent implements OnInit {
       await this.dialog.error(this.r.date.defs.caption + ' ' + this.r.date.validationError);
       return false;
     }
-    if (!(this.r.immediate.value)) {
+    let isBorder = this.r.fid.selected && this.r.fid.selected.type === LocationType.border;
+    if (isBorder) {
       if (!(this.r.isHasVisitTime())) {
         this.r.visitTime.validationError = 'Required';
         await this.dialog.error(this.r.visitTime.defs.caption + ' ' + this.r.visitTime.validationError);
         return false;
+      }
+    }
+    else {
+      console.log('Herereeee');
+      // this.dialog.info('here');
+      if (!(this.r.immediate.value)) {
+        if (!(this.r.isHasPickupTime())) {
+          this.r.pickupTime.validationError = 'Required';
+          await this.dialog.error(this.r.pickupTime.defs.caption + ' ' + this.r.pickupTime.validationError);
+          return false;
+        }
       }
     }
 

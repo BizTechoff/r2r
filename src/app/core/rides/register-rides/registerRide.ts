@@ -70,6 +70,7 @@ export class RegisterRide extends IdEntity {
         }
     });
     visitTime = new TimeColumn();
+    pickupTime = new TimeColumn();
     sunday = new BoolColumn({ caption: 'sun', defaultValue: false });
     monday = new BoolColumn({ caption: 'mon', defaultValue: false });
     tuesday = new BoolColumn({ caption: 'tue', defaultValue: false });

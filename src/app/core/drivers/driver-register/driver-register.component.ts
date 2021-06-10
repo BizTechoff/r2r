@@ -32,9 +32,9 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
   ready = false;
   onChanged = async () => { };
 
-  locAreas: { id: string, name: string, area: string[] }[] = [];
+  locAreas: { id: string, name: string, isBorder: boolean, area: string[] }[] = [];
   @ServerMethod()
-  async retrieve(): Promise<response> {//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+  async retrieve(): Promise<response> {
     var result: response = {
       registered: [],
       newregistered: []
@@ -59,14 +59,15 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
       }
     }
 
-    this.locAreas = [];
+    this.locAreas = [];// {border->{border.area.lids}}, {hospital->hospital}
     for await (const loc of this.context.for(Location).iterate({
     })) {
-      let isBorder = loc.type == LocationType.border;
+      let isBorder = loc.type === LocationType.border;
       let row = {
         id: loc.id.value,
         name: loc.name.value,
-        area: isBorder ? areasBorders.find(cur => cur.area == loc.area.value).lids : [loc.id.value]
+        area: isBorder ? areasBorders.find(cur => cur.area == loc.area.value).lids : [loc.id.value],
+        isBorder: isBorder
       };
       this.locAreas.push(row);
     }
@@ -147,7 +148,9 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
               dToHour: rd.th.value,
               dPass: this.seats.value,
               pickupTime: r.pickupTime.value,
+              visitTime: r.visitTime.value,
               dRemark: r.dRemark.value,
+              whenPickup: this.setWhenPickupRide(r)
             }
             result.registered.push(row);
           }
@@ -192,8 +195,10 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
               dFromHour: rd.fh.value,
               dToHour: rd.th.value,
               dPass: this.seats.value,
-              pickupTime: addHours(PickupTimePrevHours, rr.visitTime.value),
               dRemark: rr.remark.value,
+              pickupTime:rr.pickupTime.value,
+              visitTime:rr.visitTime.value,
+              whenPickup: this.setWhenPickupRegisterRide(rr)
             }
             result.registered.push(row);
           }
@@ -223,22 +228,32 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
                 : new Filter(f => { return true; })
         )
     })) {
+      let specified = (this.fid.value && this.fid.value.length > 0) || (this.tid.value && this.tid.value.length > 0);
 
-      let pref = dPrefs.find(cur => cur.lid === r.fid.value || cur.lid === r.tid.value);
-      let matchPrefs = pref ? true : false;
+      let match = false;
+      let matchBy = '';
+      if (!(specified)) {
+        let pref = dPrefs.find(cur => cur.lid === r.fid.value || cur.lid === r.tid.value);
+        match = pref ? true : false;
+        matchBy = 'By Prefs';
+        if (!(match)) {
+          let kavHistory = dHistory.find(cur => cur.fid === r.fid.value && cur.tid === r.tid.value);
+          match = kavHistory ? true : false;
+          matchBy = 'By Kav History';
+          if (!(match)) {
+            let areaFHistory = dHistory.find(cur => this.getLocArea(r.fid.value).includes(cur.fid));// && cur.tid === rr.tid.value);
+            match = areaFHistory ? true : false;
+            matchBy = 'By Area(f) History';
+            if (!(match)) {
+              let areaTHistory = dHistory.find(cur => this.getLocArea(r.tid.value).includes(cur.tid));// && cur.fid === rr.fid.value);
+              match = areaTHistory ? true : false;
+              matchBy = 'By Area(t) History';
+            }
+          }
+        }
+      }
 
-      let kavHistory = dHistory.find(cur => cur.fid === r.fid.value && cur.tid === r.tid.value);
-      let matchKavHistory = kavHistory ? true : false;
-
-      let areaFHistory = dHistory.find(cur => this.getLocArea(r.fid.value).includes(cur.fid));// && cur.tid === rr.tid.value);
-      let matchFAreaHistory = areaFHistory ? true : false;
-
-      let areaTHistory = dHistory.find(cur => this.getLocArea(r.tid.value).includes(cur.tid));// && cur.fid === rr.fid.value);
-      let matchTAreaHistory = areaTHistory ? true : false;
-
-      if (matchPrefs || matchKavHistory || matchFAreaHistory || matchTAreaHistory) {
-
-
+      if (specified || match) {
         let row: ride4DriverRideRegister = {
           rid: r.id.value,
           rrid: '',
@@ -253,9 +268,11 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
           dFromHour: '',
           dToHour: '',
           dPass: this.seats.value,
-          pickupTime: r.pickupTime.value,
           dRemark: r.dRemark.value,
-          reason: matchPrefs ? 'By Prefs' : matchKavHistory ? `By Kav History` : matchFAreaHistory ? 'By Area(f) History' : matchTAreaHistory ? 'By Area(t) History' : ''
+          reason: matchBy,
+          pickupTime:r.pickupTime.value,
+          visitTime:r.visitTime.value,
+          whenPickup: this.setWhenPickupRide(r)
         }
         result.newregistered.push(row);
       }
@@ -290,19 +307,32 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
         }
       }
 
-      let pref = dPrefs.find(cur => cur.lid === rr.fid.value || cur.lid === rr.tid.value);
-      let matchPrefs = pref ? true : false;
+      let specified = (this.fid.value && this.fid.value.length > 0) || (this.tid.value && this.tid.value.length > 0);
 
-      let kavHistory = dHistory.find(cur => cur.fid === rr.fid.value && cur.tid === rr.tid.value);
-      let matchKavHistory = kavHistory ? true : false;
+      let match = false;
+      let matchBy = '';
+      if (!(specified)) {
+        let pref = dPrefs.find(cur => cur.lid === rr.fid.value || cur.lid === rr.tid.value);
+        match = pref ? true : false;
+        matchBy = 'By Prefs';
+        if (!(match)) {
+          let kavHistory = dHistory.find(cur => cur.fid === rr.fid.value && cur.tid === rr.tid.value);
+          match = kavHistory ? true : false;
+          matchBy = 'By Kav History';
+          if (!(match)) {
+            let areaFHistory = dHistory.find(cur => this.getLocArea(rr.fid.value).includes(cur.fid));// && cur.tid === rr.tid.value);
+            match = areaFHistory ? true : false;
+            matchBy = 'By Area(f) History';
+            if (!(match)) {
+              let areaTHistory = dHistory.find(cur => this.getLocArea(rr.tid.value).includes(cur.tid));// && cur.fid === rr.fid.value);
+              match = areaTHistory ? true : false;
+              matchBy = 'By Area(t) History';
+            }
+          }
+        }
+      }
 
-      let areaFHistory = dHistory.find(cur => this.getLocArea(rr.fid.value).includes(cur.fid));// && cur.tid === rr.tid.value);
-      let matchFAreaHistory = areaFHistory ? true : false;
-
-      let areaTHistory = dHistory.find(cur => this.getLocArea(rr.tid.value).includes(cur.tid));// && cur.fid === rr.fid.value);
-      let matchTAreaHistory = areaTHistory ? true : false;
-
-      if (matchPrefs || matchKavHistory || matchFAreaHistory || matchTAreaHistory) {
+      if (specified || match) {
 
         let row: ride4DriverRideRegister = {
           rid: '',
@@ -318,17 +348,86 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
           // dFromHour: nreg.fh.value,
           // dToHour: nreg.th.value,
           dPass: this.seats.value,
-          pickupTime: addHours(PickupTimePrevHours, rr.visitTime.value),
           dRemark: rr.remark.value,
-          reason: matchPrefs ? 'By Prefs' : matchKavHistory ? `By Kav History` : matchFAreaHistory ? 'By Area(f) History' : matchTAreaHistory ? 'By Area(t) History' : ''
+          reason: matchBy,
+          pickupTime:rr.pickupTime.value,
+          visitTime:rr.visitTime.value,
+          whenPickup: this.setWhenPickupRegisterRide(rr)
         };
         result.newregistered.push(row);
       }
     }
 
-    result.registered.sort((r1, r2) => r1.from.localeCompare(r2.from));
-    result.newregistered.sort((r1, r2) => r1.from.localeCompare(r2.from));
+    result.registered.sort((r1, r2) =>
+       r1.pickupTime.localeCompare(r2.pickupTime) == 0
+          ? r1.from.localeCompare(r2.from)
+          : r1.pickupTime.localeCompare(r2.pickupTime));
+          
+    result.newregistered.sort((r1, r2) =>
+    r1.pickupTime.localeCompare(r2.pickupTime) == 0
+       ? r1.from.localeCompare(r2.from)
+       : r1.pickupTime.localeCompare(r2.pickupTime));
+
+
+    // result.newregistered.sort((r1, r2) =>
+    //   r1.immediate && r2.immediate
+    //     ? r1.pickupTime.localeCompare(r2.pickupTime) == 0
+    //       ? r1.from.localeCompare(r2.from)
+    //       : r1.pickupTime.localeCompare(r2.pickupTime)
+    //     : r1.immediate ? 1 : r2.immediate ? -1 : 0);
+
     return result;
+  }
+
+  setWhenPickupRegisterRide(rr:RegisterRide){
+    
+
+            
+            //  isBorder | visitTime | pickupTime
+            //  ---------------------------------
+            //  immediate = isborder && visitTime.empty || !isborder && pickupTime.empty
+            //  isBorder &  immediate  ==> pickupTime: asap (MinPickupBorder - MaxPickupBorder)
+            //  isBorder & !immediate  ==> max-pickup-time: vt-2
+            // !isBorder &  immediate  ==> pickupTime: asap - (now - MaxPickupHospital)
+            // !isBorder & !immediate  ==> max-pickup-time: vt
+
+
+    let when = '';
+    let isBorder = this.locAreas.find(cur => cur.id === rr.fid.value).isBorder;
+    let immediate = isBorder && rr.visitTime.isEmpty() || !isBorder && rr.pickupTime.isEmpty();
+    if(isBorder && immediate){
+      when = 'Pickup: A.S.A.P';
+    }
+    else if(isBorder && !immediate){
+      when = 'Max Pickup: '+addHours(PickupTimePrevHours, rr.visitTime.value);
+    }
+    else if(!isBorder && immediate){
+      when = 'Pickup: A.S.A.P';
+    }
+    else if(!isBorder && !immediate){
+      when = 'Max Pickup: '+rr.pickupTime.value;
+    }
+    return when;
+  }
+
+  setWhenPickupRide(r:Ride){
+    
+    let when = '';
+    let isBorder = this.locAreas.find(cur => cur.id === r.fid.value).isBorder;
+    let immediate = isBorder && r.visitTime.isEmpty() || !isBorder && r.pickupTime.isEmpty();
+    if(isBorder && immediate){
+      when = 'Pickup: A.S.A.P';
+    }
+    else if(isBorder && !immediate){
+      when = 'Max Pickup: '+addHours(PickupTimePrevHours, r.visitTime.value);
+    }
+    else if(!isBorder && immediate){
+      when = 'Pickup: A.S.A.P';
+    }
+    else if(!isBorder && !immediate){
+      when = 'Max Pickup: '+r.pickupTime.value;
+    }
+    return when;
   }
 
   getLocsArea(lids: string[]): string[] {
@@ -363,11 +462,13 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
       pass: ride.passengers(),
       dPass: this.seats.value,
       isRegistered: false,// (registereds && registereds.length > 0),
-      pickupTime: ride.pickupTime.value,
       dRemark: ride.dRemark.value,
+      pickupTime:ride.pickupTime.value,
+      visitTime:ride.visitTime.value,
+      whenPickup: this.setWhenPickupRide(ride)
     };
     return result;
-  }
+  } 
 }
 
 @Component({
