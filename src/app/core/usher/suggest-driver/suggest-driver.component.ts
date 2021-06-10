@@ -49,7 +49,7 @@ class usherSuggestDrivers {
         f.areaBorders.push(loc.id.value);
       }
       else {
-        this.bAreas.push({ border: loc.id.value, areaBorders: [] });
+        this.bAreas.push({ border: loc.id.value, areaBorders: [loc.id.value] });
       }
     }
 
