@@ -40,7 +40,7 @@ class usherSuggestDrivers {
       else if (loc.id.value === this.tid.value) {
         this.to.value = loc.name.value;
       }
-      if (loc.type == LocationType.border) {
+      if (loc.type.value == LocationType.border) {
         let f = this.bAreas.find(cur => cur.area === loc.area.value);
         if (!(f)) {
           f = { border: loc.id.value, area: loc.area.value, areaBorders: [] };

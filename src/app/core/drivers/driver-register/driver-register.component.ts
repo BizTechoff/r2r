@@ -3,7 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { Context, DateColumn, Filter, NumberColumn, ServerController, ServerMethod } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
 import { InputAreaComponent } from '../../../common/input-area/input-area.component';
-import { MaxPickupHospital, PickupTimePrevHours, ride4DriverRideRegister, TimeColumn, TODAY } from '../../../shared/types';
+import { MaxPickupBorder, MaxPickupHospital, PickupTimePrevHours, ride4DriverRideRegister, TimeColumn, TODAY } from '../../../shared/types';
 import { addDays, addHours } from '../../../shared/utils';
 import { Location, LocationArea, LocationIdColumn, LocationType } from '../../locations/location';
 import { RegisterRide } from '../../rides/register-rides/registerRide';
@@ -62,7 +62,7 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
     this.locAreas = [];// {border->{border.area.lids}}, {hospital->hospital}
     for await (const loc of this.context.for(Location).iterate({
     })) {
-      let isBorder = loc.type === LocationType.border;
+      let isBorder = loc.type.value === LocationType.border;
       let row = {
         id: loc.id.value,
         name: loc.name.value,
@@ -150,7 +150,8 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
               pickupTime: r.pickupTime.value,
               visitTime: r.visitTime.value,
               dRemark: r.dRemark.value,
-              whenPickup: this.setWhenPickupRide(r)
+              whenPickup: this.setWhenPickupRide(r),
+              immediate: r.immediate.value
             }
             result.registered.push(row);
           }
@@ -180,6 +181,9 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
             ok = true;// no filter by this.fid/tid
           }
 
+          let isBorder = this.locAreas.find(cur => cur.id === rr.fid.value).isBorder;
+          let immediate = isBorder && rr.visitTime.isEmpty() || !isBorder && rr.pickupTime.isEmpty();
+
           if (ok) {
             let row: ride4DriverRideRegister = {
               rid: '',
@@ -198,7 +202,8 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
               dRemark: rr.remark.value,
               pickupTime: rr.pickupTime.value,
               visitTime: rr.visitTime.value,
-              whenPickup: this.setWhenPickupRegisterRide(rr)
+              whenPickup: this.setWhenPickupRegisterRide(rr),
+              immediate: immediate
             }
             result.registered.push(row);
           }
@@ -272,7 +277,8 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
           reason: matchBy,
           pickupTime: r.pickupTime.value,
           visitTime: r.visitTime.value,
-          whenPickup: this.setWhenPickupRide(r)
+          whenPickup: this.setWhenPickupRide(r),
+          immediate: r.immediate.value
         }
         result.newregistered.push(row);
       }
@@ -332,6 +338,10 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
         }
       }
 
+
+      let isBorder = this.locAreas.find(cur => cur.id === rr.fid.value).isBorder;
+      let immediate = isBorder && rr.visitTime.isEmpty() || !isBorder && rr.pickupTime.isEmpty();
+
       if (specified || match) {
 
         let row: ride4DriverRideRegister = {
@@ -352,7 +362,8 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
           reason: matchBy,
           pickupTime: rr.pickupTime.value,
           visitTime: rr.visitTime.value,
-          whenPickup: this.setWhenPickupRegisterRide(rr)
+          whenPickup: this.setWhenPickupRegisterRide(rr),
+          immediate: immediate
         };
         result.newregistered.push(row);
       }
@@ -392,20 +403,22 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
     // !isBorder & !immediate  ==> max-pickup-time: vt
 
 
+
+
     let when = '';
     let isBorder = this.locAreas.find(cur => cur.id === rr.fid.value).isBorder;
     let immediate = isBorder && rr.visitTime.isEmpty() || !isBorder && rr.pickupTime.isEmpty();
-    if (isBorder && immediate) {
-      when = 'Pickup: A.S.A.P';
+    if (isBorder && immediate) {//border
+      when = `Pickup: A.S.A.P`;
     }
-    else if (isBorder && !immediate) {
-      when = 'Max Pickup: ' + addHours(PickupTimePrevHours, rr.visitTime.value);
+    else if (isBorder && !immediate) {//border
+      when = `Max Pickup: ` + addHours(PickupTimePrevHours, rr.visitTime.value);
     }
-    else if (!isBorder && immediate) {
-      when = 'Pickup: A.S.A.P';
+    else if (!isBorder && immediate) {//hospital
+      when = `Pickup: A.S.A.P (max ${MaxPickupHospital})`;
     }
-    else if (!isBorder && !immediate) {
-      when = 'Max Pickup: ' + rr.pickupTime.value;
+    else if (!isBorder && !immediate) {//hospital
+      when = `Pickup About: ${rr.pickupTime.value} (max ${MaxPickupHospital})`;
     }
     return when;
   }
@@ -433,10 +446,7 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
   getLocsArea(lids: string[]): string[] {
     let result: string[] = [];
     for (const l of lids) {
-      let f = this.locAreas.find(cur => cur.id === l);
-      if (f) {
-        result.push(...f.area);
-      }
+      result.push(...this.getLocArea(l));
     }
     return result;
   }
@@ -447,6 +457,14 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
       return f.area;
     }
     return [];
+  }
+
+  getIsBorder(lid: string): boolean {
+    let f = this.locAreas.find(cur => cur.id === lid);
+    if (f) {
+      return f.isBorder;
+    }
+    return false;
   }
 
   async createRide4DriverRideRegister(ride: Ride, from: string, to: string): Promise<ride4DriverRideRegister> {
@@ -465,6 +483,7 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
       dRemark: ride.dRemark.value,
       pickupTime: ride.pickupTime.value,
       visitTime: ride.visitTime.value,
+      immediate: ride.immediate.value,
       whenPickup: this.setWhenPickupRide(ride)
     };
     return result;
@@ -591,20 +610,49 @@ export class DriverRegisterComponent implements OnInit {
     let tCaption = 'Pickup Till';
     let fReadonly = false;
     let tReadonly = false;
-    if (f.type.value === LocationType.border) {
-      reg.fh.value = TimeColumn.Empty;
+    let isHospital = f.type.value === LocationType.hospital;
+    if (!isHospital) {
+      reg.fh.value = formatDate(addDays(TODAY, undefined, false), 'HH:mm', 'en-US');
       fCaption = `I Can Be At ${from} About`;
       fReadonly = false;
       tCaption = 'Max Pickup Time';
       tReadonly = true;
     }
     else {
-      reg.fh.value = formatDate(addDays(TODAY, undefined, false), 'HH:mm', 'en-US');
-      reg.th.value = '22:00';
-      fCaption = 'I Can Be There ASAP';
-      fReadonly = true;
-      tCaption = 'Max Pickup Time';
-      tReadonly = false;
+      if (r.immediate) {
+        fCaption = 'I Can Be There ASAP From';
+        reg.fh.value = formatDate(addDays(TODAY, undefined, false), 'HH:mm', 'en-US');
+        fReadonly = false;
+
+        tCaption = 'To..';
+        reg.th.value = MaxPickupHospital;
+        tReadonly = false;
+      }
+      else {
+
+        let hasVisitTimeTime = r.visitTime && r.visitTime.length > 0 && (!(r.visitTime === TimeColumn.Empty));
+        if (hasVisitTimeTime) {
+          fCaption = 'Pickup From';
+          reg.fh.value = formatDate(addDays(TODAY, undefined, false), 'HH:mm', 'en-US');
+          fReadonly = false;
+
+          tCaption = 'Max Pickup';
+          reg.th.value = r.pickupTime;
+          tReadonly = false;
+        }
+        else {
+          let hasPickupTime = r.pickupTime && r.pickupTime.length > 0 && (!(r.pickupTime === TimeColumn.Empty));
+          if (hasPickupTime) {
+            fCaption = 'Pickup Around';
+            reg.fh.value = r.pickupTime;
+            fReadonly = false;
+
+            tCaption = 'To..';
+            reg.th.value = MaxPickupHospital;
+            tReadonly = false; 
+          }
+        }
+      }
     }
 
     await this.context.openDialog(
@@ -617,7 +665,6 @@ export class DriverRegisterComponent implements OnInit {
           reg.seats,
         ],
         validate: async () => {
-          console.log(reg.fh.value);
           if (!(reg.isHasFromHour())) {
             reg.fh.validationError = 'Required';
             throw reg.fh.defs.caption + ' ' + reg.fh.validationError;
@@ -625,6 +672,56 @@ export class DriverRegisterComponent implements OnInit {
           if (!(reg.isHasToHour())) {
             reg.th.validationError = 'Required';
             throw reg.th.defs.caption + ' ' + reg.th.validationError;
+          }
+
+          if (r.immediate) {
+            if (!isHospital) {
+              let curTime = formatDate(addDays(0, undefined, false), 'HH:mm', 'en-US');
+              if (curTime > reg.fh.value) {
+                reg.fh.validationError = 'Must Be Now And Above';
+                throw reg.fh.defs.caption + ' ' + reg.fh.validationError;
+              }
+              if (reg.th.value > MaxPickupHospital) {
+                reg.th.validationError = 'Maximun Allowed: ' + MaxPickupHospital;
+                throw reg.th.defs.caption + ' ' + reg.th.validationError;
+              }
+              if (reg.fh.value > reg.th.value) {
+                reg.th.validationError = 'The From greater then to To';
+                throw reg.th.defs.caption + ' ' + reg.th.validationError;
+              }
+            }
+          }
+          else {
+            if (!isHospital) {
+              let curTime = r.pickupTime;
+              if (curTime > reg.fh.value) {
+                reg.fh.validationError = 'Must Be Now And Above';
+                throw reg.fh.defs.caption + ' ' + reg.fh.validationError;
+              }
+              if (reg.th.value > MaxPickupHospital) {
+                reg.th.validationError = 'Maximun Allowed: ' + MaxPickupHospital;
+                throw reg.th.defs.caption + ' ' + reg.th.validationError;
+              }
+              if (reg.fh.value > reg.th.value) {
+                reg.th.validationError = 'The From greater then to To';
+                throw reg.th.defs.caption + ' ' + reg.th.validationError;
+              }
+            }
+            else {
+              let curTime = formatDate(addDays(0, undefined, false), 'HH:mm', 'en-US');
+              if (curTime > reg.fh.value) {
+                reg.fh.validationError = 'Must Be Now And Above';
+                throw reg.fh.defs.caption + ' ' + reg.fh.validationError;
+              }
+              if (reg.th.value > r.pickupTime) {
+                reg.th.validationError = 'Maximun Allowed: ' + r.pickupTime;
+                throw reg.th.defs.caption + ' ' + reg.th.validationError;
+              }
+              if (reg.fh.value > reg.th.value) {
+                reg.th.validationError = 'The From greater then to To';
+                throw reg.th.defs.caption + ' ' + reg.th.validationError;
+              }
+            }
           }
         },
         ok: async () => {

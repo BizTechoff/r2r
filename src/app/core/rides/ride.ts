@@ -58,7 +58,7 @@ export class Ride extends IdEntity {
             allowApiRead: c => c.isSignedIn(),
             validation: () => {
                 if (this.fid.selected) {
-                    let border = this.fid.selected.type === LocationType.border;
+                    let border = this.fid.selected.type.value === LocationType.border;
                     let immediate = this.immediate.value;
                     if (border) {//border
                         this.pickupTime.value = addHours(-2, this.visitTime.value);

@@ -38,7 +38,7 @@ export class TimeColumn extends StringColumn {
   }
 
   isEmpty() {
-    return !this.value || this.value.length == 0 || this.value === TimeColumn.Empty;
+    return !this.value || this.value.length === 0 || this.value === TimeColumn.Empty;
   }
 }
 
@@ -88,6 +88,7 @@ export interface ride4DriverRideRegister {
   dPass?: number,
   pickupTime?: string,
   visitTime?: string,
+  immediate: boolean,
   dRemark: string,
   reason?: string,
   whenPickup: string

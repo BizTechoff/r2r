@@ -70,11 +70,11 @@ export class RideCrudComponent implements OnInit {
       columnSettings: () => [
         {
           column: this.r.fid, readonly: rOnly,
-          caption: 'From ' + (this.r.fid && this.r.fid.selected ? this.r.fid.selected.type === LocationType.border ? 'Border' : 'Hospital' : 'Location')
+          caption: 'From ' + (this.r.fid && this.r.fid.selected ? this.r.fid.selected.type.value === LocationType.border ? 'Border' : 'Hospital' : 'Location')
         },
         {
           column: this.r.tid, readonly: rOnly,
-          caption: 'To ' + (this.r.tid && this.r.tid.selected ? this.r.tid.selected.type === LocationType.border ? 'Border' : 'Hospital' : 'Location')
+          caption: 'To ' + (this.r.tid && this.r.tid.selected ? this.r.tid.selected.type.value === LocationType.border ? 'Border' : 'Hospital' : 'Location')
         },
         [
           {
@@ -225,16 +225,17 @@ export class RideCrudComponent implements OnInit {
       await this.dialog.error(this.r.date.defs.caption + ' ' + this.r.date.validationError);
       return false;
     }
-    let isBorder = this.r.fid.selected && this.r.fid.selected.type === LocationType.border;
-    if (isBorder) {
+    let isBorder = this.r.fid.selected && this.r.fid.selected.type.value === LocationType.border?true:false;
+    let isHospital = this.r.fid.selected && this.r.fid.selected.type.value === LocationType.hospital?true:false;
+    if (!isHospital) {
+      console.log('----- @@@@@@ ------ this.r.isHasVisitTime()= ' + this.r.isHasVisitTime());
       if (!(this.r.isHasVisitTime())) {
         this.r.visitTime.validationError = 'Required';
         await this.dialog.error(this.r.visitTime.defs.caption + ' ' + this.r.visitTime.validationError);
         return false;
       }
     }
-    else {
-
+    else if (!isBorder) {
       if (!(this.r.immediate.value)) {
         if (!(this.r.isHasPickupTime())) {
           this.r.pickupTime.validationError = 'Required';
@@ -242,6 +243,9 @@ export class RideCrudComponent implements OnInit {
           return false;
         }
       }
+    }
+    else{
+      console.log('NOT Hospital && NOT Border ?????')
     }
 
     if (!this.p.mobile.value) {

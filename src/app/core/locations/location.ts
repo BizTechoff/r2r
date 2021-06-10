@@ -84,8 +84,8 @@ export class LocationIdColumn extends StringColumn {
         hideDataOnInput: true,
         clickIcon: 'search',
         width: "150px",
-        click: () => {
-          this.context.openDialog(DynamicServerSideSearchDialogComponent,
+        click: async () => {
+          await this.context.openDialog(DynamicServerSideSearchDialogComponent,
             x => x.args(Location, {
               onClear: () => { this.value = ''; },
               onSelect: l => { this.value = l.id.value; },
@@ -98,7 +98,7 @@ export class LocationIdColumn extends StringColumn {
   async area(): Promise<string[]> {
     let result: string[] = [];
     let loc = await this.context.for(Location).findId(this.value);
-    if (loc.type === LocationType.border) {
+    if (loc.type.value === LocationType.border) {
       for await (const l of this.context.for(Location).iterate({
         where: cur => cur.area.isEqualTo(loc.area)
       })) {

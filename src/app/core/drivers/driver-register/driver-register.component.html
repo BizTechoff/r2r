@@ -51,7 +51,10 @@
             <tr *ngFor="let r of ridesToRegister">
                 <table style="width: 100%;padding: 10px;">
                     <tr>
-                        <td>From: <i>{{ r.from }}</i></td>
+                        <td>From: <i>
+                            <strong>{{ r.from }}</strong>
+                            <!-- <strong *ngIf="true">{{ r.from }}</strong> -->
+                        </i></td>
                         <td rowspan="3">
                             <table *ngIf="!r.isRegistered" style="width: 100%;">
                                 <tr *ngIf="this.params.date.value>=this.todayMidnigth">
@@ -65,8 +68,9 @@
                     </tr>
                     <tr>
                         <td>
-                            <strong *ngIf="r.whenPickup.includes('Max') || r.whenPickup.includes('Min')">{{ r.whenPickup }}</strong>
-                            <span *ngIf="!(r.whenPickup.includes('Max') || r.whenPickup.includes('Min'))">{{ r.whenPickup }}</span>
+                            <strong>{{ r.whenPickup }}</strong>
+                            <!-- <strong *ngIf="r.whenPickup.includes('Max') || r.whenPickup.includes('Min')">{{ r.whenPickup }}</strong>
+                            <span *ngIf="!(r.whenPickup.includes('Max') || r.whenPickup.includes('Min'))">{{ r.whenPickup }}</span> -->
                         </td>
                     </tr>
                     <!-- IsDevMode -->

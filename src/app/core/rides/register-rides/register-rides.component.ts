@@ -3,8 +3,8 @@ import { BoolColumn, Context, DateColumn, Filter, NumberColumn, ServerController
 import { DialogService } from '../../../common/dialog';
 import { GridDialogComponent } from '../../../common/grid-dialog/grid-dialog.component';
 import { InputAreaComponent } from '../../../common/input-area/input-area.component';
-import { ride4UsherRideRegister, TODAY } from '../../../shared/types';
-import { addDays } from '../../../shared/utils';
+import { PickupTimePrevHours, ride4UsherRideRegister, TimeColumn, TODAY } from '../../../shared/types';
+import { addDays, addHours } from '../../../shared/utils';
 import { Roles } from '../../../users/roles';
 import { RegisterDriver } from '../../drivers/registerDriver';
 import { Location, LocationIdColumn, LocationType } from '../../locations/location';
@@ -222,6 +222,14 @@ export class RegisterRidesComponent implements OnInit {
           reg.remark,
         ],
         validate: async () => {
+          let hospital = reg.fid.selected && reg.fid.selected.type.value === LocationType.hospital;
+          let border = reg.fid.selected && reg.fid.selected.type.value === LocationType.border;
+          if (!hospital) {
+            reg.pickupTime.value = addHours(PickupTimePrevHours, reg.visitTime.value);
+          }
+          else if (!border) {
+            reg.visitTime.value = TimeColumn.Empty;
+          }
           if (await this.foundConflicts(reg)) {
             throw 'Found Conflicts';
             //await this.dialog.error( 'Found Conflicts' );
