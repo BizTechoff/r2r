@@ -22,7 +22,8 @@ class usherSuggestDrivers {
   tid = new LocationIdColumn();
   from = new StringColumn();
   to = new StringColumn();
-  bAreas: { border: string, area?: LocationArea, areaBorders: string[] }[] = [];
+
+  locAreas: { border: string, name: string, isBorder: boolean, areaBorders: string[] }[] = [];
 
   constructor(private context: Context) { }
 
@@ -32,7 +33,7 @@ class usherSuggestDrivers {
     let priority = 0;
 
     // prepare kav & area
-    this.bAreas = [];
+    let areasBorders: { area: LocationArea, lids: string[] }[] = [];
     for await (const loc of this.context.for(Location).iterate({})) {
       if (loc.id.value === this.fid.value) {
         this.from.value = loc.name.value;
@@ -40,17 +41,29 @@ class usherSuggestDrivers {
       else if (loc.id.value === this.tid.value) {
         this.to.value = loc.name.value;
       }
-      if (loc.type.value === LocationType.border) {getare
-        let f = this.bAreas.find(cur => cur.area === loc.area.value);
-        if (!(f)) {
-          f = { border: loc.id.value, area: loc.area.value, areaBorders: [] };
-          this.bAreas.push(f);
+
+      if (loc.type.value === LocationType.border) {
+        let a: { area: LocationArea, lids: string[] } =
+          areasBorders.find(cur => cur.area === loc.area.value);
+        if (!(a)) {
+          a = { area: loc.area.value, lids: [] };
+          areasBorders.push(a);
         }
-        f.areaBorders.push(loc.id.value);
+        a.lids.push(loc.id.value);
       }
-      else {
-        this.bAreas.push({ border: loc.id.value, areaBorders: [loc.id.value] });
-      }
+    }
+
+    this.locAreas = [];// {border->{border.area.lids}}, {hospital->hospital}
+    for await (const loc of this.context.for(Location).iterate({
+    })) {
+      let f = areasBorders.find(cur => cur.area === loc.area.value);
+      let row = {
+        border: loc.id.value,
+        name: loc.name.value,
+        isBorder: loc.type.value === LocationType.border,
+        areaBorders: f ? f.lids : [loc.id.value]
+      };
+      this.locAreas.push(row);
     }
 
     this.distinct(drivers,
@@ -74,8 +87,8 @@ class usherSuggestDrivers {
     this.distinct(drivers,
       (await this.driversNoRideForLast7days(++priority, 'no ride last 7 days')));
 
-      // this.distinct(drivers,
-      //   (await this.driversFreezed(++priority, 'no ride last 7 days')));
+    // this.distinct(drivers,
+    //   (await this.driversFreezed(++priority, 'no ride last 7 days')));
 
     drivers.sort((d1, d2) => // sort by: priority, lastRideDays, lastCallDays, freeSeats
       d1.priority - d2.priority === 0 /*same*/
@@ -216,8 +229,8 @@ class usherSuggestDrivers {
         let r = await this.context.for(Ride).findId(rd.rid);
         if (r) {
           //if(ride.status.value == RideStatus.waitingForDriver)//look only for kav-details
-          let fab = this.bAreas.find(cur => cur.border === this.fid.value).areaBorders;
-          let tab = this.bAreas.find(cur => cur.border === this.tid.value).areaBorders;
+          let fab = this.locAreas.find(cur => cur.border === this.fid.value).areaBorders;
+          let tab = this.locAreas.find(cur => cur.border === this.tid.value).areaBorders;
           if (fab.includes(r.fid.value) || tab.includes(r.tid.value)) {// from OR to
             if (r.pickupTime.value && (!(r.pickupTime.value === TimeColumn.Empty))) {
               if (rd.fh.value <= r.pickupTime.value && r.pickupTime.value <= rd.th.value) {//out of interval
@@ -242,14 +255,14 @@ class usherSuggestDrivers {
       else if (rd.rrid.value) {
         let rr = await this.context.for(RegisterRide).findId(rd.rrid);
         if (rr) {
-          let fab = this.bAreas.find(cur => cur.border === this.fid.value).areaBorders;
-          let tab = this.bAreas.find(cur => cur.border === this.tid.value).areaBorders;
+          let fab = this.locAreas.find(cur => cur.border === this.fid.value).areaBorders;
+          let tab = this.locAreas.find(cur => cur.border === this.tid.value).areaBorders;
           if (fab.includes(rr.fid.value) || tab.includes(rr.tid.value)) {
             let pickupTime = '';
             if (rr.visitTime.value && (!(rr.visitTime.value === TimeColumn.Empty))) {
               pickupTime = addHours(PickupTimePrevHours, rr.visitTime.value);
             }
-            if (pickupTime.length > 0) { 
+            if (pickupTime.length > 0) {
               if (rd.fh.value <= pickupTime && pickupTime <= rd.th.value) {//out of interval
                 let dRow: driver4UsherSuggest = await this.createDriverRow(
                   priority,
@@ -334,8 +347,8 @@ class usherSuggestDrivers {
     let dIds: string[] = [];
     for await (const r of this.context.for(Ride).iterate({
       where: cur => cur.did.isDifferentFrom('')
-        .and((cur.fid.isIn(...(this.bAreas.find(ar => ar.border === this.fid.value).areaBorders)))
-          .or(cur.tid.isIn(...(this.bAreas.find(ar => ar.border === this.tid.value).areaBorders))))// from OR to
+        .and((cur.fid.isIn(...(this.locAreas.find(ar => ar.border === this.fid.value).areaBorders)))
+          .or(cur.tid.isIn(...(this.locAreas.find(ar => ar.border === this.tid.value).areaBorders))))// from OR to
     })) {
       if (!(lastFiveDaysDIds.includes(r.did.value))) {//not in last 5 days.
         if (!(dIds.includes(r.did.value))) {// keep distinct
@@ -376,8 +389,8 @@ class usherSuggestDrivers {
       where: cur => cur.did.isDifferentFrom('')
         .and(cur.date.isLessThan(this.date))//without current date
         .and(cur.date.isGreaterOrEqualTo(sixteenDaysAgo))
-        .and((cur.fid.isIn(...this.bAreas.find(ar => ar.border === this.fid.value).areaBorders))
-          .or(cur.tid.isIn(...this.bAreas.find(ar => ar.border === this.tid.value).areaBorders)))// from OR to
+        .and((cur.fid.isIn(...this.locAreas.find(ar => ar.border === this.fid.value).areaBorders))
+          .or(cur.tid.isIn(...this.locAreas.find(ar => ar.border === this.tid.value).areaBorders)))// from OR to
     })) {
       if (!(lastFiveDaysDIds.includes(r.did.value))) {//not in last 7 days.
         if (!(dIds.includes(r.did.value))) {// keep distinct
@@ -501,7 +514,7 @@ class usherSuggestDrivers {
     if (d.hasSeats()) {
       seats = d.seats.value;
     }
-    let freeze:Date = undefined;
+    let freeze: Date = undefined;
     if (d.hasFreezeDate()) {
       freeze = d.freezeTillDate.value;
     }

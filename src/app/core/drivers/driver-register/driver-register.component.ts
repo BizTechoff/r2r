@@ -44,7 +44,7 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
     let areasBorders: { area: LocationArea, lids: string[] }[] = []
     for await (const loc of this.context.for(Location).iterate({
     })) {
-      if (loc.type.isEqualTo(LocationType.border)) {
+      if (loc.type.value === LocationType.border) {
         let a: { area: LocationArea, lids: string[] } =
           areasBorders.find(cur => cur.area === loc.area.value);
         if (!(a)) {
