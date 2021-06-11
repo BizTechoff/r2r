@@ -46,28 +46,24 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
     })) {
       if (loc.type.isEqualTo(LocationType.border)) {
         let a: { area: LocationArea, lids: string[] } =
-          areasBorders.find(cur => cur.area == loc.area.value);
+          areasBorders.find(cur => cur.area === loc.area.value);
         if (!(a)) {
           a = { area: loc.area.value, lids: [] };
           areasBorders.push(a);
         }
         a.lids.push(loc.id.value);
       }
-      else {
-        let a = { area: loc.area.value, lids: [loc.id.value] };
-        areasBorders.push(a);
-      }
     }
 
     this.locAreas = [];// {border->{border.area.lids}}, {hospital->hospital}
     for await (const loc of this.context.for(Location).iterate({
     })) {
-      let isBorder = loc.type.value === LocationType.border;
+      let f = areasBorders.find(cur => cur.area === loc.area.value);
       let row = {
         id: loc.id.value,
         name: loc.name.value,
-        area: isBorder ? areasBorders.find(cur => cur.area == loc.area.value).lids : [loc.id.value],
-        isBorder: isBorder
+        isBorder: loc.type.value === LocationType.border,
+        area: f ? f.lids : [loc.id.value]
       };
       this.locAreas.push(row);
     }
@@ -649,7 +645,7 @@ export class DriverRegisterComponent implements OnInit {
 
             tCaption = 'To..';
             reg.th.value = MaxPickupHospital;
-            tReadonly = false; 
+            tReadonly = false;
           }
         }
       }
