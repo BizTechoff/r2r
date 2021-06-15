@@ -1,6 +1,7 @@
 
-import { Allowed, BoolColumn, checkForDuplicateValue, ColumnOptions, ColumnSettings, Context, EntityClass, IdColumn, IdEntity, ServerMethod, StringColumn } from "@remult/core";
+import { Allowed, BoolColumn, checkForDuplicateValue, ColumnOptions, ColumnSettings, Context, DateColumn, EntityClass, IdColumn, IdEntity, ServerMethod, StringColumn } from "@remult/core";
 import { Driver } from "../core/drivers/driver";
+import { LocationArea, LocationAreaColumn, LocationIdColumn } from "../core/locations/location";
 import { changeDate, TODAY } from '../shared/types';
 import { addDays } from "../shared/utils";
 import { Roles } from './roles';
@@ -35,6 +36,11 @@ export class Users extends IdEntity {
         }
     });
 
+    lastArea = new LocationAreaColumn();
+    lastFid = new LocationIdColumn();
+    lastTid = new LocationIdColumn();
+    lastDate = new DateColumn();
+
     constructor(private context: Context) {
 
         super({
@@ -47,7 +53,7 @@ export class Users extends IdEntity {
             saving: async () => {
                 if (context.onServer) {
                     if (this.isNew()) {
-                        this.createDate.value = addDays(TODAY);
+                        this.createDate.value = addDays(TODAY, undefined, false);
                         if ((await context.for(Users).count()) == 0) {
                             this.isAdmin.value = true;// If it's the first user, make it an admin
                         }
@@ -80,6 +86,19 @@ export class Users extends IdEntity {
             },
 
         });
+    }
+
+    hasLastFid(){
+      return this.lastFid.value && this.lastFid.value.length > 0;
+    }
+    hasLastTid(){
+      return this.lastTid.value && this.lastTid.value.length > 0;
+    }
+    hasLastDate(){
+      return this.lastDate.value && this.lastDate.value.getFullYear() > 1900;
+    }
+    hasLastArea(){
+      return this.lastArea.value && this.lastArea.value !== LocationArea.all;
     }
 
     private async updateEntityForUserByRole(role: Allowed, user: Users, createIfNotExists = false) {

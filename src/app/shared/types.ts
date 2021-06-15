@@ -1,4 +1,4 @@
-import { ColumnSettings, DateTimeColumn, StringColumn } from "@remult/core";
+import { ColumnSettings, DateTimeColumn, Filter, StringColumn } from "@remult/core";
 import { RideStatus } from "../core/rides/ride";
 
 
@@ -9,6 +9,7 @@ export const MaxPickupBorder:string = '19:00';
 export const MinPickupHospital:string = '10:00';
 export const MaxPickupHospital:string = '18:00';
 export const IsDevMode:boolean = true;
+export const FILTER_IGNORE:Filter = new Filter(x => { return true; });
 
 export class changeDate extends DateTimeColumn {
   readonly = true;
@@ -139,6 +140,7 @@ export interface ride4Usher {
   registers: number,
   w4Driver: number,
   w4Accept: number,
+  inHospital: number,
   ids?: string[],
 };
 

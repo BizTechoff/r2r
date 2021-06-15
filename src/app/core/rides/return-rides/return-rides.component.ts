@@ -18,7 +18,7 @@ export class ReturnRidesComponent implements OnInit {
   today = addDays(TODAY);
   ridesSettings = this.context.for(Ride).gridSettings({
     where: r => r.date.isEqualTo(this.today)//only empty
-      .and(r.status.isIn(...[RideStatus.waitingForEnd, RideStatus.succeeded]))
+      .and(r.status.isIn(...[RideStatus.waitingForArrived, RideStatus.waitingForEnd, RideStatus.succeeded]))
       .and(r.backId.isEqualTo('').or(r.isBackRide.isEqualTo(false)))//rides(no-back-created) || !back-rides
     // .and((new Filter(f => f.isDifferentFrom(r.backId, ''))).or(new Filter(f => f.isNull(r.backId))))
     , numOfColumnsInGrid: 10,

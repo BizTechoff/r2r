@@ -3,6 +3,10 @@
         width: 100%;
     }
 
+    th {
+        text-align: start;
+    }
+
     td {
         border-bottom: 1px solid lightblue;
     }
@@ -16,24 +20,31 @@
 <div class="full-page">
     <div class="header">
 
-        <div style="display:flex;flex-direction: row;flex-grow: 1;">
-            <button style="height: 40px;" mat-raised-button color="primary" (click)="prevDay()">-</button>
-            <data-control [column]="params.date"></data-control>
-            <button style="height: 40px;" mat-raised-button color="primary" (click)="nextDay()">+</button>
-            <button mat-mini-fab title="Refresh" (click)="refresh()" color="primary" style="padding:5px;"
-                title="{{ clientLastRefreshDate | date: 'HH:mm' }}">
+        <div style="display:flex;flex-direction: row;flex-grow: 1;align-content: space-between;">
+            <button title="Show Prev Day" style="height: 40px;" mat-raised-button color="primary" (click)="prevDay()">-</button>
+            <div>
+                <data-control title="Today: {{ clientLastRefreshDate | date: 'dd.MM.yyyy' }}" [column]="params.date"></data-control>
+                <!-- <h6 style="padding: 0;margin: 0;"><span>Today: {{ clientLastRefreshDate | date:'dd.MM.yyyy' }}</span></h6> -->
+            </div>
+            <button title="Show Next Day" style="height: 40px;" mat-raised-button color="primary" (click)="nextDay()">+</button>
+            <button mat-mini-fab (click)="refresh()" color="primary"
+                title="Last Refresh Done At: {{ clientLastRefreshDate | date: 'HH:mm' }}">
                 <mat-icon>refresh</mat-icon>
             </button>
+            <data-control [column]="params.area" title="Filter By Area" style="padding-left: 20px;"></data-control>
+            <data-control [column]="params.fid" title="Filter By From Location" style="min-width: 170px;padding-left: 20px;"></data-control>
+            <span style="padding-top: 13px;"> > </span>
+            <data-control [column]="params.tid" title="Filter By To Location" style="min-width: 170px;padding-right: 20px;"></data-control>
+            <!-- <button mat-mini-fab title="Toggle Filters" (click)="clearFilters()"
+                color="primary">
+                <mat-icon>filter_alt</mat-icon>
+            </button> -->
             <button mat-mini-fab title="Show Rides Activities For Selected Date" (click)="history()"
-                color="{{ params.historyChanged.value ? 'accent':'primary' }}" style="-ms-flex-align: end"
-                title="{{ clientLastRefreshDate | date: 'HH:mm' }}">
+                color="{{ params.historyChanged.value ? 'accent':'primary' }}" style="align-content: flex-end;">
                 <mat-icon>history</mat-icon>
             </button>
         </div>
-        <div>
-            <!-- <span style="padding-left: 15px;">Last Retrieved: {{ clientLastRefreshDate | date:
-                'HH:mm'
-                }}</span> -->
+        <!-- <div>
             <mat-expansion-panel [expanded]="params.fid.value || params.tid.value">
                 <mat-expansion-panel-header>
                     <mat-panel-title>
@@ -43,7 +54,7 @@
                 <data-control [column]="params.fid"></data-control>
                 <data-control [column]="params.tid"></data-control>
             </mat-expansion-panel>
-        </div>
+        </div> -->
     </div>
     <div class="grow-item">
         <table style="width: 100%">
@@ -52,8 +63,9 @@
                 <th><u>Pass</u></th>
                 <th><u>Rides</u></th>
                 <th><u>w4-Driver</u></th>
-                <th><u>w4-Accept</u></th>
-                <th><u>inProgress</u></th>
+                <th><u>In-Hospital</u></th>
+                <!-- <th><u>w4-Accept</u></th>
+                <th><u>inProgress</u></th> -->
                 <th><u>#Register</u></th>
             </tr>
             <!-- <tr ng-repeat="r in rides | orderBy:'-age'"></tr> -->
@@ -76,8 +88,9 @@
                 <td *ngIf="r.ridesCount == 0">{{ r.ridesCount }}</td>
                 <td *ngIf="r.ridesCount > 0"><button (click)="openSetDriver(r)"><u>{{ r.ridesCount }}</u></button></td>
                 <td>{{ r.w4Driver }}</td>
-                <td>{{ r.w4Accept }}</td>
-                <td>{{ r.inProgress }}</td>
+                <td>{{ r.inHospital }}</td>
+                <!-- <td>{{ r.w4Accept }}</td>
+                <td>{{ r.inProgress }}</td> -->
                 <td>{{ r.registers }}</td>
             </tr>
         </table>

@@ -32,13 +32,13 @@ export class DriversListComponent implements OnInit {
     columnSettings: (cur) => [
       cur.name,
       cur.idNumber,
-      cur.birthDate,
-      cur.seats,
       cur.mobile,
-      cur.email,
-      cur.home,
-      cur.defaultFromTime,
-      cur.defaultToTime
+      cur.seats,
+      cur.city,
+      cur.birthDate,
+      cur.email//,
+      // cur.defaultFromTime,
+      // cur.defaultToTime
       // ,
       // {
       //   column: this.prefsCount,
@@ -91,9 +91,12 @@ export class DriversListComponent implements OnInit {
   }
 
   async openDriver(d: Driver) {
-    await this.context.openDialog(DriverCrudComponent, dlg => dlg.args = {
-      did: d.id.value,
-    });
+    let changed = await this.context.openDialog(DriverCrudComponent,
+      dlg => dlg.args = { did: d.id.value, },// input params
+      dlg => { if (dlg) return dlg.okPressed; });// output param;
+    if (changed) {
+      await this.retrieveDrivers();
+    }
   }
 
   async addDriver() {

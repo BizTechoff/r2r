@@ -10,6 +10,7 @@ import { Patient } from '../../patients/patient';
 import { PatientContactsComponent } from '../../patients/patient-contacts/patient-contacts.component';
 import { Ride, RideStatus } from '../ride';
 import { Location } from '../../locations/location';
+import { Contact } from '../../patients/contact';
 
 @Component({
   selector: 'app-ride-crud',
@@ -42,8 +43,6 @@ export class RideCrudComponent implements OnInit {
       this.p = await this.context.for(Patient).findId(this.args.pid);
       if (this.p) {
         if (this.r.isNew()) {
-          this.r.pid.value = this.args.pid;
-          this.r.pMobile.value = this.p.mobile.value;
           // this.r.visitTime.value = tomorrow10am;
           this.r.pid.value = this.p.id.value;
           this.r.fid.value = this.p.defaultBorder.value;
@@ -183,9 +182,19 @@ export class RideCrudComponent implements OnInit {
   async save() {
     if (await this.validate()) {// ok: async () => { if (ride.wasChanged()) { await ride.save(); changed = true; } }
       if (this.p) {
-        if (this.p.birthDate.wasChanged() || (!(this.p.mobile.value))) {
-          this.p.mobile.value = this.r.pMobile.value;
-          await this.p.save();
+        if (this.r.pMobile.wasChanged()) {
+          let contact = await this.context.for(Contact).findOrCreate({
+            where: cur => cur.pid.isEqualTo(this.p.id)
+              .and(cur.mobile.isEqualTo(this.r.pMobile))
+          })
+          if (contact.isNew()) {
+            await contact.save();
+          }
+        }
+        else {
+          if (this.p.birthDate.wasChanged()) {
+            await this.p.save();
+          }
         }
       }
       if (this.r) {
@@ -225,8 +234,8 @@ export class RideCrudComponent implements OnInit {
       await this.dialog.error(this.r.date.defs.caption + ' ' + this.r.date.validationError);
       return false;
     }
-    let isBorder = this.r.fid.selected && this.r.fid.selected.type.value === LocationType.border?true:false;
-    let isHospital = this.r.fid.selected && this.r.fid.selected.type.value === LocationType.hospital?true:false;
+    let isBorder = this.r.fid.selected && this.r.fid.selected.type.value === LocationType.border ? true : false;
+    let isHospital = this.r.fid.selected && this.r.fid.selected.type.value === LocationType.hospital ? true : false;
     if (!isHospital) {
       console.log('----- @@@@@@ ------ this.r.isHasVisitTime()= ' + this.r.isHasVisitTime());
       if (!(this.r.isHasVisitTime())) {
@@ -244,32 +253,32 @@ export class RideCrudComponent implements OnInit {
         }
       }
     }
-    else{
+    else {
       console.log('NOT Hospital && NOT Border ?????')
     }
 
-    if (!this.p.mobile.value) {
-      this.p.mobile.validationError = `Required`;
-      await this.dialog.error(`${this.p.mobile.defs.caption}: ${this.p.mobile.validationError}`);
+    if (!this.r.pMobile.value) {
+      this.r.pMobile.validationError = `Required`;
+      await this.dialog.error(`${this.r.pMobile.defs.caption}: ${this.r.pMobile.validationError}`);
       return false;
     }
-    this.p.mobile.value = this.p.mobile.value.trim();
-    let mobile = this.p.mobile.value;
+    this.r.pMobile.value = this.r.pMobile.value.trim();
+    let mobile = this.r.pMobile.value;
     mobile = mobile.replace('-', '').replace('-', '').replace('-', '').replace('-', '');
     if (mobile.length != 10) {
-      this.p.mobile.validationError = `should be 10 digits`;
-      await this.dialog.error(`${this.p.mobile.defs.caption}: ${this.p.mobile.validationError} : ${mobile}`);
+      this.r.pMobile.validationError = `should be 10 digits`;
+      await this.dialog.error(`${this.r.pMobile.defs.caption}: ${this.r.pMobile.validationError} : ${mobile}`);
       return false;
     }
     if (mobile.slice(0, 2) != '05') {
-      this.p.mobile.validationError = `must start with '05'`;
-      await this.dialog.error(`${this.p.mobile.defs.caption}: ${this.p.mobile.validationError}`);
+      this.r.pMobile.validationError = `must start with '05'`;
+      await this.dialog.error(`${this.r.pMobile.defs.caption}: ${this.r.pMobile.validationError}`);
       return false;
     }
     for (const c of mobile) {
       if (!['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(c)) {
-        this.p.mobile.validationError = `should be ONLY digits`;
-        await this.dialog.error(`${this.p.mobile.defs.caption}: ${this.p.mobile.validationError}`);
+        this.r.pMobile.validationError = `should be ONLY digits`;
+        await this.dialog.error(`${this.r.pMobile.defs.caption}: ${this.r.pMobile.validationError}`);
         return false;
       }
     }

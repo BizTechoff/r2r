@@ -328,8 +328,8 @@ export class Ride extends IdEntity {
 }
 
 export class RideStatus {
-    static waitingForBorder = new RideStatus();
-    static waitingForHospital = new RideStatus();//ride-status OR patient-status
+    static InBorder = new RideStatus();
+    static InHospital = new RideStatus();//ride-status OR patient-status
     static waitingForDriver = new RideStatus();
     static waitingForAccept = new RideStatus();
     static waitingForStart = new RideStatus();
@@ -338,8 +338,10 @@ export class RideStatus {
     static waitingForEnd = new RideStatus();
     static succeeded = new RideStatus();//the king`s way
     static noFoundPatient = new RideStatus();
+    static wrongAddress = new RideStatus();
     static stayInHospital = new RideStatus();
     static goneByHimself = new RideStatus();
+
     constructor(public color = 'green') { }
     id: string;
 
@@ -348,7 +350,7 @@ export class RideStatus {
     //       status.DriverArrived,
 
     static isForwarded(from: RideStatus, to: RideStatus): boolean {
-        if (from === RideStatus.waitingForBorder || from === RideStatus.waitingForHospital) {
+        if (from === RideStatus.InBorder || from === RideStatus.InHospital) {
             return to === RideStatus.waitingForDriver;
         }
         else if (from === RideStatus.waitingForDriver) {
@@ -378,6 +380,15 @@ export class RideStatus {
         RideStatus.waitingForArrived
     ];
 
+    static NoUsherActionNeeded =[
+        RideStatus.InBorder,
+        RideStatus.InHospital,
+        RideStatus.waitingForEnd,
+        RideStatus.succeeded,
+        RideStatus.stayInHospital,
+        RideStatus.goneByHimself
+    ];
+
     static isDriverNotStarted = [
         // RideStatus.waitingForHospital,
         RideStatus.waitingForDriver,
@@ -401,8 +412,8 @@ export class RideStatus {
         RideStatus.stayInHospital,
         RideStatus.goneByHimself,
         RideStatus.noFoundPatient,
-        RideStatus.waitingForBorder,
-        RideStatus.waitingForHospital,
+        RideStatus.InBorder,
+        RideStatus.InHospital,
     ];
 
     static isInDriverWaitingStatuses = [

@@ -31,6 +31,7 @@ export class PatientsListComponent implements OnInit {
     columnSettings: p => [
       p.name,
       p.mobile,
+      p.age,
     ],
     gridButtons: [{
       name: 'Add New Patient',

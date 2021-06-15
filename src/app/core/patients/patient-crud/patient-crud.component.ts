@@ -108,6 +108,19 @@ export class PatientCrudComponent implements OnInit {
         return false;
       }
     }
+    
+    if (!this.p.idNumber.value) {
+      this.p.idNumber.validationError = `Required`;
+      await this.dialog.error(`${this.p.idNumber.defs.caption}: ${this.p.idNumber.validationError}`);
+      return false;
+    }
+    this.p.idNumber.value = this.p.idNumber.value.trim();
+    if (this.p.idNumber.value.length < 9) {
+      this.p.idNumber.validationError = `at least 9 digits`;
+      await this.dialog.error(`${this.p.idNumber.defs.caption}: ${this.p.idNumber.validationError}`);
+      return false;
+    }
+    
     if (!this.p.birthDate || !this.p.birthDate.value) {
       this.p.birthDate.validationError = 'Required';
       await this.dialog.error(`${this.p.birthDate.defs.caption}: ${this.p.birthDate.validationError}`);
@@ -119,6 +132,7 @@ export class PatientCrudComponent implements OnInit {
       return false;
     }
     this.p.mobile.value = mobile;
+
     return true;
   }
 

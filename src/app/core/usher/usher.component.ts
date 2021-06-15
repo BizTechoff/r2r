@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { BoolColumn, Context, DateColumn, Filter, ServerController, ServerMethod } from '@remult/core';
-import { ride4Usher, TODAY } from '../../shared/types';
+import { FILTER_IGNORE, ride4Usher, TODAY } from '../../shared/types';
 import { addDays } from '../../shared/utils';
+import { Users } from '../../users/users';
 import { RegisterDriver } from '../drivers/registerDriver';
-import { Location, LocationIdColumn, LocationType } from '../locations/location';
+import { Location, LocationArea, LocationAreaColumn, LocationIdColumn, LocationType } from '../locations/location';
 import { Ride, RideStatus } from '../rides/ride';
 import { RideActivity } from '../rides/rideActivity';
 import { SetDriverComponent } from './set-driver/set-driver.component';
@@ -13,21 +14,57 @@ class usherParams {
   date = new DateColumn({ defaultValue: addDays(TODAY), valueChange: async () => { await this.onChanged(); } });
   fid = new LocationIdColumn({ caption: 'From Location', valueChange: async () => { await this.onChanged(); } }, this.context);
   tid = new LocationIdColumn({ caption: 'To Location', valueChange: async () => { await this.onChanged(); } }, this.context);
+  area = new LocationAreaColumn({ caption: 'Area', valueChange: async () => { await this.onChanged(); } });
   historyChanged = new BoolColumn({ defaultValue: true });
   constructor(private context: Context) { }
   ready = false;
   onChanged = async () => { };
 
+  hasFid() {
+    return this.fid.value && this.fid.value.length > 0;
+  }
+  hasTid() {
+    return this.tid.value && this.tid.value.length > 0;
+  }
+  hasDate() {
+    return this.date.value && this.date.value.getFullYear() > 1900;
+  }
+  hasArea() {
+    return this.area.value && this.area.value !== LocationArea.all;
+  }
+
   @ServerMethod()
   async retrieve(): Promise<ride4Usher[]> {
     var result: ride4Usher[] = [];
+
+    var areaIds: { area: LocationArea, areaIds: string[] }[] = [];
+    for await (const loc of this.context.for(Location).iterate()) {
+      let f = areaIds.find(cur => cur.area === loc.area.value);
+      if (!(f)) {
+        f = { area: loc.area.value, areaIds: [] };
+        areaIds.push(f);
+      }
+      f.areaIds.push(loc.id.value);
+    }
+
+    // var fidAreaIds: { fid: string, areaIds: string[] }[] = [];
+    // for await (const loc of this.context.for(Location).iterate()) {
+    //   fidAreaIds.push({
+    //     fid: loc.id.value,
+    //     areaIds: areaIds.find(cur => cur.area === loc.area.value).areaIds
+    //   });
+    // }
+
     // let rideMaxChanged = new Date(2000, 1, 1);
     // console.log(id);
     for await (const r of this.context.for(Ride).iterate({
-      where: cur => cur.date.isEqualTo(this.date)
-        .and(cur.status.isNotIn(...[RideStatus.succeeded]))
-        .and(this.fid.value ? cur.fid.isEqualTo(this.fid) : new Filter(x => { /* true */ }))
-        .and(this.tid.value ? cur.tid.isEqualTo(this.tid) : new Filter(x => { /* true */ })),
+      where: cur => cur.status.isNotIn(...RideStatus.NoUsherActionNeeded)
+        .and(this.hasTid() ? cur.tid.isEqualTo(this.tid) : FILTER_IGNORE)
+        .and(cur.date.isEqualTo(this.date))
+        .and(this.hasArea() ? cur.fid.isIn(...areaIds.find(a => a.area === this.area.value).areaIds)
+          .or(cur.tid.isIn(...areaIds.find(a => a.area === this.area.value).areaIds)) : FILTER_IGNORE)
+        .and(this.hasFid() ? cur.fid.isEqualTo(this.fid) : FILTER_IGNORE)
+        .and(this.hasTid() ? cur.tid.isEqualTo(this.tid) : FILTER_IGNORE),
     })) {
 
       // if (rideMaxChanged < r.changed.value) {
@@ -56,6 +93,7 @@ class usherParams {
           registers: 0,
           w4Accept: 0,
           w4Driver: 0,
+          inHospital: 0,
           passengers: 0,
           ridesCount: 0,
           ids: [],
@@ -68,6 +106,7 @@ class usherParams {
       row.w4Driver += (r.isHasDriver() ? 0 : 1);
       row.passengers += r.passengers();//registerride.validkav(fd-td,fid-tid,days[,v.t])
       row.registers += await this.context.for(RegisterDriver).count(cur => cur.rid.isEqualTo(r.id));
+      row.inHospital += ([RideStatus.InHospital].includes(r.status.value) ? 1 : 0);
       row.ridesCount += 1;
     }
 
@@ -99,16 +138,58 @@ export class UsherComponent implements OnInit {
   }
 
   async ngOnInit() {
+    await this.loadUserDefaults();
+
     await this.refresh();
     this.params.ready = true;
     this.params.onChanged = async () => { await this.refresh(); };
   }
 
   async refresh() {
-    this.clientLastRefreshDate = addDays(TODAY,undefined,false);
+    await this.saveUserDefaults();
+    this.clientLastRefreshDate = addDays(TODAY, undefined, false);
     this.params.onChanged = async () => { };
     this.rides = await this.params.retrieve();
     this.params.onChanged = async () => { await this.refresh(); };
+  }
+
+  async clearFilters() {
+    this.params.date.value = addDays(TODAY);
+    this.params.fid.value = '';
+    this.params.tid.value = '';
+    this.params.area.value = LocationArea.all;
+    await this.refresh();
+  }
+
+  async loadUserDefaults() {
+    let u = await this.context.for(Users).findId(this.context.user.id);
+    if (u) {
+      if (u.hasLastDate()) {
+        this.params.date.value = u.lastDate.value;
+      }
+      if (u.hasLastFid()) {
+        this.params.fid.value = u.lastFid.value;
+      }
+      if (u.hasLastTid()) {
+        this.params.tid.value = u.lastTid.value;
+      }
+      if (u.hasLastArea()) {
+        this.params.area.value = u.lastArea.value;
+      }
+    }
+  }
+
+  async saveUserDefaults() {
+    if (this.params.date.wasChanged() || this.params.fid.wasChanged() || this.params.tid.wasChanged() || this.params.area.wasChanged()) {
+      let u = await this.context.for(Users).findId(this.context.user.id);
+      if (u) {
+        u.lastDate.value = this.params.date.value;
+        u.lastFid.value = this.params.fid.value;
+        u.lastTid.value = this.params.tid.value;
+        u.lastArea.value = this.params.area.value;
+        await u.save();
+      }
+    }
   }
 
   async prevDay() {

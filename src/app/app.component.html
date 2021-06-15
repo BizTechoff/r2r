@@ -35,7 +35,7 @@
         <mat-divider></mat-divider> -->
         <ng-container *ngFor="let m of router.config">
         <mat-list-item *ngIf="shouldDisplayRoute(m)" routerLinkActive="active-route">
-          <mat-divider *ngIf="m.path === 'Locations' || m.path === 'Return Rides'"></mat-divider>
+          <mat-divider *ngIf="m.path === 'Locations' || m.path === 'Rides4Usher'"></mat-divider>
           <a matLine [routerLink]="m.path" (click)="routeClicked()">{{routeName(m)}}</a>
         </mat-list-item>
 

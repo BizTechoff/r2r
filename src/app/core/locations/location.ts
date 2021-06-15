@@ -6,7 +6,11 @@ import { Roles } from "../../users/roles";
 export class Location extends IdEntity {
 
   name = new StringColumn({});
-  type = new LocationTypeColumn({});
+  type = new LocationTypeColumn({valueChange: () => {
+    if(this.type.value === LocationType.hospital){
+      this.area.value = LocationArea.all;
+    }
+  }});
   area = new LocationAreaColumn({});
 
   constructor(private context: Context) {
@@ -55,8 +59,11 @@ export class LocationArea {
   id;//: string;
 }
 export class LocationAreaColumn extends ValueListColumn<LocationArea>{
-  constructor(options: ColumnOptions) {
-    super(LocationArea, options);
+  constructor(options?: ColumnSettings<LocationArea>) {
+    super(LocationArea,{
+      caption: 'Select Area',
+      defaultValue: LocationArea.all,
+       ...options});
   }
 }
 export class LocationType {

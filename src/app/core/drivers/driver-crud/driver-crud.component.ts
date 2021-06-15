@@ -44,7 +44,7 @@ export class DriverCrudComponent implements OnInit {
           }
         }],
         this.d.email,
-        [this.d.city, this.d.address],
+        this.d.city,// this.d.address],
         { column: this.d.freezeTillDate, readOnly: true, visible: () => { return this.d.hasFreezeDate(); } },
       ],
     });
@@ -71,6 +71,18 @@ export class DriverCrudComponent implements OnInit {
     if (this.d.name.value.length < 2) {
       this.d.name.validationError = `at least 2 letters`;
       await this.dialog.error(`${this.d.name.defs.caption}: ${this.d.name.validationError}`);
+      return false;
+    }
+    
+    if (!this.d.idNumber.value) {
+      this.d.idNumber.validationError = `Required`;
+      await this.dialog.error(`${this.d.idNumber.defs.caption}: ${this.d.idNumber.validationError}`);
+      return false;
+    }
+    this.d.idNumber.value = this.d.idNumber.value.trim();
+    if (this.d.idNumber.value.length < 9) {
+      this.d.idNumber.validationError = `at least 9 digits`;
+      await this.dialog.error(`${this.d.idNumber.defs.caption}: ${this.d.idNumber.validationError}`);
       return false;
     }
 
@@ -102,19 +114,31 @@ export class DriverCrudComponent implements OnInit {
       this.d.mobile.value = mobile;
     }
 
-    if (!this.d.birthDate || !this.d.birthDate.value) {
-      this.d.birthDate.validationError = 'Required';
-      await this.dialog.error(`${this.d.birthDate.defs.caption}: ${this.d.birthDate.validationError}`);
-      return false;
-    }
-    if (!(this.d.birthDate.value.getFullYear() > 1900 && this.d.birthDate.value.getFullYear() <= addDays(TODAY).getFullYear())) {
-      this.d.birthDate.validationError = 'Not Valid';
-      await this.dialog.error(`${this.d.birthDate.defs.caption}: ${this.d.birthDate.validationError}`);
-      return false;
-    }
+    // if (!this.d.birthDate || !this.d.birthDate.value) {
+    //   this.d.birthDate.validationError = 'Required';
+    //   await this.dialog.error(`${this.d.birthDate.defs.caption}: ${this.d.birthDate.validationError}`);
+    //   return false;
+    // }
+    // if (!(this.d.birthDate.value.getFullYear() > 1900 && this.d.birthDate.value.getFullYear() <= addDays(TODAY).getFullYear())) {
+    //   this.d.birthDate.validationError = 'Not Valid';
+    //   await this.dialog.error(`${this.d.birthDate.defs.caption}: ${this.d.birthDate.validationError}`);
+    //   return false;
+    // }
     if (!this.d.seats.value || this.d.seats.value <= 0) {
       this.d.seats.validationError = 'at least 1 seat';
       await this.dialog.error(this.d.seats.defs.caption + ' ' + this.d.seats.validationError);
+      return false;
+    }
+    
+    if (!this.d.city.value) {
+      this.d.city.validationError = `Required`;
+      await this.dialog.error(`${this.d.city.defs.caption}: ${this.d.city.validationError}`);
+      return false;
+    }
+    this.d.city.value = this.d.city.value.trim();
+    if (this.d.city.value.length < 3) {
+      this.d.city.validationError = `at least 3 letters`;
+      await this.dialog.error(`${this.d.city.defs.caption}: ${this.d.city.validationError}`);
       return false;
     }
 
