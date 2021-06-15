@@ -1,7 +1,14 @@
 <div class="full-page">
     <div class="header">
-        <h3 *ngIf="r && !r.isNew()">Edit Ride ({{ r.status.value.id }})</h3>
-        <h3 *ngIf="p && r && r.isNew()">Add New Ride For: {{ p.name.value }}</h3>
+        <div *ngIf="r && !r.isNew()" style="display:flex;flex-direction: column;flex-grow: 1;align-content: center;">
+            <span><h3>Edit Ride ({{ r.status.value.id }}) For <span>{{ p&&p.name?p.name.value:'(loading..)' }}</span></h3></span> 
+            <!-- <span *ngIf="p&&p.name"><h5>Patient: {{ p.name.value }}</h5></span> -->
+        </div>
+        <div *ngIf="r && r.isNew()">
+            <h3><span>Add New Ride For <span *ngIf="p&&p.name">{{ p.name.value }}</span></span></h3>
+            <!-- <br>
+            <h5><span *ngIf="p&&p.name">Patient: {{ p.name.value }}</span></h5> -->
+        </div>
     </div>
     <div class="grow-item">
         <data-area *ngIf="this.dataArea" [settings]="this.dataArea"></data-area>
@@ -10,7 +17,7 @@
         <hr>
         <div style="display:flex;flex-direction: row;flex-grow: 1;justify-content: space-between;">
             <button mat-raised-button color="primary" (click)="openPatientContacts()">Patient Contacts</button>
-            <button mat-raised-button color="primary" (click)="swapLocations()">Swap Locations</button>
+            <button *ngIf="r&&!r.isInDriving()" mat-raised-button color="primary" (click)="swapLocations()">Swap Locations</button>
             <button mat-raised-button color="accent" (click)="save()">Save</button>
         </div>
     </div>

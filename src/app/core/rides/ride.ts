@@ -15,8 +15,18 @@ import { RideActivity } from "./rideActivity";
 @EntityClass
 export class Ride extends IdEntity {
 
-    fid = new LocationIdColumn({ caption: 'From Location', allowNull: false }, this.context);
-    tid = new LocationIdColumn({ caption: 'To Location', allowNull: false }, this.context);
+    fid = new LocationIdColumn({
+        caption: 'From Location', allowNull: false,
+        dataControlSettings: () => ({
+            readOnly: RideStatus.isInDriving.includes(this.status.value)
+        })
+    }, this.context);
+    tid = new LocationIdColumn({
+        caption: 'To Location', allowNull: false,
+        dataControlSettings: () => ({
+            readOnly: RideStatus.isInDriving.includes(this.status.value)
+        })
+    }, this.context);
     immediate = new BoolColumn({
         caption: 'As Soon As Possible',
         defaultValue: false, valueChange: () => {
@@ -55,6 +65,7 @@ export class Ride extends IdEntity {
         super({
             name: "rides",
             allowApiCRUD: [Roles.admin, Roles.usher, Roles.matcher],
+            allowApiUpdate: [Roles.admin, Roles.usher, Roles.matcher, Roles.driver],
             allowApiRead: c => c.isSignedIn(),
             validation: () => {
                 if (this.fid.selected) {
@@ -244,6 +255,10 @@ export class Ride extends IdEntity {
         return this.isExsistDriver() && inRiding.includes(this.status.value);
     }
 
+    isInDriving(){
+        return RideStatus.isInDriving.includes(this.status.value);
+    }
+
 
 
     isWaitingForDriverAccept() {
@@ -280,15 +295,22 @@ export class Ride extends IdEntity {
     }
 
     async createBackRide(ds?: DialogService): Promise<Ride> {
+        let rideArrived = RideStatus.PatientArrivedToDestination.includes(this.status.value);
         let yes = false;
-        if (ds) {
+        if (ds && rideArrived) {
             yes = await ds.yesNoQuestion('Did patient release from hospital?');
         }
         let back = this.context.for(Ride).create();
         this.copyTo(back);
         back.swapLocations();
-        back.status.value = RideStatus.stayInHospital;
+        back.status.value = RideStatus.notActiveYet;
+        if (RideStatus.PatientArrivedToDestination.includes(this.status.value)) {
+            back.status.value = RideStatus.InHospital;
+        }
         if (yes) {
+            if (this.status.value !== RideStatus.succeeded) {
+                this.status.value = RideStatus.succeeded;//auto close ride
+            }
             back.status.value = RideStatus.waitingForDriver;
         }
         back.isBackRide.value = true;
@@ -330,6 +352,7 @@ export class Ride extends IdEntity {
 export class RideStatus {
     static InBorder = new RideStatus();
     static InHospital = new RideStatus();//ride-status OR patient-status
+    static notActiveYet = new RideStatus();//back-ride created before the patient arrived to hospital
     static waitingForDriver = new RideStatus();
     static waitingForAccept = new RideStatus();
     static waitingForStart = new RideStatus();
@@ -341,6 +364,10 @@ export class RideStatus {
     static wrongAddress = new RideStatus();
     static stayInHospital = new RideStatus();
     static goneByHimself = new RideStatus();
+    static PatientArrivedToDestination = [
+        RideStatus.waitingForEnd,
+        RideStatus.succeeded
+    ];
 
     constructor(public color = 'green') { }
     id: string;
@@ -380,7 +407,7 @@ export class RideStatus {
         RideStatus.waitingForArrived
     ];
 
-    static NoUsherActionNeeded =[
+    static NoUsherActionNeeded = [
         RideStatus.InBorder,
         RideStatus.InHospital,
         RideStatus.waitingForEnd,

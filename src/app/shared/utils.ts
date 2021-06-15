@@ -1,4 +1,5 @@
 import { ServerFunction } from "@remult/core";
+import { TODAY } from "./types";
 
 
 export function isDesktop() {
@@ -33,7 +34,7 @@ export class PromiseThrottle {
     }
 }
 
-export function addDays(days: number, date?: Date, setTimeToZero: boolean = true) {
+export function addDays(days: number = TODAY, date?: Date, setTimeToZero: boolean = true) {
     var result = date ? date : new Date();
     if (setTimeToZero) {
         result = new Date(result.getFullYear(), result.getMonth(), result.getDate());

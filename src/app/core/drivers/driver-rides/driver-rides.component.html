@@ -23,7 +23,7 @@
         <hr style="height:2px;border-width:0;color:gray;background-color:gray">
     </div>
     <div class="grow-item">
-        <h3 *ngIf="(!(rides && rides.length > 0))">TX! Found no rides.</h3>
+        <h3 *ngIf="(!(rides && rides.length > 0))">TX! You have no rides Today.</h3>
         <table *ngIf="rides && rides.length > 0" style="width: 100%;">
 
             <tr *ngFor="let r of rides">

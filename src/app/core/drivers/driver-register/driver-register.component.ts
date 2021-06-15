@@ -522,8 +522,8 @@ export class DriverRegisterComponent implements OnInit {
     }
     this.todayMidnigth = addDays(0);
 
-    this.params.fid.value = this.driver.defaultFromLocation ? this.driver.defaultFromLocation.value : null;
-    this.params.tid.value = this.driver.defaultToLocation ? this.driver.defaultToLocation.value : null;
+    this.params.fid.value = this.driver.defaultFromLocation && this.driver.defaultFromLocation.value && this.driver.defaultFromLocation.value.length > 0 ? this.driver.defaultFromLocation.value : null;
+    this.params.tid.value = this.driver.defaultToLocation && this.driver.defaultToLocation.value && this.driver.defaultToLocation.value.length > 0 ? this.driver.defaultToLocation.value : null;
     this.params.did.value = this.driver.id.value;
     this.params.seats.value = this.driver.seats.value;
 
@@ -603,7 +603,7 @@ export class DriverRegisterComponent implements OnInit {
     let f = await this.context.for(Location).findId(r.fId);
     let from = f.name.value;
     let fCaption = `Pickup From ${from}`;
-    let tCaption = 'Pickup Till';
+    let tCaption = 'Till';
     let fReadonly = false;
     let tReadonly = false;
     let isHospital = f.type.value === LocationType.hospital;
@@ -611,12 +611,12 @@ export class DriverRegisterComponent implements OnInit {
       reg.fh.value = formatDate(addDays(TODAY, undefined, false), 'HH:mm', 'en-US');
       fCaption = `I Can Be At ${from} About`;
       fReadonly = false;
-      tCaption = 'Max Pickup Time';
+      tCaption = `Max Pickup Time From ${from}`;
       tReadonly = true;
     }
     else {
       if (r.immediate) {
-        fCaption = 'I Can Be There ASAP From';
+        fCaption = `I Can Be At ${from} ASAP From`;
         reg.fh.value = formatDate(addDays(TODAY, undefined, false), 'HH:mm', 'en-US');
         fReadonly = false;
 
@@ -628,18 +628,18 @@ export class DriverRegisterComponent implements OnInit {
 
         let hasVisitTimeTime = r.visitTime && r.visitTime.length > 0 && (!(r.visitTime === TimeColumn.Empty));
         if (hasVisitTimeTime) {
-          fCaption = 'Pickup From';
+          fCaption = `Pickup From ${from}`;
           reg.fh.value = formatDate(addDays(TODAY, undefined, false), 'HH:mm', 'en-US');
           fReadonly = false;
 
-          tCaption = 'Max Pickup';
+          tCaption = `Max Pickup From ${from}`;
           reg.th.value = r.pickupTime;
           tReadonly = false;
         }
         else {
           let hasPickupTime = r.pickupTime && r.pickupTime.length > 0 && (!(r.pickupTime === TimeColumn.Empty));
           if (hasPickupTime) {
-            fCaption = 'Pickup Around';
+            fCaption = `Pickup From ${from} Around`;
             reg.fh.value = r.pickupTime;
             fReadonly = false;
 
@@ -651,6 +651,7 @@ export class DriverRegisterComponent implements OnInit {
       }
     }
 
+    let isRegistered = false;
     await this.context.openDialog(
       InputAreaComponent,
       x => x.args = {
@@ -727,10 +728,13 @@ export class DriverRegisterComponent implements OnInit {
           await this.driver.save();
           await this.updateRegisterRides(reg.rrid.value, 1);
           await this.refresh();
+          isRegistered = true;
         }
       },
     );
-
+    if (isRegistered) {
+      await this.dialog.error('Thank You! We contact you ASAP to attach you to ride')
+    }
   }
 
   async updateRegisterRides(rrid: string, add: number) {

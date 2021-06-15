@@ -3,7 +3,8 @@ import { DialogService } from "../../common/dialog";
 import { DynamicServerSideSearchDialogComponent } from "../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component";
 import { GridDialogComponent } from "../../common/grid-dialog/grid-dialog.component";
 import { InputAreaComponent } from "../../common/input-area/input-area.component";
-import { TimeColumn } from "../../shared/types";
+import { NOT_FOUND_DAYS, TimeColumn } from "../../shared/types";
+import { addDays, daysDiff } from "../../shared/utils";
 import { Roles } from "../../users/roles";
 import { LocationIdColumn } from "../locations/location";
 import { Ride, RideStatus, RideStatusColumn } from "../rides/ride";
@@ -179,7 +180,8 @@ export async function openDriver(id: string, context: Context): Promise<boolean>
   return false;
 }
 
-export async function openDriverRides(did: string, context: Context): Promise<boolean> {
+export async function openDriverRides(did: string, context: Context): Promise<number> {
+  let result = NOT_FOUND_DAYS;
   let d = await context.for(Driver).findId(did);
   if (d) {
     let pass = new NumberColumn({ caption: 'Pass' });
@@ -204,5 +206,13 @@ export async function openDriverRides(did: string, context: Context): Promise<bo
       }),
     });
   }
-  return true;
+
+  // let last = await context.for(Ride).findFirst({
+  //   where: cur => cur.did.isEqualTo(did),
+  //   orderBy: cur => [{ column: cur.date, descending: true }]
+  // });
+  // if (last) {
+  //   result = daysDiff(addDays(), last.date.value);
+  // }
+  return result;
 }

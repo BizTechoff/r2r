@@ -10,6 +10,7 @@ export const MinPickupHospital:string = '10:00';
 export const MaxPickupHospital:string = '18:00';
 export const IsDevMode:boolean = true;
 export const FILTER_IGNORE:Filter = new Filter(x => { return true; });
+export const NOT_FOUND_DAYS:number = -999999;
 
 export class changeDate extends DateTimeColumn {
   readonly = true;

@@ -29,7 +29,9 @@
                         </button>
                     </div>
                     <div>
-                        <mat-expansion-panel [expanded]="params.fid.value || params.tid.value">
+                        <!-- <span>{{(params.fid.value && params.fid.value.length > 0?'true':'false')}}</span>
+                        <span>{{(params.tid.value && params.tid.value.length > 0?'true':'false')}}</span> -->
+                        <mat-expansion-panel [expanded]="(params.fid.value && params.fid.value.length > 0) || (params.tid.value && params.tid.value.length > 0)">
                             <mat-expansion-panel-header>
                                 <mat-panel-title>
                                     Last Retrieved: {{ clientLastRefreshDate | date: 'HH:mm' }}

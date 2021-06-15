@@ -1,3 +1,4 @@
+import { ThrowStmt } from '@angular/compiler';
 import { Component, ViewChild } from '@angular/core';
 import { MatSidenav } from '@angular/material/sidenav';
 import { ActivatedRoute, Route, Router } from '@angular/router';
@@ -16,7 +17,7 @@ import { PasswordColumn, Users } from './users/users';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-
+ showConnectAsDriver = false;
 
   constructor(
     public router: Router,
@@ -26,6 +27,12 @@ export class AppComponent {
     private session: JwtSessionService,
     public context: Context) {
     session.loadUserInfo();
+    this.showConnectAsDriver = this.context.user.roles.length > 1 && this.context.user.roles.includes(Roles.driver);
+  }
+
+  async connectAsDriver(){
+// this.signOut();
+// this.signIn();
   }
 
   async signIn() {

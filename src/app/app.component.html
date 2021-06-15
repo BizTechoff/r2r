@@ -19,12 +19,13 @@
     </ng-container>
   </mat-toolbar>
   <mat-sidenav-container class="app-sidenav-container">
-    <mat-sidenav #sidenav class="app-sidenav mat-elevation-z10 no-print" [opened]="!dialogService.isScreenSmall() && context.isSignedIn()"
+    <mat-sidenav #sidenav class="app-sidenav mat-elevation-z10 no-print"
+      [opened]="!dialogService.isScreenSmall() && context.isSignedIn()"
       [mode]="dialogService.isScreenSmall()?'over':'side'">
       <div style="width:100%;text-align: center">
 
       </div><a href="http://www.roadtorecovery.org.il/Site/en/EnIndex.html" target="_blank">
-        <img src="assets/logo.png" width="150px" title="About Us"/>
+        <img src="assets/logo.png" width="150px" title="About Us" />
       </a>
       <h4 *ngIf="context.isSignedIn()">Hello {{context.user.name}}</h4>
       <mat-divider></mat-divider>
@@ -34,23 +35,23 @@
         </mat-list-item>
         <mat-divider></mat-divider> -->
         <ng-container *ngFor="let m of router.config">
-        <mat-list-item *ngIf="shouldDisplayRoute(m)" routerLinkActive="active-route">
-          <mat-divider *ngIf="m.path === 'Locations' || m.path === 'Rides4Usher'"></mat-divider>
-          <a matLine [routerLink]="m.path" (click)="routeClicked()">{{routeName(m)}}</a>
-        </mat-list-item>
+          <mat-list-item *ngIf="shouldDisplayRoute(m)" routerLinkActive="active-route">
+            <mat-divider *ngIf="m.path === 'Locations' || m.path === 'Rides4Usher'"></mat-divider>
+            <a matLine [routerLink]="m.path" (click)="routeClicked()">{{routeName(m)}}</a>
+          </mat-list-item>
 
-      </ng-container>
-    </mat-nav-list>
+        </ng-container>
+      </mat-nav-list>
+<button mat-raised-button color="primary" *ngIf="showConnectAsDriver" (click)="connectAsDriver()">Connect As Driver</button>
+    </mat-sidenav>
+    <div class="app-sidenav-content ">
 
-  </mat-sidenav>
-  <div class="app-sidenav-content ">
 
-
-      <div class="wrapper"  style="height:100%">
-          <router-outlet></router-outlet>
+      <div class="wrapper" style="height:100%">
+        <router-outlet></router-outlet>
       </div>
 
-  </div>
+    </div>
 
   </mat-sidenav-container>
 </div>

@@ -3,7 +3,7 @@ import { MatDialogRef } from '@angular/material/dialog';
 import { BoolColumn, Context, DataAreaSettings } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
 import { TODAY } from '../../../shared/types';
-import { addDays } from '../../../shared/utils';
+import { addDays, resetTime } from '../../../shared/utils';
 import { Roles } from '../../../users/roles';
 import { LocationType } from '../../locations/location';
 import { Patient } from '../../patients/patient';
@@ -64,7 +64,7 @@ export class RideCrudComponent implements OnInit {
       return;
     }
 
-    let rOnly = RideStatus.isInDriving.includes(this.r.status.value);
+    let rOnly = this.r.isInDriving();
     this.dataArea = new DataAreaSettings({
       columnSettings: () => [
         {
@@ -122,7 +122,7 @@ export class RideCrudComponent implements OnInit {
           this.r.isHasWheelchair
         ],
         this.r.rRemark,
-        { column: this.r.dRemark, readOnly: this.context.isAllowed([Roles.matcher]) },
+        { column: this.r.dRemark, visible: () => !this.context.isAllowed([Roles.matcher]) },
       ],
     });
   }
@@ -179,7 +179,8 @@ export class RideCrudComponent implements OnInit {
     return result;
   }
 
-  async save() {
+  async save(close = true) : Promise<boolean> {
+    let result = false;
     if (await this.validate()) {// ok: async () => { if (ride.wasChanged()) { await ride.save(); changed = true; } }
       if (this.p) {
         if (this.r.pMobile.wasChanged()) {
@@ -199,13 +200,17 @@ export class RideCrudComponent implements OnInit {
       }
       if (this.r) {
         await this.r.save();
+        result = true;
         this.args.rid = this.r.id.value;
         if (this.createBackRide.value) {
           await this.r.createBackRide();
         }
       }
-      this.select();
+      if (close) {
+        this.select();
+      }
     }
+    return result;
   }
 
   async validate(): Promise<boolean> {
@@ -301,7 +306,10 @@ export class RideCrudComponent implements OnInit {
     if (this.r.wasChanged()) {// || isNew()
       let yes = await this.dialog.yesNoQuestion(`Ride didn't saved. Save and ${this.r.isNew() ? 'Create the ride' : 'Open Contacts'}?`);
       if (yes) {
-        await this.r.save();
+        let ok = await this.save(false);
+        if(!ok){
+          return;
+        }
       }
       else {
         return;
@@ -314,9 +322,15 @@ export class RideCrudComponent implements OnInit {
   }
 
   swapLocations() {
-    this.r.swapLocations();
-    this.setBackRideVisible();
-    this.setImmediateVisible();
+    let started = RideStatus.isInDriving.includes(this.r.status.value);
+    if (started) {
+      this.dialog.error('Can not swap locations, ride already started');
+    }
+    else {
+      this.r.swapLocations();
+      this.setBackRideVisible();
+      this.setImmediateVisible();
+    }
   }
 
   close() {

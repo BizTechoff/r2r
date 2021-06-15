@@ -34,7 +34,7 @@ class reportParams {
     // get:  {where: this.where},
     // where: this.where,
     allowCRUD: false,
-    numOfColumnsInGrid: 10,
+    numOfColumnsInGrid: 14,
   });
 
   constructor(private context: Context) { }

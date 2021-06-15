@@ -1,14 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
-import { Context, DateColumn, NumberColumn, ServerController, ServerMethod, StringColumn } from '@remult/core';
+import { Context, DateColumn, ServerController, ServerMethod, StringColumn } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
 import { GridDialogComponent } from '../../../common/grid-dialog/grid-dialog.component';
-import { driver4UsherSuggest, PickupTimePrevHours, TimeColumn, TODAY } from '../../../shared/types';
+import { driver4UsherSuggest, NOT_FOUND_DAYS, PickupTimePrevHours, TimeColumn, TODAY } from '../../../shared/types';
 import { addDays, addHours, daysDiff, resetTime } from '../../../shared/utils';
 import { Roles } from '../../../users/roles';
 import { Driver, openDriverRides } from '../../drivers/driver';
-import { RegisterDriver } from '../../drivers/registerDriver';
 import { DriverCall } from '../../drivers/driverCall';
+import { RegisterDriver } from '../../drivers/registerDriver';
 import { Location, LocationArea, LocationIdColumn, LocationType } from '../../locations/location';
 import { RegisterRide } from '../../rides/register-rides/registerRide';
 import { Ride, RideStatus } from '../../rides/ride';
@@ -522,7 +522,7 @@ class usherSuggestDrivers {
     let lastCallDays = -999999;
     let c = await this.context.for(DriverCall).findFirst(
       {
-        where: cur => cur.dId.isEqualTo(did),
+        where: cur => cur.did.isEqualTo(did),
         orderBy: cur => [{ column: cur.created, descending: true }]// newest first
       }
     );
@@ -585,11 +585,14 @@ export class SuggestDriverComponent implements OnInit {
   args: { date?: Date, fid?: string, tid?: string }
   selected: { did: string, status: string } = { did: '', status: '' };
 
-  serach = '';
+  search = new StringColumn({
+    caption: 'Search here for driver name',
+    valueChange: async () => await this.filter()
+  });
 
   async filter() {
-    if (this.serach && this.serach.length > 0) {
-      this.drivers = this.origin.filter(cur => cur.name.trim().toLowerCase().includes(this.serach.trim().toLowerCase()));
+    if (this.search.value && this.search.value.length > 0) {
+      this.drivers = this.origin.filter(cur => cur.name.trim().toLowerCase().includes(this.search.value.trim().toLowerCase()));
     }
     else {
       this.drivers = this.origin;
@@ -625,9 +628,12 @@ export class SuggestDriverComponent implements OnInit {
   }
 
   async openCallDocumentationDialog(d: driver4UsherSuggest) {
-    await DriverCall.openCallDocumentationDialog(this.context, d.did, d.name);
+    let lastCallDays = await DriverCall.openCallDocumentationDialog(this.context, d.did, d.name);
+    if (d.lastCallDays !== NOT_FOUND_DAYS && d.lastCallDays !== lastCallDays) {
+      d.lastCallDays = lastCallDays;
+    }
   }
-
+ 
   async showRegisterRide(d: driver4UsherSuggest) {
     let rd = await this.context.for(RegisterDriver).findFirst(cur => cur.did.isEqualTo(d.did));
     if (rd) {
@@ -676,7 +682,10 @@ export class SuggestDriverComponent implements OnInit {
   }
 
   async showDriverRides(d: driver4UsherSuggest) {
-    await openDriverRides(d.did, this.context);
+    let lastRideDays = await openDriverRides(d.did, this.context);
+    if (lastRideDays !== NOT_FOUND_DAYS && d.lastRideDays !== lastRideDays) {
+      d.lastRideDays = lastRideDays;
+    }
   }
 
 }
