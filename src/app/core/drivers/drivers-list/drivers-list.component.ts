@@ -3,6 +3,7 @@ import { BusyService } from '@remult/angular';
 import { Context, NumberColumn, ServerFunction, StringColumn } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
 import { InputAreaComponent } from '../../../common/input-area/input-area.component';
+import { FILTER_IGNORE } from '../../../shared/types';
 import { Roles } from '../../../users/roles';
 import { LocationAreaComponent } from '../../locations/location-area/location-area.component';
 import { Ride, RideStatus } from '../../rides/ride';
@@ -26,7 +27,8 @@ export class DriversListComponent implements OnInit {
 
   prefsCount = new NumberColumn({ caption: "Prefs Count" });
   driversSettings = this.context.for(Driver).gridSettings({
-    where: cur => this.search.value ? cur.name.isContains(this.search) : undefined,
+    where: cur => cur.userId.isDifferentFrom('')
+      .and(this.search.value ? cur.name.isContains(this.search) : FILTER_IGNORE),
     numOfColumnsInGrid: 10,
     // allowSelection: true,
     columnSettings: (cur) => [

@@ -119,6 +119,7 @@ import { DriverCrudComponent } from './core/drivers/driver-crud/driver-crud.comp
     // SettingsService,
   ], 
   bootstrap: [AppComponent],
+  // DIALOGS - POPUPS
   entryComponents: [YesNoQuestionComponent, InputAreaComponent, GridDialogComponent, 
     DynamicServerSideSearchDialogComponent,
     SetDriverComponent, SendSmsComponent, RideCrudComponent, DriverCrudComponent,

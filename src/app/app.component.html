@@ -14,6 +14,7 @@
       <mat-menu #menu="matMenu">
         <button mat-menu-item (click)="updateInfo()">Update Info</button>
         <button mat-menu-item (click)="changePassword()">Change Password</button>
+        <button mat-menu-item *ngIf="isConnectAsDriverEnabled()" (click)="connectAsDriver()">Connect As Driver</button>
         <button mat-menu-item (click)="signOut()">Sign Out</button>
       </mat-menu>
     </ng-container>
@@ -39,10 +40,8 @@
             <mat-divider *ngIf="m.path === 'Locations' || m.path === 'Rides4Usher'"></mat-divider>
             <a matLine [routerLink]="m.path" (click)="routeClicked()">{{routeName(m)}}</a>
           </mat-list-item>
-
         </ng-container>
       </mat-nav-list>
-<button mat-raised-button color="primary" *ngIf="showConnectAsDriver" (click)="connectAsDriver()">Connect As Driver</button>
     </mat-sidenav>
     <div class="app-sidenav-content ">
 

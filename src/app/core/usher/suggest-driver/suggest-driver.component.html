@@ -30,11 +30,6 @@
                         <mat-icon>more_vert</mat-icon>
                     </button>
                     <mat-menu #menu="matMenu">
-                        <button mat-menu-item (click)="onDriverSelected(d)">
-                            <mat-icon>how_to_reg</mat-icon>
-                            <label>Select Driver</label>
-                        </button>
-                        <hr>
                         <!-- <button mat-menu-item *ngIf="d.reason && d.reason.trim().toLowerCase().includes('register')"
                             (click)="showRegisterRide(d)">
                             <mat-icon>directions_bus_filled</mat-icon>
@@ -48,6 +43,11 @@
                             <mat-icon>tty</mat-icon>
                             <label>Show Call Documentation</label>
                         </button>
+                        <hr>
+                        <button mat-menu-item (click)="onDriverSelected(d)">
+                            <mat-icon>how_to_reg</mat-icon>
+                            <label>Select Driver</label>
+                        </button>
                     </mat-menu>
                 </td>
                 <td>{{ d.name }}<span
@@ -56,7 +56,8 @@
                 <td>{{ d.mobile }}</td>
                 <td>{{ d.home }}</td>
                 <td>
-                    <button mat-flat-button (click)="showDriverRides(d)" title="Show Driver Rides">
+                    <button *ngIf="d.lastRideDays !== -999999" mat-flat-button (click)="showDriverRides(d)"
+                        title="Show Driver Rides">
                         <mat-icon>directions_bus_filled</mat-icon>
                         <label style="color: blue;"><u>{{ d.lastRideDays === -999999 ? '' : d.lastRideDays === 0?
                                 'Today' : d.lastRideDays }}</u></label>
@@ -64,7 +65,8 @@
                 </td>
                 <td>
 
-                    <button mat-flat-button (click)="openCallDocumentationDialog(d)" title="Show Call Documentation">
+                    <button *ngIf="d.lastCallDays !== -999999" mat-flat-button (click)="openCallDocumentationDialog(d)"
+                        title="Show Call Documentation">
                         <mat-icon>tty</mat-icon>
                         <label style="color: blue;">
                             <u>
@@ -87,6 +89,11 @@
     </div>
     <div class="footer">
         <hr>
-        <span>Found: {{ drivers.length }}</span>
+        <div style="display:flex;flex-direction: row;flex-grow: 1;justify-content: space-between;">
+            <span>Found: {{ drivers.length }} Drivers</span>
+            <button mat-raised-button color='accent' (click)="close()" title="Close">
+                <label>Close</label>
+            </button>
+        </div>
     </div>
 </div>

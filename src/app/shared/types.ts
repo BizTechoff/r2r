@@ -172,6 +172,7 @@ export interface ride4UsherSetDriver {
   driver: string,
   dMobile: string,
   visitTime: string,
+  pickupTime: string,
   passengers: number,
   patient: string,
   rid: string,

@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { MatDialogRef } from '@angular/material';
 import { Context } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
 import { Roles } from '../../../users/roles';
@@ -12,7 +13,8 @@ import { Contact } from '../contact';
 export class PatientContactsComponent implements OnInit {
 
   args: {
-    pid: string,
+    pid: string,//Input the patient-id
+    mobile?: string //Output the return contact-mobile as selected row
   };
 
   contactsSettings = this.context.for(Contact).gridSettings({
@@ -26,6 +28,7 @@ export class PatientContactsComponent implements OnInit {
       c.name,
       c.relation
     ],
+    rowButtons: [{textInMenu: 'Select Mobile', icon: 'phone_callback', click: (cur) => {this.selectMobileAndClose(cur);}}],
     gridButtons: [{ name: 'Add Contact', click: () => { this.contactsSettings.addNewRow(); } }],
     validation: c => {
       if ((!c.mobile.value)) {
@@ -44,13 +47,18 @@ export class PatientContactsComponent implements OnInit {
     confirmDelete: async (c) => await this.dialog.confirmDelete(c.mobile.value + ' ' + c.name.value)
   });
 
-  constructor(private context: Context, private dialog: DialogService) { }
+  constructor(private context: Context, private dialog: DialogService, private dialogRef: MatDialogRef<any>) { }
 
   ngOnInit() {
   }
 
   async retrieve() {
     await this.contactsSettings.reloadData();
+  }
+
+  async selectMobileAndClose(c:Contact){
+    this.args.mobile = c.mobile.value;
+    this.dialogRef.close();
   }
 
 }

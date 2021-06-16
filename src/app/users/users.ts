@@ -24,9 +24,42 @@ export class Users extends IdEntity {
     });
     createDate = new changeDate('Create Date');
 
-    isAdmin = new BoolColumn({ defaultValue: false, allowApiUpdate: Roles.admin });
-    isUsher = new BoolColumn({ defaultValue: false, allowApiUpdate: Roles.admin });
-    isMatcher = new BoolColumn({ defaultValue: false, allowApiUpdate: Roles.admin });
+    isAdmin = new BoolColumn({
+        defaultValue: false, allowApiUpdate: Roles.admin,
+        valueChange: () => {
+            if (!(this.pauseValueChange))
+            {
+                if(this.isAdmin.value)
+                {
+                    this.SetOnlyOneWorkerPermission(Roles.admin);
+                }
+            }
+        }
+    });
+    isUsher = new BoolColumn({
+        defaultValue: false, allowApiUpdate: Roles.admin,
+        valueChange: () => {
+            if (!(this.pauseValueChange))
+            {
+                if(this.isUsher.value)
+                {
+                    this.SetOnlyOneWorkerPermission(Roles.usher);
+                }
+            }
+        }
+    });
+    isMatcher = new BoolColumn({
+        defaultValue: false, allowApiUpdate: Roles.admin,
+        valueChange: () => {
+            if (!(this.pauseValueChange))
+            {
+                if(this.isMatcher.value)
+                {
+                    this.SetOnlyOneWorkerPermission(Roles.matcher);
+                }
+            }
+        }
+    });
     isDriver = new BoolColumn({ defaultValue: false, allowApiUpdate: Roles.admin });
 
     mobile = new StringColumn({
@@ -88,17 +121,55 @@ export class Users extends IdEntity {
         });
     }
 
-    hasLastFid(){
-      return this.lastFid.value && this.lastFid.value.length > 0;
+    pauseValueChange = false;
+    SetOnlyOneWorkerPermission(role = Roles.admin) {
+        this.pauseValueChange = true;
+        switch (role) {
+            case Roles.admin:
+                {
+                    if (this.isUsher.value) {
+                        this.isUsher.value = false;
+                    }
+                    if (this.isMatcher.value) {
+                        this.isMatcher.value = false;
+                    }
+                    break;
+                }
+            case Roles.usher:
+                {
+                    if (this.isAdmin.value) {
+                        this.isAdmin.value = false;
+                    }
+                    if (this.isMatcher.value) {
+                        this.isMatcher.value = false;
+                    }
+                    break;
+                }
+            case Roles.matcher:
+                {
+                    if (this.isAdmin.value) {
+                        this.isAdmin.value = false;
+                    }
+                    if (this.isUsher.value) {
+                        this.isUsher.value = false;
+                    }
+                    break;
+                }
+        }
+        this.pauseValueChange = false;
     }
-    hasLastTid(){
-      return this.lastTid.value && this.lastTid.value.length > 0;
+
+    hasLastFid() {
+        return this.lastFid.value && this.lastFid.value.length > 0;
     }
-    hasLastDate(){
-      return this.lastDate.value && this.lastDate.value.getFullYear() > 1900;
+    hasLastTid() {
+        return this.lastTid.value && this.lastTid.value.length > 0;
     }
-    hasLastArea(){
-      return this.lastArea.value && this.lastArea.value !== LocationArea.all;
+    hasLastDate() {
+        return this.lastDate.value && this.lastDate.value.getFullYear() > 1900;
+    }
+    hasLastArea() {
+        return this.lastArea.value && this.lastArea.value !== LocationArea.all;
     }
 
     private async updateEntityForUserByRole(role: Allowed, user: Users, createIfNotExists = false) {

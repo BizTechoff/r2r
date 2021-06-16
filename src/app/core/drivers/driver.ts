@@ -195,12 +195,12 @@ export async function openDriverRides(did: string, context: Context): Promise<nu
         // showPagination: false,
         numOfColumnsInGrid: 10,
         columnSettings: cur => [
+          cur.pid,
           cur.fid,
           cur.tid,
           cur.date,
           cur.pickupTime,
           { column: pass, getValue: (r) => { return r.passengers(); } },
-          cur.pid,
           cur.status,
         ],
       }),

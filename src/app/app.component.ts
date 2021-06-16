@@ -17,7 +17,7 @@ import { PasswordColumn, Users } from './users/users';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
- showConnectAsDriver = false;
+  private static showConnectAsDriver = false;
 
   constructor(
     public router: Router,
@@ -27,12 +27,27 @@ export class AppComponent {
     private session: JwtSessionService,
     public context: Context) {
     session.loadUserInfo();
-    this.showConnectAsDriver = this.context.user.roles.length > 1 && this.context.user.roles.includes(Roles.driver);
   }
 
-  async connectAsDriver(){
-// this.signOut();
-// this.signIn();
+  async ngOnInit() {
+    if (this.context) {
+      if (this.context.user) {
+        AppComponent.showConnectAsDriver = this.context.user.roles.length > 1 && this.context.user.roles.includes(Roles.driver);
+      }
+    }
+  }
+
+  async connectAsDriver() {
+    let mobile = this.context.user.mobile;
+    if (mobile && mobile.length > 0 && mobile.startsWith('05')) {
+      await this.session.signout();
+      // await this.dialogService.error("Continue");
+      await this.session.setToken(await AppComponent.signIn(mobile, ''));
+    }
+  }
+
+  isConnectAsDriverEnabled() {
+    return AppComponent.showConnectAsDriver;
   }
 
   async signIn() {
@@ -43,14 +58,14 @@ export class AppComponent {
         mobile,
       ],
       ok: async () => {
-        let needPw = await AppComponent.isSpecial(mobile.value);
-        if (needPw === undefined) {
-          this.dialogService.error("User not found, please contact Avishai");
+        let roles = await AppComponent.isSpecial(mobile.value);
+        if (roles.length === 0) {
+          this.dialogService.error("User NOT found! please contact Avishai");
         }
-        else if (needPw === false) {
+        else if (roles.length === 1 && roles.includes(Roles.driver)) {
           this.session.setToken(await AppComponent.signIn(mobile.value, ''));
         }
-        else {
+        else {//only one role: admin | usher | matcher -> So, enter password
           let password = new PasswordColumn();
           this.context.openDialog(InputAreaComponent, i => i.args = {
             title: "Sign In",
@@ -67,17 +82,24 @@ export class AppComponent {
   }
 
   @ServerFunction({ allowed: true })
-  static async isSpecial(mobile: string, context?: Context) {
+  static async isSpecial(mobile: string, context?: Context): Promise<string[] /*roles*/> {
+    let result: string[] = [];
     let u = await context.for(Users).findFirst(usr => usr.mobile.isEqualTo(mobile));
     if (u) {
-      // he is driver and not anything else (prevent see all sidebar-menu)
-      let onlyDriver = (u.isDriver.value) && (!(u.isAdmin.value || u.isUsher.value || u.isMatcher.value));
-      if (onlyDriver) {
-        return false;
+      if (u.isAdmin.value) {
+        result.push(Roles.admin);
       }
-      return true;
+      else if (u.isUsher.value) {
+        result.push(Roles.usher);
+      }
+      else if (u.isMatcher.value) {
+        result.push(Roles.matcher);
+      }
+      if (u.isDriver.value) {
+        result.push(Roles.driver);
+      }
     }
-    return undefined;
+    return result;
   }
 
   @ServerFunction({ allowed: true })
@@ -86,27 +108,30 @@ export class AppComponent {
     let u = await context.for(Users).findFirst(usr => usr.mobile.isEqualTo(mobile));
     if (u) {
       if (u.isDriver.value || !u.password.value || PasswordColumn.passwordHelper.verify(password, u.password.value)) {
-        //if (u.isDriver ||  !u.password.value || PasswordColumn.passwordHelper.verify(password, u.password.value)) {
         result = {
           id: u.id.value,
           roles: [],
-          name: u.name.value
+          name: u.name.value,
+          mobile: u.mobile.value
         };
         if (u.isAdmin.value) {
           result.roles.push(Roles.admin);
         }
-        if (u.isUsher.value) {
+        else if (u.isUsher.value) {
           result.roles.push(Roles.usher);
-        }
-        if (u.isMatcher.value) {
+        } 
+        else if (u.isMatcher.value) {
           result.roles.push(Roles.matcher);
         }
         if (u.isDriver.value) {
           result.roles.push(Roles.driver);
         }
+
+        AppComponent.showConnectAsDriver = result.roles.length > 1 && result.roles.includes(Roles.driver);
       }
     }
     if (result) {
+      console.log(result);
       return JwtSessionService.createTokenOnServer(result);
     }
     throw new Error("Invalid Sign In Info");

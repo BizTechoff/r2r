@@ -31,7 +31,7 @@
                 title="Last Refresh Done At: {{ clientLastRefreshDate | date: 'HH:mm' }}">
                 <mat-icon>refresh</mat-icon>
             </button>
-            <data-control [column]="params.area" title="Filter By Area" style="padding-left: 20px;"></data-control>
+            <data-control [column]="params.area" title="Filter By Area" style="min-width: 170px; padding-left: 20px;"></data-control>
             <data-control [column]="params.fid" title="Filter By From Location" style="min-width: 170px;padding-left: 20px;"></data-control>
             <span style="padding-top: 13px;"> > </span>
             <data-control [column]="params.tid" title="Filter By To Location" style="min-width: 170px;padding-right: 20px;"></data-control>
@@ -66,7 +66,7 @@
                 <th><u>In-Hospital</u></th>
                 <!-- <th><u>w4-Accept</u></th>
                 <th><u>inProgress</u></th> -->
-                <th><u>#Register</u></th>
+                <th><u>Registered</u></th>
             </tr>
             <!-- <tr ng-repeat="r in rides | orderBy:'-age'"></tr> -->
             <tr *ngFor="let r of rides">

@@ -616,10 +616,10 @@ export class SuggestDriverComponent implements OnInit {
 
   async onDriverSelected(r: driver4UsherSuggest) {
     this.selected.did = r.did;
-    this.select();
+    this.close();
   }
 
-  select() {
+  close() {
     this.dialogRef.close();
   }
 

@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
+import { MatDialogRef } from '@angular/material/dialog';
 import { BoolColumn, Context, DataAreaSettings, DateColumn, Entity, Filter, GridSettings, NumberColumn, ServerController, ServerMethod, StringColumn } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
 import { GridDialogComponent } from '../../../common/grid-dialog/grid-dialog.component';
 import { InputAreaComponent } from '../../../common/input-area/input-area.component';
-import { PickupTimePrevHours, ride4UsherSetDriver } from '../../../shared/types';
+import { PickupTimePrevHours, ride4UsherSetDriver, TimeColumn } from '../../../shared/types';
 import { addHours } from '../../../shared/utils';
 import { Driver, DriverIdColumn } from '../../drivers/driver';
 import { Location } from '../../locations/location';
@@ -60,6 +61,7 @@ class usherSerDriver {
           passengers: ride.passengers(),
           selected: false,
           visitTime: ride.visitTime.value,
+          pickupTime: ride.pickupTime.value,
           rid: ride.id.value,
           status: ride.status.value,
           freeSeats: seats,
@@ -95,7 +97,7 @@ export interface rideRow {
   passengers: number,
   patient: string,
 };
-
+ 
 @Component({
   selector: 'app-set-driver',
   templateUrl: './set-driver.component.html',
@@ -112,6 +114,10 @@ export class SetDriverComponent implements OnInit {
     this.selectedPassengers = 0;
   }
 
+  close() {
+    this.dialogRef.close();
+  }
+
   driverSeats: number = 0;
   //selectedVisitTime = "12:00";
   selectedPickupTime = "00:00";
@@ -125,8 +131,8 @@ export class SetDriverComponent implements OnInit {
         if (selected && selected.did && selected.did.length > 0) {//if press back on browser will window was open.
           this.driverId.value = selected.did;
         }
-      }, 
-    }),  
+      },
+    }),
     valueChange: async () => {
       this.driverSeats = (await this.context.for(Driver).findId(this.driverId.value)).seats.value;
       if (this.selectedPassengers > this.driverSeats) {
@@ -149,7 +155,7 @@ export class SetDriverComponent implements OnInit {
     from: string,
     to: string,
   };
-  constructor(protected context: Context, private dialog: DialogService) { }
+  constructor(protected context: Context, private dialog: DialogService, private dialogRef: MatDialogRef<any>) { }
 
   async ngOnInit() {
     this.params.date.value = this.args.date;
@@ -216,15 +222,24 @@ export class SetDriverComponent implements OnInit {
       // console.log(row.visitTime > min);
       // console.log(row.visitTime <= min);
       if (row.selected) {
+        let pick = TimeColumn.Empty;
         this.selectedPassengers += row.passengers;
-        if (row.visitTime < min) {
-          min = row.visitTime;
+        if (row.pickupTime && row.pickupTime.length > 0 && row.pickupTime !== TimeColumn.Empty) {
+          pick = row.pickupTime;
+        }
+        else {
+          if(row.visitTime && row.visitTime.length > 0 && row.visitTime !== TimeColumn.Empty){
+            pick=addHours(PickupTimePrevHours, row.visitTime);
+          }
+        }
+        if (pick < min) {
+          min = pick;
           minChanged = true;
         }
       }
-    }
+    }  
     if (minChanged) {
-      this.selectedPickupTime = addHours(PickupTimePrevHours, min);
+      this.selectedPickupTime = min;
     }
     // console.log(min);
     // console.log(this.selectedPickupTime);
@@ -391,7 +406,7 @@ export class SetDriverComponent implements OnInit {
       },
     )
   }
-  
+
   async editRide(r: ride4UsherSetDriver) {
     await this.context.openDialog(RideCrudComponent, dlg => dlg.args = {
       rid: r.rid

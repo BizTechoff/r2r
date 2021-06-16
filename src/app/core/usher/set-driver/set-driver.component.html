@@ -9,25 +9,18 @@
     <mat-label *ngIf="!(selectedPassengers <= driverSeats)">Selected Passengers: <span style="color: red;">{{ selectedPassengers }}</span></mat-label>
     <mat-label *ngIf="selectedPassengers <= driverSeats">Selected Passengers: <span style="color: green;">{{ selectedPassengers }}</span></mat-label>
     <mat-divider></mat-divider>
-    <div style="color: red;" *ngIf="selectedPassengers > 0 && driverSeats > 0 && driverSeats >= selectedPassengers">
-        Pickup Time: <input [(ngModel)]="selectedPickupTime" #pickup required type="time">
-        <button mat-raised-button color="accent"
-            *ngIf="selectedPickupTime && selectedPickupTime.length > 0 && (!(selectedPickupTime === '00:00'))"
-            (click)="setDriver()">Set Driver</button>
-    </div>
-    <mat-divider></mat-divider>
     <div class="grow-item">
         <!-- <data-grid *ngIf="grid" [settings]="grid"></data-grid> -->
         <table *ngIf="rides && rides.length > 0">
             <tr>
                 <td></td><!-- menu -->
                 <td></td><!-- cbx -->
+                <th>Patient</th>
                 <th>Driver</th>
                 <th>Seats</th>
-                <th>Status</th>
-                <th>Visit Time</th>
                 <th>Passengers</th>
-                <th>Patient</th>
+                <th>Pickup Time</th>
+                <th>Status</th>
             </tr>
             <tr *ngFor="let r of rides">
                 <td>
@@ -38,17 +31,17 @@
                     <mat-menu #menu="matMenu">
                         <!-- <button>{{ r.status }}</button> -->
                         <button *ngIf="(r.w4Accept)" mat-menu-item
-                            (click)="accept4Driver(r)">Set Accept For Driver</button>
-                        <button *ngIf="(r.w4Start)" mat-menu-item (click)="start4Driver(r)">Set
+                            (click)="accept4Driver(r)"><mat-icon>skip_next</mat-icon>Set Accept For Driver</button>
+                        <button *ngIf="(r.w4Start)" mat-menu-item (click)="start4Driver(r)"><mat-icon>skip_next</mat-icon>Set
                             Start For Driver</button>
                         <button *ngIf="(r.w4Pickup)" mat-menu-item
-                            (click)="pickup4Driver(r)">Set Pickup For Driver</button>
+                            (click)="pickup4Driver(r)"><mat-icon>skip_next</mat-icon>Set Pickup For Driver</button>
                         <button *ngIf="(r.w4Arrived)" mat-menu-item
-                            (click)="arrived4Driver(r)">Set Arrived For Driver</button>
-                        <button *ngIf="(r.w4End)" mat-menu-item (click)="end4Driver(r)">Set End
+                            (click)="arrived4Driver(r)"><mat-icon>skip_next</mat-icon>Set Arrived For Driver</button>
+                        <button *ngIf="(r.w4End)" mat-menu-item (click)="end4Driver(r)"><mat-icon>skip_next</mat-icon>Set End
                             For Driver</button>
                             <button *ngIf="r.driverId && r.driverId.length > 0" mat-menu-item
-                                (click)="removeDriver(r)">Remove Driver</button>
+                                (click)="removeDriver(r)"><mat-icon>person_remove_alt_1</mat-icon>Remove Driver</button>
                             <hr>
                             <button mat-menu-item (click)="editRide(r)">
                                 <mat-icon>edit</mat-icon>
@@ -67,17 +60,33 @@
                         [(ngModel)]="r.selected" (change)="selectionRowChanged(r)"></mat-checkbox>
                     <!-- <mat-checkbox *ngIf="r.driver.length == 0" [(ngModel)]="r.selected" (change)="selectionRowChanged(r)"></mat-checkbox> -->
                 </td>
+                <td>{{ r.patient }}</td>
                 <!-- <td>{{ r.from }}</td>
                 <td>{{ r.to }}</td> -->
-                <td>{{ r.driver }}</td>
-                <td>{{ r.freeSeats > 0?r.freeSeats : '' }}</td>
-                <td>{{ r.status.id }}</td>
-                <td>{{ r.visitTime }}</td>
+                <td>{{ r.driver && r.driver.length > 0?r.driver:'                  ' }}</td>
+                <td>{{ r.freeSeats && r.freeSeats > 0?r.freeSeats:'                  ' }}</td>
                 <td>{{ r.passengers }}</td>
-                <td>{{ r.patient }}</td>
+                <td>{{ r.pickupTime }}</td>
+                <td>{{ r.status.id }}</td>
             </tr>
         </table>
     </div>
     <div class="footer">
+        <hr>
+        <div style="display:flex;flex-direction: row;flex-grow: 1;justify-content: space-between;">
+            <div style="display:flex;flex-direction: column;">
+            <span *ngIf="rides && rides.length > 0">Found: {{ rides.length }} Rides</span>
+            <span *ngIf="selectedPassengers > 0">Selected: <span style="color: green;">{{ selectedPassengers }}</span> Pass</span>
+        </div>
+    <div style="color: red;" *ngIf="selectedPassengers > 0 && driverSeats > 0 && driverSeats >= selectedPassengers">
+        Pickup Time: <input [(ngModel)]="selectedPickupTime" #pickup required type="time">
+        <button mat-raised-button color="accent"
+            *ngIf="selectedPickupTime && selectedPickupTime.length > 0 && (!(selectedPickupTime === '00:00'))"
+            (click)="setDriver()">Set Driver</button>
+    </div>
+            <button mat-raised-button color='accent' (click)="close()" title="Close">
+                <label>Close</label>
+            </button>
+        </div>
     </div>
 </div>

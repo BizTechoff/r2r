@@ -3,14 +3,13 @@ import { MatDialogRef } from '@angular/material/dialog';
 import { BoolColumn, Context, DataAreaSettings } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
 import { TODAY } from '../../../shared/types';
-import { addDays, resetTime } from '../../../shared/utils';
+import { addDays } from '../../../shared/utils';
 import { Roles } from '../../../users/roles';
 import { LocationType } from '../../locations/location';
+import { Contact } from '../../patients/contact';
 import { Patient } from '../../patients/patient';
 import { PatientContactsComponent } from '../../patients/patient-contacts/patient-contacts.component';
 import { Ride, RideStatus } from '../ride';
-import { Location } from '../../locations/location';
-import { Contact } from '../../patients/contact';
 
 @Component({
   selector: 'app-ride-crud',
@@ -179,7 +178,7 @@ export class RideCrudComponent implements OnInit {
     return result;
   }
 
-  async save(close = true) : Promise<boolean> {
+  async save(close = true): Promise<boolean> {
     let result = false;
     if (await this.validate()) {// ok: async () => { if (ride.wasChanged()) { await ride.save(); changed = true; } }
       if (this.p) {
@@ -307,7 +306,7 @@ export class RideCrudComponent implements OnInit {
       let yes = await this.dialog.yesNoQuestion(`Ride didn't saved. Save and ${this.r.isNew() ? 'Create the ride' : 'Open Contacts'}?`);
       if (yes) {
         let ok = await this.save(false);
-        if(!ok){
+        if (!ok) {
           return;
         }
       }
@@ -316,9 +315,11 @@ export class RideCrudComponent implements OnInit {
       }
     }
 
-    await this.context.openDialog(PatientContactsComponent, sr => sr.args = {
-      pid: this.args.pid,
-    });
+    let mobile = await this.context.openDialog(PatientContactsComponent,
+      dlg => dlg.args = { pid: this.args.pid },
+      dlg => dlg ? dlg.args.mobile : '');
+
+    this.r.pMobile.value = mobile;
   }
 
   swapLocations() {
