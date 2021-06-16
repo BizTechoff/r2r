@@ -38,12 +38,12 @@ export class AppComponent {
   }
 
   async connectAsDriver() {
-    let mobile = this.context.user.mobile;
-    if (mobile && mobile.length > 0 && mobile.startsWith('05')) {
-      await this.session.signout();
-      // await this.dialogService.error("Continue");
-      await this.session.setToken(await AppComponent.signIn(mobile, ''));
-    }
+    // let mobile = this.context.user.mobile;
+    // if (mobile && mobile.length > 0 && mobile.startsWith('05')) {
+    //   await this.session.signout();
+    //   // await this.dialogService.error("Continue");
+    //   await this.session.setToken(await AppComponent.signIn(mobile, ''));
+    // }
   }
 
   isConnectAsDriverEnabled() {
@@ -111,8 +111,8 @@ export class AppComponent {
         result = {
           id: u.id.value,
           roles: [],
-          name: u.name.value,
-          mobile: u.mobile.value
+          name: u.name.value//,
+          // mobile: u.mobile.value
         };
         if (u.isAdmin.value) {
           result.roles.push(Roles.admin);
