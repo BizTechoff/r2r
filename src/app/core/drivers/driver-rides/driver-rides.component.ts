@@ -104,7 +104,13 @@ export class DriverRidesComponent implements OnInit {
     return result;
   }
 
+  async sendWapp(mobile: string, message: string = 'Hi Avishai') {
+    window.open(`https://wa.me/${mobile}?text=${encodeURI(message)}`, '_blank');
+  }
+
   async openWaze(address: string) {
+    window.open(`waze://?q=${encodeURI(address)}&navigate=yes`);
+    // window.open('waze://?ll=' + this.address.getGeocodeInformation().getlonglat() + "&q=" + encodeURI(this.address.value) + '&navigate=yes');
     console.log(`open waze to: ${address}`)
     // this.context.openDialog(YesNoQuestionComponent);
   }
@@ -115,6 +121,8 @@ export class DriverRidesComponent implements OnInit {
       pid: r.pId,
     });
   }
+
+
 
   async accept(rideId: string) {
     let ride = await this.context.for(Ride).findId(rideId);

@@ -1,12 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { Context, DateColumn, NumberColumn, ServerController, StringColumn } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
+import { InputAreaComponent } from '../../../common/input-area/input-area.component';
 import { YesNoQuestionComponent } from '../../../common/yes-no-question/yes-no-question.component';
 import { TODAY } from '../../../shared/types';
 import { addDays } from '../../../shared/utils';
 import { Roles } from '../../../users/roles';
 import { LocationType } from '../../locations/location';
-import { Ride, RideStatus } from '../../rides/ride';
+import { Ride, RideStatus, RideStatusColumn } from '../../rides/ride';
 import { RideCrudComponent } from '../../rides/ride-crud/ride-crud.component';
 import { SendSmsComponent } from '../../services/send-sms/send-sms.component';
 import { Patient } from '../patient';
@@ -58,6 +59,12 @@ export class PatientRidesComponent implements OnInit {
         icon: 'how_to_reg',
         click: async (cur) => { await this.approve(cur); },
         visible: (cur) => { return cur.status.value === RideStatus.waitingForStart && !cur.isPatientApprovedBeing.value }
+      },
+      {
+        textInMenu: 'Set Status',
+        icon: 'new_releases',
+        click: async (cur) => { await this.setStatus(cur); },
+        // visible: (cur) => { return cur.status.value === RideStatus.waitingForStart && !cur.isPatientApprovedBeing.value }
       },
       {
         textInMenu: 'Edit Ride',
@@ -139,6 +146,18 @@ export class PatientRidesComponent implements OnInit {
   }
 
   ngOnInit() {
+  }
+
+  async setStatus(r: Ride) {
+    let options = new RideStatusColumn();
+    let pName = await (await this.context.for(Patient).findId(r.pid)).name.value;
+    await this.context.openDialog(InputAreaComponent, dlg => dlg.args = {
+      title: 'Set Status Of Patient: ' + pName,
+      columnSettings: () => [
+        { column: options, valueList: [RideStatus.finishedHospital, RideStatus.stayInHospital, RideStatus.goneByHimself] }
+      ],
+      ok: () => { }
+    });
   }
 
   async approve(r: Ride) {

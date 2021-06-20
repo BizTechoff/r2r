@@ -351,6 +351,7 @@ export class Ride extends IdEntity {
 
 export class RideStatus {
     static InBorder = new RideStatus();
+    static finishedHospital = new RideStatus();
     static InHospital = new RideStatus();//ride-status OR patient-status
     static notActiveYet = new RideStatus();//back-ride created before the patient arrived to hospital
     static waitingForDriver = new RideStatus();

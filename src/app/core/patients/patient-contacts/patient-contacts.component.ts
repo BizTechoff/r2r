@@ -28,7 +28,7 @@ export class PatientContactsComponent implements OnInit {
       c.name,
       c.relation
     ],
-    rowButtons: [{textInMenu: 'Select Mobile', icon: 'phone_callback', click: (cur) => {this.selectMobileAndClose(cur);}}],
+    rowButtons: [{textInMenu: 'Select Mobile', icon: 'phone_callback', click: (cur) => {this.selectMobileAndClose(cur);}, visible: () => !this.context.isAllowed(Roles.driver)}],
     gridButtons: [{ name: 'Add Contact', click: () => { this.contactsSettings.addNewRow(); } }],
     validation: c => {
       if ((!c.mobile.value)) {
