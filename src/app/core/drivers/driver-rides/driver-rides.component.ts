@@ -131,25 +131,41 @@ export class DriverRidesComponent implements OnInit {
     await this.refresh();
   }
 
-  async drive(rideId: string) {
-    let ride = await this.context.for(Ride).findId(rideId);
-    ride.status.value = RideStatus.waitingForPickup;
-    await ride.save();
-    await this.refresh();
+  async drive(r: ride4Driver) {
+    let ride = await this.context.for(Ride).findId(r.rId);
+
+    if (ride) {
+      ride.status.value = RideStatus.waitingForPickup;
+      await ride.save();
+      await this.refresh();
+      await this.openWaze(r.from);
+    }
   }
 
-  async pickup(rideId: string) {
-    let ride = await this.context.for(Ride).findId(rideId);
-    ride.status.value = RideStatus.waitingForArrived;
-    await ride.save();
-    await this.refresh();
+  async pickup(r: ride4Driver) {
+    let ride = await this.context.for(Ride).findId(r.rId);
+    if (ride) {
+      ride.status.value = RideStatus.waitingForArrived;
+      await ride.save();
+      await this.refresh();
+      await this.openWaze(r.to);
+    }
   }
 
-  async arrived(rideId: string) {
-    let ride = await this.context.for(Ride).findId(rideId);
+  async arrived(r: ride4Driver) {
+    let ride = await this.context.for(Ride).findId(r.rId);
     ride.status.value = RideStatus.succeeded;
     await ride.save();
     await this.refresh();
+    let driver = await this.context.for(Driver).findFirst({
+      where: d => d.userId.isEqualTo(this.context.user.id),
+    });
+    if (driver) {
+      let city = driver.city.value;
+      if (city && city.length > 0) {
+        await this.openWaze(city);
+      }
+    }
   }
 
 }

@@ -74,13 +74,13 @@
                             Accept
                         </button>
                         <button *ngIf="r.w4Start&&((r.date|date:'dd.MM.yyyy')==(this.today|date:'dd.MM.yyyy'))"
-                            mat-raised-button color="primary" (click)="drive(r.rId)">
+                            mat-raised-button color="primary" (click)="drive(r)">
                             Start
                         </button>
-                        <button *ngIf="r.w4Pickup" mat-raised-button color="primary" (click)="pickup(r.rId)">
+                        <button *ngIf="r.w4Pickup" mat-raised-button color="primary" (click)="pickup(r)">
                             Pickup
                         </button>
-                        <button *ngIf="r.w4Arrived" mat-raised-button color="primary" (click)="arrived(r.rId)">
+                        <button *ngIf="r.w4Arrived" mat-raised-button color="primary" (click)="arrived(r)">
                             Arrived
                         </button>
                         <!-- </td> -->
