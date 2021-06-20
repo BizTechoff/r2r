@@ -2,19 +2,33 @@ import { ColumnSettings, DateTimeColumn, Filter, StringColumn } from "@remult/co
 import { RideStatus } from "../core/rides/ride";
 
 
-export const TODAY:number = 0;
-export const PickupTimePrevHours:number = -2;
-export const MinPickupBorder:string = '05:00';
-export const MaxPickupBorder:string = '19:00';
-export const MinPickupHospital:string = '10:00';
-export const MaxPickupHospital:string = '18:00';
-export const IsDevMode:boolean = true;
-export const FILTER_IGNORE:Filter = new Filter(x => { return true; });
-export const NOT_FOUND_DAYS:number = -999999;
- 
+export const TODAY: number = 0;
+export const PickupTimePrevHours: number = -2;
+export const MinPickupBorder: string = '05:00';
+export const MaxPickupBorder: string = '19:00';
+export const MinPickupHospital: string = '10:00';
+export const MaxPickupHospital: string = '18:00';
+export const IsDevMode: boolean = true;
+export const FILTER_IGNORE: Filter = new Filter(x => { return true; });
+export const NOT_FOUND_DAYS: number = -999999;
+
 export class changeDate extends DateTimeColumn {
   readonly = true;
 };
+
+export class MobileColumn extends StringColumn {
+  constructor(options?: ColumnSettings<string>) {
+    super({
+      dataControlSettings: () => ({
+        click: () => window.open('tel:' + this.value),
+        // allowClick: () => !!this.value,
+        clickIcon: 'phone',
+        inputType: 'tel'
+      }),
+      ...options
+    });
+  }
+}
 
 export class TimeColumn extends StringColumn {
   static Empty: string = '00:00';
