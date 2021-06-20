@@ -14,7 +14,7 @@
       <mat-menu #menu="matMenu">
         <button mat-menu-item (click)="updateInfo()">Update Info</button>
         <button mat-menu-item (click)="changePassword()">Change Password</button>
-        <button mat-menu-item *ngIf="isConnectAsDriverEnabled()" (click)="connectAsDriver()">Connect As Driver</button>
+        <button mat-menu-item *ngIf="context.user.roles.length > 1 && context.user.roles.includes('driver')" (click)="connectAsDriver()">Connect As Driver</button>
         <button mat-menu-item (click)="signOut()">Sign Out</button>
       </mat-menu>
     </ng-container>

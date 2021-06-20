@@ -81,7 +81,7 @@ export class RegisterRide extends IdEntity {
     did = new DriverIdColumn({ caption: 'Approved Driver' }, this.context);
     didDate = new DateTimeColumn({});
     dCount = new NumberColumn({ caption: 'RegisteredDrivers', defaultValue: 0 });
-    remark = new StringColumn({});
+    remark = new StringColumn({caption: 'Driver Remark'});
 
     constructor(private context: Context) {
         super({

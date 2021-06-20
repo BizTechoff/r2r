@@ -48,63 +48,65 @@ export class RegisterRidesComponent implements OnInit {
       cur.fid,
       cur.tid,
       cur.visitTime,
+      cur.pickupTime,
       cur.fdate,
       cur.tdate,
-      {
-        column: this.ridesCount,
-        getValue: r => {
-          let diff = this.getDateDiff(r.fdate, r.tdate);
+      { column: cur.dCount, caption: 'Registered Drivers', cssClass: 'registerDrivers', clickIcon: 'people', click: async (rr) => { await this.openRegisteredDrivers(rr) } },
+      cur.remark,
+      // {
+      //   column: this.ridesCount,
+      //   getValue: r => {
+      //     let diff = this.getDateDiff(r.fdate, r.tdate);
 
-          let oneDaySelected = r.sunday.value || r.monday.value || r.tuesday.value || r.wednesday.value || r.thursday.value || r.friday.value || r.saturday.value;
-          if (!(oneDaySelected)) {
-            return diff;
-          }
-          else {
-            let couter = 0;
-            for (let days = 0; days < diff; ++days) {
-              const date = addDays(days, r.fdate.value);
-              let dayOfWeek = date.getDay();
-              if (r.sunday.value) {
-                if (dayOfWeek == 0) {
-                  ++couter;
-                }
-              }
-              if (r.monday.value) {
-                if (dayOfWeek == 1) {
-                  ++couter;
-                }
-              }
-              if (r.tuesday.value) {
-                if (dayOfWeek == 2) {
-                  ++couter;
-                }
-              }
-              if (r.wednesday.value) {
-                if (dayOfWeek == 3) {
-                  ++couter;
-                }
-              }
-              if (r.thursday.value) {
-                if (dayOfWeek == 4) {
-                  ++couter;
-                }
-              }
-              if (r.friday.value) {
-                if (dayOfWeek == 5) {
-                  ++couter;
-                }
-              }
-              if (r.saturday.value) {
-                if (dayOfWeek == 6) {
-                  ++couter;
-                }
-              }
-            }
-            return couter;
-          }
-        }
-      },
-      { column: cur.dCount, caption: 'Registered Drivers', cssClass: 'color: red' },
+      //     let oneDaySelected = r.sunday.value || r.monday.value || r.tuesday.value || r.wednesday.value || r.thursday.value || r.friday.value || r.saturday.value;
+      //     if (!(oneDaySelected)) {
+      //       return diff;
+      //     }
+      //     else {
+      //       let couter = 0;
+      //       for (let days = 0; days < diff; ++days) {
+      //         const date = addDays(days, r.fdate.value);
+      //         let dayOfWeek = date.getDay();
+      //         if (r.sunday.value) {
+      //           if (dayOfWeek == 0) {
+      //             ++couter;
+      //           }
+      //         }
+      //         if (r.monday.value) {
+      //           if (dayOfWeek == 1) {
+      //             ++couter;
+      //           }
+      //         }
+      //         if (r.tuesday.value) {
+      //           if (dayOfWeek == 2) {
+      //             ++couter;
+      //           }
+      //         }
+      //         if (r.wednesday.value) {
+      //           if (dayOfWeek == 3) {
+      //             ++couter;
+      //           }
+      //         }
+      //         if (r.thursday.value) {
+      //           if (dayOfWeek == 4) {
+      //             ++couter;
+      //           }
+      //         }
+      //         if (r.friday.value) {
+      //           if (dayOfWeek == 5) {
+      //             ++couter;
+      //           }
+      //         }
+      //         if (r.saturday.value) {
+      //           if (dayOfWeek == 6) {
+      //             ++couter;
+      //           }
+      //         }
+      //       }
+      //       return couter;
+      //     }
+      //   }
+      // },
       { column: cur.sunday, caption: '1', width: '10', readOnly: true },
       { column: cur.monday, caption: '2', width: '10', readOnly: true },
       { column: cur.tuesday, caption: '3', width: '10', readOnly: true },
@@ -116,6 +118,7 @@ export class RegisterRidesComponent implements OnInit {
     rowButtons: [
       {
         textInMenu: 'Registered Drivers',
+        icon: 'people',
         click: async (cur) => { await this.openRegisteredDrivers(cur); },
         visible: cur => cur.dCount.value > 0
       }
@@ -225,7 +228,9 @@ export class RegisterRidesComponent implements OnInit {
           let hospital = reg.fid.selected && reg.fid.selected.type.value === LocationType.hospital;
           let border = reg.fid.selected && reg.fid.selected.type.value === LocationType.border;
           if (!hospital) {
-            reg.pickupTime.value = addHours(PickupTimePrevHours, reg.visitTime.value);
+            if (!reg.visitTime.isEmpty()) {
+              reg.pickupTime.value = addHours(PickupTimePrevHours, reg.visitTime.value);
+            }
           }
           else if (!border) {
             reg.visitTime.value = TimeColumn.Empty;

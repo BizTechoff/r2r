@@ -40,6 +40,16 @@ export class LocationAreaComponent implements OnInit {
     this.selectedCount = this.existsBordersIds.length;
   }
 
+  onSelected(){
+    let count = 0;
+    for (const loc of this.borders) {
+      if(loc.selected){
+        ++count;
+      }
+    }
+    this.selectedCount = count;
+  }
+
   async retrieve() {
 
     this.existsBordersIds = [];

@@ -38,6 +38,7 @@ export class AppComponent {
   }
 
   async connectAsDriver() {
+    this.dialogService.info('Coming Soon..')
     // let mobile = this.context.user.mobile;
     // if (mobile && mobile.length > 0 && mobile.startsWith('05')) {
     //   await this.session.signout();

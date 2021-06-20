@@ -4,7 +4,7 @@
     }
 
     td {
-        border-bottom: 1px solid lightblue;
+        /* border-bottom: 1px solid lightblue; */
     }
 
     table.center {
@@ -28,10 +28,16 @@
                             <mat-icon>refresh</mat-icon>
                         </button>
                     </div>
+                    <div style="display:flex;">
+                        <span style="width: 62px;"></span>
+                        <data-control [column]="params.fh" title="From when you can"></data-control>
+                        <data-control [column]="params.th" title="Till when you can"></data-control>
+                    </div>
                     <div>
                         <!-- <span>{{(params.fid.value && params.fid.value.length > 0?'true':'false')}}</span>
                         <span>{{(params.tid.value && params.tid.value.length > 0?'true':'false')}}</span> -->
-                        <mat-expansion-panel [expanded]="(params.fid.value && params.fid.value.length > 0) || (params.tid.value && params.tid.value.length > 0)">
+                        <mat-expansion-panel
+                            [expanded]="(params.fid.value && params.fid.value.length > 0) || (params.tid.value && params.tid.value.length > 0)">
                             <mat-expansion-panel-header>
                                 <mat-panel-title>
                                     Last Retrieved: {{ clientLastRefreshDate | date: 'HH:mm' }}
@@ -51,41 +57,18 @@
         <span *ngIf="(!(ridesToRegister)) || (ridesToRegister.length == 0)">No rides for now</span>
         <table *ngIf="ridesToRegister && (ridesToRegister.length > 0)" style="width: 100%">
             <tr *ngFor="let r of ridesToRegister">
-                <table style="width: 100%;padding: 10px;">
-                    <tr>
-                        <td>From: <i>
-                            <strong>{{ r.from }}</strong>
-                            <!-- <strong *ngIf="true">{{ r.from }}</strong> -->
-                        </i></td>
-                        <td rowspan="3">
-                            <table *ngIf="!r.isRegistered" style="width: 100%;">
-                                <tr *ngIf="this.params.date.value>=this.todayMidnigth">
-                                    <button class="mat-raised-button" (click)="register(r)">Register</button>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-                    <tr>
+                <mat-card>
+                    <div style="display:flex;flex-direction: column;">
+                        <td>From: <i> <strong>{{ r.from }}</strong> </i></td>
                         <td>To: <i>{{ r.to }}</i></td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <strong>{{ r.whenPickup }}</strong>
-                            <!-- <strong *ngIf="r.whenPickup.includes('Max') || r.whenPickup.includes('Min')">{{ r.whenPickup }}</strong>
-                            <span *ngIf="!(r.whenPickup.includes('Max') || r.whenPickup.includes('Min'))">{{ r.whenPickup }}</span> -->
-                        </td>
-                    </tr>
-                    <!-- IsDevMode -->
-                    <!-- <tr>
-                        <td>rid: {{ r.rid }}</td>
-                    </tr>
-                    <tr>
-                        <td>rrid: {{ r.rrid }}</td>
-                    </tr>
-                    <tr>
-                        <td>reason: {{ r.reason }}</td>
-                    </tr> -->
-                </table>
+                        <strong>{{ r.whenPickup }}</strong>
+                        <button style="margin-top: 10px;" class="mat-raised-button"
+                            (click)="register(r)">Register</button>
+                    </div>
+                    <!-- <div style="display:flex;flex-direction: column;">
+                        <button class="mat-raised-button" (click)="register(r)">Register</button>
+                    </div> -->
+                </mat-card>
             </tr>
         </table>
     </div>
@@ -95,37 +78,17 @@
         <span *ngIf="(!(rides)) || (rides.length == 0)">TX! You didn't registered yet</span>
         <table *ngIf="rides && (rides.length > 0)" style="width: 100%">
             <tr *ngFor="let r of rides">
-                <table style="width: 100%;padding: 10px;">
-                    <tr>
-                        <td>From: <i>{{ r.from }}</i></td>
-                        <td rowspan="4">
-                            <table *ngIf="r.isRegistered" style="width: 100%;">
-                                <tr *ngIf="this.params.date.value >= this.todayMidnigth">
-                                    <button class="mat-raised-button" (click)="unregister(r)">Unregister</button>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-                    <tr>
+                <mat-card>
+                    <div style="display:flex;flex-direction: column;">
+                        <td>From: <i><strong>{{ r.from }}</strong></i></td>
                         <td>To: <i>{{ r.to }}</i></td>
-                    </tr>
-                    <tr>
                         <td>Free Seats: {{ r.dPass }}</td>
-                    </tr>
-                    <tr>
-                        <td>You Be there: {{ r.dFromHour }} - {{ r.dToHour }}</td>
-                    </tr>
-                    <tr>
-                        <td>Remark: <u>{{ r.dRemark }}</u> </td>
-                    </tr>
-                    <!-- IsDevMode -->
-                    <!-- <tr>
-                        <td>rid: {{ r.rid }}</td>
-                    </tr>
-                    <tr>
-                        <td>rrid: {{ r.rrid }}</td>
-                    </tr> -->
-                </table>
+                        <td>You Be there: <strong>{{ r.dFromHour }} - {{ r.dToHour }}</strong></td>
+                        <td *ngIf="r.dRemark && r.dRemark.length > 0">Remark: <u>{{ r.dRemark }}</u> </td>
+                        <button style="margin-top: 10px;" class="mat-raised-button"
+                            (click)="unregister(r)">Unregister</button>
+                    </div>
+                </mat-card>
             </tr>
         </table>
     </div>

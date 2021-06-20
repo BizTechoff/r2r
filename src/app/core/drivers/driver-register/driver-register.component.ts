@@ -3,7 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { Context, DateColumn, Filter, NumberColumn, ServerController, ServerMethod } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
 import { InputAreaComponent } from '../../../common/input-area/input-area.component';
-import { MaxPickupBorder, MaxPickupHospital, PickupTimePrevHours, ride4DriverRideRegister, TimeColumn, TODAY } from '../../../shared/types';
+import { MaxPickupHospital, PickupTimePrevHours, ride4DriverRideRegister, TimeColumn, TODAY } from '../../../shared/types';
 import { addDays, addHours } from '../../../shared/utils';
 import { Location, LocationArea, LocationIdColumn, LocationType } from '../../locations/location';
 import { RegisterRide } from '../../rides/register-rides/registerRide';
@@ -26,6 +26,8 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
   });
   fid = new LocationIdColumn({ caption: 'From Location', valueChange: async () => { await this.onChanged(); } }, this.context);
   tid = new LocationIdColumn({ caption: 'To Location', valueChange: async () => { await this.onChanged(); } }, this.context);
+  fh = new TimeColumn({ caption: `I can From` });
+  th = new TimeColumn({ caption: 'Till Hour' });
   did = new DriverIdColumn({}, this.context);
   seats = new NumberColumn();
   constructor(private context: Context) { }
@@ -94,9 +96,10 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
 
     /*
     areasBorders: area: LocationArea, lids: string[]
-    locAreas:     id: string, name: string, area: string[]
-    dPrefs:       lid: string, both: boolean
-    dHistory:     fid: string, tid: string
+    locAreas:     id:   string, name: string, area: string[]
+    dPrefs:       lid:  string, both: boolean
+    dHistory:     fid:  string, tid:  string
+    dHistoryArea: fids: string, tids: string
     */
 
     // Register Rides
@@ -306,6 +309,17 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
         ok = ok || (rr.saturday.value && this.date.getDayOfWeek() == 6);
         if (!(ok)) {
           continue;
+        }
+      }
+
+      if (!(this.fh.isEmpty && this.th.isEmpty())) {
+        if (this.fh.value > this.th.value) {
+          this.th.value = this.fh.value;
+        }
+        if (!rr.pickupTime.isEmpty()) {
+          if (!(this.fh.value <= rr.pickupTime.value && rr.pickupTime.value <= this.th.value)) {
+            continue;
+          }
         }
       }
 
@@ -524,6 +538,8 @@ export class DriverRegisterComponent implements OnInit {
 
     this.params.fid.value = this.driver.defaultFromLocation && this.driver.defaultFromLocation.value && this.driver.defaultFromLocation.value.length > 0 ? this.driver.defaultFromLocation.value : null;
     this.params.tid.value = this.driver.defaultToLocation && this.driver.defaultToLocation.value && this.driver.defaultToLocation.value.length > 0 ? this.driver.defaultToLocation.value : null;
+    this.params.fh.value = this.driver.defaultFromTime ? this.driver.defaultFromTime.value : null;
+    this.params.th.value = this.driver.defaultToTime ? this.driver.defaultToTime.value : null;
     this.params.did.value = this.driver.id.value;
     this.params.seats.value = this.driver.seats.value;
 
@@ -542,6 +558,14 @@ export class DriverRegisterComponent implements OnInit {
         }
         if (this.driver.defaultToLocation.value != this.params.tid.value) {
           this.driver.defaultToLocation.value = this.params.tid.value;
+          changed = true;
+        }
+        if (this.driver.defaultFromTime.value != this.params.fh.value) {
+          this.driver.defaultFromTime.value = this.params.fh.value;
+          changed = true;
+        }
+        if (this.driver.defaultToTime.value != this.params.th.value) {
+          this.driver.defaultToTime.value = this.params.th.value;
           changed = true;
         }
         if (changed) {
@@ -587,6 +611,27 @@ export class DriverRegisterComponent implements OnInit {
   }
 
   async register(r: ride4DriverRideRegister) {
+    if(this.params.fh.isEmpty() && this.params.th.isEmpty())
+    {
+      await this.dialog.error('Please enter the hours you can pickup, TX!');
+      this.params.fh.validationError = ' ';
+      return;
+    }
+    let reg = this.context.for(RegisterDriver).create();
+    reg.date.value = this.params.date.value;
+    reg.fh.value = this.params.fh.value;
+    reg.th.value = this.params.th.value;
+    reg.did.value = this.driver.id.value;
+    reg.seats.value = this.params.seats.value;
+    reg.rrid.value = r.rrid;
+    reg.rid.value = r.rid;
+    await reg.save();
+    await this.updateRegisterRides(reg.rrid.value, 1);
+    await this.refresh();
+    await this.dialog.error('Thank You! We contact you ASAP to attach you to ride')
+  }
+
+  async register2(r: ride4DriverRideRegister) {
     // let date = new Date(2021, 2, 3);
     let reg = this.context.for(RegisterDriver).create();
     reg.date.value = this.params.date.value;

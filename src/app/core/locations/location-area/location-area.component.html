@@ -8,7 +8,7 @@
             <tr *ngFor="let b of borders" style="border: 1px solid black;">
                 <div *ngIf="b.ivisible">
                     <td style="width: 90%;">
-                        <mat-checkbox [(ngModel)]="b.selected">{{ b.name }}</mat-checkbox>
+                        <mat-checkbox [(ngModel)]="b.selected" (change)="onSelected()">{{ b.name }}</mat-checkbox>
                     </td>
                 </div>
             </tr>
