@@ -100,6 +100,13 @@ export class Ride extends IdEntity {
                     }
                     this.changed.value = addDays(TODAY, undefined, false);
                     this.changedBy.value = this.context.user.id;
+                    // if(this.hadBackRide()){
+                    //     let back = await context.for(Ride).findId(this.backId.value);
+                    //     if(!back){
+                    //         this.backId.value ='';
+                    //         await this.save();
+                    //     }
+                    // }
                 }
             },
             deleted: async () => {//trigger from db on date OR status changed
@@ -110,6 +117,30 @@ export class Ride extends IdEntity {
             saved: async () => {//trigger from db on date OR status changed
                 if (context.onServer) {
                     await this.recordActivity(this);
+                    // Check for back-ride changes.
+                    if (this.fid.wasChanged() || this.tid.wasChanged() || this.date.wasChanged()) {
+                        if (this.hadBackRide()) {
+                            let back = await context.for(Ride).findId(this.backId.value);
+                            if (back) {
+                                let save = false;
+                                if (back.fid.value !== this.fid.value) {
+                                    back.fid.value = this.fid.value;
+                                    save = true;
+                                }
+                                if (back.tid.value !== this.tid.value) {
+                                    back.tid.value = this.tid.value;
+                                    save = true;
+                                }
+                                if (back.date.value !== this.date.value) {
+                                    back.date.value = this.date.value;
+                                    save = true;
+                                }
+                                if (save) {
+                                    await this.save();
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
@@ -253,7 +284,7 @@ export class Ride extends IdEntity {
         return this.isExsistDriver() && inRiding.includes(this.status.value);
     }
 
-    isInDriving(){
+    isInDriving() {
         return RideStatus.isInDriving.includes(this.status.value);
     }
 
@@ -292,12 +323,7 @@ export class Ride extends IdEntity {
         this.tid.selected = slected;
     }
 
-    async createBackRide(ds?: DialogService): Promise<Ride> {
-        let rideArrived = RideStatus.PatientArrivedToDestination.includes(this.status.value);
-        let yes = false;
-        if (ds && rideArrived) {
-            yes = await ds.yesNoQuestion('Did patient release from hospital?');
-        }
+    async createBackRide(curSuccess: boolean = false): Promise<Ride> {
         let back = this.context.for(Ride).create();
         this.copyTo(back);
         back.swapLocations();
@@ -305,9 +331,10 @@ export class Ride extends IdEntity {
         if (RideStatus.PatientArrivedToDestination.includes(this.status.value)) {
             back.status.value = RideStatus.InHospital;
         }
-        if (yes) {
+        if (curSuccess) {
             if (this.status.value !== RideStatus.succeeded) {
                 this.status.value = RideStatus.succeeded;//auto close ride
+                await this.save();
             }
             back.status.value = RideStatus.waitingForDriver;
         }

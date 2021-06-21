@@ -32,7 +32,6 @@ import { LocationAreaComponent } from './core/locations/location-area/location-a
 import { PatientContactsComponent } from './core/patients/patient-contacts/patient-contacts.component';
 import { PatientCrudComponent } from './core/patients/patient-crud/patient-crud.component';
 import { RegisterRidesComponent } from './core/rides/register-rides/register-rides.component';
-import { ReturnRidesComponent } from './core/rides/return-rides/return-rides.component';
 import { RideCrudComponent } from './core/rides/ride-crud/ride-crud.component';
 import { SendSmsComponent } from './core/services/send-sms/send-sms.component';
 import { SetDriverComponent } from './core/usher/set-driver/set-driver.component';
@@ -70,7 +69,6 @@ import { DriverCrudComponent } from './core/drivers/driver-crud/driver-crud.comp
     RegisterRidesComponent,
     LocationAreaComponent,
     PatientCrudComponent,
-    ReturnRidesComponent,
     SuggestDriverComponent,
     GeneralReportComponent,
     SendSmsComponent,
@@ -79,7 +77,7 @@ import { DriverCrudComponent } from './core/drivers/driver-crud/driver-crud.comp
     DriversListComponent,
     PatientsListComponent,
     PatientRidesComponent,
-    DriverCrudComponent,
+    DriverCrudComponent
   ],
   imports: [
     BrowserModule,
@@ -101,8 +99,8 @@ import { DriverCrudComponent } from './core/drivers/driver-crud/driver-crud.comp
     RemultModule,
     BrowserAnimationsModule
   ],
-  providers: [DialogService, AdminGuard, UsherGuard, MatcherGuard, DriverGuard, OnlyDriverGuard, ServerEventsService,
- 
+  providers: [DialogService, AdminGuard, UsherGuard, MatcherGuard, DriverGuard, OnlyDriverGuard, ServerEventsService
+  
     // {
     //   provide: ApplicationSettings, useFactory: (service: SettingsService) => {
     //     return service.instance;

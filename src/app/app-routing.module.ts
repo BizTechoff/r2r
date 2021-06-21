@@ -12,7 +12,6 @@ import { LocationsListComponent } from './core/locations/locations-list/location
 import { PatientRidesComponent } from './core/patients/patient-rides/patient-rides.component';
 import { PatientsListComponent } from './core/patients/patients-list/patients-list.component';
 import { RegisterRidesComponent } from './core/rides/register-rides/register-rides.component';
-import { ReturnRidesComponent } from './core/rides/return-rides/return-rides.component';
 import { UsherComponent } from './core/usher/usher.component';
 // import { DemoComponent } from './demo/demo.component';
 import { HomeComponent } from './home/home.component';
@@ -36,7 +35,6 @@ const routes: Routes = [
 
   // Usher
   { path: 'Rides4Usher', component: UsherComponent, canActivate: [UsherGuard], data: { name: "Rides" } },
-  // { path: 'Return Rides', component: ReturnRidesComponent, canActivate: [UsherGuard], data: { name: "Return Rides" } },
   // { path: 'Rides', component: RidesComponent, canActivate: [UsherGuard] },
   { path: 'Drivers', component: DriversListComponent, canActivate: [UsherGuard] },
   { path: 'PatientsUsher', component: PatientsListComponent, canActivate: [UsherGuard], data: { name: "Patients" } },

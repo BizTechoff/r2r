@@ -72,12 +72,12 @@ export class PatientRidesComponent implements OnInit {
         click: async (cur) => { await this.openRide(cur); },
         //visible: (cur) => { return cur.status.value === RideStatus.waitingForStart && !cur.mApproved.value },
       },
-      {
-        textInMenu: 'Add Back Ride',
-        icon: 'rv_hookup',
-        click: async (cur) => { await this.createBackRide(cur); },
-        //visible: (cur) => { return (!cur.hadBackRide()) && cur.fid.hasSelected() && cur.fid.selected.type === LocationType.border; },
-      },
+      // {
+      //   textInMenu: 'Add Back Ride',
+      //   icon: 'rv_hookup',
+      //   click: async (cur) => { await this.createBackRide(cur); },
+      //   //visible: (cur) => { return (!cur.hadBackRide()) && cur.fid.hasSelected() && cur.fid.selected.type === LocationType.border; },
+      // },
       {
         textInMenu: 'Edit Patient',
         icon: 'how_to_reg',
@@ -126,16 +126,16 @@ export class PatientRidesComponent implements OnInit {
     }
   }
 
-  async createBackRide(r: Ride) {
-    if (r.hadBackRide()) {
-      await this.dialog.error('Back ride Already created');
-    } else if (!(r.fid.hasSelected() && r.fid.selected.type.value === LocationType.border)) {
-      await this.dialog.error('Back ride can created only from-border');
-    }
-    else {
-      await r.createBackRide(this.dialog);
-    }
-  }
+  // async createBackRide(r: Ride) {
+  //   if (r.hadBackRide()) {
+  //     await this.dialog.error('Back ride Already created');
+  //   } else if (!(r.fid.hasSelected() && r.fid.selected.type.value === LocationType.border)) {
+  //     await this.dialog.error('Back ride can created only from-border');
+  //   }
+  //   else {
+  //     await r.createBackRide(this.dialog);
+  //   }
+  // }
 
   async refresh() {
     this.ridesSettings.reloadData();
@@ -150,13 +150,44 @@ export class PatientRidesComponent implements OnInit {
 
   async setStatus(r: Ride) {
     let options = new RideStatusColumn();
-    let pName = await (await this.context.for(Patient).findId(r.pid)).name.value;
+    let pName = (await this.context.for(Patient).findId(r.pid)).name.value;
     await this.context.openDialog(InputAreaComponent, dlg => dlg.args = {
       title: 'Set Status Of Patient: ' + pName,
       columnSettings: () => [
         { column: options, valueList: [RideStatus.finishedHospital, RideStatus.stayInHospital, RideStatus.goneByHimself] }
       ],
-      ok: () => { }
+      ok: async () => {
+        if (options.value && options.value.id) {
+          let yes = await this.dialog.yesNoQuestion(`Set Status Of ${pName} to ${options.value.id}`);
+          if (yes) {
+            if(r.status.value !== RideStatus.succeeded){
+              r.status.value = RideStatus.succeeded;
+              await r.save();
+            }
+            switch (options.value) {
+              case RideStatus.finishedHospital: {
+                if(r.hadBackRide()){
+                  let back = await this.context.for(Ride).findId(r.backId.value);
+                  if(back){
+                    back.status.value = RideStatus.waitingForDriver;
+                    await back.save();
+                  }
+                }
+                else{
+                  await r.createBackRide(true);
+                }
+                break;
+              }
+              case RideStatus.stayInHospital: {
+                break;
+              }
+              case RideStatus.goneByHimself: {
+                break;
+              }
+            }
+          }
+        }
+      }
     });
   }
 
