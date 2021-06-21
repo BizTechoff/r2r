@@ -23,7 +23,7 @@ export class RideCrudComponent implements OnInit {
   dataArea: DataAreaSettings;
   r: Ride;
   p: Patient;
-  createBackRide = new BoolColumn({ caption: 'Need Back Ride', defaultValue: false });
+  createBackRide = new BoolColumn({ caption: 'Need Back Ride?', defaultValue: false });
 
   constructor(private context: Context, private dialog: DialogService, private dialogRef: MatDialogRef<any>) { }
 
@@ -38,6 +38,7 @@ export class RideCrudComponent implements OnInit {
       this.r = this.context.for(Ride).create();
       this.r.date.value = addDays(+1);
     }
+
     if (this.args.pid && this.args.pid.length > 0) {
       this.p = await this.context.for(Patient).findId(this.args.pid);
       if (this.p) {
@@ -64,14 +65,15 @@ export class RideCrudComponent implements OnInit {
     }
 
     let rOnly = this.r.isInDriving();
+    let hasBackRide = this.r.hadBackRide();
     this.dataArea = new DataAreaSettings({
       columnSettings: () => [
         {
-          column: this.r.fid, readonly: rOnly,
+          column: this.r.fid, readonly: rOnly || hasBackRide,
           caption: 'From ' + (this.r.fid && this.r.fid.selected ? this.r.fid.selected.type.value === LocationType.border ? 'Border' : 'Hospital' : 'Location')
         },
         {
-          column: this.r.tid, readonly: rOnly,
+          column: this.r.tid, readonly: rOnly || hasBackRide,
           caption: 'To ' + (this.r.tid && this.r.tid.selected ? this.r.tid.selected.type.value === LocationType.border ? 'Border' : 'Hospital' : 'Location')
         },
         [
@@ -83,7 +85,8 @@ export class RideCrudComponent implements OnInit {
           {
             column: this.createBackRide,
             visible: () => this.setBackRideVisible(),
-            readOnly: rOnly
+            readOnly: rOnly,
+            cssClass: 'boldFont'
           }
         ],
         [
@@ -149,6 +152,9 @@ export class RideCrudComponent implements OnInit {
     if (!(result)) {
       this.createBackRide.value = false;
     }
+    else if (this.r.isNew()) {
+      this.createBackRide.value = true;
+    }
     return result;
   }
 
@@ -202,7 +208,11 @@ export class RideCrudComponent implements OnInit {
         result = true;
         this.args.rid = this.r.id.value;
         if (this.createBackRide.value) {
-          await this.r.createBackRide();
+          if (!this.r.hadBackRide()) {
+            let back = await this.r.createBackRide();
+            this.r.backId.value = back.id.value;
+            await this.r.save();
+          }
         }
       }
       if (close) {
@@ -322,10 +332,13 @@ export class RideCrudComponent implements OnInit {
     this.r.pMobile.value = mobile;
   }
 
-  swapLocations() {
+  async swapLocations() {
     let started = RideStatus.isInDriving.includes(this.r.status.value);
     if (started) {
       this.dialog.error('Can not swap locations, ride already started');
+    }
+    else if (this.r.hadBackRide()) {
+      await this.dialog.error('Back-Ride already created! Can not swap locations');
     }
     else {
       this.r.swapLocations();

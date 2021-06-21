@@ -1,5 +1,6 @@
 import { ServerFunction } from "@remult/core";
 import * as fetch from 'node-fetch';
+import { SMS_CHANNEL_OPENED } from "../../../shared/types";
 
 export interface SendSmsResponse {
     success: boolean,
@@ -24,7 +25,7 @@ export class SendSms {
 
     @ServerFunction({ allowed: c => c.isSignedIn() })
     static async SendSms(mobile: string, message: string): Promise<SendSmsResponse> {
-        let result: SendSmsResponse = { success: false, error: '' };
+        let result: SendSmsResponse = { success: false, error: 'Sms channel is close!' };
         let url = process.env.SMS_URL +
             `user=${process.env.SMS_ACCOUNT}` +
             `&password=${process.env.SMS_PASSWORD}` +
@@ -34,7 +35,7 @@ export class SendSms {
 
         console.log(`SendSms.send: ${url}`);
 
-        if (false) {
+        if (SMS_CHANNEL_OPENED) {
             try {
                 let r = await fetch.default(url, {
                     method: 'GET'

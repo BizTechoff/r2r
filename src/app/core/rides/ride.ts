@@ -31,8 +31,9 @@ export class Ride extends IdEntity {
         caption: 'As Soon As Possible',
         defaultValue: false, valueChange: () => {
             if (this.immediate.value) {
-                this.date.value = addDays(TODAY);
+                // this.date.value = addDays(TODAY);
                 this.visitTime.value = TimeColumn.Empty;
+                this.pickupTime.value = TimeColumn.Empty;
             }
         }
     });
@@ -40,7 +41,7 @@ export class Ride extends IdEntity {
     visitTime = new TimeColumn();
     pickupTime = new TimeColumn();
     status = new RideStatusColumn();
-    statusDate = new DateTimeColumn();
+    statusDate = new DateTimeColumn({ caption: 'Status Changed' });
 
     escortsCount = new NumberColumn({});
 
@@ -50,8 +51,8 @@ export class Ride extends IdEntity {
     pMobile = new StringColumn({ caption: 'Patient Mobile' });
     importRideNum = new StringColumn();
 
+    isBackRide = new BoolColumn({ defaultValue: true });
     backId = new StringColumn({});
-    isBackRide = new BoolColumn({ defaultValue: false });
     isPatientApprovedBeing = new BoolColumn({ defaultValue: false });
     isSplitted = new BoolColumn({ defaultValue: false });
     dRemark = new StringColumn({ caption: 'Remark For Driver' });
@@ -76,13 +77,13 @@ export class Ride extends IdEntity {
                         this.visitTime.value = TimeColumn.Empty;
                         this.pickupTime.value = TimeColumn.Empty;
                         // if current time if after business working hours so set ride to tomorrow
-                        let today = addDays(0);
-                        if (today === this.date.value) {
-                            let time = formatDate(addDays(0, undefined, false), 'HH:mm', 'en-US');
-                            if (time > MaxPickupHospital) {
-                                this.date.value = addDays(+1);
-                            }
-                        }
+                        // let today = addDays(0);
+                        // if (today === this.date.value) {
+                        //     let time = formatDate(addDays(0, undefined, false), 'HH:mm', 'en-US');
+                        //     if (time > MaxPickupHospital) {
+                        //         this.date.value = addDays(+1);
+                        //     }
+                        // }
                     }
                     else if (!border && !immediate) {//hospital
                         this.visitTime.value = TimeColumn.Empty;
@@ -90,13 +91,13 @@ export class Ride extends IdEntity {
                     return true;
                 }
                 else {
-                    console.error(`this.fid.selected=null (id=${this.fid.value})`);
+                    console.error(`this.fid.selected=null`);// (id=${this.fid.value})`);
                 }
             },
             saving: async () => {
                 if (context.onServer) {
                     if (this.status.wasChanged()) {
-                        this.statusDate.value = addDays(TODAY);
+                        this.statusDate.value = addDays(TODAY, undefined, false);
                     }
                     this.changed.value = addDays(TODAY, undefined, false);
                     this.changedBy.value = this.context.user.id;
@@ -112,35 +113,41 @@ export class Ride extends IdEntity {
             deleted: async () => {//trigger from db on date OR status changed
                 if (context.onServer) {
                     await this.recordActivity(this, true);
+                    if (!this.isBackRide.value) {
+                        if (this.hadBackRide()) {
+                            let back = await context.for(Ride).findId(this.backId.value);
+                            await back.delete();
+                        }
+                    }
                 }
             },
             saved: async () => {//trigger from db on date OR status changed
                 if (context.onServer) {
                     await this.recordActivity(this);
                     // Check for back-ride changes.
-                    if (this.fid.wasChanged() || this.tid.wasChanged() || this.date.wasChanged()) {
-                        if (this.hadBackRide()) {
-                            let back = await context.for(Ride).findId(this.backId.value);
-                            if (back) {
-                                let save = false;
-                                if (back.fid.value !== this.fid.value) {
-                                    back.fid.value = this.fid.value;
-                                    save = true;
-                                }
-                                if (back.tid.value !== this.tid.value) {
-                                    back.tid.value = this.tid.value;
-                                    save = true;
-                                }
-                                if (back.date.value !== this.date.value) {
-                                    back.date.value = this.date.value;
-                                    save = true;
-                                }
-                                if (save) {
-                                    await this.save();
-                                }
-                            }
-                        }
-                    }
+                    // if (this.fid.wasChanged() || this.tid.wasChanged() || this.date.wasChanged()) {
+                    //     if (this.hadBackRide()) {
+                    //         let back = await context.for(Ride).findId(this.backId.value);
+                    //         if (back) {
+                    //             let save = false;
+                    //             if (back.fid.value !== this.fid.value) {
+                    //                 back.fid.value = this.fid.value;
+                    //                 save = true;
+                    //             } 
+                    //             if (back.tid.value !== this.tid.value) {
+                    //                 back.tid.value = this.tid.value;
+                    //                 save = true;
+                    //             }
+                    //             // if (back.date.value !== this.date.value) {
+                    //             //     back.date.value = this.date.value;
+                    //             //     save = true;
+                    //             // }
+                    //             if (save) {
+                    //                 await this.save();
+                    //             }
+                    //         }
+                    //     }
+                    // }
                 }
             }
 
@@ -314,35 +321,34 @@ export class Ride extends IdEntity {
         return this.status.value === RideStatus.succeeded;
     }
 
-    swapLocations() {
+    async swapLocations() {
         let temp = this.fid.value;
-        let slected = this.fid.selected;
+        let selected = this.fid.selected;
         this.fid.value = this.tid.value;
         this.fid.selected = this.tid.selected;
         this.tid.value = temp;
-        this.tid.selected = slected;
+        this.tid.selected = selected;
     }
-
-    async createBackRide(curSuccess: boolean = false): Promise<Ride> {
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    async createBackRide(): Promise<Ride> {
         let back = this.context.for(Ride).create();
-        this.copyTo(back);
-        back.swapLocations();
-        back.status.value = RideStatus.notActiveYet;
-        if (RideStatus.PatientArrivedToDestination.includes(this.status.value)) {
-            back.status.value = RideStatus.InHospital;
-        }
-        if (curSuccess) {
-            if (this.status.value !== RideStatus.succeeded) {
-                this.status.value = RideStatus.succeeded;//auto close ride
-                await this.save();
-            }
-            back.status.value = RideStatus.waitingForDriver;
-        }
+        back.pid.value = this.pid.value;
+        back.fid.value = this.tid.value;
+        back.fid.selected = this.tid.selected;
+        back.tid.value = this.fid.value;
+        back.tid.selected = this.fid.selected;
+        back.date.value = this.date.value;
+        back.immediate.value = true;
+        back.visitTime.value = TimeColumn.Empty;
+        back.pickupTime.value = TimeColumn.Empty;
+        back.escortsCount.value = this.escortsCount.value;
+        back.pMobile.value = this.pMobile.value;
+        back.backId.value = this.id.value;
         back.isBackRide.value = true;
-        back.did.value = '';
+        back.dRemark.value = this.dRemark.value;
+        back.rRemark.value = this.rRemark.value;
+        back.status.value = RideStatus.notActiveYet;
         await back.save();
-        this.backId.value = back.id.value;
-        await this.save();
         return back;
     }
 
@@ -390,10 +396,6 @@ export class RideStatus {
     static wrongAddress = new RideStatus();
     static stayInHospital = new RideStatus();
     static goneByHimself = new RideStatus();
-    static PatientArrivedToDestination = [
-        RideStatus.waitingForEnd,
-        RideStatus.succeeded
-    ];
 
     constructor(public color = 'green') { }
     id: string;
@@ -428,6 +430,11 @@ export class RideStatus {
         return status === this.id;
     }
 
+    static PatientArrivedToDestination = [
+        RideStatus.waitingForEnd,
+        RideStatus.succeeded
+    ];
+
     static isInDriving = [
         RideStatus.waitingForPickup,
         RideStatus.waitingForArrived
@@ -444,6 +451,12 @@ export class RideStatus {
 
     static isDriverNotStarted = [
         // RideStatus.waitingForHospital,
+        RideStatus.waitingForDriver,
+        RideStatus.waitingForAccept
+    ];
+
+    static isCanNotDeleteRide = [
+        //RideStatus.w,
         RideStatus.waitingForDriver,
         RideStatus.waitingForAccept
     ];

@@ -124,7 +124,7 @@ export class PatientsListComponent implements OnInit {
       title: `${p.name.value} Rides`,
       settings: this.context.for(Ride).gridSettings({
         where: r => r.pid.isEqualTo(p.id),
-        orderBy: r => [{ column: r.date, descending: true }],
+        orderBy: r => [{ column: r.date, descending: true }, { column: r.visitTime, descending: true }],
         allowCRUD: false,
         allowDelete: false,
         // showPagination: false,
@@ -132,15 +132,18 @@ export class PatientsListComponent implements OnInit {
         columnSettings: r => [
           r.fid,
           r.tid,
-          r.date,
+          { column: r.date, width: '110' },
+          { column: r.visitTime, width: '110' },
           r.status,
+          r.statusDate,
+          r.did
         ],
         rowButtons: [
           {
             textInMenu: 'Edit',
             icon: 'edit',
             click: async (r) => { await this.editRide(r); },
-            visible: this.context.isAllowed([Roles.matcher]),//[Roles.admin, Roles.usher, Roles.matcher]),
+            visible: () => this.context.isAllowed(Roles.matcher),//[Roles.admin, Roles.usher, Roles.matcher]),
             showInLine: true
           },
         ],

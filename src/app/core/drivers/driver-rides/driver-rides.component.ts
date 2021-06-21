@@ -46,7 +46,7 @@ export class DriverRidesComponent implements OnInit {
       where: r => r.did.isEqualTo(driver.id)
         .and(r.date.isGreaterOrEqualTo(today))
         .and(r.status.isIn(...RideStatus.isDriverNeedToShowStatuses)),
-    })) { 
+    })) {
       let from = (await context.for(Location).findId(ride.fid.value)).name.value;
       let to = (await context.for(Location).findId(ride.tid.value)).name.value;
       let age = ride.isHasPatient() ? (await context.for(Patient).findId(ride.pid.value)).age.value : undefined;
@@ -58,7 +58,7 @@ export class DriverRidesComponent implements OnInit {
       let equipment: string[] = [];
       let p = ride.isHasPatient() ? (await context.for(Patient).findId(ride.pid.value)) : undefined;
       if (p) {
-        pName  =p.name.value;
+        pName = p.name.value;
         if (p.isHasBabyChair) {
           equipment.push('');
         }
@@ -160,6 +160,22 @@ export class DriverRidesComponent implements OnInit {
     let ride = await this.context.for(Ride).findId(r.rId);
     ride.status.value = RideStatus.succeeded;
     await ride.save();
+    if (ride.isBackRide.value) {
+
+    }
+    else {
+      let back: Ride;
+      if (!(ride.hadBackRide())) {
+        back = await ride.createBackRide();
+        ride.backId.value = back.id.value;
+        await ride.save();
+      }
+      else {
+        back = await this.context.for(Ride).findId(ride.backId.value);
+      }
+      back.status.value = RideStatus.InHospital;
+      await back.save();
+    }
     await this.refresh();
     let driver = await this.context.for(Driver).findFirst({
       where: d => d.uid.isEqualTo(this.context.user.id),

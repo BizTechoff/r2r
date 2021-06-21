@@ -1,4 +1,4 @@
-import { checkForDuplicateValue, ColumnSettings, Context, DateColumn, EntityClass, IdEntity, NumberColumn, StringColumn } from "@remult/core";
+import { checkForDuplicateValue, ColumnSettings, Context, DateColumn, DateTimeColumn, EntityClass, IdEntity, NumberColumn, StringColumn } from "@remult/core";
 import { DialogService } from "../../common/dialog";
 import { DynamicServerSideSearchDialogComponent } from "../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component";
 import { GridDialogComponent } from "../../common/grid-dialog/grid-dialog.component";
@@ -38,7 +38,7 @@ export class Driver extends IdEntity {
   address = new StringColumn({});
 
   lastStatus = new RideStatusColumn({});
-  lastStatusDate = new DateColumn({});
+  lastStatusDate = new DateTimeColumn({});
   defaultFromLocation?= new LocationIdColumn({ allowNull: true }, this.context);
   defaultToLocation?= new LocationIdColumn({ allowNull: true }, this.context);
   defaultFromTime = new TimeColumn();

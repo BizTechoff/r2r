@@ -6,7 +6,6 @@ import { YesNoQuestionComponent } from '../../../common/yes-no-question/yes-no-q
 import { TODAY } from '../../../shared/types';
 import { addDays } from '../../../shared/utils';
 import { Roles } from '../../../users/roles';
-import { LocationType } from '../../locations/location';
 import { Ride, RideStatus, RideStatusColumn } from '../../rides/ride';
 import { RideCrudComponent } from '../../rides/ride-crud/ride-crud.component';
 import { SendSmsComponent } from '../../services/send-sms/send-sms.component';
@@ -43,12 +42,14 @@ export class PatientRidesComponent implements OnInit {
     numOfColumnsInGrid: 10,
     columnSettings: (cur) => [
       cur.pid,
-      { column: this.age, readOnly: true, getValue: (cur) => { return this.context.for(Patient).lookup(cur.pid).age.value; } },
+      // allowClick: () => false, 
+      { column: this.age, width: '80', readOnly: true, getValue: (cur) => { return this.context.for(Patient).lookup(cur.pid).age.value; } },
       cur.fid,
       cur.tid,
-      { column: this.pass, getValue: (cur) => { return cur.passengers(); }, caption: 'Pass' },
+      { column: this.pass, width: '80', getValue: (cur) => { return cur.passengers(); }, caption: 'Pass' },
       cur.status,
-      { column: this.vt, getValue: (r) => r.immediate.value ? 'A.S.A.P' : r.visitTime.value },
+      { column: this.vt, width: '110', getValue: (r) => r.immediate.value ? 'A.S.A.P' : r.visitTime.value },
+      cur.did,
       cur.rRemark,
       cur.changed,
       cur.changedBy
@@ -64,7 +65,7 @@ export class PatientRidesComponent implements OnInit {
         textInMenu: 'Set Status',
         icon: 'new_releases',
         click: async (cur) => { await this.setStatus(cur); },
-        // visible: (cur) => { return cur.status.value === RideStatus.waitingForStart && !cur.isPatientApprovedBeing.value }
+        visible: (cur) => { return (!(cur.isBackRide.value && cur.status.value !== RideStatus.InHospital && cur.status.value !== RideStatus.notActiveYet)) }
       },
       {
         textInMenu: 'Edit Ride',
@@ -120,6 +121,7 @@ export class PatientRidesComponent implements OnInit {
       let yes = await this.dialog.confirmDelete(' Ride');
       if (yes) {
         await r.delete();
+        await this.refresh();
       }
     } else {
       await this.dialog.error('Driver Started Ride, Can NOT delete');
@@ -149,7 +151,7 @@ export class PatientRidesComponent implements OnInit {
   }
 
   async setStatus(r: Ride) {
-    let options = new RideStatusColumn();
+    let options = new RideStatusColumn({ defaultValue: RideStatus.finishedHospital });
     let pName = (await this.context.for(Patient).findId(r.pid)).name.value;
     await this.context.openDialog(InputAreaComponent, dlg => dlg.args = {
       title: 'Set Status Of Patient: ' + pName,
@@ -160,31 +162,64 @@ export class PatientRidesComponent implements OnInit {
         if (options.value && options.value.id) {
           let yes = await this.dialog.yesNoQuestion(`Set Status Of ${pName} to ${options.value.id}`);
           if (yes) {
-            if(r.status.value !== RideStatus.succeeded){
-              r.status.value = RideStatus.succeeded;
-              await r.save();
+            if (r.isBackRide.value) {
+              let origin = await this.context.for(Ride).findId(r.backId.value);
+              if (origin.status.value !== RideStatus.succeeded) {
+                origin.status.value = RideStatus.succeeded;
+                await origin.save();
+              }
             }
+            else {
+              if (!r.hadBackRide()) {//todo: && !r.isSplitted.value) {
+                let back = await r.createBackRide();
+                r.backId.value = back.id.value;
+                await r.save();
+              }
+              if (r.status.value !== RideStatus.succeeded) {
+                r.status.value = RideStatus.succeeded;
+                await r.save();
+              }
+            }
+            // set back ride
             switch (options.value) {
               case RideStatus.finishedHospital: {
-                if(r.hadBackRide()){
-                  let back = await this.context.for(Ride).findId(r.backId.value);
-                  if(back){
-                    back.status.value = RideStatus.waitingForDriver;
-                    await back.save();
-                  }
+                if (r.isBackRide.value) {
+                  r.status.value = RideStatus.waitingForDriver;
+                  await r.save();
                 }
-                else{
-                  await r.createBackRide(true);
+                else {
+                  let back = await this.context.for(Ride).findId(r.backId.value);
+                  back.status.value = RideStatus.waitingForDriver;
+                  await back.save();
                 }
                 break;
               }
               case RideStatus.stayInHospital: {
+                if (r.isBackRide.value) {
+                  r.status.value = RideStatus.InHospital;
+                  r.date.value = addDays(+1, r.date.value);
+                  await r.save();
+                }
+                else {
+                  let back = await this.context.for(Ride).findId(r.backId.value);
+                  back.status.value = RideStatus.InHospital;
+                  back.date.value = addDays(+1, back.date.value);
+                  await back.save();
+                }
                 break;
               }
               case RideStatus.goneByHimself: {
+                if (r.isBackRide.value) {
+                  await r.delete();
+                }
+                else {
+                  let back = await this.context.for(Ride).findId(r.backId.value);
+                  await back.delete();
+                }
                 break;
               }
             }
+            await this.refresh();
           }
         }
       }

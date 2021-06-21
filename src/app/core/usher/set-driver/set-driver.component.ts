@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
 import { BoolColumn, Context, DataAreaSettings, DateColumn, Entity, Filter, GridSettings, NumberColumn, ServerController, ServerMethod, StringColumn } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
-import { GridDialogComponent } from '../../../common/grid-dialog/grid-dialog.component';
 import { InputAreaComponent } from '../../../common/input-area/input-area.component';
 import { PickupTimePrevHours, ride4UsherSetDriver, TimeColumn } from '../../../shared/types';
 import { addHours } from '../../../shared/utils';
@@ -97,7 +96,7 @@ export interface rideRow {
   passengers: number,
   patient: string,
 };
- 
+
 @Component({
   selector: 'app-set-driver',
   templateUrl: './set-driver.component.html',
@@ -207,6 +206,7 @@ export class SetDriverComponent implements OnInit {
         let d = await this.context.for(Driver).findId(this.driverId.value);
         r.driver = d.name.value;
         r.driverId = this.driverId.value;
+        r.pickupTime = ride.pickupTime.value;
         r.status = ride.status.value;
         r.w4Accept = ride.isWaitingForAccept();
         r.w4Start = ride.isWaitingForStart();
@@ -235,8 +235,8 @@ export class SetDriverComponent implements OnInit {
           pick = row.pickupTime;
         }
         else {
-          if(row.visitTime && row.visitTime.length > 0 && row.visitTime !== TimeColumn.Empty){
-            pick=addHours(PickupTimePrevHours, row.visitTime);
+          if (row.visitTime && row.visitTime.length > 0 && row.visitTime !== TimeColumn.Empty) {
+            pick = addHours(PickupTimePrevHours, row.visitTime);
           }
         }
         if (pick < min) {
@@ -244,7 +244,7 @@ export class SetDriverComponent implements OnInit {
           minChanged = true;
         }
       }
-    }  
+    }
     if (minChanged) {
       this.selectedPickupTime = min;
     }
@@ -314,7 +314,7 @@ export class SetDriverComponent implements OnInit {
     let setStatusToApproved = await this.dialog.yesNoQuestion(`Set ${r.driver} Has Arrived`);
     if (setStatusToApproved) {
       let ride = await this.context.for(Ride).findId(r.rid);
-      ride.status.value = RideStatus.waitingForEnd;
+      ride.status.value = RideStatus.succeeded;
       await ride.save();
       r.status = ride.status.value;
       r.w4Accept = ride.isWaitingForAccept();
@@ -322,6 +322,24 @@ export class SetDriverComponent implements OnInit {
       r.w4Pickup = ride.isWaitingForPickup();
       r.w4Arrived = ride.isWaitingForArrived();
       r.w4End = ride.isEnd();
+
+      if (ride.isBackRide.value) {
+
+      }
+      else {
+        let back: Ride;
+        if (!(ride.hadBackRide())) {
+          back = await ride.createBackRide();
+          ride.backId.value = back.id.value;
+          await ride.save();
+        }
+        else {
+          back = await this.context.for(Ride).findId(ride.backId.value);
+        }
+        back.status.value = RideStatus.InHospital;
+        await back.save();
+      }
+      await this.retrieve();
     }
   }
 

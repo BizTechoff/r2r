@@ -1,26 +1,34 @@
 /* You can add global styles to this file, and also import other style files */
 
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
 
 .full-page {
-    height: 100%;
-    display: flex;
-    flex-flow: column;
-  }
-  .grow-item {
-    height: 250px;
-    flex-grow: 1;
-    flex-shrink: 0;
-    overflow-y: auto;
-  }
-  .mat-list-item-content{
-    justify-content: space-between;
-  }
-
-  
+  height: 100%;
+  display: flex;
+  flex-flow: column;
+}
+.grow-item {
+  height: 250px;
+  flex-grow: 1;
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+.mat-list-item-content {
+  justify-content: space-between;
+}
 
 .registerDrivers {
   color: #ee12d1 !important;
   font-weight: bolder;
+}
+
+.boldFont {
+  color: #2112ee !important;
 }
