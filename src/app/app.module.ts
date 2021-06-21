@@ -102,7 +102,7 @@ import { DriverCrudComponent } from './core/drivers/driver-crud/driver-crud.comp
     BrowserAnimationsModule
   ],
   providers: [DialogService, AdminGuard, UsherGuard, MatcherGuard, DriverGuard, OnlyDriverGuard, ServerEventsService,
-
+ 
     // {
     //   provide: ApplicationSettings, useFactory: (service: SettingsService) => {
     //     return service.instance;

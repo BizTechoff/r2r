@@ -1,7 +1,14 @@
 <div class="full-page">
     <div class="header">
-        <h2>Rides: {{ fromName }} to {{ toName }}</h2>
+        <div style="display:flex;flex-direction: row;flex-grow: 1;justify-content: space-between;">
+            <h2>Rides: {{ fromName }} to {{ toName }}</h2>
+            <button mat-icon-button mat-dialog-close title="Close" style="justify-content: flex-end" (click)="close()">
+                <mat-icon>close</mat-icon>
+            </button>
+        </div>
+        
     </div>
+
     <div>
         <data-area [settings]="driverArea"></data-area>
         Selected Driver Seats: <strong>{{ driverSeats }}</strong>
@@ -79,8 +86,8 @@
             <span *ngIf="selectedPassengers > 0">Selected: <span style="color: green;">{{ selectedPassengers }}</span> Pass</span>
         </div>
     <div style="color: red;" *ngIf="selectedPassengers > 0 && driverSeats > 0 && driverSeats >= selectedPassengers">
-        Pickup Time: <input [(ngModel)]="selectedPickupTime" #pickup required type="time">
-        <button mat-raised-button color="accent"
+        Pickup Time: <input title="The minimun time between all selected rides" [(ngModel)]="selectedPickupTime" #pickup required type="time">
+        <button mat-raised-button color="accent" title="Set Selected Driver To Selected Rides"
             *ngIf="selectedPickupTime && selectedPickupTime.length > 0 && (!(selectedPickupTime === '00:00'))"
             (click)="setDriver()">Set Driver</button>
     </div>

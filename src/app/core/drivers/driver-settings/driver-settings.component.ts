@@ -26,7 +26,7 @@ export class DriverSettingsComponent implements OnInit {
   driverSettings = this.context.for(Driver).gridSettings({
     numOfColumnsInGrid: 0,
     allowUpdate: true,
-    where: d => d.userId.isEqualTo(this.context.user.id),
+    where: d => d.uid.isEqualTo(this.context.user.id),
     columnSettings: d => [
       d.name, d.hebName,
       d.mobile, d.email,
@@ -46,7 +46,7 @@ export class DriverSettingsComponent implements OnInit {
       this.args = { driverId: '' };
     }
     if (!(this.args.driverId && this.args.driverId.length > 0)) {
-      this.args.driverId = (await this.context.for(Driver).findFirst(d => d.userId.isEqualTo(this.context.user.id))).id.value;
+      this.args.driverId = (await this.context.for(Driver).findFirst(d => d.uid.isEqualTo(this.context.user.id))).id.value;
     }
     await this.context.openDialog(LocationAreaComponent, dlg => dlg.args = { dId: this.args.driverId });
 
@@ -59,9 +59,9 @@ export class DriverSettingsComponent implements OnInit {
     });
 
     this.driverId = (await this.context.for(Driver).findFirst({
-      where: d => d.userId.isEqualTo(this.context.user.id),
+      where: d => d.uid.isEqualTo(this.context.user.id),
     })).id.value;
-
+ 
     this.selectedCount = await this.context.for(DriverPrefs).count(
       prf => prf.did.isEqualTo(this.driverId));
   }

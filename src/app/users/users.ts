@@ -91,12 +91,8 @@ export class Users extends IdEntity {
                             this.isAdmin.value = true;// If it's the first user, make it an admin
                         }
                         this.password.value = PasswordColumn.passwordHelper.generateHash('Q1w2e3r4');
-                        // else {
-                        //     this.isDriver.value = true;
-                        // }
                     }
                     await checkForDuplicateValue(this, this.mobile, this.context.for(Users));
-
                 }
             },
             saved: async () => {
@@ -180,21 +176,21 @@ export class Users extends IdEntity {
                 case Roles.driver: {
 
                     let d = await this.context.for(Driver).findOrCreate({
-                        where: d => d.userId.isEqualTo(user.id)
+                        where: d => d.uid.isEqualTo(user.id)
                     });
 
                     if (user.isDriver.value) {//only if user is driver
-                        if (d.isNew() || (!(d.userId.value == user.id.value))) {
+                        if (d.isNew() || (!(d.uid.value === user.id.value) || user.name.wasChanged())) {
                             d.name.value = user.name.value;
                             d.mobile.value = user.mobile.value;
-                            d.userId.value = user.id.value;
+                            d.uid.value = user.id.value;
                             d.seats.value = 4;
                             await d.save();
                         }
                     }
                     else if (!(d.isNew())) {
                         // 'delete' it
-                        d.userId.value = '';
+                        d.uid.value = '';
                         await d.save();
                     }
 
@@ -210,7 +206,7 @@ export class Users extends IdEntity {
             switch (role.valueOf()) {
 
                 case Roles.driver: {
-                    let d = await this.context.for(Driver).findFirst({ where: d => d.userId.isEqualTo(userId) });
+                    let d = await this.context.for(Driver).findFirst({ where: d => d.uid.isEqualTo(userId) });
                     if (d) {
                         await d.delete();
                     }

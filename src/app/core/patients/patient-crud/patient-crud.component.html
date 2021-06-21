@@ -1,12 +1,20 @@
 <div class="full-page">
-    <h3>Patient{{ args.pid.length > 0 ? ": "+this.p.name.value : " (New)" }}</h3>
     <div class="header">
+        <div style="display:flex;flex-direction: row;flex-grow: 1;justify-content: space-between;">
+            <h3>Patient: <span>{{ args.pid.length > 0? p&&p.name?p.name.value:'(loading..)' : ' (New)' }}</span></h3>
+            <button mat-icon-button mat-dialog-close title="Close" style="justify-content: flex-end" (click)="close()">
+                <mat-icon>close</mat-icon>
+            </button>
+        </div>
     </div>
     <div class="grow-item">
         <data-area [settings]="areaSettings"></data-area>
     </div>
     <div class="footer">
-        <button mat-raised-button color="accent" (click)="save()">Save</button>
-        <button mat-raised-button color="primary" (click)="contacts()">Contacts ({{ contactsCount }})</button>
+        <hr>
+        <div style="display:flex;flex-direction: row;flex-grow: 1;justify-content: space-between;">
+            <button mat-raised-button color="primary" (click)="contacts()">Contacts ({{ contactsCount }})</button>
+            <button mat-raised-button color="accent" (click)="save()">Save</button>
+        </div>
     </div>
 </div>

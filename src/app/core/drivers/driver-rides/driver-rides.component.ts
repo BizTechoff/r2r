@@ -35,7 +35,7 @@ export class DriverRidesComponent implements OnInit {
     var result: ride4Driver[] = [];
 
     let driver = await context.for(Driver).findFirst({
-      where: d => d.userId.isEqualTo(context.user.id),
+      where: d => d.uid.isEqualTo(context.user.id),
     });
     if (!(driver)) {
       throw 'Error - You are not register to use app';
@@ -45,22 +45,26 @@ export class DriverRidesComponent implements OnInit {
     for await (const ride of context.for(Ride).iterate({
       where: r => r.did.isEqualTo(driver.id)
         .and(r.date.isGreaterOrEqualTo(today))
-        .and(r.status.isIn(...RideStatus.isInDriverWaitingStatuses)),
-    })) {
+        .and(r.status.isIn(...RideStatus.isDriverNeedToShowStatuses)),
+    })) { 
       let from = (await context.for(Location).findId(ride.fid.value)).name.value;
       let to = (await context.for(Location).findId(ride.tid.value)).name.value;
-      let pName = ride.isHasPatient() ? (await context.for(Patient).findId(ride.pid.value)).name.value : "";
       let age = ride.isHasPatient() ? (await context.for(Patient).findId(ride.pid.value)).age.value : undefined;
       let pMobile = ride.isHasPatient() ? (await context.for(Patient).findId(ride.pid.value)).mobile.value : "";
       let contactsCount = await context.for(Contact).count(
         c => c.pid.isEqualTo(ride.pid),
       );
+      let pName = '';
       let equipment: string[] = [];
-      if (ride.isHasBabyChair) {
-        equipment.push('child_friendly');
-      }
-      if (ride.isHasWheelchair) {
-        equipment.push('accessible');
+      let p = ride.isHasPatient() ? (await context.for(Patient).findId(ride.pid.value)) : undefined;
+      if (p) {
+        pName  =p.name.value;
+        if (p.isHasBabyChair) {
+          equipment.push('');
+        }
+        if (p.isHasWheelchair) {
+          equipment.push('');
+        }
       }
       console.log('---- ' + ride.passengers());
       let row = result.find(r => r.rId === ride.id.value);
@@ -158,7 +162,7 @@ export class DriverRidesComponent implements OnInit {
     await ride.save();
     await this.refresh();
     let driver = await this.context.for(Driver).findFirst({
-      where: d => d.userId.isEqualTo(this.context.user.id),
+      where: d => d.uid.isEqualTo(this.context.user.id),
     });
     if (driver) {
       let city = driver.city.value;

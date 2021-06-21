@@ -1,13 +1,16 @@
 <div class="full-page">
     <div class="header">
-        <h3 *ngIf="d">Edit Driver {{ this.d.name.value }}</h3>
-        <h2 *ngIf="d && d.hasFreezeDate()" style="color: red;">Driver Is Freezed !</h2>
+        <div style="display:flex;flex-direction: row;flex-grow: 1;justify-content: space-between;">
+            <h3 *ngIf="d">Driver: <u>{{ this.d.name.value }}</u></h3>
+            <h2 *ngIf="d && d.hasFreezeDate()" style="color: red;">Driver Is Freezed !</h2>
+            <button  mat-icon-button mat-dialog-close title="Close" style="justify-content: flex-end" (click)="close()"> <mat-icon>close</mat-icon></button>
+        </div>
     </div>
     <div class="grow-item">
         <data-area *ngIf="this.dataArea" [settings]="this.dataArea"></data-area>
     </div>
     <div class="footer">
-        <hr>
+        <hr> 
         <div style="display:flex;flex-direction: row;flex-grow: 1;justify-content: space-between;">
             <button *ngIf="!(d && d.hasFreezeDate())" mat-raised-button color="primary" (click)="freeze()">Freeze
                 Driver</button>

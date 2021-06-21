@@ -529,7 +529,7 @@ export class DriverRegisterComponent implements OnInit {
 
   async ngOnInit() {
     this.driver = await this.context.for(Driver).findFirst({
-      where: d => d.userId.isEqualTo(this.context.user.id),
+      where: d => d.uid.isEqualTo(this.context.user.id),
     });
     if (!(this.driver)) {
       throw 'Error - You are not register to use app';

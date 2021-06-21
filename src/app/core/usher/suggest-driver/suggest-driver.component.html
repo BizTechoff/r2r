@@ -1,13 +1,20 @@
 <div class="full-page">
-    <!-- <data-grid *ngIf="grid" class="grow-item" [settings]="grid"></data-grid> -->
     <div class="header">
-        <u>
-            <!-- : {{this.params.date.value|date:'dd.MM.yyyy'}}) -->
-            <h3>Kav: {{this.params.from.value && this.params.to.value? this.params.from.value + ' > ' +
-                this.params.to.value: 'searching..'}} at {{ this.params.date.value | date: 'dd.MM.yyyy' }} -Driver
-                Suggestions</h3>
-        </u>
-        <data-control [column]="search"></data-control>
+        <div style="display:flex;flex-direction: row;flex-grow: 1;justify-content: space-between;">
+            
+        <div style="display:flex;flex-direction: column;flex-grow: 1;justify-content: space-between;">
+            <u>
+                <h3>Kav: {{this.params.from.value && this.params.to.value? this.params.from.value + ' > ' +
+                    this.params.to.value: 'searching..'}} at {{ this.params.date.value | date: 'dd.MM.yyyy' }} -Driver
+                    Suggestions</h3>
+            </u>
+            <data-control [column]="search"></data-control>
+            </div>
+            <button mat-icon-button mat-dialog-close title="Close" style="justify-content: flex-end" (click)="close()">
+                <mat-icon>close</mat-icon>
+            </button>
+        </div>
+
     </div>
     <div class="grow-item">
         <table style="width: 100%;">
@@ -22,7 +29,6 @@
                 <th>Reason</th>
                 <th></th>
             </tr>
-            <!-- (dblclick)="onDriverSelected(d) title="Double Click To Select""  -->
             <tr *ngFor="let d of drivers">
                 <td>
                     <!-- *ngIf="menu && menu.items && menu.items.length > 0" -->
@@ -91,9 +97,6 @@
         <hr>
         <div style="display:flex;flex-direction: row;flex-grow: 1;justify-content: space-between;">
             <span>Found: {{ drivers.length }} Drivers</span>
-            <button mat-raised-button color='accent' (click)="close()" title="Close">
-                <label>Close</label>
-            </button>
         </div>
     </div>
 </div>

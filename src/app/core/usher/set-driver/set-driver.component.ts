@@ -207,6 +207,13 @@ export class SetDriverComponent implements OnInit {
         let d = await this.context.for(Driver).findId(this.driverId.value);
         r.driver = d.name.value;
         r.driverId = this.driverId.value;
+        r.status = ride.status.value;
+        r.w4Accept = ride.isWaitingForAccept();
+        r.w4Start = ride.isWaitingForStart();
+        r.w4Pickup = ride.isWaitingForPickup();
+        r.w4Arrived = ride.isWaitingForArrived();
+        r.w4End = ride.isEnd();
+        // r.w4Start = ride.isWaitingForStart();
       }
     }
     this.clearSelections();
@@ -264,7 +271,12 @@ export class SetDriverComponent implements OnInit {
       let ride = await this.context.for(Ride).findId(r.rid);
       ride.status.value = RideStatus.waitingForStart;
       await ride.save();
-      r.status = RideStatus.waitingForStart;
+      r.status = ride.status.value;
+      r.w4Accept = ride.isWaitingForAccept();
+      r.w4Start = ride.isWaitingForStart();
+      r.w4Pickup = ride.isWaitingForPickup();
+      r.w4Arrived = ride.isWaitingForArrived();
+      r.w4End = ride.isEnd();
     }
   }
 
@@ -274,7 +286,12 @@ export class SetDriverComponent implements OnInit {
       let ride = await this.context.for(Ride).findId(r.rid);
       ride.status.value = RideStatus.waitingForPickup;
       await ride.save();
-      r.status = RideStatus.waitingForPickup;
+      r.status = ride.status.value;
+      r.w4Accept = ride.isWaitingForAccept();
+      r.w4Start = ride.isWaitingForStart();
+      r.w4Pickup = ride.isWaitingForPickup();
+      r.w4Arrived = ride.isWaitingForArrived();
+      r.w4End = ride.isEnd();
     }
   }
 
@@ -284,7 +301,12 @@ export class SetDriverComponent implements OnInit {
       let ride = await this.context.for(Ride).findId(r.rid);
       ride.status.value = RideStatus.waitingForArrived;
       await ride.save();
-      r.status = RideStatus.waitingForArrived;
+      r.status = ride.status.value;
+      r.w4Accept = ride.isWaitingForAccept();
+      r.w4Start = ride.isWaitingForStart();
+      r.w4Pickup = ride.isWaitingForPickup();
+      r.w4Arrived = ride.isWaitingForArrived();
+      r.w4End = ride.isEnd();
     }
   }
 
@@ -294,7 +316,12 @@ export class SetDriverComponent implements OnInit {
       let ride = await this.context.for(Ride).findId(r.rid);
       ride.status.value = RideStatus.waitingForEnd;
       await ride.save();
-      r.status = RideStatus.waitingForEnd;
+      r.status = ride.status.value;
+      r.w4Accept = ride.isWaitingForAccept();
+      r.w4Start = ride.isWaitingForStart();
+      r.w4Pickup = ride.isWaitingForPickup();
+      r.w4Arrived = ride.isWaitingForArrived();
+      r.w4End = ride.isEnd();
     }
   }
 
@@ -304,7 +331,13 @@ export class SetDriverComponent implements OnInit {
       let ride = await this.context.for(Ride).findId(r.rid);
       ride.status.value = RideStatus.succeeded;
       await ride.save();
-      //r.status = RideStatus.succeeded.id;
+      r.status = ride.status.value;
+      r.w4Accept = ride.isWaitingForAccept();
+      r.w4Start = ride.isWaitingForStart();
+      r.w4Pickup = ride.isWaitingForPickup();
+      r.w4Arrived = ride.isWaitingForArrived();
+      r.w4End = ride.isEnd();
+      // remove from list
       let i = this.rides.indexOf(r);
       if (i >= 0) {
         this.rides.splice(i, 1);
@@ -391,8 +424,8 @@ export class SetDriverComponent implements OnInit {
                 else {
                   let copy = this.context.for(Ride).create();
                   ride.copyTo(copy);
-                  copy.isHasWheelchair.value = false;
-                  copy.isHasBabyChair.value = false;
+                  // copy.isHasWheelchair.value = false;
+                  // copy.isHasBabyChair.value = false;
                   copy.isSplitted.value = true;
                   copy.escortsCount.value = pass[i] - 1;
                   await copy.save();

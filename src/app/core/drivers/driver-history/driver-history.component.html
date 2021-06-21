@@ -5,38 +5,17 @@
     <div class="grow-item">
         <table *ngIf="rides && rides.length > 0">
             <tr>
-                <th>From</th>
-                <th>To</th>
-                <th>Contacts</th>
+                <th>Line</th>
                 <th>Date</th>
-                <th>Visit Time</th>
-                <th>Passengers</th>
+                <th>Pass</th>
                 <th>Age</th>
-                <th>Equipment</th>
-                <th>Mobile</th>
-                <th>Short Call</th>
-                <th>Whatsapp</th>
-                <th>Company Phone</th>
-                <th>Company Short Call</th>
-                <th>Company Whatsapp</th>
                 <th>Status</th>
             </tr>
             <tr *ngFor="let r of rides">
-                <td>{{ r.from }}</td>
-                <td>{{ r.to }}</td>
-                <td *ngIf="r.pId && r.pId.length > 0"><button (click)="openContacts(r)"><u>{{ r.contactsCount }}</u></button></td>
-                <td *ngIf="!(r.pId && r.pId.length > 0)">{{ r.contactsCount }}</td>
-                <td>{{ r.date }}</td>
-                <td>{{ r.visitTime }}</td>
+                <td>{{ r.from }} > {{ r.to }}</td>
+                <td>{{ r.date | date:'dd.MM' }} {{ r.pickupTime }}</td>
                 <td>{{ r.passengers }}</td>
                 <td>{{ r.age }}</td>
-                <td>{{ r.equipment }}</td>
-                <td>{{ r.pMobile }}</td>
-                <td>{{ r.shortCall }}</td>
-                <td>{{ r.whatsapp }}</td>
-                <td>{{ r.companyPhone }}</td>
-                <td>{{ r.companyShortCall }}</td>
-                <td>{{ r.companyWhatsapp }}</td>
                 <td>{{ r.status.id }}</td>
             </tr>
         </table>

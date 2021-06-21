@@ -47,8 +47,8 @@ export class RideCrudComponent implements OnInit {
           this.r.fid.value = this.p.defaultBorder.value;
           this.r.tid.value = this.p.defaultHospital.value;
           this.r.pMobile.value = this.p.mobile.value;
-          this.r.escortsCount.value = this.p.age.value > 0 && this.p.age.value <= 13 ? 1/*kid(as patient)+adult(atleast one)*/ : 0;
-          this.r.isHasBabyChair.value = this.p.age.value > 0 && this.p.age.value <= 5;
+          this.r.escortsCount.value = 1;// this.p.age.value > 0 && this.p.age.value <= 13 ? 1/*kid(as patient)+adult(atleast one)*/ : 0;
+          // this.r.isHasBabyChair.value = this.p.age.value > 0 && this.p.age.value <= 5;
         }
       }
       else {
@@ -116,12 +116,12 @@ export class RideCrudComponent implements OnInit {
           this.p.birthDate,
           { column: this.p.age, readOnly: true }
         ],
-        [
-          this.r.isHasBabyChair,
-          this.r.isHasWheelchair
-        ],
+        // [
+        //   this.r.isHasBabyChair,
+        //   this.r.isHasWheelchair
+        // ],
         this.r.rRemark,
-        { column: this.r.dRemark, visible: () => !this.context.isAllowed([Roles.matcher]) },
+        { column: this.r.dRemark, visible: () => !this.context.isAllowed(Roles.matcher) },
       ],
     });
   }

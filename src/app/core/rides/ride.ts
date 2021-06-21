@@ -42,8 +42,6 @@ export class Ride extends IdEntity {
     status = new RideStatusColumn();
     statusDate = new DateTimeColumn();
 
-    isHasBabyChair = new BoolColumn({ caption: 'Have Babyseat?', defaultValue: false });
-    isHasWheelchair = new BoolColumn({ caption: 'Wheelchair?', defaultValue: false });
     escortsCount = new NumberColumn({});
 
 
@@ -324,8 +322,8 @@ export class Ride extends IdEntity {
     copyTo(target: Ride) {
         target.date.value = this.date.value;
         target.pMobile.value = this.pMobile.value;
-        target.isHasBabyChair.value = this.isHasBabyChair.value;
-        target.isHasWheelchair.value = this.isHasWheelchair.value;
+        // target.isHasBabyChair.value = this.isHasBabyChair.value;
+        // target.isHasWheelchair.value = this.isHasWheelchair.value;
         target.escortsCount.value = this.escortsCount.value;
         target.pid.value = this.pid.value;
         target.isSplitted.value = this.isSplitted.value;
@@ -444,13 +442,13 @@ export class RideStatus {
         RideStatus.InHospital,
     ];
 
-    static isInDriverWaitingStatuses = [
+    static isDriverNeedToShowStatuses = [
         RideStatus.waitingForAccept,
         RideStatus.waitingForDriver,
         RideStatus.waitingForStart,
         RideStatus.waitingForPickup,
-        RideStatus.waitingForArrived,
-        RideStatus.waitingForEnd,
+        RideStatus.waitingForArrived//,
+        //RideStatus.waitingForEnd,
     ];
 }
 

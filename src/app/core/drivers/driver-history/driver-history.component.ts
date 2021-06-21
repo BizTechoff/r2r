@@ -29,7 +29,7 @@ export class DriverHistoryComponent implements OnInit {
     var result: ride4Driver[] = [];
 
     let driver = await context.for(Driver).findFirst({
-      where: d => d.userId.isEqualTo(context.user.id),
+      where: d => d.uid.isEqualTo(context.user.id),
     });
     if (!(driver)) {
       throw 'Error - You are not register to use app';
@@ -37,22 +37,26 @@ export class DriverHistoryComponent implements OnInit {
 
     for await (const ride of context.for(Ride).iterate({
       where: r => r.did.isEqualTo(driver.id)
-        .and(r.status.isNotIn(...RideStatus.isInDriverWaitingStatuses)),
+        .and(r.status.isNotIn(...RideStatus.isDriverNeedToShowStatuses)),
     })) {
       let from = (await context.for(Location).findId(ride.fid.value)).name.value;
       let to = (await context.for(Location).findId(ride.tid.value)).name.value;
-      let pName = ride.isHasPatient() ? (await context.for(Patient).findId(ride.pid.value)).name.value : "";
       let age = ride.isHasPatient() ? (await context.for(Patient).findId(ride.pid.value)).age.value : undefined;
       let mobile = ride.isHasPatient() ? (await context.for(Patient).findId(ride.pid.value)).mobile.value : "";
       let contactsCount = await context.for(Contact).count(
         c => c.pid.isEqualTo(ride.pid),
       );
+      let pName = '';
       let equipment: string[] = [];
-      if (ride.isHasBabyChair) {
-        equipment.push('');
-      }
-      if (ride.isHasWheelchair) {
-        equipment.push('');
+      let p = ride.isHasPatient() ? (await context.for(Patient).findId(ride.pid.value)) : undefined;
+      if (p) {
+        pName  =p.name.value;
+        if (p.isHasBabyChair) {
+          equipment.push('');
+        }
+        if (p.isHasWheelchair) {
+          equipment.push('');
+        }
       }
 
       let row = result.find(r => r.rId === ride.id.value);

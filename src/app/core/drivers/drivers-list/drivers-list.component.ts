@@ -27,7 +27,7 @@ export class DriversListComponent implements OnInit {
 
   prefsCount = new NumberColumn({ caption: "Prefs Count" });
   driversSettings = this.context.for(Driver).gridSettings({
-    where: cur => cur.userId.isDifferentFrom('')
+    where: cur => cur.uid.isDifferentFrom('')
       .and(this.search.value ? cur.name.isContains(this.search) : FILTER_IGNORE),
     numOfColumnsInGrid: 10,
     // allowSelection: true,

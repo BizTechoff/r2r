@@ -135,9 +135,14 @@ export class RegisterRidesComponent implements OnInit {
   async ngOnInit() {
   }
 
+  refreshing = false;
   async refresh() {
-    await this.registerSettings.reloadData();
-    this.clientLastRefreshDate = addDays(TODAY, undefined, false);
+    if (!(this.refreshing)) {
+      this.refreshing = true;
+      await this.registerSettings.reloadData();
+      this.clientLastRefreshDate = addDays(TODAY, undefined, false);
+      this.refreshing = false;
+    }
   }
 
   @ServerFunction({ allowed: [Roles.admin] })
@@ -172,24 +177,34 @@ export class RegisterRidesComponent implements OnInit {
   }
 
   async openRegisteredDrivers(rr: RegisterRide) {
-    let from = (await this.context.for(Location).findId(rr.fid.value)).name.value;
-    let to = (await this.context.for(Location).findId(rr.tid.value)).name.value;
-    await this.context.openDialog(GridDialogComponent, gd => gd.args = {
-      title: `Registered Drivers For ${from}-${to}`,
-      settings: this.context.for(RegisterDriver).gridSettings({
-        where: cur => cur.rrid.isEqualTo(rr.id),
-        orderBy: cur => [{ column: cur.did, descending: false }],
-        allowCRUD: false,
-        allowDelete: false,
-        numOfColumnsInGrid: 10,
-        columnSettings: cur => [
-          cur.did,
-          cur.fh,
-          cur.th,
-          cur.seats
-        ],
-      })
-    });
+    let from = '';
+    let loc = (await this.context.for(Location).findId(rr.fid.value));
+    if (loc) {
+      from = loc.name.value;
+    }
+    let to = '';
+    loc = (await this.context.for(Location).findId(rr.tid.value));
+    if (loc) {
+      to = loc.name.value;
+    }
+    if (from.length > 0 && to.length > 0) {
+      await this.context.openDialog(GridDialogComponent, gd => gd.args = {
+        title: `Registered Drivers For ${from}-${to}`,
+        settings: this.context.for(RegisterDriver).gridSettings({
+          where: cur => cur.rrid.isEqualTo(rr.id),
+          orderBy: cur => [{ column: cur.did, descending: false }],
+          allowCRUD: false,
+          allowDelete: false,
+          numOfColumnsInGrid: 10,
+          columnSettings: cur => [
+            cur.did,
+            cur.fh,
+            cur.th,
+            cur.seats
+          ],
+        })
+      });
+    }
   }
 
   async openAddRegisterRide() {

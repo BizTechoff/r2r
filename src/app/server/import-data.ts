@@ -192,8 +192,8 @@ async function findOrCreateDriverNew(driverRecord: any, userId: string, context:
         let driver = await context.for(Driver).findOrCreate({
             // where: l => l.userId.isEqualTo(userId),
             where: d => d.name.isEqualTo(driverName),
-        });
-        driver.userId.value = userId;
+        }); 
+        driver.uid.value = userId;
         driver.name.value = driverName;
         driver.hebName.value = driverEntityRecord.DisplayName;
         driver.mobile.value = driverEntityRecord.CellPhone;

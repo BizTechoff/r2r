@@ -1,4 +1,4 @@
-import { ColumnSettings, Context, DateColumn, EntityClass, IdEntity, NumberColumn, StringColumn } from "@remult/core";
+import { checkForDuplicateValue, ColumnSettings, Context, DateColumn, EntityClass, IdEntity, NumberColumn, StringColumn } from "@remult/core";
 import { DialogService } from "../../common/dialog";
 import { DynamicServerSideSearchDialogComponent } from "../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component";
 import { GridDialogComponent } from "../../common/grid-dialog/grid-dialog.component";
@@ -6,13 +6,14 @@ import { InputAreaComponent } from "../../common/input-area/input-area.component
 import { NOT_FOUND_DAYS, TimeColumn } from "../../shared/types";
 import { addDays, daysDiff } from "../../shared/utils";
 import { Roles } from "../../users/roles";
+import { UserId, Users } from "../../users/users";
 import { LocationIdColumn } from "../locations/location";
 import { Ride, RideStatus, RideStatusColumn } from "../rides/ride";
 
 @EntityClass
 export class Driver extends IdEntity {
 
-  userId = new StringColumn({});// The user-table will be the driver.
+  uid = new UserId(this.context);// The user-table will be the driver.
   name = new StringColumn({
     validate: () => {
       if (!this.name.value)
@@ -51,6 +52,29 @@ export class Driver extends IdEntity {
       allowApiInsert: false,
       allowApiUpdate: [Roles.admin, Roles.usher, Roles.driver],
       allowApiRead: c => c.isSignedIn(),
+      saving: async () => {
+        if (context.onServer) {
+          await checkForDuplicateValue(this, this.mobile, this.context.for(Driver));
+        }
+      },
+      saved: async () => {
+        if (context.onServer) {
+          if (this.mobile.wasChanged() || this.name.wasChanged()) {
+            let u = await context.for(Users).findId(this.uid);
+            if (!(u)) {
+              throw new Error("You are not register to system");
+            }
+            let changed = false;
+            changed = changed || (this.name.value !== u.name.value);
+            changed = changed || (this.mobile.value !== u.mobile.value);
+            if(changed){
+              u.name.value = this.name.value;
+              u.mobile.value = this.mobile.value;
+              await u.save();
+            }
+          }
+        }
+      }
     })
   }
 
