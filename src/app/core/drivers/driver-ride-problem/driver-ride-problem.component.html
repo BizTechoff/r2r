@@ -1,16 +1,33 @@
 <div class="full-page">
     <div class="hedaer">
         <div style="display:flex;flex-direction: column;flex-grow: 1;justify-content: space-between;">
-            <h3>Set The Problem</h3>
+            
+        <div style="display:flex;flex-direction: row;flex-grow: 1;justify-content: space-between;">
+            <h3>TX! Select The Problem</h3>
+            <button mat-icon-button mat-dialog-close title="Close" style="justify-content: flex-end" (click)="close()">
+                <mat-icon>close</mat-icon>
+            </button>
+            </div>
             <data-area [settings]="options"></data-area>
-        </div>
+            </div>
+        <!-- <div style="display:flex;flex-direction: row;flex-grow: 1;justify-content: space-between;">
+            <div style="display:flex;flex-direction: column;flex-grow: 1;justify-content: space-between;">
+                <h3>TX! Select The Problem</h3>
+                <data-area [settings]="options"></data-area>
+            </div>
+            <button mat-icon-button mat-dialog-close title="Close" style="justify-content: flex-end" (click)="close()">
+                <mat-icon>close</mat-icon>
+            </button>
+        </div> -->
     </div>
 
     <div class="grow-item">
-        <h3>Your Comment:</h3>
-        <textarea [(ngModel)]="comment" rows="10" cols="30"></textarea>
+        <div style="display:flex;flex-direction: column;flex-grow: 1;justify-content: space-between;">
+            
+        <h3>Your Comment</h3>
+        <textarea [(ngModel)]="comment" rows="10" placeholder="Please describe here what happened"></textarea>
     </div>
-    
+</div>
     <div class="footer">
         <button mat-raised-button color="accent" (click)="save()">Save</button>
     </div>

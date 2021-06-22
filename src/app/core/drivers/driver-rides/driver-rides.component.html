@@ -70,20 +70,25 @@
                             <strong style="color: red;"> {{'*'+r.dRemark+'*' }}</strong>
                         </td>
                         <div style="display:flex;flex-direction: column;flex-grow: 1;justify-content: space-between;">
-                            <button style="margin-top: 7px;" *ngIf="r.w4Accept" mat-raised-button color="primary" (click)="accept(r.rId)">
+                            <button style="margin-top: 7px;" *ngIf="r.w4Accept" mat-raised-button color="primary"
+                                (click)="accept(r.rId)">
                                 Accept
                             </button>
-                            <button style="margin-top: 7px;" *ngIf="r.w4Start&&((r.date|date:'dd.MM.yyyy')==(this.today|date:'dd.MM.yyyy'))"
+                            <button style="margin-top: 7px;"
+                                *ngIf="r.w4Start&&((r.date|date:'dd.MM.yyyy')==(this.today|date:'dd.MM.yyyy'))"
                                 mat-raised-button color="primary" (click)="drive(r)">
                                 Start
                             </button>
-                            <button style="margin-top: 7px;" *ngIf="r.w4Pickup" mat-raised-button color="primary" (click)="pickup(r)">
+                            <button style="margin-top: 7px;" *ngIf="r.w4Pickup" mat-raised-button color="primary"
+                                (click)="pickup(r)">
                                 Pickup
                             </button>
-                            <button style="margin-top: 7px;" *ngIf="r.w4Arrived" mat-raised-button color="primary" (click)="arrived(r)">
+                            <button style="margin-top: 7px;" *ngIf="r.w4Arrived" mat-raised-button color="primary"
+                                (click)="arrived(r)">
                                 Arrived
                             </button>
-                            <button style="margin-top: 7px;background-color: transparent;color: blue;" *ngIf="r.w4Pickup" mat-raised-button color="primary" (click)="problem(r)">
+                            <button style="margin-top: 7px;background-color: transparent;color: blue;"
+                                *ngIf="r.w4Pickup" mat-raised-button color="primary" (click)="problem(r)">
                                 Problem
                             </button>
                         </div>

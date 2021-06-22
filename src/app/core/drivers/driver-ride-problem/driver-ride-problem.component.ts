@@ -49,8 +49,12 @@ export class DriverRideProblemComponent implements OnInit {
     }
     await this.dialog.info('TX!!');
     if (thenClose) {
-      this.dialogRef.close();
+      this.close();
     }
+  }
+
+  close(){
+    this.dialogRef.close();
   }
 
 }

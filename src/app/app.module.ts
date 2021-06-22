@@ -117,7 +117,7 @@ import { DriverRideProblemComponent } from './core/drivers/driver-ride-problem/d
 
     // },
     // SettingsService,
-  ], 
+  ],  
   bootstrap: [AppComponent],
   // DIALOGS - POPUPS
   entryComponents: [YesNoQuestionComponent, InputAreaComponent, GridDialogComponent, 

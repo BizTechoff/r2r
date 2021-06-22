@@ -25,13 +25,13 @@ export class PatientContactsComponent implements OnInit {
     allowCRUD: this.context.isAllowed([Roles.admin, Roles.usher, Roles.matcher]),
     showPagination: false,
     columnSettings: (c) => [
-      c.mobile,
+      { column: c.mobile, click: (cur) => { window.open('tel:' + cur.mobile.value); }, visible: (cur) => { return cur.mobile.value && cur.mobile.value.length > 0 } },
       c.name,
       c.relation
     ],
     rowButtons: [
       { textInMenu: 'Select Mobile', icon: 'phone_callback', click: (cur) => { this.selectMobileAndClose(cur); }, visible: () => !this.context.isAllowed(Roles.driver) || this.context.isAllowed([Roles.admin, Roles.usher, Roles.matcher]) },
-      { textInMenu: 'Call', icon: 'phone', click: (cur) => { window.open(`tel:${cur.mobile}`); }, visible: (cur) => cur.mobile.value && cur.mobile.value.length > 0 }
+      { textInMenu: 'Call', icon: 'phone', click: (cur) => { window.open(`tel:${cur.mobile.value}`); }, visible: (cur) => cur.mobile.value && cur.mobile.value.length > 0 }
     ],
     gridButtons: [{ name: 'Add Contact', click: () => { this.contactsSettings.addNewRow(); } }],
     validation: c => {
