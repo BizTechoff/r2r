@@ -9,6 +9,7 @@ import { Patient } from '../../patients/patient';
 import { PatientContactsComponent } from '../../patients/patient-contacts/patient-contacts.component';
 import { Ride, RideStatus } from '../../rides/ride';
 import { Driver } from '../driver';
+import { DriverRideProblemComponent } from '../driver-ride-problem/driver-ride-problem.component';
 
 @Component({
   selector: 'app-driver-rides',
@@ -130,7 +131,7 @@ export class DriverRidesComponent implements OnInit {
 
   async accept(rideId: string) {
     let ride = await this.context.for(Ride).findId(rideId);
-    ride.status.value = RideStatus.waitingForStart;
+    ride.status.value = RideStatus.w4_Start;
     await ride.save();
     await this.refresh();
   }
@@ -139,7 +140,7 @@ export class DriverRidesComponent implements OnInit {
     let ride = await this.context.for(Ride).findId(r.rId);
 
     if (ride) {
-      ride.status.value = RideStatus.waitingForPickup;
+      ride.status.value = RideStatus.w4_Pickup;
       await ride.save();
       await this.refresh();
       await this.openWaze(r.from);
@@ -149,16 +150,25 @@ export class DriverRidesComponent implements OnInit {
   async pickup(r: ride4Driver) {
     let ride = await this.context.for(Ride).findId(r.rId);
     if (ride) {
-      ride.status.value = RideStatus.waitingForArrived;
+      ride.status.value = RideStatus.w4_Arrived;
       await ride.save();
       await this.refresh();
       await this.openWaze(r.to);
     }
   }
 
+  async problem(r: ride4Driver) {
+    let status = await this.context.openDialog(DriverRideProblemComponent,
+      dlg => dlg.args = { rid: r.rId },
+      dlg => dlg && dlg.args.status ? dlg.args.status : undefined);
+    if (status) {
+      await this.refresh();
+    }
+  }
+
   async arrived(r: ride4Driver) {
     let ride = await this.context.for(Ride).findId(r.rId);
-    ride.status.value = RideStatus.succeeded;
+    ride.status.value = RideStatus.Succeeded;
     await ride.save();
     if (ride.isBackRide.value) {
 

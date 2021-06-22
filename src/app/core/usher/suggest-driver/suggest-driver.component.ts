@@ -32,7 +32,7 @@ class usherSuggestDrivers {
     let drivers: driver4UsherSuggest[] = [];
     let priority = 0;
 
-    // prepare kav & area
+    // prepare line & area
     let areasBorders: { area: LocationArea, lids: string[] }[] = [];
     for await (const loc of this.context.for(Location).iterate({})) {
       if (loc.id.value === this.fid.value) {
@@ -67,16 +67,16 @@ class usherSuggestDrivers {
     }
 
     this.distinct(drivers,
-      (await this.driversWithSameKavToday(++priority, 'has same ride - at current date')));
+      (await this.driversWithSameLineToday(++priority, 'has same ride - at current date')));
 
     this.distinct(drivers,
-      (await this.driversRegisteredSameKavToday(++priority, 'register to kav - at current date')));
+      (await this.driversRegisteredSameLineToday(++priority, 'register to line - at current date')));
 
     this.distinct(drivers,
       (await this.driversRegisteredSameAreaToday(++priority, 'register to area - at current date')));
 
     this.distinct(drivers,
-      (await this.driversMadeRideWithSameKavButNoRideForLast5days(++priority, 'done same kav - no ride last 5 days')));
+      (await this.driversMadeRideWithSameLineButNoRideForLast5days(++priority, 'done same line - no ride last 5 days')));
 
     this.distinct(drivers,
       (await this.driversMadeRideWithSameAreaButNoRideForLast5days(++priority, 'done same area - no ride last 5 days')));
@@ -102,14 +102,14 @@ class usherSuggestDrivers {
     return drivers;
   }
 
-  private async driversWithSameKavToday(priority: number, reason: string): Promise<driver4UsherSuggest[]> {
+  private async driversWithSameLineToday(priority: number, reason: string): Promise<driver4UsherSuggest[]> {
     let drivers: driver4UsherSuggest[] = [];
     let dids: { did: string, taken: number }[] = [];
     for await (const r of this.context.for(Ride).iterate({
       where: cur => cur.date.isEqualTo(this.date)
         .and(cur.fid.isEqualTo(this.fid))
         .and(cur.tid.isEqualTo(this.tid))
-        .and(cur.status.isIn(RideStatus.waitingForStart))
+        .and(cur.status.isIn(RideStatus.w4_Start))
         .and(cur.did.isDifferentFrom(''))
     })) {
       let f = dids.find(cur => cur.did === r.did.value);
@@ -138,7 +138,7 @@ class usherSuggestDrivers {
     return drivers;
   }
 
-  private async driversRegisteredSameKavToday(priority: number, reason: string): Promise<driver4UsherSuggest[]> {
+  private async driversRegisteredSameLineToday(priority: number, reason: string): Promise<driver4UsherSuggest[]> {
     let drivers: driver4UsherSuggest[] = [];
 
     for await (const rd of this.context.for(RegisterDriver).iterate({
@@ -148,7 +148,7 @@ class usherSuggestDrivers {
       if (rd.rid.value) {
         let r = await this.context.for(Ride).findId(rd.rid);
         if (r) {
-          //if(ride.status.value == RideStatus.waitingForDriver)//look only for kav-details
+          //if(ride.status.value == RideStatus.waitingForDriver)//look only for line-details
           if (r.fid.value === this.fid.value && r.tid.value === this.tid.value) {
             if (r.pickupTime.value && (!(r.pickupTime.value === TimeColumn.Empty))) {
               if (rd.fh.value <= r.pickupTime.value && r.pickupTime.value <= rd.th.value) {//out of interval
@@ -228,7 +228,7 @@ class usherSuggestDrivers {
       if (rd.rid.value) {
         let r = await this.context.for(Ride).findId(rd.rid);
         if (r) {
-          //if(ride.status.value == RideStatus.waitingForDriver)//look only for kav-details
+          //if(ride.status.value == RideStatus.waitingForDriver)//look only for line-details
           let fab = this.locAreas.find(cur => cur.border === this.fid.value).areaBorders;
           let tab = this.locAreas.find(cur => cur.border === this.tid.value).areaBorders;
           if (fab.includes(r.fid.value) || tab.includes(r.tid.value)) {// from OR to
@@ -289,7 +289,7 @@ class usherSuggestDrivers {
     return drivers;
   }
 
-  private async driversMadeRideWithSameKavButNoRideForLast5days(priority: number, reason: string): Promise<driver4UsherSuggest[]> {
+  private async driversMadeRideWithSameLineButNoRideForLast5days(priority: number, reason: string): Promise<driver4UsherSuggest[]> {
     let result: driver4UsherSuggest[] = [];
 
     let lastFiveDaysDIds: string[] = [];
@@ -484,7 +484,7 @@ class usherSuggestDrivers {
     let lastRideDays = -999999;
     let lastRide = await this.context.for(Ride).findFirst({//see even tommorrow and above
       where: r => r.did.isEqualTo(did)
-        .and(r.status.isNotIn(RideStatus.waitingForAccept)),//DONE! any ride (at least w4_Start)
+        .and(r.status.isNotIn(RideStatus.w4_Accept)),//DONE! any ride (at least w4_Start)
       orderBy: r => [{ column: r.date, descending: true }, { column: r.visitTime, descending: false }],
     });
     if (lastRide) {

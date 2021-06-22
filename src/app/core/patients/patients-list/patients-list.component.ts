@@ -19,7 +19,6 @@ export class PatientsListComponent implements OnInit {
   search = new StringColumn({
     caption: 'search patient name',
     valueChange: () => this.busy.donotWait(async () => this.retrievePatients())
-
   });
   // patients: Patient[];
   patientsSettings = this.context.for(Patient).gridSettings({

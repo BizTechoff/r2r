@@ -14,7 +14,8 @@ export class PatientContactsComponent implements OnInit {
 
   args: {
     pid: string,//Input the patient-id
-    mobile?: string //Output the return contact-mobile as selected row
+    mobile?: string, //Output the return contact-mobile as selected row
+    changed?: boolean
   };
 
   contactsSettings = this.context.for(Contact).gridSettings({
@@ -29,7 +30,7 @@ export class PatientContactsComponent implements OnInit {
       c.relation
     ],
     rowButtons: [
-      { textInMenu: 'Select Mobile', icon: 'phone_callback', click: (cur) => { this.selectMobileAndClose(cur); }, visible: () => !this.context.isAllowed(Roles.driver) },
+      { textInMenu: 'Select Mobile', icon: 'phone_callback', click: (cur) => { this.selectMobileAndClose(cur); }, visible: () => !this.context.isAllowed(Roles.driver) || this.context.isAllowed([Roles.admin, Roles.usher, Roles.matcher]) },
       { textInMenu: 'Call', icon: 'phone', click: (cur) => { window.open(`tel:${cur.mobile}`); }, visible: (cur) => cur.mobile.value && cur.mobile.value.length > 0 }
     ],
     gridButtons: [{ name: 'Add Contact', click: () => { this.contactsSettings.addNewRow(); } }],
@@ -61,6 +62,7 @@ export class PatientContactsComponent implements OnInit {
 
   async selectMobileAndClose(c: Contact) {
     this.args.mobile = c.mobile.value;
+    this.args.changed = true;
     this.dialogRef.close();
   }
 

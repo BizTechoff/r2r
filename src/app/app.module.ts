@@ -47,6 +47,7 @@ import { DriversListComponent } from './core/drivers/drivers-list/drivers-list.c
 import { PatientsListComponent } from './core/patients/patients-list/patients-list.component';
 import { PatientRidesComponent } from './core/patients/patient-rides/patient-rides.component';
 import { DriverCrudComponent } from './core/drivers/driver-crud/driver-crud.component';
+import { DriverRideProblemComponent } from './core/drivers/driver-ride-problem/driver-ride-problem.component';
 
  
 @NgModule({
@@ -77,7 +78,8 @@ import { DriverCrudComponent } from './core/drivers/driver-crud/driver-crud.comp
     DriversListComponent,
     PatientsListComponent,
     PatientRidesComponent,
-    DriverCrudComponent
+    DriverCrudComponent,
+    DriverRideProblemComponent
   ],
   imports: [
     BrowserModule,
@@ -119,7 +121,7 @@ import { DriverCrudComponent } from './core/drivers/driver-crud/driver-crud.comp
   bootstrap: [AppComponent],
   // DIALOGS - POPUPS
   entryComponents: [YesNoQuestionComponent, InputAreaComponent, GridDialogComponent, 
-    DynamicServerSideSearchDialogComponent,
+    DynamicServerSideSearchDialogComponent, DriverRideProblemComponent,
     SetDriverComponent, SendSmsComponent, RideCrudComponent, DriverCrudComponent,
     PatientContactsComponent, LocationAreaComponent, PatientCrudComponent, SuggestDriverComponent]
 }) 

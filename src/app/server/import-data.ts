@@ -133,7 +133,7 @@ async function findOrCreatePatientNew(patientRecord: any, context: Context) {
     let patient = await context.for(Patient).findOrCreate({
         where: l => l.name.isEqualTo(patientRecord.EnglishName),
     });
-    patient.hebName.value = patientRecord.DisplayName;
+    // patient.hebName.value = patientRecord.DisplayName;
     patient.mobile.value = patientRecord.CellPhone;
     // patient.idNumber.value = patientRecord
     try { await patient.save(); }
@@ -262,25 +262,25 @@ async function findOrCreateRideNew(rideRecord: any, driverId: string, patientId:
     ride.fid.value = fromId;
     ride.tid.value = toId;
     ride.date.value = toDate(rideRecord.Date);
-    ride.status.value = RideStatus.waitingForDriver;
+    ride.status.value = RideStatus.w4_Driver;
 
     if (rideRecord.Statuses) {
         for (const st of rideRecord.Statuses) {
             switch (st) {
                 case "ממתינה לשיבוץ": {
-                    ride.status.value = RideStatus.waitingForDriver;
+                    ride.status.value = RideStatus.w4_Driver;
                     break;
                 }
                 case "שובץ נהג": {
-                    ride.status.value = RideStatus.waitingForStart;
+                    ride.status.value = RideStatus.w4_Start;
                     break;
                 }
                 case "אספתי את החולה": {
-                    ride.status.value = RideStatus.waitingForArrived;
+                    ride.status.value = RideStatus.w4_Arrived;
                     break;
                 }
                 case "הגענו ליעד": {
-                    ride.status.value = RideStatus.succeeded;
+                    ride.status.value = RideStatus.Succeeded;
                     break;
                 }
             }
@@ -288,11 +288,11 @@ async function findOrCreateRideNew(rideRecord: any, driverId: string, patientId:
     }
 
     // all ride from import are in-the-past so all should be closed.
-    ride.status.value = RideStatus.succeeded;
+    ride.status.value = RideStatus.Succeeded;
 
     // console.log(rideRecord.RideNum);
     // console.log(ride);
-    await ride.save();
+    await ride.save(); 
     return ride.id.value;
     // }catch(error){
     //     console.log("error on RideNum: " + rideRecord.RideNum);

@@ -42,7 +42,7 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
       newregistered: []
     } = { registered: [], newregistered: [] };
 
-    // prepare kav & area
+    // prepare line & area
     let areasBorders: { area: LocationArea, lids: string[] }[] = []
     for await (const loc of this.context.for(Location).iterate({
     })) {
@@ -83,12 +83,12 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
     for await (const r of this.context.for(Ride).iterate({
       where: cur => cur.did.isEqualTo(this.did)
     })) {
-      let kav = dHistory.find(cur => cur.fid === r.fid.value && cur.tid === r.tid.value);
-      if (!(kav)) {
-        kav = { fid: r.fid.value, tid: r.tid.value };
-        dHistory.push(kav);
-        let fa = this.getLocArea(kav.fid);
-        let ta = this.getLocArea(kav.tid);
+      let line = dHistory.find(cur => cur.fid === r.fid.value && cur.tid === r.tid.value);
+      if (!(line)) {
+        line = { fid: r.fid.value, tid: r.tid.value };
+        dHistory.push(line);
+        let fa = this.getLocArea(line.fid);
+        let ta = this.getLocArea(line.tid);
         dHistoryArea.fids.push(...fa);
         dHistoryArea.tids.push(...ta);
       }
@@ -241,9 +241,9 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
         match = pref ? true : false;
         matchBy = 'By Prefs';
         if (!(match)) {
-          let kavHistory = dHistory.find(cur => cur.fid === r.fid.value && cur.tid === r.tid.value);
-          match = kavHistory ? true : false;
-          matchBy = 'By Kav History';
+          let lineHistory = dHistory.find(cur => cur.fid === r.fid.value && cur.tid === r.tid.value);
+          match = lineHistory ? true : false;
+          matchBy = 'By Line History';
           if (!(match)) {
             let areaFHistory = dHistory.find(cur => this.getLocArea(r.fid.value).includes(cur.fid));// && cur.tid === rr.tid.value);
             match = areaFHistory ? true : false;
@@ -332,9 +332,9 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
         match = pref ? true : false;
         matchBy = 'By Prefs';
         if (!(match)) {
-          let kavHistory = dHistory.find(cur => cur.fid === rr.fid.value && cur.tid === rr.tid.value);
-          match = kavHistory ? true : false;
-          matchBy = 'By Kav History';
+          let lineHistory = dHistory.find(cur => cur.fid === rr.fid.value && cur.tid === rr.tid.value);
+          match = lineHistory ? true : false;
+          matchBy = 'By Line History';
           if (!(match)) {
             let areaFHistory = dHistory.find(cur => this.getLocArea(rr.fid.value).includes(cur.fid));// && cur.tid === rr.tid.value);
             match = areaFHistory ? true : false;

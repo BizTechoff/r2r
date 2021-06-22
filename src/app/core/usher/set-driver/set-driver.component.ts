@@ -31,7 +31,7 @@ class usherSerDriver {
       where: cur => cur.date.isEqualTo(this.date)
         .and(this.fid.value ? cur.fid.isEqualTo(this.fid) : alwaysTrue)
         .and(this.tid.value ? cur.tid.isEqualTo(this.tid) : alwaysTrue)
-        .and(cur.status.isNotIn(...[RideStatus.succeeded])),
+        .and(cur.status.isNotIn(...[RideStatus.Succeeded])),
       orderBy: cur => [{ column: cur.visitTime, descending: false }]
     })) {
       let from = (await this.context.for(Location).findId(ride.fid.value)).name.value;
@@ -41,6 +41,10 @@ class usherSerDriver {
 
       let dName = '';
       let seats = 0;
+      let feedback = '';// ride.dFeedback.value;
+      if(RideStatus.isDriverFeedback.includes(ride.status.value)){
+        feedback = ride.dFeedback.value;
+      }
       if (d) {
         seats = d.seats.value;
         dName = d.name.value;
@@ -64,11 +68,12 @@ class usherSerDriver {
           rid: ride.id.value,
           status: ride.status.value,
           freeSeats: seats,
-          w4Accept: ride.status.value === RideStatus.waitingForAccept,
-          w4Arrived: ride.status.value === RideStatus.waitingForArrived,
-          w4End: ride.status.value === RideStatus.waitingForEnd,
-          w4Pickup: ride.status.value === RideStatus.waitingForPickup,
-          w4Start: ride.status.value === RideStatus.waitingForStart,
+          w4Accept: ride.status.value === RideStatus.w4_Accept,
+          w4Arrived: ride.status.value === RideStatus.w4_Arrived,
+          w4End: ride.status.value === RideStatus.w4_End,
+          w4Pickup: ride.status.value === RideStatus.w4_Pickup,
+          w4Start: ride.status.value === RideStatus.w4_Start,
+          dFeedback: feedback
         };
         result.push(row);
       }
@@ -198,9 +203,9 @@ export class SetDriverComponent implements OnInit {
         let ride = await this.context.for(Ride).findId(r.id);
         ride.pickupTime.value = this.selectedPickupTime;
         ride.did.value = this.driverId.value;
-        ride.status.value = RideStatus.waitingForAccept;
+        ride.status.value = RideStatus.w4_Accept;
         if (setStatusToApproved) {
-          ride.status.value = RideStatus.waitingForStart;
+          ride.status.value = RideStatus.w4_Start;
         }
         await ride.save();
         let d = await this.context.for(Driver).findId(this.driverId.value);
@@ -259,17 +264,21 @@ export class SetDriverComponent implements OnInit {
     let setStatusToApproved = await this.dialog.yesNoQuestion(`Set ${r.driver} Has approved`);
     if (setStatusToApproved) {
       let ride = await this.context.for(Ride).findId(r.rid);
-      ride.status.value = RideStatus.waitingForStart;
+      ride.status.value = RideStatus.w4_Start;
       await ride.save();
       // r.status = RideStatus.waitingForStart;
     }
+  }
+
+  async showDriverFeedback(r: ride4UsherSetDriver){
+    await this.dialog.error(r.dFeedback);
   }
 
   async accept4Driver(r: ride4UsherSetDriver) {
     let setStatusToApproved = await this.dialog.yesNoQuestion(`Set ${r.driver} Has approved`);
     if (setStatusToApproved) {
       let ride = await this.context.for(Ride).findId(r.rid);
-      ride.status.value = RideStatus.waitingForStart;
+      ride.status.value = RideStatus.w4_Start;
       await ride.save();
       r.status = ride.status.value;
       r.w4Accept = ride.isWaitingForAccept();
@@ -284,7 +293,7 @@ export class SetDriverComponent implements OnInit {
     let setStatusToApproved = await this.dialog.yesNoQuestion(`Set ${r.driver} Has start`);
     if (setStatusToApproved) {
       let ride = await this.context.for(Ride).findId(r.rid);
-      ride.status.value = RideStatus.waitingForPickup;
+      ride.status.value = RideStatus.w4_Pickup;
       await ride.save();
       r.status = ride.status.value;
       r.w4Accept = ride.isWaitingForAccept();
@@ -299,7 +308,7 @@ export class SetDriverComponent implements OnInit {
     let setStatusToApproved = await this.dialog.yesNoQuestion(`Set ${r.driver} Has pickup`);
     if (setStatusToApproved) {
       let ride = await this.context.for(Ride).findId(r.rid);
-      ride.status.value = RideStatus.waitingForArrived;
+      ride.status.value = RideStatus.w4_Arrived;
       await ride.save();
       r.status = ride.status.value;
       r.w4Accept = ride.isWaitingForAccept();
@@ -314,7 +323,7 @@ export class SetDriverComponent implements OnInit {
     let setStatusToApproved = await this.dialog.yesNoQuestion(`Set ${r.driver} Has Arrived`);
     if (setStatusToApproved) {
       let ride = await this.context.for(Ride).findId(r.rid);
-      ride.status.value = RideStatus.succeeded;
+      ride.status.value = RideStatus.Succeeded;
       await ride.save();
       r.status = ride.status.value;
       r.w4Accept = ride.isWaitingForAccept();
@@ -347,7 +356,7 @@ export class SetDriverComponent implements OnInit {
     let setStatusToApproved = await this.dialog.yesNoQuestion(`Set ${r.driver} Has succeeded`);
     if (setStatusToApproved) {
       let ride = await this.context.for(Ride).findId(r.rid);
-      ride.status.value = RideStatus.succeeded;
+      ride.status.value = RideStatus.Succeeded;
       await ride.save();
       r.status = ride.status.value;
       r.w4Accept = ride.isWaitingForAccept();
@@ -368,12 +377,12 @@ export class SetDriverComponent implements OnInit {
     if (setStatusToApproved) {
       let ride = await this.context.for(Ride).findId(r.rid);
       ride.did.value = '';
-      ride.status.value = RideStatus.waitingForDriver;
+      ride.status.value = RideStatus.w4_Driver;
       await ride.save();
       r.driver = '';
       r.driverId = '';
       r.freeSeats = undefined;
-      r.status = RideStatus.waitingForDriver;
+      r.status = RideStatus.w4_Driver;
     }
   }
 
@@ -432,7 +441,7 @@ export class SetDriverComponent implements OnInit {
           let yes = await this.dialog.yesNoQuestion(`Split ride to ${splitCount.value} rides`);
           if (yes) {
             let pass = explain.value.split(',').map(cur => parseInt(cur));
-            if (pass.length > 1) {//only one is the same existing ride
+            if (pass.length > 1) {//only one = the same existing ride
               for (let i = 0; i < pass.length; ++i) {
                 if (i == pass.length - 1) {//last
                   ride.isSplitted.value = true;

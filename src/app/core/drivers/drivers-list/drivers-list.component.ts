@@ -158,7 +158,7 @@ export class DriversListComponent implements OnInit {
     let borders = await DriversListComponent.getBordersIds(did, context);
     for await (const ride of context.for(Ride).iterate({
       where: r => r.fid.isIn(...borders)
-        .and(r.status.isIn(RideStatus.waitingForDriver)),
+        .and(r.status.isIn(RideStatus.w4_Driver)),
     })) {
       result.push({ rid: ride.id.value });
     }

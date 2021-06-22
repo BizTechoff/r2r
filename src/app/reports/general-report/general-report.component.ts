@@ -26,7 +26,7 @@ class reportParams {
     .and(cur.date.isLessOrEqualTo(this.tdate))
     .and(this.fid.value ? cur.fid.isEqualTo(this.fid) : new Filter(x => { /* true */ }))
     .and(this.tid.value ? cur.tid.isEqualTo(this.tid) : new Filter(x => { /* true */ }))
-    .and(cur.status.isNotIn(...[RideStatus.succeeded]));
+    .and(cur.status.isNotIn(...[RideStatus.Succeeded]));
 
   settings: GridSettings = this.context.for(Ride).gridSettings({
     get: { limit: 25 },

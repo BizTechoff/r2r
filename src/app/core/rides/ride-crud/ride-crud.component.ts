@@ -123,8 +123,9 @@ export class RideCrudComponent implements OnInit {
         //   this.r.isHasBabyChair,
         //   this.r.isHasWheelchair
         // ],
+        { column: this.p.remark, readOnly: () => { return true; } },
         this.r.rRemark,
-        { column: this.r.dRemark, visible: () => !this.context.isAllowed(Roles.matcher) },
+        { column: this.r.dRemark, visible: () => !this.context.isAllowed(Roles.matcher) }
       ],
     });
   }
@@ -188,7 +189,7 @@ export class RideCrudComponent implements OnInit {
     let result = false;
     if (await this.validate()) {// ok: async () => { if (ride.wasChanged()) { await ride.save(); changed = true; } }
       if (this.p) {
-        if (this.r.pMobile.wasChanged()) {
+        if (this.r.pMobile.value !== this.p.mobile.value && this.r.pMobile.wasChanged()) {
           let contact = await this.context.for(Contact).findOrCreate({
             where: cur => cur.pid.isEqualTo(this.p.id)
               .and(cur.mobile.isEqualTo(this.r.pMobile))
@@ -329,7 +330,9 @@ export class RideCrudComponent implements OnInit {
       dlg => dlg.args = { pid: this.args.pid },
       dlg => dlg ? dlg.args.mobile : '');
 
-    this.r.pMobile.value = mobile;
+    if (mobile && mobile.length > 0) {
+      this.r.pMobile.value = mobile;
+    }
   }
 
   async swapLocations() {

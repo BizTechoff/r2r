@@ -198,4 +198,5 @@ export interface ride4UsherSetDriver {
   w4Pickup: boolean,
   w4Arrived: boolean,
   w4End: boolean,
+  dFeedback?: string
 };

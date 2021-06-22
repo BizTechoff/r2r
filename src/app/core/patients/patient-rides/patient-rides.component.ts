@@ -37,7 +37,7 @@ export class PatientRidesComponent implements OnInit {
   params = new matcherService(async () => await this.refresh());
   ridesSettings = this.context.for(Ride).gridSettings({
     where: r => r.date.isEqualTo(this.params.date)
-      .and(r.status.isNotIn(RideStatus.succeeded)),
+      .and(r.status.isNotIn(RideStatus.Succeeded)),
     orderBy: (cur) => [{ column: cur.visitTime, descending: true }, { column: cur.pid, descending: true }, { column: cur.changed, descending: true }],
     numOfColumnsInGrid: 10,
     columnSettings: (cur) => [
@@ -56,16 +56,22 @@ export class PatientRidesComponent implements OnInit {
     ],
     rowButtons: [
       {
+        textInMenu: 'Driver Feedback',
+        icon: 'comment',
+        click: async (cur) => { await this.driverFeedback(cur); },
+        visible: (cur) => { return RideStatus.isDriverFeedback.includes(cur.status.value); }
+      }, 
+      {
         textInMenu: 'Approve',
         icon: 'how_to_reg',
         click: async (cur) => { await this.approve(cur); },
-        visible: (cur) => { return cur.status.value === RideStatus.waitingForStart && !cur.isPatientApprovedBeing.value }
+        visible: (cur) => { return cur.status.value === RideStatus.w4_Start && !cur.isPatientApprovedBeing.value }
       },
       {
         textInMenu: 'Set Status',
         icon: 'new_releases',
         click: async (cur) => { await this.setStatus(cur); },
-        visible: (cur) => { return (!(cur.isBackRide.value && cur.status.value !== RideStatus.InHospital && cur.status.value !== RideStatus.notActiveYet)) }
+        visible: (cur) => { return (!(cur.isBackRide.value && cur.status.value !== RideStatus.InHospital && cur.status.value !== RideStatus.NotActiveYet)) }
       },
       {
         textInMenu: 'Edit Ride',
@@ -151,12 +157,12 @@ export class PatientRidesComponent implements OnInit {
   }
 
   async setStatus(r: Ride) {
-    let options = new RideStatusColumn({ defaultValue: RideStatus.finishedHospital });
+    let options = new RideStatusColumn({ defaultValue: RideStatus.FinishedHospital });
     let pName = (await this.context.for(Patient).findId(r.pid)).name.value;
     await this.context.openDialog(InputAreaComponent, dlg => dlg.args = {
       title: 'Set Status Of Patient: ' + pName,
       columnSettings: () => [
-        { column: options, valueList: [RideStatus.finishedHospital, RideStatus.stayInHospital, RideStatus.goneByHimself] }
+        { column: options, valueList: [RideStatus.FinishedHospital, RideStatus.StayInHospital, RideStatus.GoneByHimself] }
       ],
       ok: async () => {
         if (options.value && options.value.id) {
@@ -164,8 +170,8 @@ export class PatientRidesComponent implements OnInit {
           if (yes) {
             if (r.isBackRide.value) {
               let origin = await this.context.for(Ride).findId(r.backId.value);
-              if (origin.status.value !== RideStatus.succeeded) {
-                origin.status.value = RideStatus.succeeded;
+              if (origin.status.value !== RideStatus.Succeeded) {
+                origin.status.value = RideStatus.Succeeded;
                 await origin.save();
               }
             }
@@ -175,26 +181,26 @@ export class PatientRidesComponent implements OnInit {
                 r.backId.value = back.id.value;
                 await r.save();
               }
-              if (r.status.value !== RideStatus.succeeded) {
-                r.status.value = RideStatus.succeeded;
+              if (r.status.value !== RideStatus.Succeeded) {
+                r.status.value = RideStatus.Succeeded;
                 await r.save();
               }
             }
             // set back ride
             switch (options.value) {
-              case RideStatus.finishedHospital: {
+              case RideStatus.FinishedHospital: {
                 if (r.isBackRide.value) {
-                  r.status.value = RideStatus.waitingForDriver;
+                  r.status.value = RideStatus.w4_Driver;
                   await r.save();
                 }
                 else {
                   let back = await this.context.for(Ride).findId(r.backId.value);
-                  back.status.value = RideStatus.waitingForDriver;
+                  back.status.value = RideStatus.w4_Driver;
                   await back.save();
                 }
                 break;
               }
-              case RideStatus.stayInHospital: {
+              case RideStatus.StayInHospital: {
                 if (r.isBackRide.value) {
                   r.status.value = RideStatus.InHospital;
                   r.date.value = addDays(+1, r.date.value);
@@ -208,7 +214,7 @@ export class PatientRidesComponent implements OnInit {
                 }
                 break;
               }
-              case RideStatus.goneByHimself: {
+              case RideStatus.GoneByHimself: {
                 if (r.isBackRide.value) {
                   await r.delete();
                 }
@@ -224,6 +230,10 @@ export class PatientRidesComponent implements OnInit {
         }
       }
     });
+  }
+
+  async driverFeedback(cur: Ride) {
+    await this.dialog.error(cur.dFeedback.value);
   }
 
   async approve(r: Ride) {

@@ -12,7 +12,7 @@ export class Users extends IdEntity {
 
 
     name = new StringColumn({
-        caption: "name",
+        caption: "Name",
         // validate: () => {
 
         //     if (!this.name.value || this.name.value.length < 2)

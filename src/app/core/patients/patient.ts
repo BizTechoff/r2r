@@ -8,7 +8,6 @@ import { LocationIdColumn } from "../locations/location";
 export class Patient extends IdEntity {
 
   name = new StringColumn({});
-  hebName = new StringColumn({});
   mobile = new StringColumn({});
   idNumber = new StringColumn({});
   birthDate?= new DateColumn({
@@ -24,12 +23,12 @@ export class Patient extends IdEntity {
       }
     },
   });
-  remark = new StringColumn({});
+  remark = new StringColumn({ caption: 'Remark From Patient' });
   age = new NumberColumn({ caption: 'Age' });
 
   isHasBabyChair = new BoolColumn({ caption: 'Have Babyseat?', defaultValue: false });
   isHasWheelchair = new BoolColumn({ caption: 'Wheelchair?', defaultValue: false });
-  
+
   defaultBorder?= new LocationIdColumn({ allowNull: true }, this.context);
   defaultHospital?= new LocationIdColumn({ allowNull: true }, this.context);
 

@@ -2,7 +2,7 @@ import { formatDate } from "@angular/common";
 import { BoolColumn, ColumnSettings, Context, DateColumn, DateTimeColumn, EntityClass, IdEntity, NumberColumn, StringColumn, ValueListColumn } from "@remult/core";
 import { DialogService } from "../../common/dialog";
 import { DynamicServerSideSearchDialogComponent } from "../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component";
-import { MaxPickupHospital, TimeColumn, TODAY } from "../../shared/types";
+import { TimeColumn, TODAY } from "../../shared/types";
 import { addDays, addHours } from "../../shared/utils";
 import { Roles } from "../../users/roles";
 import { UserId } from "../../users/users";
@@ -15,6 +15,7 @@ import { RideActivity } from "./rideActivity";
 @EntityClass
 export class Ride extends IdEntity {
 
+    pid = new PatientIdColumn(this.context);
     fid = new LocationIdColumn({
         caption: 'From Location', allowNull: false,
         dataControlSettings: () => ({
@@ -27,6 +28,8 @@ export class Ride extends IdEntity {
             readOnly: RideStatus.isInDriving.includes(this.status.value)
         })
     }, this.context);
+    did = new DriverIdColumn({ caption: 'Driver' }, this.context);
+    date = new DateColumn({});
     immediate = new BoolColumn({
         caption: 'As Soon As Possible',
         defaultValue: false, valueChange: () => {
@@ -37,25 +40,19 @@ export class Ride extends IdEntity {
             }
         }
     });
-    date = new DateColumn({});
     visitTime = new TimeColumn();
     pickupTime = new TimeColumn();
+    escortsCount = new NumberColumn({});
     status = new RideStatusColumn();
     statusDate = new DateTimeColumn({ caption: 'Status Changed' });
-
-    escortsCount = new NumberColumn({});
-
-
-    did = new DriverIdColumn({ caption: 'Driver' }, this.context);
-    pid = new PatientIdColumn(this.context);
     pMobile = new StringColumn({ caption: 'Patient Mobile' });
-    importRideNum = new StringColumn();
-
+    isSplitted = new BoolColumn({ defaultValue: false });
     isBackRide = new BoolColumn({ defaultValue: true });
     backId = new StringColumn({});
+    importRideNum = new StringColumn();
     isPatientApprovedBeing = new BoolColumn({ defaultValue: false });
-    isSplitted = new BoolColumn({ defaultValue: false });
     dRemark = new StringColumn({ caption: 'Remark For Driver' });
+    dFeedback = new StringColumn({ caption: 'Driver Feedback Comment' });
     rRemark = new StringColumn({ caption: 'Remark For Ride' });
     changed = new DateTimeColumn();
     changedBy = new UserId(this.context);
@@ -76,14 +73,6 @@ export class Ride extends IdEntity {
                     else if (!border && immediate) {//hospital
                         this.visitTime.value = TimeColumn.Empty;
                         this.pickupTime.value = TimeColumn.Empty;
-                        // if current time if after business working hours so set ride to tomorrow
-                        // let today = addDays(0);
-                        // if (today === this.date.value) {
-                        //     let time = formatDate(addDays(0, undefined, false), 'HH:mm', 'en-US');
-                        //     if (time > MaxPickupHospital) {
-                        //         this.date.value = addDays(+1);
-                        //     }
-                        // }
                     }
                     else if (!border && !immediate) {//hospital
                         this.visitTime.value = TimeColumn.Empty;
@@ -91,7 +80,7 @@ export class Ride extends IdEntity {
                     return true;
                 }
                 else {
-                    console.error(`this.fid.selected=null`);// (id=${this.fid.value})`);
+                    console.error(`this.fid.selected=null`);
                 }
             },
             saving: async () => {
@@ -101,13 +90,6 @@ export class Ride extends IdEntity {
                     }
                     this.changed.value = addDays(TODAY, undefined, false);
                     this.changedBy.value = this.context.user.id;
-                    // if(this.hadBackRide()){
-                    //     let back = await context.for(Ride).findId(this.backId.value);
-                    //     if(!back){
-                    //         this.backId.value ='';
-                    //         await this.save();
-                    //     }
-                    // }
                 }
             },
             deleted: async () => {//trigger from db on date OR status changed
@@ -124,37 +106,13 @@ export class Ride extends IdEntity {
             saved: async () => {//trigger from db on date OR status changed
                 if (context.onServer) {
                     await this.recordActivity(this);
-                    // Check for back-ride changes.
-                    // if (this.fid.wasChanged() || this.tid.wasChanged() || this.date.wasChanged()) {
-                    //     if (this.hadBackRide()) {
-                    //         let back = await context.for(Ride).findId(this.backId.value);
-                    //         if (back) {
-                    //             let save = false;
-                    //             if (back.fid.value !== this.fid.value) {
-                    //                 back.fid.value = this.fid.value;
-                    //                 save = true;
-                    //             } 
-                    //             if (back.tid.value !== this.tid.value) {
-                    //                 back.tid.value = this.tid.value;
-                    //                 save = true;
-                    //             }
-                    //             // if (back.date.value !== this.date.value) {
-                    //             //     back.date.value = this.date.value;
-                    //             //     save = true;
-                    //             // }
-                    //             if (save) {
-                    //                 await this.save();
-                    //             }
-                    //         }
-                    //     }
-                    // }
                 }
             }
 
         });
     }
 
-
+ 
     async recordActivity(r: Ride, deleted = false) {
         let desc = '';
         let remark = '';
@@ -165,8 +123,8 @@ export class Ride extends IdEntity {
             history.pid.value = r.pid.value;
             let from = (await r.context.for(Location).findId(r.fid.value)).name.value;//r.fid.selected ? r.fid.selected.name.value
             let to = (await r.context.for(Location).findId(r.tid.value)).name.value;//r.tid.selected ? r.tid.selected.name.value
-            history.kav.value = `${from} > ${to}`;
-
+            history.line.value = `${from} > ${to}`;
+ 
             if (deleted) {
                 desc = 'Deleted';
                 remark = '';
@@ -211,7 +169,7 @@ export class Ride extends IdEntity {
 
                     let ofrom = r.fid.originalValue ? (await r.context.for(Location).findId(r.fid.originalValue)).name.value : r.fid.originalValue;
                     let oto = r.tid.originalValue ? (await r.context.for(Location).findId(r.tid.originalValue)).name.value : r.tid.originalValue;
-                    desc = 'Kav Changed';
+                    desc = 'Line Changed';
                     remark = `${ofrom}>${oto} ==> ${from}>${to}`;
                 }
             }
@@ -284,42 +242,63 @@ export class Ride extends IdEntity {
         return this.did && this.did.value && this.did.value.length > 0;
     }
 
-    isDriverCurrentlyDriving() {
-        let inRiding: RideStatus[] = [
-            RideStatus.waitingForPickup,
-            RideStatus.waitingForArrived,];
-        return this.isExsistDriver() && inRiding.includes(this.status.value);
+    isWaitingForDriverAccept() {
+        return this.status.value === RideStatus.w4_Driver;
     }
 
+    isWaitingForAccept() {
+        return this.status.value === RideStatus.w4_Accept;
+    }
+
+    isWaitingForStart() {
+        return this.status.value === RideStatus.w4_Start;
+    }
+
+    isWaitingForPickup() {
+        return this.status.value === RideStatus.w4_Pickup;
+    }
+
+    isWaitingForArrived() {
+        return this.status.value === RideStatus.w4_Arrived;
+    }
+
+    isEnd() {
+        return this.status.value === RideStatus.Succeeded;
+    }
+
+    
+    isRideWaitForDriver() {
+        let inRiding: RideStatus[] = [
+            RideStatus.w4_Accept,
+            RideStatus.w4_Driver,
+            RideStatus.w4_Start,
+            RideStatus.w4_Pickup,
+            RideStatus.w4_Arrived,
+            RideStatus.w4_End
+        ];
+        return this.isExsistDriver() && inRiding.includes(this.status.value);
+    }
+    isRideWaitForUsher() {
+        let inRiding: RideStatus[] = [
+            RideStatus.w4_Accept,
+            RideStatus.w4_Driver,
+            RideStatus.w4_Start,
+            RideStatus.w4_Pickup,
+            RideStatus.w4_Arrived,
+            RideStatus.w4_End
+        ];
+        return this.isExsistDriver() && inRiding.includes(this.status.value);
+    }
+    isDriverCurrentlyDriving() {
+        let inRiding: RideStatus[] = [
+            RideStatus.w4_Pickup,
+            RideStatus.w4_Arrived,];
+        return this.isExsistDriver() && inRiding.includes(this.status.value);
+    }
     isInDriving() {
         return RideStatus.isInDriving.includes(this.status.value);
     }
 
-
-
-    isWaitingForDriverAccept() {
-        return this.status.value === RideStatus.waitingForDriver;
-    }
-
-    isWaitingForAccept() {
-        return this.status.value === RideStatus.waitingForAccept;
-    }
-
-    isWaitingForStart() {
-        return this.status.value === RideStatus.waitingForStart;
-    }
-
-    isWaitingForPickup() {
-        return this.status.value === RideStatus.waitingForPickup;
-    }
-
-    isWaitingForArrived() {
-        return this.status.value === RideStatus.waitingForArrived;
-    }
-
-    isEnd() {
-        return this.status.value === RideStatus.succeeded;
-    }
 
     async swapLocations() {
         let temp = this.fid.value;
@@ -347,29 +326,27 @@ export class Ride extends IdEntity {
         back.isBackRide.value = true;
         back.dRemark.value = this.dRemark.value;
         back.rRemark.value = this.rRemark.value;
-        back.status.value = RideStatus.notActiveYet;
+        back.status.value = RideStatus.NotActiveYet;
         await back.save();
         return back;
     }
 
     copyTo(target: Ride) {
-        target.date.value = this.date.value;
-        target.pMobile.value = this.pMobile.value;
-        // target.isHasBabyChair.value = this.isHasBabyChair.value;
-        // target.isHasWheelchair.value = this.isHasWheelchair.value;
-        target.escortsCount.value = this.escortsCount.value;
         target.pid.value = this.pid.value;
-        target.isSplitted.value = this.isSplitted.value;
         target.fid.value = this.fid.value;
         target.tid.value = this.tid.value;
-        target.pickupTime.value = this.pickupTime.value;
-        target.visitTime.value = this.visitTime.value;
-        target.immediate.value = this.immediate.value;
         target.did.value = this.did.value;
-        target.backId.value = this.backId.value;
-        target.isBackRide.value = this.isBackRide.value;
+        target.date.value = this.date.value;
+        target.visitTime.value = this.visitTime.value;
+        target.pickupTime.value = this.pickupTime.value;
+        target.immediate.value = this.immediate.value;
+        target.escortsCount.value = this.escortsCount.value;
+        target.pMobile.value = this.pMobile.value;
         target.status = this.status;
         target.statusDate.value = this.statusDate.value;
+        target.backId.value = this.backId.value;
+        target.isSplitted.value = this.isSplitted.value;
+        target.isBackRide.value = this.isBackRide.value;
         target.importRideNum.value = this.importRideNum.value;
         target.dRemark.value = this.dRemark.value;
         target.rRemark.value = this.rRemark.value;
@@ -382,21 +359,24 @@ export class Ride extends IdEntity {
 
 export class RideStatus {
     static InBorder = new RideStatus();
-    static finishedHospital = new RideStatus();
-    static InHospital = new RideStatus();//ride-status OR patient-status
-    static notActiveYet = new RideStatus();//back-ride created before the patient arrived to hospital
-    static waitingForDriver = new RideStatus();
-    static waitingForAccept = new RideStatus();
-    static waitingForStart = new RideStatus();
-    static waitingForPickup = new RideStatus();
-    static waitingForArrived = new RideStatus();
-    static waitingForEnd = new RideStatus();
-    static succeeded = new RideStatus();//the king`s way
-    static noFoundPatient = new RideStatus();
-    static wrongAddress = new RideStatus();
-    static stayInHospital = new RideStatus();
-    static goneByHimself = new RideStatus();
+    static w4_Accept = new RideStatus();
+    static w4_Driver = new RideStatus();
+    static w4_Start = new RideStatus();
+    static w4_Pickup = new RideStatus();
+    static w4_Arrived = new RideStatus();
+    static w4_End = new RideStatus();
+    static Succeeded = new RideStatus();//the king`s way
+    
+    static NotActiveYet = new RideStatus('gray');//back-ride created before the patient arrived to hospital
+    static InHospital = new RideStatus('orange');//ride-status OR patient-status
+    static FinishedHospital = new RideStatus();
+    static StayInHospital = new RideStatus();
+    static GoneByHimself = new RideStatus();
 
+    // static Other = new RideStatus('red');
+    static PatientNotFound = new RideStatus('red');
+    static WrongAddress = new RideStatus('red');
+    
     constructor(public color = 'green') { }
     id: string;
 
@@ -406,22 +386,22 @@ export class RideStatus {
 
     static isForwarded(from: RideStatus, to: RideStatus): boolean {
         if (from === RideStatus.InBorder || from === RideStatus.InHospital) {
-            return to === RideStatus.waitingForDriver;
+            return to === RideStatus.w4_Driver;
         }
-        else if (from === RideStatus.waitingForDriver) {
-            return to === RideStatus.waitingForAccept || to === RideStatus.waitingForStart;
+        else if (from === RideStatus.w4_Driver) {
+            return to === RideStatus.w4_Accept || to === RideStatus.w4_Start;
         }
-        else if (from === RideStatus.waitingForAccept) {
-            return to === RideStatus.waitingForStart;
+        else if (from === RideStatus.w4_Accept) {
+            return to === RideStatus.w4_Start;
+        }  
+        else if (from === RideStatus.w4_Start) {
+            return to === RideStatus.w4_Pickup;
         }
-        else if (from === RideStatus.waitingForStart) {
-            return to === RideStatus.waitingForPickup;
+        else if (from === RideStatus.w4_Pickup) {
+            return to === RideStatus.w4_Arrived;
         }
-        else if (from === RideStatus.waitingForPickup) {
-            return to === RideStatus.waitingForArrived;
-        }
-        else if (from === RideStatus.waitingForArrived) {
-            return to === RideStatus.waitingForEnd || to === RideStatus.succeeded;
+        else if (from === RideStatus.w4_Arrived) {
+            return to === RideStatus.w4_End || to === RideStatus.Succeeded;
         }
         return false;
     }
@@ -430,64 +410,69 @@ export class RideStatus {
         return status === this.id;
     }
 
+    static isDriverFeedback = [
+        RideStatus.PatientNotFound, 
+        RideStatus.WrongAddress
+    ];
+
     static PatientArrivedToDestination = [
-        RideStatus.waitingForEnd,
-        RideStatus.succeeded
+        RideStatus.w4_End,
+        RideStatus.Succeeded
     ];
 
     static isInDriving = [
-        RideStatus.waitingForPickup,
-        RideStatus.waitingForArrived
+        RideStatus.w4_Pickup,
+        RideStatus.w4_Arrived
     ];
 
     static NoUsherActionNeeded = [
         RideStatus.InBorder,
         RideStatus.InHospital,
-        RideStatus.waitingForEnd,
-        RideStatus.succeeded,
-        RideStatus.stayInHospital,
-        RideStatus.goneByHimself
+        RideStatus.w4_End,
+        RideStatus.Succeeded,
+        RideStatus.StayInHospital,
+        RideStatus.GoneByHimself
     ];
 
     static isDriverNotStarted = [
         // RideStatus.waitingForHospital,
-        RideStatus.waitingForDriver,
-        RideStatus.waitingForAccept
+        RideStatus.w4_Driver,
+        RideStatus.w4_Accept
     ];
 
     static isCanNotDeleteRide = [
         //RideStatus.w,
-        RideStatus.waitingForDriver,
-        RideStatus.waitingForAccept
+        RideStatus.w4_Driver,
+        RideStatus.w4_Accept
     ];
 
     static isDriverNotStarted2 = [
-        RideStatus.waitingForPickup,
-        RideStatus.waitingForAccept
+        RideStatus.w4_Pickup,
+        RideStatus.w4_Accept
     ];
 
     static isInCanBackRideStatuses = [
-        RideStatus.waitingForArrived,
+        RideStatus.w4_Arrived,
     ];
 
     static isInMatcherCanApproveStatuses = [
-        RideStatus.waitingForStart,
+        RideStatus.w4_Start,
     ];
 
     static isInPatientWaitingStatuses = [
-        RideStatus.stayInHospital,
-        RideStatus.goneByHimself,
-        RideStatus.noFoundPatient,
+        RideStatus.StayInHospital,
+        RideStatus.GoneByHimself,
+        RideStatus.PatientNotFound,
         RideStatus.InBorder,
         RideStatus.InHospital,
     ];
 
     static isDriverNeedToShowStatuses = [
-        RideStatus.waitingForAccept,
-        RideStatus.waitingForDriver,
-        RideStatus.waitingForStart,
-        RideStatus.waitingForPickup,
-        RideStatus.waitingForArrived//,
+        RideStatus.w4_Accept,
+        RideStatus.w4_Driver,
+        RideStatus.w4_Start,
+        RideStatus.w4_Pickup,
+        RideStatus.w4_Arrived//,
         //RideStatus.waitingForEnd,
     ];
 }
@@ -496,7 +481,7 @@ export class RideStatus {
 export class RideStatusColumn extends ValueListColumn<RideStatus>{
     constructor(options?: ColumnSettings<RideStatus>) {
         super(RideStatus, {
-            defaultValue: RideStatus.waitingForDriver,
+            defaultValue: RideStatus.w4_Driver,
             ...options
         });
     }

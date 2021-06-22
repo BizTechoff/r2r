@@ -101,10 +101,10 @@ class usherParams {
         result.push(row);
       }
 
-      row.inProgress += ([RideStatus.waitingForPickup, RideStatus.waitingForArrived].includes(r.status.value) ? 1 : 0);
-      row.w4Accept += (r.status.value == RideStatus.waitingForAccept ? 1 : 0);
+      row.inProgress += ([RideStatus.w4_Pickup, RideStatus.w4_Arrived].includes(r.status.value) ? 1 : 0);
+      row.w4Accept += (r.status.value == RideStatus.w4_Accept ? 1 : 0);
       row.w4Driver += (r.isHasDriver() ? 0 : 1);
-      row.passengers += r.passengers();//registerride.validkav(fd-td,fid-tid,days[,v.t])
+      row.passengers += r.passengers();//registerride.validline(fd-td,fid-tid,days[,v.t])
       row.registers += await this.context.for(RegisterDriver).count(cur => cur.rid.isEqualTo(r.id));
       row.inHospital += ([RideStatus.InHospital].includes(r.status.value) ? 1 : 0);
       row.ridesCount += 1;

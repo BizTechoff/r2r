@@ -16,7 +16,7 @@ export class RideActivity extends IdEntity {
 
   rid = new RideIdColumn(this.context);
   pid = new PatientIdColumn(this.context);
-  kav = new StringColumn();
+  line = new StringColumn();
   what = new StringColumn();
   values = new StringColumn();
   changed = new DateTimeColumn();
@@ -56,7 +56,7 @@ export class RideActivity extends IdEntity {
         numOfColumnsInGrid: 10,
         columnSettings: cur => [
           cur.pid,
-          cur.kav,
+          cur.line,
           cur.what,
           cur.values,
           {

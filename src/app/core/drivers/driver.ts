@@ -121,19 +121,19 @@ export class Driver extends IdEntity {
   }
 
   isWaitingForDriverAccept() {
-    return this.lastStatus.value === RideStatus.waitingForDriver;
+    return this.lastStatus.value === RideStatus.w4_Driver;
   }
 
   isWaitingForStart() {
-    return this.lastStatus.value === RideStatus.waitingForStart;
+    return this.lastStatus.value === RideStatus.w4_Start;
   }
 
   isWaitingForPickup() {
-    return this.lastStatus.value === RideStatus.waitingForPickup;
+    return this.lastStatus.value === RideStatus.w4_Pickup;
   }
 
   isWaitingForArrived() {
-    return this.lastStatus.value === RideStatus.waitingForArrived;
+    return this.lastStatus.value === RideStatus.w4_Arrived;
   }
 
   async sendMessage() {

@@ -109,7 +109,7 @@ export class PatientCrudComponent implements OnInit {
         return false;
       }
     }
-    
+
     if (!this.p.idNumber.value) {
       this.p.idNumber.validationError = `Required`;
       await this.dialog.error(`${this.p.idNumber.defs.caption}: ${this.p.idNumber.validationError}`);
@@ -121,7 +121,7 @@ export class PatientCrudComponent implements OnInit {
       await this.dialog.error(`${this.p.idNumber.defs.caption}: ${this.p.idNumber.validationError}`);
       return false;
     }
-    
+
     if (!this.p.birthDate || !this.p.birthDate.value) {
       this.p.birthDate.validationError = 'Required';
       await this.dialog.error(`${this.p.birthDate.defs.caption}: ${this.p.birthDate.validationError}`);
@@ -148,12 +148,18 @@ export class PatientCrudComponent implements OnInit {
   }
 
   async contacts() {
-    if (this.p.isNew()) {
+    if (this.p.isNew() || this.p.wasChanged()) {
       await this.p.save();
     }
-    await this.context.openDialog(PatientContactsComponent, sr => sr.args = {
-      pid: this.p.id.value,
-    });
+    let changed = await this.context.openDialog(PatientContactsComponent,
+      sr => sr.args = { pid: this.p.id.value, changed: true },
+      sr => sr ? sr.args.changed : false);
+
+    if (changed) {
+      this.contactsCount = await this.context.for(Contact).count(
+        c => c.pid.isEqualTo(this.p.id),
+      );
+    }
   }
 
   close() {
