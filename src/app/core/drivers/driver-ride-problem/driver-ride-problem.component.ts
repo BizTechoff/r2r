@@ -47,7 +47,7 @@ export class DriverRideProblemComponent implements OnInit {
         this.args.status = this.problem.value;
       } 
     }
-    await this.dialog.info('TX!!');
+    this.dialog.info('TX!!');
     if (thenClose) {
       this.close();
     }

@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Context, ServerFunction } from '@remult/core';
+import { DialogService } from '../../../common/dialog';
 import { ride4Driver, TODAY } from '../../../shared/types';
 import { addDays } from '../../../shared/utils';
 import { Roles } from '../../../users/roles';
@@ -21,7 +22,7 @@ export class DriverRidesComponent implements OnInit {
   rides: ride4Driver[];
   today = addDays(TODAY);
 
-  constructor(private context: Context) { }
+  constructor(private context: Context, private dialog: DialogService) { }
 
   async ngOnInit() {
     this.refresh();
@@ -190,11 +191,24 @@ export class DriverRidesComponent implements OnInit {
     let driver = await this.context.for(Driver).findFirst({
       where: d => d.uid.isEqualTo(this.context.user.id),
     });
+    let city = '';
     if (driver) {
       let city = driver.city.value;
-      if (city && city.length > 0) {
-        await this.openWaze(city);
-      }
+    }
+    let openWaze = city && city.length > 0;
+
+    let message = `THANK YOU! 
+      F.Y.I: This Ride has removed to your History. 
+      There you can set the time you got back home, 
+      and by that the system will calculate the TOTAL distances for your refund ! `;
+    if (openWaze) {
+      message = message + `Now waze will navigate you to: '${city}'`;
+    }
+
+    await this.dialog.error(message);
+
+    if (openWaze) {
+      await this.openWaze(city);
     }
   }
 

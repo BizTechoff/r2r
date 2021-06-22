@@ -45,6 +45,11 @@ export class Ride extends IdEntity {
     escortsCount = new NumberColumn({});
     status = new RideStatusColumn();
     statusDate = new DateTimeColumn({ caption: 'Status Changed' });
+    uSetDriver = new DateTimeColumn();
+    dStart = new TimeColumn(); 
+    dPickup = new TimeColumn();
+    dArrived = new TimeColumn();
+    dEnd = new TimeColumn(); 
     pMobile = new StringColumn({ caption: 'Patient Mobile' });
     isSplitted = new BoolColumn({ defaultValue: false });
     isBackRide = new BoolColumn({ defaultValue: true });
@@ -86,7 +91,24 @@ export class Ride extends IdEntity {
             saving: async () => {
                 if (context.onServer) {
                     if (this.status.wasChanged()) {
-                        this.statusDate.value = addDays(TODAY, undefined, false);
+                        let now = addDays(TODAY, undefined, false);
+                        let time = formatDate(now,'HH:mm',"en-US");
+                        this.statusDate.value = now;
+                        if(this.status.value === RideStatus.w4_Start){
+                            this.uSetDriver.value = now;
+                        }
+                        else if(this.status.value === RideStatus.w4_Pickup){
+                            this.dStart.value = time;
+                        }
+                        else if(this.status.value === RideStatus.w4_Arrived){
+                            this.dPickup.value = time;
+                        }
+                        else if(this.status.value === RideStatus.Succeeded){
+                            this.dArrived.value = time;
+                        }
+                        // else if(this.status.value === RideStatus.w4_End){
+                        //     this.dEnd.value = now.toLocaleTimeString("he-il");
+                        // }
                     }
                     this.changed.value = addDays(TODAY, undefined, false);
                     this.changedBy.value = this.context.user.id;

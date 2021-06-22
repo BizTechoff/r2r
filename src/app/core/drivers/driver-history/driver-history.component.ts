@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Context, ServerFunction } from '@remult/core';
-import { ride4Driver } from '../../../shared/types';
+import { DialogService } from '../../../common/dialog';
+import { InputAreaComponent } from '../../../common/input-area/input-area.component';
+import { ride4Driver, TimeColumn } from '../../../shared/types';
 import { Roles } from '../../../users/roles';
 import { Location } from '../../locations/location';
 import { Contact } from '../../patients/contact';
@@ -18,7 +20,7 @@ export class DriverHistoryComponent implements OnInit {
 
   rides: ride4Driver[];
 
-  constructor(private context: Context) { }
+  constructor(private context: Context, private dialog: DialogService) { }
 
   async ngOnInit() {
     this.rides = await DriverHistoryComponent.retrieveDriverHistory(this.context);
@@ -50,7 +52,7 @@ export class DriverHistoryComponent implements OnInit {
       let equipment: string[] = [];
       let p = ride.isHasPatient() ? (await context.for(Patient).findId(ride.pid.value)) : undefined;
       if (p) {
-        pName  =p.name.value;
+        pName = p.name.value;
         if (p.isHasBabyChair) {
           equipment.push('');
         }
@@ -98,6 +100,35 @@ export class DriverHistoryComponent implements OnInit {
     result.sort((r1, r2) => +r1.date - +r2.date);
 
     return result;
+  }
+
+  async setEndTime(r: ride4Driver) {
+    let ride = await this.context.for(Ride).findId(r.rId);
+    if (ride) {
+      let date = ride.date.value.toLocaleDateString("he-il");
+      let time = new TimeColumn({caption:'When You END Your Ride (back home/work)?', defaultValue: ride.dEnd.value });
+      this.context.openDialog(InputAreaComponent, i => i.args = {
+        title: `You started: ${ride.dStart.value}, pickedup: ${ride.dPickup.value}, arrived: ${ride.dArrived.value}, end: ${ride.dEnd.value}`,
+        columnSettings: () => [
+          time
+        ],
+        validate: async () => {
+          if (time.isEmpty()) {
+            time.validationError = 'Time can not be empty';
+            throw time.validationError;
+          }
+          if (time.value < ride.dArrived.value) {
+            time.validationError = 'Time should be more then ' + ride.dArrived.value;
+            throw time.validationError;
+          }
+        },
+        ok: async () => {
+          ride.dEnd.value = time.value;
+          await ride.save();
+          this.dialog.info(`TX!! your refund will recalculte soon`);
+        }
+      });
+    }
   }
 
   async openContacts(r: ride4Driver) {

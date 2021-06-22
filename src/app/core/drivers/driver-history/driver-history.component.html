@@ -5,6 +5,7 @@
     <div class="grow-item">
         <table *ngIf="rides && rides.length > 0">
             <tr>
+                <th></th>
                 <th>Line</th>
                 <th>Date</th>
                 <th>Pass</th>
@@ -12,6 +13,18 @@
                 <th>Status</th>
             </tr>
             <tr *ngFor="let r of rides">
+                <td>
+                    <!-- *ngIf="menu && menu.items && menu.items.length > 0" -->
+                    <button mat-flat-button [matMenuTriggerFor]="menu">
+                        <mat-icon>more_vert</mat-icon>
+                    </button>
+                    <mat-menu #menu="matMenu">
+                        <!-- <button>{{ r.status }}</button> -->
+                        <button mat-menu-item (click)="setEndTime(r)">
+                            <mat-icon>home_work</mat-icon>Set Time You End
+                        </button>
+                    </mat-menu>
+                </td>
                 <td>{{ r.from }} > {{ r.to }}</td>
                 <td>{{ r.date | date:'dd.MM' }} {{ r.pickupTime }}</td>
                 <td>{{ r.passengers }}</td>
