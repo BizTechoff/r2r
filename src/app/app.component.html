@@ -14,7 +14,6 @@
       <mat-menu #menu="matMenu">
         <button mat-menu-item (click)="updateInfo()">Update Info</button>
         <button mat-menu-item (click)="changePassword()">Change Password</button>
-        <button mat-menu-item *ngIf="context.user.roles.length > 1 && context.user.roles.includes('driver')" (click)="connectAsDriver()">Connect As Driver</button>
         <button mat-menu-item (click)="signOut()">Sign Out</button>
       </mat-menu>
     </ng-container>
@@ -36,8 +35,13 @@
         </mat-list-item>
         <mat-divider></mat-divider> -->
         <ng-container *ngFor="let m of router.config">
-          <mat-list-item *ngIf="shouldDisplayRoute(m)" routerLinkActive="active-route">
-            <mat-divider *ngIf="m.path === 'Locations' || m.path === 'Rides4Usher'"></mat-divider>
+          <mat-list-item *ngIf="shouldDisplayRoute(m) && m.path !== 'ud/rides'" routerLinkActive="active-route">
+            <mat-divider *ngIf="m.path === 'Locations' || m.path === 'Rides4Usher' || m.path === 'User Accounts'">
+            </mat-divider>
+            <a matLine [routerLink]="m.path" (click)="routeClicked()">{{routeName(m)}}</a>
+          </mat-list-item>
+          <mat-list-item *ngIf="shouldDisplayRoute(m) && m.path === 'ud/rides'" routerLinkActive="active-route"
+            style="position: absolute; left: 0; bottom: 0%; color: blue;">
             <a matLine [routerLink]="m.path" (click)="routeClicked()">{{routeName(m)}}</a>
           </mat-list-item>
         </ng-container>

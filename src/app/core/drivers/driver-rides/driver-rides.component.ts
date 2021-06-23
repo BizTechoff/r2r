@@ -193,10 +193,10 @@ export class DriverRidesComponent implements OnInit {
     });
     let city = '';
     if (driver) {
-      let city = driver.city.value;
+      city = driver.city.value;
     }
     let openWaze = city && city.length > 0;
-
+ 
     let message = `THANK YOU! 
       F.Y.I: This Ride has removed to your History. 
       There you can set the time you got back home, 

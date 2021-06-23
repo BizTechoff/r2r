@@ -72,20 +72,20 @@
                         <div style="display:flex;flex-direction: column;flex-grow: 1;justify-content: space-between;">
                             <button style="margin-top: 7px;" *ngIf="r.w4Accept" mat-raised-button color="primary"
                                 (click)="accept(r.rId)">
-                                Accept
+                                I'm Accepting the Ride
                             </button>
                             <button style="margin-top: 7px;"
                                 *ngIf="r.w4Start&&((r.date|date:'dd.MM.yyyy')==(this.today|date:'dd.MM.yyyy'))"
                                 mat-raised-button color="primary" (click)="drive(r)">
-                                Start
+                                I'm Start driving pickup Patient
                             </button>
                             <button style="margin-top: 7px;" *ngIf="r.w4Pickup" mat-raised-button color="primary"
                                 (click)="pickup(r)">
-                                Pickup
+                                I'm Picked-up the Patient
                             </button>
                             <button style="margin-top: 7px;" *ngIf="r.w4Arrived" mat-raised-button color="primary"
                                 (click)="arrived(r)">
-                                Arrived
+                                The Patient Arrived to {{ r.to }}
                             </button>
                             <button style="margin-top: 7px;background-color: transparent;color: blue;"
                                 *ngIf="r.w4Pickup" mat-raised-button color="primary" (click)="problem(r)">

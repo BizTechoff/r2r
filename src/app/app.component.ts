@@ -17,8 +17,7 @@ import { PasswordColumn, Users } from './users/users';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  private static showConnectAsDriver = false;
-
+  
   constructor(
     public router: Router,
     public activeRoute: ActivatedRoute,
@@ -27,28 +26,6 @@ export class AppComponent {
     private session: JwtSessionService,
     public context: Context) {
     session.loadUserInfo();
-  }
-
-  async ngOnInit() {
-    if (this.context) {
-      if (this.context.user) {
-        AppComponent.showConnectAsDriver = this.context.user.roles.length > 1 && this.context.user.roles.includes(Roles.driver);
-      }
-    }
-  }
-
-  async connectAsDriver() {
-    this.dialogService.info('Coming Soon..')
-    // let mobile = this.context.user.mobile;
-    // if (mobile && mobile.length > 0 && mobile.startsWith('05')) {
-    //   await this.session.signout();
-    //   // await this.dialogService.error("Continue");
-    //   await this.session.setToken(await AppComponent.signIn(mobile, ''));
-    // }
-  }
-
-  isConnectAsDriverEnabled() {
-    return AppComponent.showConnectAsDriver;
   }
 
   async signIn() {
@@ -127,8 +104,6 @@ export class AppComponent {
         if (u.isDriver.value) {
           result.roles.push(Roles.driver);
         }
-
-        AppComponent.showConnectAsDriver = result.roles.length > 1 && result.roles.includes(Roles.driver);
       }
     }
     if (result) {

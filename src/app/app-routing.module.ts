@@ -16,10 +16,10 @@ import { UsherComponent } from './core/usher/usher.component';
 // import { DemoComponent } from './demo/demo.component';
 import { HomeComponent } from './home/home.component';
 import { GeneralReportComponent } from './reports/general-report/general-report.component';
-import { AdminGuard, DriverGuard, MatcherGuard, OnlyDriverGuard, UsherGuard } from './users/roles';
+import { AdminGuard, DriverGuard, DriverPlusGuard, MatcherGuard, OnlyDriverGuard, UsherGuard } from './users/roles';
 import { UsersComponent } from './users/users.component';
 
-
+ 
 const routes: Routes = [
   //  {path:'demo',component: DemoComponent},
   // Driver
@@ -48,6 +48,9 @@ const routes: Routes = [
   { path: 'User Accounts', component: UsersComponent, canActivate: [AdminGuard] },
 
   { path: 'Home', component: HomeComponent, canActivate: [NotSignedInGuard], data: { name: "Welcome" } },
+
+
+  { path: 'ud/rides', component: DriverRidesComponent, canActivate: [DriverPlusGuard], data: { name: "My Rides" } },
 
   { path: '', redirectTo: '/Home', pathMatch: 'full' },
   { path: '**', redirectTo: '/Home', pathMatch: 'full' }

@@ -64,12 +64,17 @@ export class PatientCrudComponent implements OnInit {
     return { p: p, c: c };
   }
 
-  async save() {
+  async save(close = true): Promise<boolean> {
+    let result = false;
     if (await this.validate()) {
       await this.p.save();
+      result = true;
       this.args.pid = this.p.id.value;
-      this.select();
+      if (close) {
+        this.select();
+      }
     }
+    return result;
   }
 
   async validate(): Promise<boolean> {
@@ -148,9 +153,19 @@ export class PatientCrudComponent implements OnInit {
   }
 
   async contacts() {
-    if (this.p.isNew() || this.p.wasChanged()) {
-      await this.p.save();
+    if (this.p.wasChanged()) {// || isNew()
+      let yes = await this.dialog.yesNoQuestion(`Patient didn't saved. Save and ${this.p.isNew() ? 'Create the patient' : 'Open Contacts'}?`);
+      if (yes) {
+        let ok = await this.save(false);
+        if (!ok) {
+          return;
+        }
+      }
+      else {
+        return;
+      }
     }
+    
     let changed = await this.context.openDialog(PatientContactsComponent,
       sr => sr.args = { pid: this.p.id.value, changed: true },
       sr => sr ? sr.args.changed : false);

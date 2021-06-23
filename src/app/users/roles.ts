@@ -51,6 +51,13 @@ export class DriverGuard extends SignedInGuard {
 @Injectable()
 export class OnlyDriverGuard extends SignedInGuard {
     isAllowed() {
-        return (c: Context) => (c.isAllowed(Roles.driver) && (!(c.isAllowed([Roles.admin, Roles.usher, Roles.matcher]))));
+        return (c: Context) => c.isAllowed(Roles.driver) && (!(c.isAllowed([Roles.admin, Roles.usher, Roles.matcher])));
+    }
+}
+
+@Injectable()
+export class DriverPlusGuard extends SignedInGuard {
+    isAllowed() {
+        return (c: Context) => c.isAllowed(Roles.driver) && c.isAllowed([Roles.admin, Roles.usher, Roles.matcher]);
     }
 }

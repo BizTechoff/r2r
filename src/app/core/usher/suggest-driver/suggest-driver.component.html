@@ -1,18 +1,24 @@
+<style type="text/css">
+    td {
+        padding: 0 25px;
+    }
+</style>
 <div class="full-page">
     <div class="header">
-        <div style="display:flex;flex-direction: row;flex-grow: 1;justify-content: space-between;">
-            
         <div style="display:flex;flex-direction: column;flex-grow: 1;justify-content: space-between;">
-            <u>
-                <h3>Line: {{this.params.from.value && this.params.to.value? this.params.from.value + ' > ' +
-                    this.params.to.value: 'searching..'}} at {{ this.params.date.value | date: 'dd.MM.yyyy' }} -Driver
-                    Suggestions</h3>
-            </u>
-            <data-control [column]="search"></data-control>
+
+            <div style="display:flex;flex-direction: row;flex-grow: 1;justify-content: space-between;">
+                <u>
+                    <h3>Line: {{this.params.from.value && this.params.to.value? this.params.from.value + ' > ' +
+                        this.params.to.value: 'searching..'}} at {{ this.params.date.value | date: 'dd.MM.yyyy' }}
+                        -Driver
+                        Suggestions</h3>
+                </u>
+                <button mat-icon-button mat-dialog-close title="Close" style="justify-content: flex-end" (click)="close()">
+                    <mat-icon>close</mat-icon>
+                </button>
             </div>
-            <button mat-icon-button mat-dialog-close title="Close" style="justify-content: flex-end" (click)="close()">
-                <mat-icon>close</mat-icon>
-            </button>
+            <data-control [column]="search"></data-control>
         </div>
 
     </div>
@@ -21,11 +27,11 @@
             <tr>
                 <th></th>
                 <th>Name</th>
+                <th>Seats</th>
                 <th>Mobile</th>
-                <th>Home</th>
-                <th title="Days From Last Ride (any)">Last-Ride</th>
-                <th>Last-Call</th>
-                <th>freeSeats</th>
+                <th>City</th>
+                <th title="Days From Last Ride (any)">L.Ride</th>
+                <th>L.Call</th>
                 <th>Reason</th>
                 <th></th>
             </tr>
@@ -56,9 +62,13 @@
                         </button>
                     </mat-menu>
                 </td>
-                <td>{{ d.name }}<span
+                <td>{{ d.name }} 
+                    <span
                         *ngIf="d.freeze && (d.freeze| date: 'yyyy.MM.dd') >= (this.params.date.value| date: 'yyyy.MM.dd')"
-                        style="color: red;">(FREEZE)</span></td>
+                        style="color: red;">(FREEZED)
+                    </span>
+                </td>
+                <td>{{ d.freeSeats}} {{ (d.seats === d.freeSeats)? '': '/' + d.seats }}</td>
                 <td>{{ d.mobile }}</td>
                 <td>{{ d.home }}</td>
                 <td>
@@ -70,7 +80,6 @@
                     </button>
                 </td>
                 <td>
-
                     <button *ngIf="d.lastCallDays !== -999999" mat-flat-button (click)="openCallDocumentationDialog(d)"
                         title="Show Call Documentation">
                         <mat-icon>tty</mat-icon>
@@ -83,7 +92,6 @@
                         </label>
                     </button>
                 </td>
-                <td>{{ d.freeSeats}} {{ (d.seats === d.freeSeats)? '': '/' + d.seats }}</td>
                 <td>{{ d.reason}}</td>
                 <td>
                     <button mat-flat-button color="accent" (click)="onDriverSelected(d)" title="Click To Select Driver">

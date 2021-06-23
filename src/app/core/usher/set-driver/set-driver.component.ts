@@ -144,12 +144,6 @@ export class SetDriverComponent implements OnInit {
       }
     }
   }, this.context);
-  driverArea = new DataAreaSettings({
-    columnSettings: () => [
-      {
-        column: this.driverId,
-      },],
-  });
   protected selectedPassengers: number = 0;
   protected fromName: string;
   protected toName: string;

@@ -1,8 +1,9 @@
 <div class="full-page">
+  <div class="header"></div>
   <div class="grow-item">
     <div mat-dialog-content class="center-screen">
       <h4>Rides Organizer Application</h4>
-      <h2>Welcome {{ context.isSignedIn()?context.user.name:' - ' }}
+      <h2>{{ context.isSignedIn()?'Welcome ' + context.user.name: '' }}
         <span style="color: green;">{{ context.isSignedIn() ? '' : 'Please Sign In Above' }}</span>
       </h2>
 
@@ -24,4 +25,5 @@
 
     </div>
   </div>
+  <div class="footer"></div>
 </div>
