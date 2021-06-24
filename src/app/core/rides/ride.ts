@@ -14,20 +14,20 @@ import { RideActivity } from "./rideActivity";
 
 @EntityClass
 export class Ride extends IdEntity {
-
+    demo = true;
     pid = new PatientIdColumn(this.context);
-    fid = new LocationIdColumn({
+    fid = new LocationIdColumn(this.context,{
         caption: 'From Location', allowNull: false,
         dataControlSettings: () => ({
             readOnly: RideStatus.isInDriving.includes(this.status.value)
         })
-    }, this.context);
-    tid = new LocationIdColumn({
+    });
+    tid = new LocationIdColumn(this.context,{
         caption: 'To Location', allowNull: false,
         dataControlSettings: () => ({
             readOnly: RideStatus.isInDriving.includes(this.status.value)
         })
-    }, this.context);
+    });
     did = new DriverIdColumn({ caption: 'Driver' }, this.context);
     date = new DateColumn({});
     immediate = new BoolColumn({
@@ -43,24 +43,27 @@ export class Ride extends IdEntity {
     visitTime = new TimeColumn();
     pickupTime = new TimeColumn();
     escortsCount = new NumberColumn({});
-    status = new RideStatusColumn();
+    status = new RideStatusColumn({ defaultValue: RideStatus.w4_Driver });
     statusDate = new DateTimeColumn({ caption: 'Status Changed' });
     uSetDriver = new DateTimeColumn();
-    dStart = new TimeColumn(); 
+    dStart = new TimeColumn();
     dPickup = new TimeColumn();
     dArrived = new TimeColumn();
-    dEnd = new TimeColumn(); 
+    dEnd = new TimeColumn();
     pMobile = new StringColumn({ caption: 'Patient Mobile' });
     isSplitted = new BoolColumn({ defaultValue: false });
-    isBackRide = new BoolColumn({ defaultValue: true });
+    needBackRide = new BoolColumn({ defaultValue: false });
+    isBackRide = new BoolColumn({ defaultValue: false });
     backId = new StringColumn({});
     importRideNum = new StringColumn();
     isPatientApprovedBeing = new BoolColumn({ defaultValue: false });
     dRemark = new StringColumn({ caption: 'Remark For Driver' });
     dFeedback = new StringColumn({ caption: 'Driver Feedback Comment' });
     rRemark = new StringColumn({ caption: 'Remark For Ride' });
-    changed = new DateTimeColumn();
-    changedBy = new UserId(this.context);
+    created = new DateTimeColumn();
+    createdBy = new UserId(this.context);
+    modified = new DateTimeColumn();
+    modifiedBy = new UserId(this.context);
 
     constructor(private context: Context, private dialog: DialogService) {
         super({
@@ -68,7 +71,13 @@ export class Ride extends IdEntity {
             allowApiCRUD: [Roles.admin, Roles.usher, Roles.matcher],
             allowApiUpdate: [Roles.admin, Roles.usher, Roles.matcher, Roles.driver],
             allowApiRead: c => c.isSignedIn(),
-            validation: () => {
+            validation: () => {//on-saving
+                // console.log(`ride.validation.trigger`);
+                // if (this.demo) {
+                //     if (!this.fid.selected && this.fid.value) {
+                //         throw 'From Location is Required';
+                //     }
+                // }
                 if (this.fid.selected) {
                     let border = this.fid.selected.type.value === LocationType.border;
                     let immediate = this.immediate.value;
@@ -85,56 +94,98 @@ export class Ride extends IdEntity {
                     return true;
                 }
                 else {
-                    console.error(`this.fid.selected=null`);
+                    // console.error(`this.fid.selected=null`);
                 }
             },
             saving: async () => {
                 if (context.onServer) {
+                    // console.log(`ride.saving.trigger`);
                     if (this.status.wasChanged()) {
                         let now = addDays(TODAY, undefined, false);
-                        let time = formatDate(now,'HH:mm',"en-US");
+                        let time = formatDate(now, 'HH:mm', "en-US");
                         this.statusDate.value = now;
-                        if(this.status.value === RideStatus.w4_Start){
+                        if (this.status.value === RideStatus.w4_Start) {
                             this.uSetDriver.value = now;
                         }
-                        else if(this.status.value === RideStatus.w4_Pickup){
+                        else if (this.status.value === RideStatus.w4_Pickup) {
                             this.dStart.value = time;
                         }
-                        else if(this.status.value === RideStatus.w4_Arrived){
+                        else if (this.status.value === RideStatus.w4_Arrived) {
                             this.dPickup.value = time;
                         }
-                        else if(this.status.value === RideStatus.Succeeded){
+                        else if (this.status.value === RideStatus.Succeeded) {
                             this.dArrived.value = time;
                         }
-                        // else if(this.status.value === RideStatus.w4_End){
-                        //     this.dEnd.value = now.toLocaleTimeString("he-il");
-                        // }
                     }
-                    this.changed.value = addDays(TODAY, undefined, false);
-                    this.changedBy.value = this.context.user.id;
+                    if (this.isNew()) {
+                        this.created.value = addDays(TODAY, undefined, false);
+                        this.createdBy.value = this.context.user.id;
+                    } else {
+                        this.modified.value = addDays(TODAY, undefined, false);
+                        this.modifiedBy.value = this.context.user.id;
+                    }
+
+                    ///////
+
+                    if (this.demo) {// this.isNew() <=> this.created && !this.modified
+                        if (this.status.wasChanged()) {// after status changed
+                            let oo = '';
+                            let o = this.status.originalValue;
+                            if(o){
+                                oo = o.id;
+                            }
+                            console.log(`Ride(${this.line()}, isBack=${this.isBackRide.value}).status.changed: ${oo} => ${this.status.value.id}`);
+                            await this.status.value.args.setState(this, this.context);
+                        }
+                    }
+
+                }
+            },
+            saved: async () => {//trigger from db on date OR status changed
+                if (context.onServer) {
+                    // console.log(`ride.saved.trigger`);
+                    await this.recordActivity(this);
+
+
+
                 }
             },
             deleted: async () => {//trigger from db on date OR status changed
                 if (context.onServer) {
+                    console.log(`ride.deleted.trigger`);
                     await this.recordActivity(this, true);
-                    if (!this.isBackRide.value) {
+
+                    if (this.isBackRide.value) {
+                        let origin = await context.for(Ride).findId(this.backId.value);
+                        origin.backId.value = '';
+                        await origin.save();
+                    }
+                    else {//origon
                         if (this.hadBackRide()) {
                             let back = await context.for(Ride).findId(this.backId.value);
                             await back.delete();
                         }
                     }
                 }
-            },
-            saved: async () => {//trigger from db on date OR status changed
-                if (context.onServer) {
-                    await this.recordActivity(this);
-                }
             }
 
         });
     }
 
- 
+    line() {
+        let result = '';
+        if (this.fid.selected) {
+            result += this.fid.selected.name.value;
+        }
+        if (this.tid.selected) {
+            result += ' > ' + this.tid.selected.name.value;
+        }
+        if (result.length === 0) {
+            result += 'no-selected';
+        }
+        return result;
+    }
+
     async recordActivity(r: Ride, deleted = false) {
         let desc = '';
         let remark = '';
@@ -146,14 +197,14 @@ export class Ride extends IdEntity {
             let from = (await r.context.for(Location).findId(r.fid.value)).name.value;//r.fid.selected ? r.fid.selected.name.value
             let to = (await r.context.for(Location).findId(r.tid.value)).name.value;//r.tid.selected ? r.tid.selected.name.value
             history.line.value = `${from} > ${to}`;
- 
+
             if (deleted) {
                 desc = 'Deleted';
                 remark = '';
             }
             else {
                 let dateChaged = r.date.wasChanged();
-                console.log('@@-- dateChaged: ' + dateChaged);
+                // console.log('@@-- dateChaged: ' + dateChaged);
                 if (dateChaged) {
                     if (r.date.originalValue && r.date.value) {
                         let o = formatDate(r.date.originalValue, 'dd.MM.yyyy', 'en-US');
@@ -184,7 +235,7 @@ export class Ride extends IdEntity {
                     remark = `${r.did.selected ? r.did.selected.name.value : ''}: ${r.did.originalValue} ==> ${r.did.value}`;
                 }
                 else if (r.status.wasChanged()) {
-                    desc = RideStatus.isForwarded(r.status.originalValue, r.status.value) ? 'Status Forward' : 'Status Not Forward';
+                    desc = r.status.originalValue? r.status.originalValue.args.getNext().includes(r.status.value) ? 'Status Forward' : 'Status Not Forward': 'Status Initialized';
                     remark = `${r.status.originalValue ? r.status.originalValue.id : r.status.originalValue} ==> ${r.status.value.id}`;
                 }
                 else if (r.fid.wasChanged() || r.tid.wasChanged()) {
@@ -224,8 +275,20 @@ export class Ride extends IdEntity {
         console.log(message);
     }
 
-    hadBackRide() {
-        return this.backId && this.backId.value && this.backId.value.length > 0;
+    hasId() {
+        return this.id && this.id.value && this.id.value.length > 0 ? true : false;
+    }
+
+    hasBackId() {
+        return this.backId && this.backId.value && this.backId.value.length > 0 ? true : false;
+    }
+
+    hadBackRide(alsoCheckIsBackRide = false) {
+        let result = this.backId && this.backId.value && this.backId.value.length > 0 ? true : false;
+        if (alsoCheckIsBackRide) {
+            result = result && this.isBackRide.value ? true : false;
+        }
+        return result;
     }
 
     passengers() {
@@ -233,35 +296,35 @@ export class Ride extends IdEntity {
     }
 
     isHasDate() {
-        return this.date && this.date.value && this.date.value.getFullYear() > 1900;
+        return this.date && this.date.value && this.date.value.getFullYear() > 1900 ? true : false;
     }
 
     isHasDriver() {
-        return this.did && this.did.value && this.did.value.length > 0;
+        return this.did && this.did.value && this.did.value.length > 0 ? true : false;
     }
 
     isHasPatient() {
-        return this.pid && this.pid.value && this.pid.value.length > 0;
+        return this.pid && this.pid.value && this.pid.value.length > 0 ? true : false;
     }
 
     isHasVisitTime() {
-        return this.visitTime && this.visitTime.value && this.visitTime.value.length > 0 && (!(this.visitTime.value === TimeColumn.Empty));
+        return this.visitTime && this.visitTime.value && this.visitTime.value.length > 0 && (!(this.visitTime.value === TimeColumn.Empty)) ? true : false;
     }
 
     isHasPickupTime() {
-        return this.pickupTime && this.pickupTime.value && this.pickupTime.value.length > 0 && (!(this.pickupTime.value === TimeColumn.Empty));
+        return this.pickupTime && this.pickupTime.value && this.pickupTime.value.length > 0 && (!(this.pickupTime.value === TimeColumn.Empty)) ? true : false;
     }
 
     isExsistPatient(): boolean {
-        return this.pid && this.pid.value && this.pid.value.length > 0;
+        return this.pid && this.pid.value && this.pid.value.length > 0 ? true : false;
     }
 
     isExsistBakcup(): boolean {
-        return this.backId && this.backId.value && this.backId.value.length > 0;
+        return this.backId && this.backId.value && this.backId.value.length > 0 ? true : false;
     }
 
     isExsistDriver(): boolean {
-        return this.did && this.did.value && this.did.value.length > 0;
+        return this.did && this.did.value && this.did.value.length > 0 ? true : false;
     }
 
     isWaitingForDriverAccept() {
@@ -288,15 +351,14 @@ export class Ride extends IdEntity {
         return this.status.value === RideStatus.Succeeded;
     }
 
-    
+
     isRideWaitForDriver() {
         let inRiding: RideStatus[] = [
             RideStatus.w4_Accept,
             RideStatus.w4_Driver,
             RideStatus.w4_Start,
             RideStatus.w4_Pickup,
-            RideStatus.w4_Arrived,
-            RideStatus.w4_End
+            RideStatus.w4_Arrived
         ];
         return this.isExsistDriver() && inRiding.includes(this.status.value);
     }
@@ -306,8 +368,7 @@ export class Ride extends IdEntity {
             RideStatus.w4_Driver,
             RideStatus.w4_Start,
             RideStatus.w4_Pickup,
-            RideStatus.w4_Arrived,
-            RideStatus.w4_End
+            RideStatus.w4_Arrived
         ];
         return this.isExsistDriver() && inRiding.includes(this.status.value);
     }
@@ -331,13 +392,23 @@ export class Ride extends IdEntity {
         this.tid.selected = selected;
     }
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    async createBackRide(): Promise<Ride> {
+    async createBackRide(save = true): Promise<Ride> {
         let back = this.context.for(Ride).create();
         back.pid.value = this.pid.value;
         back.fid.value = this.tid.value;
-        back.fid.selected = this.tid.selected;
+        if (this.tid.selected) {
+            back.fid.selected = new Location(this.context);
+            back.fid.selected.name.value = this.tid.selected.name.value;
+            back.fid.selected.type.value = this.tid.selected.type.value;
+            back.fid.selected.area.value = this.tid.selected.area.value;
+        }
         back.tid.value = this.fid.value;
-        back.tid.selected = this.fid.selected;
+        if (this.fid.selected) {
+            back.tid.selected = new Location(this.context);
+            back.tid.selected.name.value = this.fid.selected.name.value;
+            back.tid.selected.type.value = this.fid.selected.type.value;
+            back.tid.selected.area.value = this.fid.selected.area.value;
+        }
         back.date.value = this.date.value;
         back.immediate.value = true;
         back.visitTime.value = TimeColumn.Empty;
@@ -349,7 +420,10 @@ export class Ride extends IdEntity {
         back.dRemark.value = this.dRemark.value;
         back.rRemark.value = this.rRemark.value;
         back.status.value = RideStatus.NotActiveYet;
-        await back.save();
+        back.needBackRide.value = false;
+        if (save) {
+            await back.save();
+        }
         return back;
     }
 
@@ -380,65 +454,239 @@ export class Ride extends IdEntity {
 }
 
 export class RideStatus {
-    static InBorder = new RideStatus();
-    static w4_Accept = new RideStatus();
-    static w4_Driver = new RideStatus();
-    static w4_Start = new RideStatus();
-    static w4_Pickup = new RideStatus();
-    static w4_Arrived = new RideStatus();
-    static w4_End = new RideStatus();
-    static Succeeded = new RideStatus();//the king`s way
-    
-    static NotActiveYet = new RideStatus('gray');//back-ride created before the patient arrived to hospital
-    static InHospital = new RideStatus('orange');//ride-status OR patient-status
-    static FinishedHospital = new RideStatus();
-    static StayInHospital = new RideStatus();
-    static GoneByHimself = new RideStatus();
+    static w4_Driver = new RideStatus({
+        getNext: () => [RideStatus.w4_Accept, RideStatus.w4_Start],
+        setState: async r => {
+            if (r.isNew() && !r.hasBackId() && r.needBackRide.value && r.isBackRide.value === false) {
+                let back = await r.createBackRide(false);
+                back.backId.value = r.id.value;
+                back.isBackRide.value = true;
+                back.needBackRide.value = false;
+                await back.save();
+                r.backId.value = back.id.value;
+                back.isBackRide.value = false;
+                await r.save();
+            }
+        }
+    });
+    static w4_Accept = new RideStatus({
+        getNext: () => [RideStatus.w4_Start],
+        setState: async () => {}
+    });
+    static w4_Start= new RideStatus({
+        getNext: () => [RideStatus.w4_Pickup],
+        setState: async () => {}
+    });
+    static w4_Pickup = new RideStatus({
+        getNext: () => [RideStatus.w4_Arrived],
+        setState: async () => {}
+    });
+    static w4_Arrived= new RideStatus({
+        getNext: () => [RideStatus.Succeeded],
+        setState: async () => {}
+    });
+    static counter = 0;
+    // static w4_End = new RideStatus();
+    static Succeeded = new RideStatus({
+        getNext: () => [RideStatus.w4_Driver],
+        setState: async (r, c) => {
+            ++RideStatus.counter;
+            if(RideStatus.counter > 5){
+                return;
+            }
+            if (!r.isBackRide.value) {//=origin
+                if (r.hasBackId()) {
+                    let back = await c.for(Ride).findId(r.backId.value);
+                    if (back) {
+                        if(back.status.value !== RideStatus.InHospital){
+                            back.status.value = RideStatus.InHospital;
+                            await back.save();
+                        }
+                    }
+                }
+            } else {
+                //the back-ride finished ok.
+            }
+        }
+    });//the king`s way
+
+    static NotActiveYet = new RideStatus();//{ color: 'gray' });//back-ride created before the patient arrived to hospital
+    static InHospital = new RideStatus({
+        getNext: () => [RideStatus.w4_Driver],
+        // color: 'orange',
+        setState: async (r, c) => {
+            if (r.isBackRide.value) {
+                let origin = await c.for(Ride).findId(r.backId.value);
+                if (origin) {
+                    // console.log('before: ' + origin.status.value.id);
+                     if(origin.status.value !== RideStatus.Succeeded){
+                         origin.status.value = RideStatus.Succeeded;
+                        //  console.log('after: ' + origin.status.value.id);
+                         await origin.save();
+                    }
+                }
+            }
+            else {//origin
+                if(r.status.value !== RideStatus.Succeeded){
+                r.status.value = RideStatus.Succeeded;
+                await r.save();
+                }
+                let back = await c.for(Ride).findId(r.backId.value);
+                if (back) {
+                    if(back.status.value !== RideStatus.InHospital){
+                    back.status.value = RideStatus.InHospital;
+                    await back.save();
+                    }
+                }
+            }
+        }
+    });//ride-status OR patient-status
+    static FinishedHospital = new RideStatus({
+        getNext: () => [RideStatus.w4_Driver],
+        setState: async (r, c) => {
+            if (r.isBackRide.value) {
+                let origin = await c.for(Ride).findId(r.backId.value);
+                if (origin) {
+                    if(origin.status.value !== RideStatus.Succeeded){
+                    origin.status.value = RideStatus.Succeeded;
+                    await origin.save();
+                    }
+                }
+                if(r.status.value !== RideStatus.w4_Driver){
+                    r.status.value = RideStatus.w4_Driver;
+                }
+            }
+            else {//origin
+                r.status.value = RideStatus.Succeeded;
+
+                let back = await c.for(Ride).findId(r.backId.value);
+                if (back) {
+                    if(back.status.value !== RideStatus.w4_Driver){
+                    back.status.value = RideStatus.w4_Driver;
+                    await back.save();
+                    }
+                }
+                else {
+                    back = await r.createBackRide(false);
+                    back.backId.value = r.id.value;
+                    back.isBackRide.value = true;
+                    back.needBackRide.value = false;
+                    await back.save();
+                    r.backId.value = back.id.value;
+                    back.isBackRide.value = false;
+
+                }
+            }
+        }
+    });
+    static StayInHospital = new RideStatus({
+        getNext: () => [RideStatus.w4_Driver],
+        setState: async (r, c) => {
+            if (r.isBackRide.value) {
+                r.date.value = addDays(+1, r.date.value);
+                if( r.status.value !== RideStatus.InHospital){
+                r.status.value = RideStatus.InHospital;
+                }
+                await r.save();
+            }
+            else {//origin
+                if(r.status.value !== RideStatus.Succeeded){
+                r.status.value = RideStatus.Succeeded;
+                await r.save();
+                }
+                let back = await c.for(Ride).findId(r.backId.value);
+                if (back) {
+                    if(back.status.value !== RideStatus.InHospital){
+                    back.status.value = RideStatus.InHospital;
+                    await back.save();
+                    }
+                }
+            }
+        }
+    });
+    static GoneByHimself = new RideStatus({
+        getNext: () => [RideStatus.w4_Driver],
+        setState: async (r, c) => {
+            if (r.isBackRide.value) {
+                let origin = await c.for(Ride).findId(r.backId.value);
+                if (origin) {
+                    if(origin.status.value !== RideStatus.Succeeded){
+                    origin.status.value = RideStatus.Succeeded;
+                    await origin.save();
+                    }
+                }
+                await r.delete();
+            }
+            else {//origin
+                if(r.status.value!== RideStatus.Succeeded){
+                r.status.value = RideStatus.Succeeded;
+                await r.save();
+                }
+                let back = await c.for(Ride).findId(r.backId.value);
+                if (back) {
+                    await back.delete();
+                }
+            }
+        }
+    });
 
     // static Other = new RideStatus('red');
-    static PatientNotFound = new RideStatus('red');
-    static WrongAddress = new RideStatus('red');
-    
-    constructor(public color = 'green') { }
+    static PatientNotFound = new RideStatus();//{ color: 'red' });
+    static WrongAddress = new RideStatus();//{ color: 'red' });
+
+    constructor(public args?: {
+        // color?: string,
+        setState: (ride: Ride, context: Context) => Promise<void>,
+        getNext: () => RideStatus[]
+    }) {
+        if (!this.args) {
+            this.args = { setState: async () => {}, getNext: () => [RideStatus.w4_Driver] }
+        }
+        
+        // if (!this.args.getNext) {
+        //     this.args.getNext = () => [RideStatus.w4_Driver];
+        // }
+        // if (!args.color)
+        //     args.color = 'green';
+    }
     id: string;
 
     // status.DriverNotStratedYet,
     //       status.DriverStratedButNotArrived,
     //       status.DriverArrived,
 
-    static isForwarded(from: RideStatus, to: RideStatus): boolean {
-        if (from === RideStatus.InBorder || from === RideStatus.InHospital) {
-            return to === RideStatus.w4_Driver;
-        }
-        else if (from === RideStatus.w4_Driver) {
-            return to === RideStatus.w4_Accept || to === RideStatus.w4_Start;
-        }
-        else if (from === RideStatus.w4_Accept) {
-            return to === RideStatus.w4_Start;
-        }  
-        else if (from === RideStatus.w4_Start) {
-            return to === RideStatus.w4_Pickup;
-        }
-        else if (from === RideStatus.w4_Pickup) {
-            return to === RideStatus.w4_Arrived;
-        }
-        else if (from === RideStatus.w4_Arrived) {
-            return to === RideStatus.w4_End || to === RideStatus.Succeeded;
-        }
-        return false;
-    }
+    // static isForwarded(from: RideStatus, to: RideStatus): boolean {
+    //     if (from === RideStatus.InHospital) {
+    //         return to === RideStatus.w4_Driver;
+    //     }
+    //     else if (from === RideStatus.w4_Driver) {
+    //         return to === RideStatus.w4_Accept || to === RideStatus.w4_Start;
+    //     }
+    //     else if (from === RideStatus.w4_Accept) {
+    //         return to === RideStatus.w4_Start;//
+    //     }
+    //     else if (from === RideStatus.w4_Start) {
+    //         return to === RideStatus.w4_Pickup;//
+    //     }
+    //     else if (from === RideStatus.w4_Pickup) {
+    //         return to === RideStatus.w4_Arrived;
+    //     }
+    //     else if (from === RideStatus.w4_Arrived) {
+    //         return to === RideStatus.Succeeded;
+    //     }
+    //     return false;
+    // }
 
     isEquals(status: string) {
         return status === this.id;
     }
 
     static isDriverFeedback = [
-        RideStatus.PatientNotFound, 
+        RideStatus.PatientNotFound,
         RideStatus.WrongAddress
     ];
 
-    static PatientArrivedToDestination = [
-        RideStatus.w4_End,
+    static isPatientArrivedToDestination = [
         RideStatus.Succeeded
     ];
 
@@ -447,10 +695,8 @@ export class RideStatus {
         RideStatus.w4_Arrived
     ];
 
-    static NoUsherActionNeeded = [
-        RideStatus.InBorder,
+    static isNoUsherActionNeeded = [
         RideStatus.InHospital,
-        RideStatus.w4_End,
         RideStatus.Succeeded,
         RideStatus.StayInHospital,
         RideStatus.GoneByHimself
@@ -485,7 +731,6 @@ export class RideStatus {
         RideStatus.StayInHospital,
         RideStatus.GoneByHimself,
         RideStatus.PatientNotFound,
-        RideStatus.InBorder,
         RideStatus.InHospital,
     ];
 
@@ -535,3 +780,132 @@ export class RideIdColumn extends StringColumn {
         }, options);
     }
 }
+
+
+                            /*
+                                                        if (this.status.value === RideStatus.w4_Driver) {// origin=new
+                                                            console.log(this.isNew());
+                                                            console.log(this.hasBackId());
+                                                            console.log(this.needBackRide.value);
+                                                            console.log(this.isBackRide.value);
+                                                            if (this.isNew() && !this.hasBackId() && this.needBackRide.value && this.isBackRide.value === false) {
+                                                                let back = await this.createBackRide(false);
+                                                                back.backId.value = this.id.value;
+                                                                back.isBackRide.value = true;
+                                                                back.needBackRide.value = false;
+                                                                await back.save();
+                                                                this.backId.value = back.id.value;
+                                                                back.isBackRide.value = false;
+                            
+                                                            }
+                                                        }
+                                                        else if (this.status.value === RideStatus.w4_Accept) {//by driver
+                                                        }
+                                                        else if (this.status.value === RideStatus.w4_Start) {//by driver
+                                                        }
+                                                        else if (this.status.value === RideStatus.w4_Pickup) {//by driver
+                                                        }
+                                                        else if (this.status.value === RideStatus.WrongAddress) {//by driver
+                                                        }
+                                                        else if (this.status.value === RideStatus.PatientNotFound) {//by driver
+                                                        }
+                                                        else if (this.status.value === RideStatus.w4_Arrived) {//by driver
+                                                        }
+                                                        else if (this.status.value === RideStatus.Succeeded) {//origin.back?.value=RideStatus.InHospital;
+                                                            if (!this.isBackRide.value) {//=origin
+                                                                if (this.hasBackId()) {
+                                                                    let back = await context.for(Ride).findId(this.backId.value);
+                                                                    if (back) {
+                                                                        back.status.value = RideStatus.InHospital;
+                                                                        await back.save();
+                                                                    }
+                                                                }
+                                                            } else {
+                                                                //the back-ride finished ok.
+                                                            }
+                                                        }
+                                                        else if (this.status.value === RideStatus.NotActiveYet) {//back created with origin (ride-crud)
+                                                        }
+                                                        else if (this.status.value === RideStatus.GoneByHimself) {//origin=Succeeded, back.delete()
+                                                            if (this.isBackRide.value) {
+                                                                let origin = await context.for(Ride).findId(this.backId.value);
+                                                                if (origin) {
+                                                                    origin.status.value = RideStatus.Succeeded;
+                                                                    await origin.save();
+                                                                }
+                                                                await this.delete();
+                                                            }
+                                                            else {//origin
+                                                                this.status.value = RideStatus.Succeeded;
+                            
+                                                                let back = await context.for(Ride).findId(this.backId.value);
+                                                                if (back) {
+                                                                    await back.delete();
+                                                                }
+                                                            }
+                                                        }
+                                                        else if (this.status.value === RideStatus.StayInHospital) {//origin=succeeded, back=InHospital
+                                                            if (this.isBackRide.value) {
+                                                                this.date.value = addDays(+1, this.date.value);
+                                                                this.status.value = RideStatus.InHospital;
+                            
+                                                            }
+                                                            else {//origin
+                                                                this.status.value = RideStatus.Succeeded;
+                            
+                                                                let back = await context.for(Ride).findId(this.backId.value);
+                                                                if (back) {
+                                                                    back.status.value = RideStatus.InHospital;
+                                                                    await back.save();
+                                                                }
+                                                            }
+                                                        }
+                                                        else if (this.status.value === RideStatus.InHospital) {//origin=succeeded, back=InHospital
+                                                            if (this.isBackRide.value) {
+                                                                let origin = await context.for(Ride).findId(this.backId.value);
+                                                                if (origin) {
+                                                                    origin.status.value = RideStatus.Succeeded;
+                                                                    await origin.save();
+                                                                }
+                                                            }
+                                                            else {//origin
+                                                                this.status.value = RideStatus.Succeeded;
+                            
+                                                                let back = await context.for(Ride).findId(this.backId.value);
+                                                                if (back) {
+                                                                    back.status.value = RideStatus.InHospital;
+                                                                    await back.save();
+                                                                }
+                                                            }
+                                                        }
+                                                        else if (this.status.value === RideStatus.FinishedHospital) {//origin=succeeded, back=w4_Driver
+                                                            if (this.isBackRide.value) {
+                                                                let origin = await context.for(Ride).findId(this.backId.value);
+                                                                if (origin) {
+                                                                    origin.status.value = RideStatus.Succeeded;
+                                                                    await origin.save();
+                                                                }
+                                                                this.status.value = RideStatus.w4_Driver;
+                            
+                                                            }
+                                                            else {//origin
+                                                                this.status.value = RideStatus.Succeeded;
+                            
+                                                                let back = await context.for(Ride).findId(this.backId.value);
+                                                                if (back) {
+                                                                    back.status.value = RideStatus.w4_Driver;
+                                                                    await back.save();
+                                                                }
+                                                                else {
+                                                                    back = await this.createBackRide(false);
+                                                                    back.backId.value = this.id.value;
+                                                                    back.isBackRide.value = true;
+                                                                    back.needBackRide.value = false;
+                                                                    await back.save();
+                                                                    this.backId.value = back.id.value;
+                                                                    back.isBackRide.value = false;
+                            
+                                                                }
+                                                            }
+                                                        }
+                                                        */
