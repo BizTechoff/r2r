@@ -68,7 +68,7 @@ export class DriverHistoryComponent implements OnInit {
           if(origin){
             backSucceeded = [RideStatus.Succeeded].includes(origin.status.value);
           }
-        }
+        } 
       }
 
       let row = result.find(r => r.rId === ride.id.value);
@@ -112,6 +112,8 @@ export class DriverHistoryComponent implements OnInit {
 
     return result;
   }
+
+  f(){}
 
   async setEndTime(r: ride4Driver) {
     let ride = await this.context.for(Ride).findId(r.rId);
