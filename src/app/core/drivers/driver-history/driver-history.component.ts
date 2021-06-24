@@ -66,7 +66,7 @@ export class DriverHistoryComponent implements OnInit {
         if(ride.hasBackId()){
           let origin = await context.for(Ride).findId(ride.backId.value);
           if(origin){
-            backSucceeded = [RideStatus.Succeeded].includes(ride.status.value);
+            backSucceeded = [RideStatus.Succeeded].includes(origin.status.value);
           }
         }
       }
