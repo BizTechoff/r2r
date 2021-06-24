@@ -139,8 +139,9 @@ export interface ride4Driver {
   w4Arrived: boolean,
   w4End: boolean,
   dRemark: string,
+  backSucceeded: boolean
 };
-
+ 
 export interface ride4Usher {
 
   key: string,
@@ -154,6 +155,7 @@ export interface ride4Usher {
   ridesCount: number,
   inProgress: number,
   registers: number,
+  problem: number,
   w4Driver: number,
   w4Accept: number,
   inHospital: number,

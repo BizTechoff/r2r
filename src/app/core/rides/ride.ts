@@ -492,6 +492,7 @@ export class RideStatus {
         setState: async (r, c) => {
             ++RideStatus.counter;
             if(RideStatus.counter > 5){
+                RideStatus.counter = 0;
                 return;
             }
             if (!r.isBackRide.value) {//=origin

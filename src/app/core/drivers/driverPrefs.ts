@@ -7,7 +7,7 @@ import { DriverIdColumn } from "./driver";
 export class DriverPrefs extends IdEntity {
 
     did = new DriverIdColumn({}, this.context);
-    lid = new LocationIdColumn({ allowNull: true }, this.context);
+    lid = new LocationIdColumn(this.context,{ allowNull: true });
 
     constructor(private context: Context) {
         super({

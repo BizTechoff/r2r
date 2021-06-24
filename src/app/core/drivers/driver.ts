@@ -39,8 +39,8 @@ export class Driver extends IdEntity {
 
   lastStatus = new RideStatusColumn({});
   lastStatusDate = new DateTimeColumn({});
-  defaultFromLocation?= new LocationIdColumn({ allowNull: true }, this.context);
-  defaultToLocation?= new LocationIdColumn({ allowNull: true }, this.context);
+  defaultFromLocation?= new LocationIdColumn(this.context, { allowNull: true });
+  defaultToLocation?= new LocationIdColumn(this.context, { allowNull: true });
   defaultFromTime = new TimeColumn();
   defaultToTime = new TimeColumn();
   freezeTillDate = new DateColumn({ caption: 'Driver Freezed Last Date' });

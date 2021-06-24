@@ -12,8 +12,8 @@ import { SetDriverComponent } from './set-driver/set-driver.component';
 @ServerController({ key: 'u/rides', allowed: true })
 class usherParams {
   date = new DateColumn({ defaultValue: addDays(TODAY), valueChange: async () => { await this.onChanged(); } });
-  fid = new LocationIdColumn({ caption: 'From Location', valueChange: async () => { await this.onChanged(); } }, this.context);
-  tid = new LocationIdColumn({ caption: 'To Location', valueChange: async () => { await this.onChanged(); } }, this.context);
+  fid = new LocationIdColumn(this.context,{ caption: 'From Location', valueChange: async () => { await this.onChanged(); } });
+  tid = new LocationIdColumn(this.context,{ caption: 'To Location', valueChange: async () => { await this.onChanged(); } });
   area = new LocationAreaColumn({ caption: 'Area', valueChange: async () => { await this.onChanged(); } });
   historyChanged = new BoolColumn({ defaultValue: true });
   constructor(private context: Context) { }
@@ -58,15 +58,16 @@ class usherParams {
     // let rideMaxChanged = new Date(2000, 1, 1);
     // console.log(id);
     for await (const r of this.context.for(Ride).iterate({
-      where: cur => cur.status.isNotIn(...RideStatus.NoUsherActionNeeded)
+      where: cur => cur.status.isNotIn(...RideStatus.isNoUsherActionNeeded)
         .and(this.hasTid() ? cur.tid.isEqualTo(this.tid) : FILTER_IGNORE)
         .and(cur.date.isEqualTo(this.date))
         .and(this.hasArea() ? cur.fid.isIn(...areaIds.find(a => a.area === this.area.value).areaIds)
           .or(cur.tid.isIn(...areaIds.find(a => a.area === this.area.value).areaIds)) : FILTER_IGNORE)
         .and(this.hasFid() ? cur.fid.isEqualTo(this.fid) : FILTER_IGNORE)
         .and(this.hasTid() ? cur.tid.isEqualTo(this.tid) : FILTER_IGNORE),
+        orderBy: cur => [{column: cur.created, descending: false},{column: cur.fid, descending: false}]
     })) {
-
+ 
       // if (rideMaxChanged < r.changed.value) {
       //   rideMaxChanged = r.changed.value;
       // }
@@ -91,6 +92,7 @@ class usherParams {
           to: toName,
           inProgress: 0,
           registers: 0,
+          problem: 0,
           w4Accept: 0,
           w4Driver: 0,
           inHospital: 0,
@@ -106,6 +108,7 @@ class usherParams {
       row.w4Driver += (r.isHasDriver() ? 0 : 1);
       row.passengers += r.passengers();//registerride.validline(fd-td,fid-tid,days[,v.t])
       row.registers += await this.context.for(RegisterDriver).count(cur => cur.rid.isEqualTo(r.id));
+      row.problem += ([RideStatus.PatientNotFound, RideStatus.WrongAddress].includes(r.status.value) ? 1 : 0);
       row.inHospital += ([RideStatus.InHospital].includes(r.status.value) ? 1 : 0);
       row.ridesCount += 1;
     }

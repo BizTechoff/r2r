@@ -18,8 +18,8 @@ import { Ride, RideStatus } from '../../rides/ride';
 class usherSuggestDrivers {
 
   date = new DateColumn();
-  fid = new LocationIdColumn();
-  tid = new LocationIdColumn();
+  fid = new LocationIdColumn(this.context);
+  tid = new LocationIdColumn(this.context);
   from = new StringColumn();
   to = new StringColumn();
 

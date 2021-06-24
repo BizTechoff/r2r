@@ -24,8 +24,8 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
       await this.onChanged();
     }
   });
-  fid = new LocationIdColumn({ caption: 'From Location', valueChange: async () => { await this.onChanged(); } }, this.context);
-  tid = new LocationIdColumn({ caption: 'To Location', valueChange: async () => { await this.onChanged(); } }, this.context);
+  fid = new LocationIdColumn(this.context, { caption: 'From Location', valueChange: async () => { await this.onChanged(); } });
+  tid = new LocationIdColumn(this.context, { caption: 'To Location', valueChange: async () => { await this.onChanged(); } });
   fh = new TimeColumn({ caption: `I can From` });
   th = new TimeColumn({ caption: 'Till Hour' });
   did = new DriverIdColumn({}, this.context);

@@ -1,5 +1,5 @@
 import { BoolColumn, Context, DateColumn, DateTimeColumn, EntityClass, IdEntity, NumberColumn, StringColumn } from "@remult/core";
-import { TimeColumn } from "../../../shared/types";
+import { TimeColumn, TODAY } from "../../../shared/types";
 import { addDays } from "../../../shared/utils";
 import { Roles } from "../../../users/roles";
 import { DriverIdColumn } from "../../drivers/driver";
@@ -8,7 +8,7 @@ import { LocationIdColumn } from "../../locations/location";
 @EntityClass
 export class RegisterRide extends IdEntity {
 
-    fid = new LocationIdColumn({
+    fid = new LocationIdColumn(this.context,{
         caption: 'From Location',
         validate: async () => {
             if (!(this.fid.value)) {
@@ -23,8 +23,8 @@ export class RegisterRide extends IdEntity {
         //         }
         //     }
         // },
-    }, this.context);
-    tid = new LocationIdColumn({
+    });
+    tid = new LocationIdColumn(this.context,{
         // allowNull: true,
         // defaultValue: '',
         caption: 'To Location',
@@ -44,7 +44,7 @@ export class RegisterRide extends IdEntity {
             //     }
             // }
         }
-    }, this.context);
+    });
     fdate = new DateColumn({
         caption: 'From Date',
         validate: () => {
@@ -81,7 +81,7 @@ export class RegisterRide extends IdEntity {
     did = new DriverIdColumn({ caption: 'Approved Driver' }, this.context);
     didDate = new DateTimeColumn({});
     dCount = new NumberColumn({ caption: 'RegisteredDrivers', defaultValue: 0 });
-    remark = new StringColumn({caption: 'Driver Remark'});
+    remark = new StringColumn({ caption: 'Driver Remark' });
 
     constructor(private context: Context) {
         super({
@@ -89,6 +89,12 @@ export class RegisterRide extends IdEntity {
             allowApiCRUD: [Roles.admin],
             allowApiUpdate: Roles.driver,
             allowApiRead: c => c.isSignedIn(),
+
+            saving: () => {
+                if (this.did.wasChanged()) {
+                    this.didDate.value = addDays(TODAY, undefined, false);
+                }
+            }
         });
     }
 

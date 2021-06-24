@@ -6,11 +6,13 @@ import { Roles } from "../../users/roles";
 export class Location extends IdEntity {
 
   name = new StringColumn({});
-  type = new LocationTypeColumn({valueChange: () => {
-    if(this.type.value === LocationType.hospital){
-      this.area.value = LocationArea.all;
+  type = new LocationTypeColumn({
+    valueChange: () => {
+      if (this.type.value === LocationType.hospital) {
+        this.area.value = LocationArea.all;
+      }
     }
-  }});
+  });
   area = new LocationAreaColumn({});
 
   constructor(private context: Context) {
@@ -60,10 +62,11 @@ export class LocationArea {
 }
 export class LocationAreaColumn extends ValueListColumn<LocationArea>{
   constructor(options?: ColumnSettings<LocationArea>) {
-    super(LocationArea,{
+    super(LocationArea, {
       caption: 'Select Area',
       defaultValue: LocationArea.all,
-       ...options});
+      ...options
+    });
   }
 }
 export class LocationType {
@@ -81,8 +84,14 @@ export class LocationTypeColumn extends ValueListColumn<LocationType>{
 export class LocationIdColumn extends StringColumn {
   selected: Location = undefined;
   private types: LocationType[] = [LocationType.border, LocationType.hospital];
-  constructor(options?: ColumnSettings<string>, private context?: Context) {
+  constructor(private context?: Context, options?: ColumnSettings<string>) {
     super({
+      valueChange: async () => {
+        if (!this.selected){
+          this.selected = await this.context.for(Location).findId(this.value);
+        }
+        // console.log('LocationIdColumn.valueChange-' + this.value + ' (selected=' + this.selected ? 'Y1' : 'N1' + ')' + ' (selected.name=' + this.selected && this.selected.name ? 'Y2' : 'N2' + ')');
+      },
       dataControlSettings: () => ({
         getValue: () => {
           this.selected = this.context.for(Location).lookup(this);

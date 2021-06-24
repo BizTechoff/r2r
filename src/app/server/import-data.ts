@@ -252,7 +252,7 @@ async function findOrCreateDriverPrefsNew(driverRecord: any, driverId: string, c
     }
     return result;
 }
- 
+
 async function findOrCreateRideNew(rideRecord: any, driverId: string, patientId: string, fromId: string, toId: string, context: Context) {
     // try{
     let ride = context.for(Ride).create();

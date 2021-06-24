@@ -12,8 +12,8 @@
             </button>
         </div>
 
-        <data-control [column]="this.driverId"></data-control>
-        <div *ngIf="this.driverId.value && this.driverId.value.length > 0">
+        <data-control [column]="this.did"></data-control>
+        <div *ngIf="this.did.value && this.did.value.length > 0">
             <span style="color: green;">Seats: <strong>{{ driverSeats }}</strong></span>
             <!-- <span> {{this.driverId && this.driverId.selected && this.driverId.selected.name && this.driverId.selected.name.value? this.driverId.selected.name.value:'Selected Driver'}} Seats: <strong>{{ driverSeats }}</strong></span> -->
         </div>
@@ -87,7 +87,7 @@
                 <!-- <mat-checkbox *ngIf="r.driver.length == 0" [(ngModel)]="r.selected" (change)="selectionRowChanged(r)"></mat-checkbox> -->
             </td>
             <td>{{ r.patient }}</td>
-            <td>{{ r.pickupTime }}</td>
+            <td>{{ r.pickupTime && r.pickupTime.length > 0 && r.pickupTime !== '00:00' ? r.pickupTime : 'A.S.A.P' }}</td>
             <td>{{ r.passengers }}</td>
             <!-- <td>{{ r.freeSeats && r.freeSeats > 0?r.freeSeats:' ' }}</td> -->
             <td>{{ r.status.id }}</td>

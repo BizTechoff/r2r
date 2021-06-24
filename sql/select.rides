@@ -1,0 +1,1 @@
+select * from rides order by date;

@@ -1,9 +1,9 @@
-import { Context, DateColumn, DateTimeColumn, EntityClass, IdEntity, NumberColumn, StringColumn } from "@remult/core";
+import { BoolColumn, Context, DateColumn, DateTimeColumn, EntityClass, IdEntity, NumberColumn, StringColumn } from "@remult/core";
 import { TimeColumn, TODAY } from "../../shared/types";
 import { addDays } from "../../shared/utils";
 import { Roles } from "../../users/roles";
 import { DriverIdColumn } from "./driver";
- 
+
 @EntityClass
 export class RegisterDriver extends IdEntity {
 
@@ -21,6 +21,7 @@ export class RegisterDriver extends IdEntity {
             }
         },
     });
+    done = new BoolColumn({ defaultValue: false });
     created = new DateTimeColumn({});
     modified = new DateTimeColumn({});
 

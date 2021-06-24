@@ -68,7 +68,17 @@ export class DriverRidesComponent implements OnInit {
           equipment.push('');
         }
       }
-      console.log('---- ' + ride.passengers());
+      let backSucceeded = true;
+      if(ride.isBackRide.value)
+      {
+        if(ride.hasBackId()){
+          let origin = await context.for(Ride).findId(ride.backId.value);
+          if(origin){
+            backSucceeded = [RideStatus.Succeeded].includes(ride.status.value);
+          }
+        }
+      }
+      // console.log('---- ' + ride.passengers());
       let row = result.find(r => r.rId === ride.id.value);
       if (!(row)) {
         row = {
@@ -98,6 +108,7 @@ export class DriverRidesComponent implements OnInit {
           w4Arrived: ride.isWaitingForArrived(),
           w4End: ride.isEnd(),
           dRemark: ride.dRemark.value,
+          backSucceeded: backSucceeded
           // status: ride.status.value,
         };
         result.push(row);
@@ -166,27 +177,27 @@ export class DriverRidesComponent implements OnInit {
       await this.refresh();
     }
   }
-
+ 
   async arrived(r: ride4Driver) {
     let ride = await this.context.for(Ride).findId(r.rId);
     ride.status.value = RideStatus.Succeeded;
     await ride.save();
-    if (ride.isBackRide.value) {
+    // if (ride.isBackRide.value) {
 
-    }
-    else {
-      let back: Ride;
-      if (!(ride.hadBackRide())) {
-        back = await ride.createBackRide();
-        ride.backId.value = back.id.value;
-        await ride.save();
-      }
-      else {
-        back = await this.context.for(Ride).findId(ride.backId.value);
-      }
-      back.status.value = RideStatus.InHospital;
-      await back.save();
-    }
+    // }
+    // else {
+    //   let back: Ride;
+    //   if (!(ride.hadBackRide())) {
+    //     back = await ride.createBackRide();
+    //     ride.backId.value = back.id.value;
+    //     await ride.save();
+    //   }
+    //   else {
+    //     back = await this.context.for(Ride).findId(ride.backId.value);
+    //   }
+    //   back.status.value = RideStatus.InHospital;
+    //   await back.save();
+    // }
     await this.refresh();
     let driver = await this.context.for(Driver).findFirst({
       where: d => d.uid.isEqualTo(this.context.user.id),

@@ -29,8 +29,8 @@ export class Patient extends IdEntity {
   isHasBabyChair = new BoolColumn({ caption: 'Have Babyseat?', defaultValue: false });
   isHasWheelchair = new BoolColumn({ caption: 'Wheelchair?', defaultValue: false });
 
-  defaultBorder?= new LocationIdColumn({ allowNull: true }, this.context);
-  defaultHospital?= new LocationIdColumn({ allowNull: true }, this.context);
+  defaultBorder?= new LocationIdColumn(this.context,{ allowNull: true });
+  defaultHospital?= new LocationIdColumn(this.context,{ allowNull: true });
 
   constructor(private context: Context) {
     super({

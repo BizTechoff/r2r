@@ -70,8 +70,8 @@ export class Users extends IdEntity {
     });
 
     lastArea = new LocationAreaColumn();
-    lastFid = new LocationIdColumn();
-    lastTid = new LocationIdColumn();
+    lastFid = new LocationIdColumn(this.context);
+    lastTid = new LocationIdColumn(this.context);
     lastDate = new DateColumn();
 
     constructor(private context: Context) {

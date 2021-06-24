@@ -6,8 +6,10 @@ import { InputAreaComponent } from '../../../common/input-area/input-area.compon
 import { PickupTimePrevHours, ride4UsherSetDriver, TimeColumn } from '../../../shared/types';
 import { addHours } from '../../../shared/utils';
 import { Driver, DriverIdColumn } from '../../drivers/driver';
+import { RegisterDriver } from '../../drivers/registerDriver';
 import { Location } from '../../locations/location';
 import { Patient, PatientIdColumn } from '../../patients/patient';
+import { RegisterRide } from '../../rides/register-rides/registerRide';
 import { Ride, RideStatus } from '../../rides/ride';
 import { RideCrudComponent } from '../../rides/ride-crud/ride-crud.component';
 import { SuggestDriverComponent } from '../suggest-driver/suggest-driver.component';
@@ -42,7 +44,7 @@ class usherSerDriver {
       let dName = '';
       let seats = 0;
       let feedback = '';// ride.dFeedback.value;
-      if(RideStatus.isDriverFeedback.includes(ride.status.value)){
+      if (RideStatus.isDriverFeedback.includes(ride.status.value)) {
         feedback = ride.dFeedback.value;
       }
       if (d) {
@@ -70,7 +72,7 @@ class usherSerDriver {
           freeSeats: seats,
           w4Accept: ride.status.value === RideStatus.w4_Accept,
           w4Arrived: ride.status.value === RideStatus.w4_Arrived,
-          w4End: ride.status.value === RideStatus.w4_End,
+          w4End: false,
           w4Pickup: ride.status.value === RideStatus.w4_Pickup,
           w4Start: ride.status.value === RideStatus.w4_Start,
           dFeedback: feedback
@@ -125,7 +127,7 @@ export class SetDriverComponent implements OnInit {
   driverSeats: number = 0;
   //selectedVisitTime = "12:00";
   selectedPickupTime = "00:00";
-  driverId = new DriverIdColumn({
+  did = new DriverIdColumn({
     caption: "Select Driver To Set",
     dataControlSettings: () => ({
       click: async () => {
@@ -133,12 +135,12 @@ export class SetDriverComponent implements OnInit {
           sd => sd.args = { date: this.params.date.value, fid: this.params.fid.value, tid: this.params.tid.value },
           sd => sd.selected);
         if (selected && selected.did && selected.did.length > 0) {//if press back on browser will window was open.
-          this.driverId.value = selected.did;
+          this.did.value = selected.did;
         }
       },
     }),
     valueChange: async () => {
-      this.driverSeats = (await this.context.for(Driver).findId(this.driverId.value)).seats.value;
+      this.driverSeats = (await this.context.for(Driver).findId(this.did.value)).seats.value;
       if (this.selectedPassengers > this.driverSeats) {
         this.clearSelections();
       }
@@ -196,15 +198,34 @@ export class SetDriverComponent implements OnInit {
       if (r.selected) {
         let ride = await this.context.for(Ride).findId(r.id);
         ride.pickupTime.value = this.selectedPickupTime;
-        ride.did.value = this.driverId.value;
+        ride.did.value = this.did.value;
         ride.status.value = RideStatus.w4_Accept;
         if (setStatusToApproved) {
           ride.status.value = RideStatus.w4_Start;
         }
         await ride.save();
-        let d = await this.context.for(Driver).findId(this.driverId.value);
+        // update register-drivers that ride was taken.
+        if (false) {
+          for await (const rd of this.context.for(RegisterDriver).iterate({
+            where: cur => cur.did.isEqualTo(this.did)
+          })) {
+            if (rd.hasRideId()) {
+              if (rd.rid.value === ride.id.value) {
+                rd.done.value = true;
+                await rd.save();
+              }
+            }
+            else if (rd.hasRideRegisterId()) {
+              // let rr = await this.context.for(RegisterRide).findFirst(
+              //   cur => cur.did.isEqualTo(this.did)
+              //     .and(cur.rid.isEqualTo(ride.id)));
+            }
+          }
+        }
+
+        let d = await this.context.for(Driver).findId(this.did.value);
         r.driver = d.name.value;
-        r.driverId = this.driverId.value;
+        r.driverId = this.did.value;
         r.pickupTime = ride.pickupTime.value;
         r.status = ride.status.value;
         r.w4Accept = ride.isWaitingForAccept();
@@ -254,17 +275,7 @@ export class SetDriverComponent implements OnInit {
 
   }
 
-  async accept4DriverNew(r: ride4UsherSetDriverEntity) {
-    let setStatusToApproved = await this.dialog.yesNoQuestion(`Set ${r.driver} Has approved`);
-    if (setStatusToApproved) {
-      let ride = await this.context.for(Ride).findId(r.rid);
-      ride.status.value = RideStatus.w4_Start;
-      await ride.save();
-      // r.status = RideStatus.waitingForStart;
-    }
-  }
-
-  async showDriverFeedback(r: ride4UsherSetDriver){
+  async showDriverFeedback(r: ride4UsherSetDriver) {
     await this.dialog.error(r.dFeedback);
   }
 

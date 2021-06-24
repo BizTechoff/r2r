@@ -1,0 +1,2 @@
+delete from ridesactivities;
+delete from rides;

@@ -17,8 +17,8 @@ export class driverRidesCountRow {
 class reportParams {
   fdate = new DateColumn({ caption: 'From Date', defaultValue: addDays(TODAY) });
   tdate = new DateColumn({ caption: 'To Date', defaultValue: addDays(TODAY) });
-  fid = new LocationIdColumn({ caption: 'From Location', dataControlSettings: () => ({ width: '300' }) }, this.context);
-  tid = new LocationIdColumn({ caption: 'To Location' }, this.context);
+  fid = new LocationIdColumn(this.context,{ caption: 'From Location', dataControlSettings: () => ({ width: '300' }) });
+  tid = new LocationIdColumn(this.context,{ caption: 'To Location' });
   did = new DriverIdColumn({ caption: 'Driver' }, this.context);
   pid = new PatientIdColumn(this.context, { caption: 'Patient' });
 
@@ -34,7 +34,7 @@ class reportParams {
     // get:  {where: this.where},
     // where: this.where,
     allowCRUD: false,
-    numOfColumnsInGrid: 14,
+    numOfColumnsInGrid: 30,
   });
 
   constructor(private context: Context) { }

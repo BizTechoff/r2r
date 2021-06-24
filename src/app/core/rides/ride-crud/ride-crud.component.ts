@@ -23,7 +23,7 @@ export class RideCrudComponent implements OnInit {
   dataArea: DataAreaSettings;
   r: Ride;
   p: Patient;
-  createBackRide = new BoolColumn({ caption: 'Need Back Ride?', defaultValue: false });
+  createBackRide = new BoolColumn({ caption: 'Need Back Ride?', defaultValue: true });
 
   constructor(private context: Context, private dialog: DialogService, private dialogRef: MatDialogRef<any>) { }
 
@@ -44,6 +44,7 @@ export class RideCrudComponent implements OnInit {
       if (this.p) {
         if (this.r.isNew()) {
           // this.r.visitTime.value = tomorrow10am;
+          this.r.isBackRide.value = false;
           this.r.pid.value = this.p.id.value;
           this.r.fid.value = this.p.defaultBorder.value;
           this.r.tid.value = this.p.defaultHospital.value;
@@ -205,16 +206,19 @@ export class RideCrudComponent implements OnInit {
         }
       }
       if (this.r) {
+        if (this.r.isNew()) {
+          this.r.needBackRide.value = this.createBackRide.value;
+        }
         await this.r.save();
         result = true;
         this.args.rid = this.r.id.value;
-        if (this.createBackRide.value) {
-          if (!this.r.hadBackRide()) {
-            let back = await this.r.createBackRide();
-            this.r.backId.value = back.id.value;
-            await this.r.save();
-          }
-        }
+        // if (this.createBackRide.value) {
+        //   if (!this.r.hadBackRide()) {
+        //     let back = await this.r.createBackRide();
+        //     this.r.backId.value = back.id.value;
+        //     await this.r.save();
+        //   }
+        // }
       }
       if (close) {
         this.select();
@@ -252,7 +256,7 @@ export class RideCrudComponent implements OnInit {
     let isBorder = this.r.fid.selected && this.r.fid.selected.type.value === LocationType.border ? true : false;
     let isHospital = this.r.fid.selected && this.r.fid.selected.type.value === LocationType.hospital ? true : false;
     if (!isHospital) {
-      console.log('----- @@@@@@ ------ this.r.isHasVisitTime()= ' + this.r.isHasVisitTime());
+      // console.log('----- @@@@@@ ------ this.r.isHasVisitTime()= ' + this.r.isHasVisitTime());
       if (!(this.r.isHasVisitTime())) {
         this.r.visitTime.validationError = 'Required';
         await this.dialog.error(this.r.visitTime.defs.caption + ' ' + this.r.visitTime.validationError);
