@@ -51,24 +51,37 @@
         <table style="width: 100%">
             <tr>
                 <th><u>Line</u></th>
-                <th><u>Pass</u></th>
-                <th><u>Rides</u></th>
+                <!-- <th><u>Pass</u></th> -->
+                <!-- <th><u>Rides</u></th> -->
                 <th><u>w4-Driver</u></th>
                 <th><u>Problem</u></th>
                 <th><u>In-Hospital</u></th>
                 <th><u>Registered</u></th>
             </tr>
+            <!-- <td *ngIf="r.ridesCount == 0">{{ r.ridesCount }}</td>
+                <td *ngIf="r.ridesCount > 0"><button (click)="openSetDriver(r)"><u>{{ r.ridesCount }}</u></button></td> -->
             <tr *ngFor="let r of rides">
                 <td>
-                    <strong *ngIf="r.fromIsBorder"> {{ r.from }} </strong>
-                    <span *ngIf="!r.fromIsBorder"> {{ r.from }} </span>
-                    >
-                    <strong *ngIf="r.toIsBorder"> {{ r.to }} </strong>
-                    <span *ngIf="!r.toIsBorder"> {{ r.to }} </span>
+                    <button title="Show Rides Details" (click)="openSetDriver(r)"
+                        style="color: blue; border: none; background-color: transparent; cursor: pointer;">
+                        <div style="display:flex;flex-direction: column;flex-grow: 1;justify-content: space-between;">
+                            <div style="text-decoration-line: underline;">
+                                <strong *ngIf="r.fromIsBorder"> {{ r.from }} </strong>
+                                <span *ngIf="!r.fromIsBorder"> {{ r.from }} </span>
+                                <span>{{ '>' }}</span>
+                                <strong *ngIf="r.toIsBorder"> {{ r.to }} </strong>
+                                <span *ngIf="!r.toIsBorder"> {{ r.to }} </span>
+                            </div>
+                            <div style="font-size: 0.85em; display:flex; align-content: flex-start; opacity: 0.5;">
+                                <span> {{ r.ridesCount + ' rides' }}</span>
+                                <span>{{ ', ' }}</span>
+                                <span> {{ r.passengers + ' pass' }}</span>
+                            </div>
+                        </div>
+                    </button>
                 </td>
-                <td>{{ r.passengers }}</td>
-                <td *ngIf="r.ridesCount == 0">{{ r.ridesCount }}</td>
-                <td *ngIf="r.ridesCount > 0"><button (click)="openSetDriver(r)"><u>{{ r.ridesCount }}</u></button></td>
+                <!-- <td>{{ r.passengers }}</td> -->
+                <!-- <td>{{ r.ridesCount }}</td> -->
                 <td>{{ r.w4Driver }}</td>
                 <td>
                     <span *ngIf="r.problem > 0" style="color: red; font-weight: bolder;">
@@ -83,8 +96,14 @@
             </tr>
         </table>
     </div>
-    
+
     <div class="footer">
         <hr>
-        Found: {{ rides && rides.length > 0? rides.length : 0 }} rows
+        :
+        {{ counter ? counter.lines : 0 }} lines,
+        {{ counter ? counter.rides : 0 }} rides,
+        {{ counter ? counter.b2h : 0 }} b>h,
+        {{ counter ? counter.h2b : 0 }} h>b,
+        {{ counter ? counter.pass : 0 }} pass
+
     </div>

@@ -30,9 +30,10 @@ class usherSuggestDrivers {
   @ServerMethod({ allowed: [Roles.admin, Roles.usher] })
   async retrieve() {
     let drivers: driver4UsherSuggest[] = [];
-    let priority = 0;
+    let priority = 0;//1 is the most importent
 
-    // prepare line & area
+    let bAreaAll: { lid: string }[] = [];
+    // prepare area & locIds
     let areasBorders: { area: LocationArea, lids: string[] }[] = [];
     for await (const loc of this.context.for(Location).iterate({})) {
       if (loc.id.value === this.fid.value) {
@@ -43,6 +44,9 @@ class usherSuggestDrivers {
       }
 
       if (loc.type.value === LocationType.border) {
+        if (loc.area.value === LocationArea.all) {
+          bAreaAll.push({ lid: loc.id.value });
+        }
         let a: { area: LocationArea, lids: string[] } =
           areasBorders.find(cur => cur.area === loc.area.value);
         if (!(a)) {
@@ -53,10 +57,11 @@ class usherSuggestDrivers {
       }
     }
 
+    // prepare border & border-area, b>{area(b)} | h>{h}
     this.locAreas = [];// {border->{border.area.lids}}, {hospital->hospital}
     for await (const loc of this.context.for(Location).iterate({
     })) {
-      let f = areasBorders.find(cur => cur.area === loc.area.value);
+      let f = areasBorders.find(cur => cur.area === loc.area.value && loc.type === LocationType.border);
       let row = {
         border: loc.id.value,
         name: loc.name.value,
@@ -64,6 +69,16 @@ class usherSuggestDrivers {
         areaBorders: f ? f.lids : [loc.id.value]
       };
       this.locAreas.push(row);
+    }
+
+    if (bAreaAll.length > 0) {
+      console.log(`Locations contains ${bAreaAll.length} borders with area 'all'`);
+      let all = bAreaAll.map(cur => cur.lid);
+      for (const la of this.locAreas) {
+        if (la.isBorder) {
+          la.areaBorders.push(...all);
+        }
+      }
     }
 
     this.distinct(drivers,
@@ -633,7 +648,7 @@ export class SuggestDriverComponent implements OnInit {
       d.lastCallDays = lastCallDays;
     }
   }
- 
+
   async showRegisterRide(d: driver4UsherSuggest) {
     let rd = await this.context.for(RegisterDriver).findFirst(cur => cur.did.isEqualTo(d.did));
     if (rd) {

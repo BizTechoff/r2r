@@ -12,8 +12,8 @@ import { SetDriverComponent } from './set-driver/set-driver.component';
 @ServerController({ key: 'u/rides', allowed: true })
 class usherParams {
   date = new DateColumn({ defaultValue: addDays(TODAY), valueChange: async () => { await this.onChanged(); } });
-  fid = new LocationIdColumn(this.context,{ caption: 'From Location', valueChange: async () => { await this.onChanged(); } });
-  tid = new LocationIdColumn(this.context,{ caption: 'To Location', valueChange: async () => { await this.onChanged(); } });
+  fid = new LocationIdColumn(this.context, { caption: 'From Location', valueChange: async () => { await this.onChanged(); } });
+  tid = new LocationIdColumn(this.context, { caption: 'To Location', valueChange: async () => { await this.onChanged(); } });
   area = new LocationAreaColumn({ caption: 'Area', valueChange: async () => { await this.onChanged(); } });
   historyChanged = new BoolColumn({ defaultValue: true });
   constructor(private context: Context) { }
@@ -34,8 +34,8 @@ class usherParams {
   }
 
   @ServerMethod()
-  async retrieve(): Promise<ride4Usher[]> {
-    var result: ride4Usher[] = [];
+  async retrieve(): Promise<{ rides: ride4Usher[], counter: { lines: number, rides: number, pass: number, b2h: number, h2b: number } }> {
+    var result: { rides: ride4Usher[], counter: { lines: number, rides: number, pass: number, b2h: number, h2b: number } } = { rides: [], counter: { lines: 0, rides: 0, pass: 0, b2h: 0, h2b: 0 } };
 
     var areaIds: { area: LocationArea, areaIds: string[] }[] = [];
     for await (const loc of this.context.for(Location).iterate()) {
@@ -65,9 +65,9 @@ class usherParams {
           .or(cur.tid.isIn(...areaIds.find(a => a.area === this.area.value).areaIds)) : FILTER_IGNORE)
         .and(this.hasFid() ? cur.fid.isEqualTo(this.fid) : FILTER_IGNORE)
         .and(this.hasTid() ? cur.tid.isEqualTo(this.tid) : FILTER_IGNORE),
-        orderBy: cur => [{column: cur.created, descending: false},{column: cur.fid, descending: false}]
+      orderBy: cur => [{ column: cur.created, descending: false }, { column: cur.fid, descending: false }]
     })) {
- 
+
       // if (rideMaxChanged < r.changed.value) {
       //   rideMaxChanged = r.changed.value;
       // }
@@ -80,7 +80,7 @@ class usherParams {
       let toIsBorder = to.type.value == LocationType.border;
       let key = `${fromName}-${toName}`;
 
-      let row = result.find(r => r.key === key);
+      let row = result.rides.find(r => r.key === key);
       if (!(row)) {
         row = {
           key: key,
@@ -100,17 +100,23 @@ class usherParams {
           ridesCount: 0,
           ids: [],
         };
-        result.push(row);
+        result.rides.push(row);
+        result.counter.lines += 1;
       }
 
       row.inProgress += ([RideStatus.w4_Pickup, RideStatus.w4_Arrived].includes(r.status.value) ? 1 : 0);
       row.w4Accept += (r.status.value == RideStatus.w4_Accept ? 1 : 0);
-      row.w4Driver += (r.isHasDriver() ? 0 : 1);
+      row.w4Driver += (r.isHasDriver() ? 0 : r.isRideWaitForDriver() ? 1 : 0);
       row.passengers += r.passengers();//registerride.validline(fd-td,fid-tid,days[,v.t])
       row.registers += await this.context.for(RegisterDriver).count(cur => cur.rid.isEqualTo(r.id));
       row.problem += ([RideStatus.PatientNotFound, RideStatus.WrongAddress].includes(r.status.value) ? 1 : 0);
       row.inHospital += ([RideStatus.InHospital].includes(r.status.value) ? 1 : 0);
       row.ridesCount += 1;
+
+      result.counter.rides += 1;
+      result.counter.pass += r.passengers();
+      result.counter.b2h += row.fromIsBorder ? 1 : 0;
+      result.counter.h2b += row.fromIsBorder ? 0 : 1;
     }
 
     // let h = await this.context.for(RideActivity).findFirst({//max(changed)
@@ -119,7 +125,7 @@ class usherParams {
 
     // this.historyChanged.value = rideMaxChanged > h.changed.value;
 
-    result.sort((r1, r2) => (r1.from + '-' + r1.to).localeCompare(r2.from + '-' + r2.to));
+    result.rides.sort((r1, r2) => (r1.from + '-' + r1.to).localeCompare(r2.from + '-' + r2.to));
 
     return result;
   }
@@ -133,7 +139,7 @@ class usherParams {
 export class UsherComponent implements OnInit {
 
   params = new usherParams(this.context);
-
+  counter = { lines: 0, rides: 0, pass: 0, b2h: 0, h2b: 0 };
   rides: ride4Usher[];
   clientLastRefreshDate: Date = addDays(TODAY, undefined, false);
 
@@ -152,7 +158,9 @@ export class UsherComponent implements OnInit {
     await this.saveUserDefaults();
     this.clientLastRefreshDate = addDays(TODAY, undefined, false);
     this.params.onChanged = async () => { };
-    this.rides = await this.params.retrieve();
+    let res = await this.params.retrieve();
+    this.rides = res.rides;
+    this.counter = res.counter;
     this.params.onChanged = async () => { await this.refresh(); };
   }
 
@@ -213,13 +221,14 @@ export class UsherComponent implements OnInit {
 
   async openShowRides(r: ride4Usher) {
   }
-
+ 
   async openSetDriver(r: ride4Usher) {
-    this.context.openDialog(SetDriverComponent, sr => sr.args = {
-      date: this.params.date.value,
-      from: r.fromId,
-      to: r.toId,
-    });
+    let changed = await this.context.openDialog(SetDriverComponent,
+      sr => sr.args = { date: this.params.date.value, from: r.fromId, to: r.toId },
+      sr => sr ? sr.args.changed : false);
+    if (changed) {
+      await this.refresh();
+    }
   }
 
   async history() {

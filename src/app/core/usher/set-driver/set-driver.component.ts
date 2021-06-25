@@ -23,8 +23,9 @@ class usherSerDriver {
   constructor(private context: Context) { }
 
   @ServerMethod()
-  async retrieve(): Promise<ride4UsherSetDriver[]> {
-    var result: ride4UsherSetDriver[] = [];
+  async retrieve(): Promise<{ rides: ride4UsherSetDriver[], counter: { rides: number, pass: number } }> {
+    var result: { rides: ride4UsherSetDriver[], counter: { rides: number, pass: number } } = { rides: [], counter: { rides: 0, pass: 0 } };
+
     var alwaysTrue = new Filter(x => { /* true */ });
 
     // drivers = dPrefs.push(d.prefId);//רק נהגים שמופיעים בנסיעות
@@ -52,7 +53,7 @@ class usherSerDriver {
         dName = d.name.value;
       }
 
-      let row = result.find(r => r.id === ride.id.value);
+      let row = result.rides.find(r => r.id === ride.id.value);
       if (!(row)) {
         row = {
           id: ride.id.value,
@@ -72,17 +73,19 @@ class usherSerDriver {
           freeSeats: seats,
           w4Accept: ride.status.value === RideStatus.w4_Accept,
           w4Arrived: ride.status.value === RideStatus.w4_Arrived,
-          w4End: false,
+          notActiveYet: false,
           w4Pickup: ride.status.value === RideStatus.w4_Pickup,
           w4Start: ride.status.value === RideStatus.w4_Start,
           dFeedback: feedback
         };
-        result.push(row);
+        result.rides.push(row);
+        result.counter.rides += 1;
+        result.counter.pass += ride.passengers();
       }
     }
 
     // sort-by: [visitTime, passengers, driver]
-    result.sort((r1, r2) => r1.visitTime.localeCompare(r2.visitTime) === 0
+    result.rides.sort((r1, r2) => r1.visitTime.localeCompare(r2.visitTime) === 0
       ? r1.passengers - r2.passengers === 0
         ? r1.driver.localeCompare(r2.driver)
         : r1.passengers - r2.passengers
@@ -150,10 +153,12 @@ export class SetDriverComponent implements OnInit {
   protected fromName: string;
   protected toName: string;
   protected rides: ride4UsherSetDriver[];
+  protected counter: { rides: number, pass: number };
   args: {
     date: Date,
     from: string,
     to: string,
+    changed?: boolean
   };
   constructor(protected context: Context, private dialog: DialogService, private dialogRef: MatDialogRef<any>) { }
 
@@ -171,7 +176,9 @@ export class SetDriverComponent implements OnInit {
   grid: GridSettings;
   async retrieve() {
 
-    this.rides = await this.params.retrieve();
+    let res = await this.params.retrieve();
+    this.rides = res.rides;
+    this.counter = res.counter;
     // var mem = new InMemoryDataProvider();
     // mem.rows["ride4UsherSetDriverEntity"] = this.rides;
     // this.grid =this.context.for(ride4UsherSetDriverEntity,mem).gridSettings({
@@ -193,17 +200,29 @@ export class SetDriverComponent implements OnInit {
   }
 
   async setDriver() {
-    let setStatusToApproved = await this.dialog.yesNoQuestion("Set status To approved-by-driver");
+    let count = 0;
+    for (const r of this.rides) {
+      if (r.notActiveYet) {
+        ++count;
+      }
+    }
+    let setStatusToApproved = false;
+    if (count !== this.rides.length) {
+      setStatusToApproved = await this.dialog.yesNoQuestion("Set status To approved-by-driver");
+    }
     for (const r of this.rides) {
       if (r.selected) {
         let ride = await this.context.for(Ride).findId(r.id);
         ride.pickupTime.value = this.selectedPickupTime;
         ride.did.value = this.did.value;
-        ride.status.value = RideStatus.w4_Accept;
-        if (setStatusToApproved) {
-          ride.status.value = RideStatus.w4_Start;
+        if (!r.notActiveYet) {
+          ride.status.value = RideStatus.w4_Accept;
+          if (setStatusToApproved) {
+            ride.status.value = RideStatus.w4_Start;
+          }
         }
         await ride.save();
+        this.args.changed = true;
         // update register-drivers that ride was taken.
         if (false) {
           for await (const rd of this.context.for(RegisterDriver).iterate({
@@ -232,11 +251,14 @@ export class SetDriverComponent implements OnInit {
         r.w4Start = ride.isWaitingForStart();
         r.w4Pickup = ride.isWaitingForPickup();
         r.w4Arrived = ride.isWaitingForArrived();
-        r.w4End = ride.isEnd();
+        r.notActiveYet = ride.isNotActiveYet();
         // r.w4Start = ride.isWaitingForStart();
       }
     }
     this.clearSelections();
+    if (this.args.changed) {
+      this.close();
+    }
   }
 
   selectionRowChanged(r: rideRow) {
@@ -290,7 +312,7 @@ export class SetDriverComponent implements OnInit {
       r.w4Start = ride.isWaitingForStart();
       r.w4Pickup = ride.isWaitingForPickup();
       r.w4Arrived = ride.isWaitingForArrived();
-      r.w4End = ride.isEnd();
+      r.notActiveYet = ride.isNotActiveYet();
     }
   }
 
@@ -305,7 +327,7 @@ export class SetDriverComponent implements OnInit {
       r.w4Start = ride.isWaitingForStart();
       r.w4Pickup = ride.isWaitingForPickup();
       r.w4Arrived = ride.isWaitingForArrived();
-      r.w4End = ride.isEnd();
+      r.notActiveYet = ride.isNotActiveYet();
     }
   }
 
@@ -320,7 +342,7 @@ export class SetDriverComponent implements OnInit {
       r.w4Start = ride.isWaitingForStart();
       r.w4Pickup = ride.isWaitingForPickup();
       r.w4Arrived = ride.isWaitingForArrived();
-      r.w4End = ride.isEnd();
+      r.notActiveYet = ride.isNotActiveYet();
     }
   }
 
@@ -335,7 +357,7 @@ export class SetDriverComponent implements OnInit {
       r.w4Start = ride.isWaitingForStart();
       r.w4Pickup = ride.isWaitingForPickup();
       r.w4Arrived = ride.isWaitingForArrived();
-      r.w4End = ride.isEnd();
+      r.notActiveYet = ride.isNotActiveYet();
 
       if (ride.isBackRide.value) {
 
@@ -368,7 +390,7 @@ export class SetDriverComponent implements OnInit {
       r.w4Start = ride.isWaitingForStart();
       r.w4Pickup = ride.isWaitingForPickup();
       r.w4Arrived = ride.isWaitingForArrived();
-      r.w4End = ride.isEnd();
+      r.notActiveYet = ride.isNotActiveYet();
       // remove from list
       let i = this.rides.indexOf(r);
       if (i >= 0) {

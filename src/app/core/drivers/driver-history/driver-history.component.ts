@@ -60,16 +60,7 @@ export class DriverHistoryComponent implements OnInit {
           equipment.push('');
         }
       }
-      let backSucceeded = true;
-      if(ride.isBackRide.value)
-      {
-        if(ride.hasBackId()){
-          let origin = await context.for(Ride).findId(ride.backId.value);
-          if(origin){
-            backSucceeded = [RideStatus.Succeeded].includes(origin.status.value);
-          }
-        } 
-      }
+      let backSucceeded = await ride.isBackSucceeded();
 
       let row = result.find(r => r.rId === ride.id.value);
       if (!(row)) {
@@ -112,9 +103,7 @@ export class DriverHistoryComponent implements OnInit {
 
     return result;
   }
-
-  f(){}
-
+  
   async setEndTime(r: ride4Driver) {
     let ride = await this.context.for(Ride).findId(r.rId);
     if (ride) {

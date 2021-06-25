@@ -60,10 +60,6 @@
                     <button *ngIf="(r.w4Arrived)" mat-menu-item (click)="arrived4Driver(r)">
                         <mat-icon>skip_next</mat-icon>Set Arrived For Driver
                     </button>
-                    <button *ngIf="(r.w4End)" mat-menu-item (click)="end4Driver(r)">
-                        <mat-icon>skip_next</mat-icon>Set End
-                        For Driver
-                    </button>
                     <button *ngIf="r.driverId && r.driverId.length > 0" mat-menu-item (click)="removeDriver(r)">
                         <mat-icon>person_remove_alt_1</mat-icon>Remove Driver
                     </button>
@@ -100,7 +96,7 @@
     <hr>
     <div style="display:flex;flex-direction: row;flex-grow: 1;justify-content: space-between;">
         <div style="display:flex;flex-direction: column;">
-            <span *ngIf="rides && rides.length > 0">Found: {{ rides.length }} Rides</span>
+            <span *ngIf="rides && rides.length > 0">: {{ counter? counter.rides : 0 }} rides,  {{ counter? counter.pass : 0 }} pass</span>
             <div *ngIf="selectedPassengers > 0">
                 <mat-label *ngIf="!(selectedPassengers <= driverSeats)"><span
                         style="color: red;">Selected Passengers: {{

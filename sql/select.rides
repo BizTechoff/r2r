@@ -1,1 +1,9 @@
-select * from rides order by date;
+select (select name from locations where id = r.id),
+		r.date,
+		r.visittime,
+		r.pickuptime,
+		r.needbackride,
+		r.isbackride,
+		r.backid,
+		(select name from drivers where id = r.did)
+from rides as r order by date, pickuptime;

@@ -11,9 +11,10 @@
         </div>
         <div style="flex-grow: 1;padding: 5px;">
             <data-control [column]="params.did"></data-control>
+            <data-control [column]="params.pid"></data-control>
         </div>
         <div style="flex-grow: 1;padding: 5px;">
-            <data-control [column]="params.pid"></data-control>
+            <data-control [column]="params.status"></data-control>
         </div>
         <div style="padding: 7px;justify-content: start;">
             <button mat-mini-fab color="primary" (click)="refresh()">
@@ -22,7 +23,7 @@
         </div>
     </div>
     <div class="grow-item">
-        <data-grid *ngIf="params.settings" [settings]="params.settings"></data-grid>
+        <data-grid *ngIf="settings" [settings]="settings"></data-grid>
     </div>
     <div class="footer"></div>
 </div>

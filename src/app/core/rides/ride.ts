@@ -347,20 +347,37 @@ export class Ride extends IdEntity {
         return this.status.value === RideStatus.w4_Arrived;
     }
 
+    isNotActiveYet() {
+        return this.status.value === RideStatus.NotActiveYet;
+    }
+    
     isEnd() {
         return this.status.value === RideStatus.Succeeded;
     }
 
+    async isBackSucceeded() {
+        let backSucceeded = true;
+      if(this.isBackRide.value)
+      {
+        if(this.hasBackId()){
+          let origin = await this.context.for(Ride).findId(this.backId.value);
+          if(origin){
+            backSucceeded = [RideStatus.Succeeded].includes(origin.status.value);
+          }
+        } 
+      }
+      return backSucceeded;
+    }
 
     isRideWaitForDriver() {
         let inRiding: RideStatus[] = [
-            RideStatus.w4_Accept,
-            RideStatus.w4_Driver,
-            RideStatus.w4_Start,
-            RideStatus.w4_Pickup,
-            RideStatus.w4_Arrived
+            RideStatus.NotActiveYet,
+            RideStatus.w4_Driver//,
+            // RideStatus.w4_Start,
+            // RideStatus.w4_Pickup,
+            // RideStatus.w4_Arrived
         ];
-        return this.isExsistDriver() && inRiding.includes(this.status.value);
+        return inRiding.includes(this.status.value);//this.isExsistDriver() && 
     }
     isRideWaitForUsher() {
         let inRiding: RideStatus[] = [
@@ -465,7 +482,7 @@ export class RideStatus {
                 await back.save();
                 r.backId.value = back.id.value;
                 back.isBackRide.value = false;
-                await r.save();
+                // await r.save();
             }
         }
     });
@@ -530,7 +547,7 @@ export class RideStatus {
             else {//origin
                 if(r.status.value !== RideStatus.Succeeded){
                 r.status.value = RideStatus.Succeeded;
-                await r.save();
+                // await r.save();
                 }
                 let back = await c.for(Ride).findId(r.backId.value);
                 if (back) {
@@ -555,10 +572,14 @@ export class RideStatus {
                 }
                 if(r.status.value !== RideStatus.w4_Driver){
                     r.status.value = RideStatus.w4_Driver;
+                    // await r.save();
                 }
             }
             else {//origin
-                r.status.value = RideStatus.Succeeded;
+                if(r.status.value !== RideStatus.Succeeded){
+                    r.status.value = RideStatus.Succeeded;
+                    // await r.save();
+                }
 
                 let back = await c.for(Ride).findId(r.backId.value);
                 if (back) {
@@ -574,7 +595,8 @@ export class RideStatus {
                     back.needBackRide.value = false;
                     await back.save();
                     r.backId.value = back.id.value;
-                    back.isBackRide.value = false;
+                    r.isBackRide.value = false;
+                    // await r.save();
 
                 }
             }
@@ -588,12 +610,12 @@ export class RideStatus {
                 if( r.status.value !== RideStatus.InHospital){
                 r.status.value = RideStatus.InHospital;
                 }
-                await r.save();
+                // await r.save();
             }
             else {//origin
                 if(r.status.value !== RideStatus.Succeeded){
                 r.status.value = RideStatus.Succeeded;
-                await r.save();
+                // await r.save();
                 }
                 let back = await c.for(Ride).findId(r.backId.value);
                 if (back) {
@@ -621,7 +643,8 @@ export class RideStatus {
             else {//origin
                 if(r.status.value!== RideStatus.Succeeded){
                 r.status.value = RideStatus.Succeeded;
-                await r.save();
+                // await r.save();
+                
                 }
                 let back = await c.for(Ride).findId(r.backId.value);
                 if (back) {
@@ -678,9 +701,9 @@ export class RideStatus {
     //     return false;
     // }
 
-    isEquals(status: string) {
-        return status === this.id;
-    }
+    // isEquals(status: string) {
+    //     return status === this.id;
+    // }
 
     static isDriverFeedback = [
         RideStatus.PatientNotFound,
@@ -747,11 +770,15 @@ export class RideStatus {
 
 //חולה ונהג יכולים להיות ריקים
 export class RideStatusColumn extends ValueListColumn<RideStatus>{
-    constructor(options?: ColumnSettings<RideStatus>) {
+    constructor(options?: ColumnSettings<RideStatus>, all = false) {
         super(RideStatus, {
-            defaultValue: RideStatus.w4_Driver,
+            defaultValue: { id: 'all'},
+            dataControlSettings: () => (all
+                ?{valueList: [{caption: 'all', id: 'all'}, ...this.getOptions()]}
+                :{valueList: this.getOptions()}),
             ...options
         });
+        this.getOptions()
     }
 }
 

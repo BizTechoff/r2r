@@ -68,16 +68,8 @@ export class DriverRidesComponent implements OnInit {
           equipment.push('');
         }
       }
-      let backSucceeded = true;
-      if(ride.isBackRide.value)
-      {
-        if(ride.hasBackId()){
-          let origin = await context.for(Ride).findId(ride.backId.value);
-          if(origin){
-            backSucceeded = [RideStatus.Succeeded].includes(ride.status.value);
-          }
-        }
-      }
+      let backSucceeded = await ride.isBackSucceeded();
+
       // console.log('---- ' + ride.passengers());
       let row = result.find(r => r.rId === ride.id.value);
       if (!(row)) {

@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-import { Context, DateColumn, EntityWhere, Filter, GridSettings, NumberColumn, ServerController, ServerMethod, StringColumn } from '@remult/core';
+import { Context, DateColumn, Filter, GridSettings, NumberColumn, ServerController, StringColumn } from '@remult/core';
 import { DriverIdColumn } from '../../core/drivers/driver';
 import { LocationIdColumn } from '../../core/locations/location';
 import { PatientIdColumn } from '../../core/patients/patient';
-import { Ride, RideStatus } from '../../core/rides/ride';
-import { TODAY } from '../../shared/types';
+import { Ride, RideStatus, RideStatusColumn } from '../../core/rides/ride';
+import { FILTER_IGNORE, TODAY } from '../../shared/types';
 import { addDays } from '../../shared/utils';
 import { Roles } from '../../users/roles';
 
@@ -15,45 +15,21 @@ export class driverRidesCountRow {
 
 @ServerController({ key: 'a/rep', allowed: Roles.admin })
 class reportParams {
-  fdate = new DateColumn({ caption: 'From Date', defaultValue: addDays(TODAY) });
+  fdate = new DateColumn({
+    caption: 'From Date', defaultValue: addDays(TODAY),
+    valueChange: () => {
+      if (this.fdate.value > this.tdate.value) {
+        this.tdate.value = this.fdate.value;
+      }
+    }
+  });
   tdate = new DateColumn({ caption: 'To Date', defaultValue: addDays(TODAY) });
-  fid = new LocationIdColumn(this.context,{ caption: 'From Location', dataControlSettings: () => ({ width: '300' }) });
-  tid = new LocationIdColumn(this.context,{ caption: 'To Location' });
+  fid = new LocationIdColumn(this.context, { caption: 'From Location', dataControlSettings: () => ({ width: '300' }) });
+  tid = new LocationIdColumn(this.context, { caption: 'To Location' });
   did = new DriverIdColumn({ caption: 'Driver' }, this.context);
   pid = new PatientIdColumn(this.context, { caption: 'Patient' });
-
-  where: EntityWhere<Ride> = cur => cur.date.isGreaterOrEqualTo(this.fdate)
-    .and(cur.date.isLessOrEqualTo(this.tdate))
-    .and(this.fid.value ? cur.fid.isEqualTo(this.fid) : new Filter(x => { /* true */ }))
-    .and(this.tid.value ? cur.tid.isEqualTo(this.tid) : new Filter(x => { /* true */ }))
-    .and(cur.status.isNotIn(...[RideStatus.Succeeded]));
-
-  settings: GridSettings = this.context.for(Ride).gridSettings({
-    get: { limit: 25 },
-    orderBy: (cur) => [{ column: cur.date, descending: true }, { column: cur.visitTime, descending: true }],
-    // get:  {where: this.where},
-    // where: this.where,
-    allowCRUD: false,
-    numOfColumnsInGrid: 30,
-  });
-
+  status = new RideStatusColumn({ caption: 'Status' }, true);
   constructor(private context: Context) { }
-
-  @ServerMethod()
-  async retrieve(): Promise<void> {
-    var alwaysTrue = new Filter(x => { /* true */ });
-
-    // this.settings = this.context.for(Ride).gridSettings({
-    //   where: cur => cur.date.isGreaterOrEqualTo(this.fdate)
-    //     .and(cur.date.isLessOrEqualTo(this.tdate))
-    //     .and(this.fid.value ? cur.fid.isEqualTo(this.fid) : alwaysTrue)
-    //     .and(this.tid.value ? cur.tid.isEqualTo(this.tid) : alwaysTrue)
-    //     .and(cur.status.isNotIn(...[RideStatus.succeeded])),
-    //   orderBy: cur => [{ column: cur.visitTime, descending: false }]
-    // });
-    this.settings.reloadData();
-  }
-
 }
 
 @Component({
@@ -64,18 +40,29 @@ class reportParams {
 export class GeneralReportComponent implements OnInit {
 
   params = new reportParams(this.context);
+  settings: GridSettings = this.context.for(Ride).gridSettings({
+    where: cur => cur.date.isGreaterOrEqualTo(this.params.fdate)
+      .and(cur.date.isLessOrEqualTo(this.params.tdate))
+      .and(this.params.fid.value ? cur.fid.isEqualTo(this.params.fid) : FILTER_IGNORE)
+      .and(this.params.tid.value ? cur.tid.isEqualTo(this.params.tid) : FILTER_IGNORE)
+      .and(!this.params.status.value || this.params.status.value.id === 'all' ? FILTER_IGNORE : cur.status.isIn(...[this.params.status])),
+    get: { limit: 25 },
+    orderBy: (cur) => [{ column: cur.date, descending: true }, { column: cur.visitTime, descending: true }],
+    allowCRUD: false,
+    allowInsert: false,
+    allowUpdate: false,
+    allowDelete: false,
+    numOfColumnsInGrid: 30
+  });
 
   constructor(private context: Context) { }
 
   async ngOnInit() {
-    // await this.refresh();
+    await this.refresh();
   }
 
   async refresh() {
-    if (this.params.settings) {
-      await this.params.retrieve();
-      // await this.params.settings.reloadData();
-    }
+    await this.settings.reloadData();
   }
 
 }

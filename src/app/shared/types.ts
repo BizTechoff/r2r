@@ -57,6 +57,21 @@ export class TimeColumn extends StringColumn {
   isEmpty() {
     return !this.value || this.value.length === 0 || this.value === TimeColumn.Empty;
   }
+}import { Directive, Input } from "@angular/core";
+@Directive({
+    selector:"[localVariables]",
+    exportAs:"localVariables"
+})
+export class LocalVariables {
+    @Input("localVariables") set localVariables( struct: any ) {
+        if ( typeof struct === "object" ) {
+            for( var variableName in struct ) {
+                this[variableName] = struct[variableName];
+            }
+        }
+    }
+    constructor( ) {
+    }
 }
 
 export interface driver4UsherSuggest {
@@ -199,6 +214,6 @@ export interface ride4UsherSetDriver {
   w4Start: boolean,
   w4Pickup: boolean,
   w4Arrived: boolean,
-  w4End: boolean,
+  notActiveYet: boolean,
   dFeedback?: string
 };
