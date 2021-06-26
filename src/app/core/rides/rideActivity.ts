@@ -80,17 +80,17 @@ export class RideActivity extends IdEntity {
           },
           cur.changedBy,
           cur.changed
-        ],
-        rowButtons: [
-          {
-            textInMenu: 'Edit Ride',
-            click: async (cur) => {
-              await context.openDialog(RideCrudComponent, dlg => dlg.args = {
-                rid: cur.rid.value,
-              });
-            }
-          }
-        ],
+        ]//,
+        // rowButtons: [
+        //   {
+        //     textInMenu: 'Edit Ride',
+        //     click: async (cur) => {
+        //       await context.openDialog(RideCrudComponent, dlg => dlg.args = {
+        //         rid: cur.rid.value,
+        //       });
+        //     }
+        //   }
+        // ],
       })
     });
   }

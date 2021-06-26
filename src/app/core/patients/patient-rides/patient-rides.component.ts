@@ -181,63 +181,6 @@ export class PatientRidesComponent implements OnInit {
             r.status.value = options.value;
             await r.save();
             await this.refresh();
-            // if (r.isBackRide.value) {
-            //   let origin = await this.context.for(Ride).findId(r.backId.value);
-            //   if (origin.status.value !== RideStatus.Succeeded) {
-            //     origin.status.value = RideStatus.Succeeded;
-            //     await origin.save();
-            //   }
-            // }
-            // else {
-            //   if (!r.hadBackRide()) {//todo: && !r.isSplitted.value) {
-            //     let back = await r.createBackRide();
-            //     r.backId.value = back.id.value;
-            //     await r.save();
-            //   }
-            //   if (r.status.value !== RideStatus.Succeeded) {
-            //     r.status.value = RideStatus.Succeeded;
-            //     await r.save();
-            //   }
-            // }
-            // // set back ride
-            // switch (options.value) {
-            //   case RideStatus.FinishedHospital: {
-            //     if (r.isBackRide.value) {
-            //       r.status.value = RideStatus.w4_Driver;
-            //       await r.save();
-            //     }
-            //     else {
-            //       let back = await this.context.for(Ride).findId(r.backId.value);
-            //       back.status.value = RideStatus.w4_Driver;
-            //       await back.save();
-            //     }
-            //     break;
-            //   }
-            //   case RideStatus.StayInHospital: {
-            //     if (r.isBackRide.value) {
-            //       r.status.value = RideStatus.InHospital;
-            //       r.date.value = addDays(+1, r.date.value);
-            //       await r.save();
-            //     }
-            //     else {
-            //       let back = await this.context.for(Ride).findId(r.backId.value);
-            //       back.status.value = RideStatus.InHospital;
-            //       back.date.value = addDays(+1, back.date.value);
-            //       await back.save();
-            //     }
-            //     break;
-            //   }
-            //   case RideStatus.GoneByHimself: {
-            //     if (r.isBackRide.value) {
-            //       await r.delete();
-            //     }
-            //     else {
-            //       let back = await this.context.for(Ride).findId(r.backId.value);
-            //       await back.delete();
-            //     }
-            //     break;
-            //   }
-            // }
           }
         }
       }

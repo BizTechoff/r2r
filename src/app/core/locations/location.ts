@@ -87,15 +87,21 @@ export class LocationIdColumn extends StringColumn {
   constructor(private context?: Context, options?: ColumnSettings<string>) {
     super({
       valueChange: async () => {
-        if (!this.selected){
+        console.log('LocationIdColumn.valueChange');
+        if (this.value && this.value.length > 0) {
           this.selected = await this.context.for(Location).findId(this.value);
         }
-        // console.log('LocationIdColumn.valueChange-' + this.value + ' (selected=' + this.selected ? 'Y1' : 'N1' + ')' + ' (selected.name=' + this.selected && this.selected.name ? 'Y2' : 'N2' + ')');
+        else {
+          this.selected = undefined;
+        }
       },
       dataControlSettings: () => ({
         getValue: () => {
-          this.selected = this.context.for(Location).lookup(this);
-          return this.selected.name.value;
+          return this.selected
+            ? this.selected.name.value
+            : this.context.for(Location).lookup(this).name.value;
+          // this.selected = this.context.for(Location).lookup(this);
+          // return this.selected.name.value;
         },
         hideDataOnInput: true,
         clickIcon: 'search',

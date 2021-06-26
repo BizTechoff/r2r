@@ -129,13 +129,16 @@ export class Ride extends IdEntity {
 
                     if (this.demo) {// this.isNew() <=> this.created && !this.modified
                         if (this.status.wasChanged()) {// after status changed
+
+                            
+
                             let oo = '';
                             let o = this.status.originalValue;
                             if(o){
                                 oo = o.id;
                             }
                             console.log(`Ride(${this.line()}, isBack=${this.isBackRide.value}).status.changed: ${oo} => ${this.status.value.id}`);
-                            await this.status.value.args.setState(this, this.context);
+                            let backStatus = await this.status.value.args.setState(this, this.context);
                         }
                     }
 
@@ -233,6 +236,7 @@ export class Ride extends IdEntity {
                 else if (r.did.wasChanged()) {
                     desc = !r.did.originalValue && r.did.value ? 'Driver Set' : r.did.originalValue && !r.did.value ? 'Driver Removed' : 'Driver Replaced';
                     remark = `${r.did.selected ? r.did.selected.name.value : ''}: ${r.did.originalValue} ==> ${r.did.value}`;
+                    remark = `${r.did.originalValue?r.did.originalValue:'_'} ==> ${r.did.selected ? r.did.selected.name.value : r.did.value?r.did.value:'_'}`;
                 }
                 else if (r.status.wasChanged()) {
                     desc = r.status.originalValue? r.status.originalValue.args.getNext().includes(r.status.value) ? 'Status Forward' : 'Status Not Forward': 'Status Initialized';
@@ -474,7 +478,10 @@ export class RideStatus {
     static w4_Driver = new RideStatus({
         getNext: () => [RideStatus.w4_Accept, RideStatus.w4_Start],
         setState: async r => {
-            if (r.isNew() && !r.hasBackId() && r.needBackRide.value && r.isBackRide.value === false) {
+            if(r.isBackRide.value){
+                // probably Finished-Hospital
+            }else{//origin
+            if (r.isNew() && !r.hasBackId() && r.needBackRide.value) {
                 let back = await r.createBackRide(false);
                 back.backId.value = r.id.value;
                 back.isBackRide.value = true;
@@ -484,6 +491,7 @@ export class RideStatus {
                 back.isBackRide.value = false;
                 // await r.save();
             }
+        }
         }
     });
     static w4_Accept = new RideStatus({
@@ -509,10 +517,11 @@ export class RideStatus {
         setState: async (r, c) => {
             ++RideStatus.counter;
             if(RideStatus.counter > 5){
+                console.log('RideStatus.counter > 5');
                 RideStatus.counter = 0;
                 return;
             }
-            if (!r.isBackRide.value) {//=origin
+            if (!r.isBackRide.value) {//=origin.back.status=InHospital
                 if (r.hasBackId()) {
                     let back = await c.for(Ride).findId(r.backId.value);
                     if (back) {
@@ -529,36 +538,7 @@ export class RideStatus {
     });//the king`s way
 
     static NotActiveYet = new RideStatus();//{ color: 'gray' });//back-ride created before the patient arrived to hospital
-    static InHospital = new RideStatus({
-        getNext: () => [RideStatus.w4_Driver],
-        // color: 'orange',
-        setState: async (r, c) => {
-            if (r.isBackRide.value) {
-                let origin = await c.for(Ride).findId(r.backId.value);
-                if (origin) {
-                    // console.log('before: ' + origin.status.value.id);
-                     if(origin.status.value !== RideStatus.Succeeded){
-                         origin.status.value = RideStatus.Succeeded;
-                        //  console.log('after: ' + origin.status.value.id);
-                         await origin.save();
-                    }
-                }
-            }
-            else {//origin
-                if(r.status.value !== RideStatus.Succeeded){
-                r.status.value = RideStatus.Succeeded;
-                // await r.save();
-                }
-                let back = await c.for(Ride).findId(r.backId.value);
-                if (back) {
-                    if(back.status.value !== RideStatus.InHospital){
-                    back.status.value = RideStatus.InHospital;
-                    await back.save();
-                    }
-                }
-            }
-        }
-    });//ride-status OR patient-status
+    static InHospital = new RideStatus();
     static FinishedHospital = new RideStatus({
         getNext: () => [RideStatus.w4_Driver],
         setState: async (r, c) => {
@@ -606,20 +586,24 @@ export class RideStatus {
         getNext: () => [RideStatus.w4_Driver],
         setState: async (r, c) => {
             if (r.isBackRide.value) {
-                r.date.value = addDays(+1, r.date.value);
-                if( r.status.value !== RideStatus.InHospital){
-                r.status.value = RideStatus.InHospital;
+                let origin = await c.for(Ride).findId(r.backId.value);
+                if (origin) {
+                    if(origin.status.value !== RideStatus.Succeeded){
+                    origin.status.value = RideStatus.Succeeded;
+                    await origin.save();
+                    }
                 }
+                r.date.value = addDays(+1, r.date.value);
+                r.status.value = RideStatus.InHospital;
                 // await r.save();
             }
             else {//origin
-                if(r.status.value !== RideStatus.Succeeded){
                 r.status.value = RideStatus.Succeeded;
                 // await r.save();
-                }
                 let back = await c.for(Ride).findId(r.backId.value);
                 if (back) {
                     if(back.status.value !== RideStatus.InHospital){
+                        back.date.value = addDays(+1, back.date.value);
                     back.status.value = RideStatus.InHospital;
                     await back.save();
                     }
@@ -641,11 +625,7 @@ export class RideStatus {
                 await r.delete();
             }
             else {//origin
-                if(r.status.value!== RideStatus.Succeeded){
                 r.status.value = RideStatus.Succeeded;
-                // await r.save();
-                
-                }
                 let back = await c.for(Ride).findId(r.backId.value);
                 if (back) {
                     await back.delete();
@@ -666,7 +646,7 @@ export class RideStatus {
         if (!this.args) {
             this.args = { setState: async () => {}, getNext: () => [RideStatus.w4_Driver] }
         }
-        
+
         // if (!this.args.getNext) {
         //     this.args.getNext = () => [RideStatus.w4_Driver];
         // }
@@ -778,7 +758,6 @@ export class RideStatusColumn extends ValueListColumn<RideStatus>{
                 :{valueList: this.getOptions()}),
             ...options
         });
-        this.getOptions()
     }
 }
 

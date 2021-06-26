@@ -68,8 +68,7 @@
                         <mat-icon>edit</mat-icon>
                         <label>Edit Ride</label>
                     </button>
-                    <button mat-menu-item *ngIf="!(r.driverId && r.driverId.length > 0) && r.passengers > 1"
-                        (click)="splitRide(r)">
+                    <button mat-menu-item *ngIf="(r.driverId && r.driverId.length > 0?false:true) && r.passengers > 1" (click)="splitRide(r)">
                         <mat-icon>splitscreen</mat-icon>
                         <label>Split Ride</label>
                     </button>
@@ -83,7 +82,8 @@
                 <!-- <mat-checkbox *ngIf="r.driver.length == 0" [(ngModel)]="r.selected" (change)="selectionRowChanged(r)"></mat-checkbox> -->
             </td>
             <td>{{ r.patient }}</td>
-            <td>{{ r.pickupTime && r.pickupTime.length > 0 && r.pickupTime !== '00:00' ? r.pickupTime : 'A.S.A.P' }}</td>
+            <td>{{ r.pickupTime && r.pickupTime.length > 0 && r.pickupTime !== '00:00' ? r.pickupTime : 'A.S.A.P' }}
+            </td>
             <td>{{ r.passengers }}</td>
             <!-- <td>{{ r.freeSeats && r.freeSeats > 0?r.freeSeats:' ' }}</td> -->
             <td>{{ r.status.id }}</td>
@@ -96,10 +96,11 @@
     <hr>
     <div style="display:flex;flex-direction: row;flex-grow: 1;justify-content: space-between;">
         <div style="display:flex;flex-direction: column;">
-            <span *ngIf="rides && rides.length > 0">: {{ counter? counter.rides : 0 }} rides,  {{ counter? counter.pass : 0 }} pass</span>
+            <span *ngIf="rides && rides.length > 0">: {{ counter? counter.rides : 0 }} rides, {{ counter? counter.pass :
+                0 }} pass</span>
             <div *ngIf="selectedPassengers > 0">
-                <mat-label *ngIf="!(selectedPassengers <= driverSeats)"><span
-                        style="color: red;">Selected Passengers: {{
+                <mat-label *ngIf="!(selectedPassengers <= driverSeats)"><span style="color: red;">Selected Passengers:
+                        {{
                         selectedPassengers }}</span></mat-label>
                 <mat-label *ngIf="selectedPassengers <= driverSeats"><span style="color: green;">Selected Passengers: {{
                         selectedPassengers }}</span></mat-label>

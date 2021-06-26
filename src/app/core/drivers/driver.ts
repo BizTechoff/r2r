@@ -67,7 +67,7 @@ export class Driver extends IdEntity {
             let changed = false;
             changed = changed || (this.name.value !== u.name.value);
             changed = changed || (this.mobile.value !== u.mobile.value);
-            if(changed){
+            if (changed) {
               u.name.value = this.name.value;
               u.mobile.value = this.mobile.value;
               await u.save();
@@ -148,10 +148,22 @@ export class DriverIdColumn extends StringColumn {
   selected: Driver = undefined;
   constructor(options?: ColumnSettings<string>, private context?: Context) {
     super({
+      valueChange: async () => {
+        console.log('DriverIdColumn.valueChange');
+        if (this.value && this.value.length > 0) {
+          this.selected = await this.context.for(Driver).findId(this.value);
+        }
+        else {
+          this.selected = undefined;
+        }
+      },
       dataControlSettings: () => ({
         getValue: () => {
-          this.selected = this.context.for(Driver).lookup(this);
-          return this.selected.name.value;
+          return this.selected
+            ? this.selected.name.value
+            : this.context.for(Driver).lookup(this).name.value;
+          // this.selected = this.context.for(Driver).lookup(this).name.value;
+          // return this.selected.name.value;
         },
         hideDataOnInput: true,
         clickIcon: 'search',
