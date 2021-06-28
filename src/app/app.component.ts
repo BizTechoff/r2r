@@ -107,7 +107,7 @@ export class AppComponent {
       }
     }
     if (result) {
-      console.log(result);
+      // console.log(result);
       return JwtSessionService.createTokenOnServer(result);
     }
     throw new Error("Invalid Sign In Info");

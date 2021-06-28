@@ -34,7 +34,7 @@ class usherSerDriver {
       where: cur => cur.date.isEqualTo(this.date)
         .and(this.fid.value ? cur.fid.isEqualTo(this.fid) : alwaysTrue)
         .and(this.tid.value ? cur.tid.isEqualTo(this.tid) : alwaysTrue)
-        .and(cur.status.isNotIn(...[RideStatus.Succeeded])),
+        .and(cur.status.isNotIn(...[RideStatus.Succeeded])),//...RideStatus.isNoUsherActionNeeded
       orderBy: cur => [{ column: cur.visitTime, descending: false }]
     })) {
       let from = (await this.context.for(Location).findId(ride.fid.value)).name.value;
@@ -115,28 +115,16 @@ export interface rideRow {
 export class SetDriverComponent implements OnInit {
 
   params = new usherSerDriver(this.context);
-
-  clearSelections() {
-    for (const row of this.rides) {
-      row.selected = false;
-    }
-    this.selectedPassengers = 0;
-  }
-
-  close() {
-    this.dialogRef.close();
-  }
-
   driverSeats: number = 0;
   //selectedVisitTime = "12:00";
-  selectedPickupTime = "00:00";
+  selectedPickupTime = TimeColumn.Empty;
   did = new DriverIdColumn({
     caption: "Select Driver To Set",
     dataControlSettings: () => ({
       click: async () => {
         let selected = await this.context.openDialog(SuggestDriverComponent,
           sd => sd.args = { date: this.params.date.value, fid: this.params.fid.value, tid: this.params.tid.value },
-          sd => sd.selected);
+          sd => sd ? sd.selected : undefined);
         if (selected && selected.did && selected.did.length > 0) {//if press back on browser will window was open.
           this.did.value = selected.did;
         }
@@ -169,7 +157,7 @@ export class SetDriverComponent implements OnInit {
 
     this.fromName = (await this.context.for(Location).findId(this.args.from)).name.value;
     this.toName = (await this.context.for(Location).findId(this.args.to)).name.value;
-    console.log(this.args);
+    // console.log(this.args);
     await this.retrieve();
   }
 
@@ -197,6 +185,17 @@ export class SetDriverComponent implements OnInit {
     //   ],
     // });
 
+  }
+
+  clearSelections() {
+    for (const row of this.rides) {
+      row.selected = false;
+    }
+    this.selectedPassengers = 0;
+  }
+
+  close() {
+    this.dialogRef.close();
   }
 
   async setDriver() {

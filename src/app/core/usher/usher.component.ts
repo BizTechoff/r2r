@@ -207,12 +207,12 @@ export class UsherComponent implements OnInit {
 
   async prevDay() {
     this.params.date.value = addDays(-1, this.params.date.value);
-    console.log(this.params.date.value);
+    // console.log(this.params.date.value);
   }
 
   async nextDay() {
     this.params.date.value = addDays(+1, this.params.date.value);
-    console.log(this.params.date.value);
+    // console.log(this.params.date.value);
   }
 
   async openBackRide(r: Ride): Promise<void> {

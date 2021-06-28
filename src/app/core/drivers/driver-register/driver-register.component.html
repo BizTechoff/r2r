@@ -85,6 +85,7 @@
                         <td>Free Seats: {{ r.dPass }}</td>
                         <td>You Be there: <strong>{{ r.dFromHour }} - {{ r.dToHour }}</strong></td>
                         <td *ngIf="r.dRemark && r.dRemark.length > 0">Remark: <u>{{ r.dRemark }}</u> </td>
+                        <td>Reason: {{ r.reason }}</td>
                         <button style="margin-top: 10px;" class="mat-raised-button"
                             (click)="unregister(r)">Unregister</button>
                     </div>

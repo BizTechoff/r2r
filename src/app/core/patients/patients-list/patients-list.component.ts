@@ -78,7 +78,7 @@ export class PatientsListComponent implements OnInit {
   }
 
   ngOnInit() {
-    console.log("ngOnInit");
+    // console.log("ngOnInit");
     this.retrievePatients();
   }
 

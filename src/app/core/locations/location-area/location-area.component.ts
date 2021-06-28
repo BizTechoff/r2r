@@ -77,7 +77,7 @@ export class LocationAreaComponent implements OnInit {
 
   filter() {
     for (const loc of this.borders) {
-      console.log('filterfilterfilter');
+      // console.log('filterfilterfilter');
       if (this.selected.value == LocationArea.all) {
         loc.ivisible = true;
       }

@@ -34,16 +34,18 @@
                         <td style="display:flex;flex-direction: row;justify-content: start;">
                             <button mat-flat-button style="color: blue;background-color: transparent;"
                                 (click)="openWaze(r.from)">
-                                <mat-icon>door_sliding</mat-icon>
-                                <u>{{ r.from + ' (' + (r.pickupTime)+ ')'}}</u>
+                                <mat-icon *ngIf="r.fromIsBorder">door_sliding</mat-icon>
+                                <mat-icon *ngIf="!r.fromIsBorder">place</mat-icon>
+                                <u>{{ r.from + ' (' + (r.pickupTime && r.pickupTime !== '00:00'? r.pickupTime : 'a.s.a.p' )+ ')'}}</u>
                             </button>
                             <h4>{{ ' > ' }}</h4>
                             <button mat-flat-button style="color: blue;background-color: transparent;"
                                 (click)="openWaze(r.to)">
-                                <mat-icon>place</mat-icon>
+                                <mat-icon *ngIf="!r.toIsBorder">place</mat-icon>
+                                <mat-icon *ngIf="r.toIsBorder">door_sliding</mat-icon>
                                 <u>{{ r.to }}</u>
                             </button>
-                        </td>
+                        </td> 
                         <td>
                             <a href="tel:{{r.pMobile}}">
                                 <button mat-flat-button style="color: blue;background-color: transparent;"

@@ -4,7 +4,7 @@ import { DialogService } from '../../../common/dialog';
 import { InputAreaComponent } from '../../../common/input-area/input-area.component';
 import { ride4Driver, TimeColumn } from '../../../shared/types';
 import { Roles } from '../../../users/roles';
-import { Location } from '../../locations/location';
+import { Location, LocationType } from '../../locations/location';
 import { Contact } from '../../patients/contact';
 import { Patient } from '../../patients/patient';
 import { PatientContactsComponent } from '../../patients/patient-contacts/patient-contacts.component';
@@ -41,8 +41,14 @@ export class DriverHistoryComponent implements OnInit {
       where: r => r.did.isEqualTo(driver.id)
         .and(r.status.isNotIn(...RideStatus.isDriverNeedToShowStatuses)),
     })) {
-      let from = (await context.for(Location).findId(ride.fid.value)).name.value;
-      let to = (await context.for(Location).findId(ride.tid.value)).name.value;
+      let f = (await context.for(Location).findId(ride.fid.value));
+      let from = f.name.value;
+      let isFromBorder = f.type.value === LocationType.border;
+      
+      let t = (await context.for(Location).findId(ride.tid.value));
+      let to = t.name.value;
+      let isToBorder = t.type.value === LocationType.border;
+      
       let age = ride.isHasPatient() ? (await context.for(Patient).findId(ride.pid.value)).age.value : undefined;
       let mobile = ride.isHasPatient() ? (await context.for(Patient).findId(ride.pid.value)).mobile.value : "";
       let contactsCount = await context.for(Contact).count(
@@ -59,7 +65,7 @@ export class DriverHistoryComponent implements OnInit {
         if (p.isHasWheelchair) {
           equipment.push('');
         }
-      }
+      } 
       let originSucceeded = await ride.isOriginSucceeded();
 
       let row = result.find(r => r.rId === ride.id.value);
@@ -92,11 +98,13 @@ export class DriverHistoryComponent implements OnInit {
           w4Arrived: ride.isWaitingForArrived(),
           w4End: ride.isEnd(),
           dRemark: ride.dRemark.value,
-          originSucceeded: originSucceeded
+          originSucceeded: originSucceeded,
+          fromIsBorder: isFromBorder,
+          toIsBorder: isToBorder
         };
         result.push(row);
       }
-    }
+    } 
 
     // console.log(result)
     result.sort((r1, r2) => +r1.date - +r2.date);

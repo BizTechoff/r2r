@@ -4,7 +4,7 @@ import { DialogService } from '../../../common/dialog';
 import { ride4Driver, TODAY } from '../../../shared/types';
 import { addDays } from '../../../shared/utils';
 import { Roles } from '../../../users/roles';
-import { Location } from '../../locations/location';
+import { Location, LocationType } from '../../locations/location';
 import { Contact } from '../../patients/contact';
 import { Patient } from '../../patients/patient';
 import { PatientContactsComponent } from '../../patients/patient-contacts/patient-contacts.component';
@@ -49,8 +49,14 @@ export class DriverRidesComponent implements OnInit {
         .and(r.date.isGreaterOrEqualTo(today))
         .and(r.status.isIn(...RideStatus.isDriverNeedToShowStatuses)),
     })) {
-      let from = (await context.for(Location).findId(ride.fid.value)).name.value;
-      let to = (await context.for(Location).findId(ride.tid.value)).name.value;
+      let f = (await context.for(Location).findId(ride.fid.value));
+      let from = f.name.value;
+      let isFromBorder = f.type.value === LocationType.border;
+      
+      let t = (await context.for(Location).findId(ride.tid.value));
+      let to = t.name.value;
+      let isToBorder = t.type.value === LocationType.border;
+       
       let age = ride.isHasPatient() ? (await context.for(Patient).findId(ride.pid.value)).age.value : undefined;
       let pMobile = ride.isHasPatient() ? (await context.for(Patient).findId(ride.pid.value)).mobile.value : "";
       let contactsCount = await context.for(Contact).count(
@@ -100,9 +106,11 @@ export class DriverRidesComponent implements OnInit {
           w4Arrived: ride.isWaitingForArrived(),
           w4End: ride.isEnd(),
           dRemark: ride.dRemark.value,
-          originSucceeded: originSucceeded
+          originSucceeded: originSucceeded,
+          fromIsBorder: isFromBorder,
+          toIsBorder: isToBorder
           // status: ride.status.value,
-        };  
+        };
         result.push(row);
       }
     }
@@ -120,7 +128,7 @@ export class DriverRidesComponent implements OnInit {
   async openWaze(address: string) {
     window.open(`waze://?q=${encodeURI(address)}&navigate=yes`);
     // window.open('waze://?ll=' + this.address.getGeocodeInformation().getlonglat() + "&q=" + encodeURI(this.address.value) + '&navigate=yes');
-    console.log(`open waze to: ${address}`)
+    // console.log(`open waze to: ${address}`)
     // this.context.openDialog(YesNoQuestionComponent);
   }
 
@@ -131,13 +139,23 @@ export class DriverRidesComponent implements OnInit {
     });
   }
 
-
-
   async accept(rideId: string) {
     let ride = await this.context.for(Ride).findId(rideId);
-    ride.status.value = RideStatus.w4_Start;
-    await ride.save();
-    await this.refresh();
+    if (ride) {
+      if (ride.status.value === RideStatus.w4_Accept) {
+        ride.status.value = RideStatus.w4_Start;
+        await ride.save();
+        await this.refresh();
+      }
+      else {
+        this.dialog.error('TX!! Other Driver Had Accepted This Ride');
+        await this.refresh();
+      }
+    }
+    else {
+      this.dialog.error('TX!! Ride Canceled');
+      await this.refresh();
+    }
   }
 
   async drive(r: ride4Driver) {
@@ -169,7 +187,7 @@ export class DriverRidesComponent implements OnInit {
       await this.refresh();
     }
   }
- 
+
   async arrived(r: ride4Driver) {
     let ride = await this.context.for(Ride).findId(r.rId);
     ride.status.value = RideStatus.Succeeded;
@@ -201,7 +219,7 @@ export class DriverRidesComponent implements OnInit {
     let openWaze = city && city.length > 0;
     let newRow = '\n';
     let message = `THANK YOU!` + newRow +
-      `F.Y.I: This Ride has removed to your History.` +  newRow +
+      `F.Y.I: This Ride has removed to your History.` + newRow +
       `There you can set the time you got back home,` + newRow +
       `and by that the system will calculate the TOTAL distances for your refund ! `;
     if (openWaze) {

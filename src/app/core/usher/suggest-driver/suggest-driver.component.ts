@@ -143,8 +143,8 @@ class usherSuggestDrivers {
           reason);
         // no free-seats, no relevent
         if (row.seats - itm.taken > 0) {
-          console.log('row.seats=' + row.seats);
-          console.log('itm.taken=' + itm.taken);
+          // console.log('row.seats=' + row.seats);
+          // console.log('itm.taken=' + itm.taken);
           row.freeSeats = row.seats - itm.taken;
           drivers.push(row);
         }
@@ -218,7 +218,7 @@ class usherSuggestDrivers {
                 dRow = await this.createDriverRow(
                   priority,
                   rd.did.value,
-                  reason +`(${rd.fh.value}-${rd.th.value})`);// `(anytime)`);
+                  reason + `(${rd.fh.value}-${rd.th.value})`);// `(anytime)`);
                 drivers.push(dRow);
               }
               dRow.freeSeats -= rd.seats.value;
@@ -314,6 +314,10 @@ class usherSuggestDrivers {
         .and(cur.date.isLessThan(this.date))//date checked before (more importent priority), no need to get again.
         .and(cur.date.isGreaterOrEqualTo(fiveDaysAgo))
     })) {
+      // if (r.did.value === '28664d64-eea2-4a91-8765-599d80be7660') {
+      //   console.log('YYYYYYYYYYYYYYYYYYYYYYYYYYYYYY');
+      //   continue;
+      // }
       if (!(lastFiveDaysDIds.includes(r.did.value))) {
         lastFiveDaysDIds.push(r.did.value);
       }
@@ -323,8 +327,10 @@ class usherSuggestDrivers {
     let dIds: string[] = [];
     for await (const r of this.context.for(Ride).iterate({
       where: cur => cur.did.isDifferentFrom('')
+        .and(cur.date.isLessThan(this.date))
         .and(cur.fid.isEqualTo(this.fid))
         .and(cur.tid.isEqualTo(this.tid))
+        .and(cur.did.isNotIn(...lastFiveDaysDIds))
     })) {
       if (!(lastFiveDaysDIds.includes(r.did.value))) {//not in last 5 days.
         if (!(dIds.includes(r.did.value))) {// keep distinct
@@ -332,6 +338,10 @@ class usherSuggestDrivers {
         }
       }
     }
+
+    // if(!(dIds.includes('28664d64-eea2-4a91-8765-599d80be7660'))){
+    //   dIds.push('28664d64-eea2-4a91-8765-599d80be7660');
+    // }
 
     for (const id of dIds) {
       let dRow: driver4UsherSuggest = await this.createDriverRow(
@@ -523,7 +533,7 @@ class usherSuggestDrivers {
     }
     if ((!(name)) || (name.length == 0)) {
       name = 'no-name';
-      console.log(`${did}-${name}`);
+      // console.log(`${did}-${name}`);
     }
     let seats = 0;
     if (d.hasSeats()) {

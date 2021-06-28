@@ -59,7 +59,7 @@ export function daysDiff(big?: Date, small?: Date) {
 }
 
 export function addHours(hours: number, time: string) {
-    console.log(time);
+    // console.log(time);
     let result = time;
     if (time && time.length > 0 && time.includes(':')) {
         let hour = time.split(':');
@@ -77,8 +77,8 @@ export function addHours(hours: number, time: string) {
 export function timeDiff(big?: string, small?: string, asDays = true) {
     //if(big && big.length &&)
     // big:11:33 
-    console.log(big);
-    console.log(small);
+    // console.log(big);
+    // console.log(small);
     // sml:11:09
     let t1parts = big.split(':');//[11,33]
     let t2parts = small.split(':');//[11,09]
@@ -88,7 +88,7 @@ export function timeDiff(big?: string, small?: string, asDays = true) {
     let diff = t1 - t2;//24 (min)
     let h = Math.floor(diff/60)//0
     let m =Math.abs( diff%60);//24
-    console.log(diff);
+    // console.log(diff);
     return ('' + h).padStart(2, '0') + ':' + ('' + m).padStart(2, '0');//00:24
 }
 

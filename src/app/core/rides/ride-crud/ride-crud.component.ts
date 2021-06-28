@@ -1,8 +1,9 @@
+import { formatDate } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
 import { BoolColumn, Context, DataAreaSettings } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
-import { TODAY } from '../../../shared/types';
+import { TimeColumn, TODAY } from '../../../shared/types';
 import { addDays } from '../../../shared/utils';
 import { Roles } from '../../../users/roles';
 import { LocationType } from '../../locations/location';
@@ -65,9 +66,10 @@ export class RideCrudComponent implements OnInit {
       return;
     }
 
-    let rOnly = this.r.isInDriving();
+    let rOnly = RideStatus.isRideReadOnly.includes(this.r.status.value);
     let hasBackRide = this.r.hadBackRide();
     this.dataArea = new DataAreaSettings({
+
       columnSettings: () => [
         {
           column: this.r.fid, readonly: rOnly || hasBackRide,
@@ -186,44 +188,54 @@ export class RideCrudComponent implements OnInit {
     return result;
   }
 
+  disabledSave() {
+    if (this.r && this.r.status) {
+      return RideStatus.isRideReadOnly.includes(this.r.status.value);
+    }
+    return false;
+  }
+
   async save(close = true): Promise<boolean> {
     let result = false;
-    if (await this.validate()) {// ok: async () => { if (ride.wasChanged()) { await ride.save(); changed = true; } }
-      if (this.p) {
-        if (this.r.pMobile.value !== this.p.mobile.value && this.r.pMobile.wasChanged()) {
-          let contact = await this.context.for(Contact).findOrCreate({
-            where: cur => cur.pid.isEqualTo(this.p.id)
-              .and(cur.mobile.isEqualTo(this.r.pMobile))
-          })
-          if (contact.isNew()) {
-            await contact.save();
+    if (!(this.disabledSave())) {
+      if (await this.validate()) {// ok: async () => { if (ride.wasChanged()) { await ride.save(); changed = true; } }
+        if (this.p) {
+          if (this.r.pMobile.value !== this.p.mobile.value && this.r.pMobile.wasChanged()) {
+            let contact = await this.context.for(Contact).findOrCreate({
+              where: cur => cur.pid.isEqualTo(this.p.id)
+                .and(cur.mobile.isEqualTo(this.r.pMobile))
+            })
+            if (contact.isNew()) {
+              await contact.save();
+            }
+          }
+          else {
+            if (this.p.birthDate.wasChanged()) {
+              await this.p.save();
+            }
           }
         }
-        else {
-          if (this.p.birthDate.wasChanged()) {
-            await this.p.save();
+        if (this.r) {
+          if (this.r.isNew()) {
+            this.r.needBackRide.value = this.createBackRide.value;
           }
+          await this.r.save();
+          result = true;
+          this.args.rid = this.r.id.value;
+          // if (this.createBackRide.value) {
+          //   if (!this.r.hadBackRide()) {
+          //     let back = await this.r.createBackRide();
+          //     this.r.backId.value = back.id.value;
+          //     await this.r.save();
+          //   }
+          // }
         }
-      }
-      if (this.r) {
-        if (this.r.isNew()) {
-          this.r.needBackRide.value = this.createBackRide.value;
+        if (close) {
+          this.select();
         }
-        await this.r.save();
-        result = true;
-        this.args.rid = this.r.id.value;
-        // if (this.createBackRide.value) {
-        //   if (!this.r.hadBackRide()) {
-        //     let back = await this.r.createBackRide();
-        //     this.r.backId.value = back.id.value;
-        //     await this.r.save();
-        //   }
-        // }
-      }
-      if (close) {
-        this.select();
       }
     }
+    else result = true;
     return result;
   }
 
@@ -253,14 +265,23 @@ export class RideCrudComponent implements OnInit {
       await this.dialog.error(this.r.date.defs.caption + ' ' + this.r.date.validationError);
       return false;
     }
+
+    let date = addDays();
+    let time = formatDate(addDays(TODAY, undefined, false), 'HH:mm', 'en-US');
     let isBorder = this.r.fid.selected && this.r.fid.selected.type.value === LocationType.border ? true : false;
     let isHospital = this.r.fid.selected && this.r.fid.selected.type.value === LocationType.hospital ? true : false;
     if (!isHospital) {
-      // console.log('----- @@@@@@ ------ this.r.isHasVisitTime()= ' + this.r.isHasVisitTime());
       if (!(this.r.isHasVisitTime())) {
         this.r.visitTime.validationError = 'Required';
         await this.dialog.error(this.r.visitTime.defs.caption + ' ' + this.r.visitTime.validationError);
         return false;
+      }
+      if (date.toLocaleDateString() === this.r.date.value.toLocaleDateString()) {
+        if (this.r.visitTime.value < time) {
+          this.r.visitTime.validationError = 'Should Be greater then Now';
+          await this.dialog.error(this.r.visitTime.defs.caption + ' ' + this.r.visitTime.validationError);
+          return false;
+        }
       }
     }
     else if (!isBorder) {
@@ -269,6 +290,13 @@ export class RideCrudComponent implements OnInit {
           this.r.pickupTime.validationError = 'Required';
           await this.dialog.error(this.r.pickupTime.defs.caption + ' ' + this.r.pickupTime.validationError);
           return false;
+        }
+        if (date.toLocaleDateString() === this.r.date.value.toLocaleDateString()) {
+          if (this.r.pickupTime.value < time) {
+            this.r.pickupTime.validationError = 'Should Be greater then Now';
+            await this.dialog.error(this.r.pickupTime.defs.caption + ' ' + this.r.pickupTime.validationError);
+            return false;
+          }
         }
       }
     }
@@ -312,6 +340,12 @@ export class RideCrudComponent implements OnInit {
       return false;
     }
     this.p.mobile.value = mobile;
+    // if(this.r.immediate.value){
+    //   if(this.r.isNew()){
+    //     this.r.date.value = addDays();
+    //     this.r.pickupTime.value = TimeColumn.Empty;
+    //   }
+    // }
 
     return true;
   }

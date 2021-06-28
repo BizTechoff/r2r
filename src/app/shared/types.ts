@@ -154,7 +154,9 @@ export interface ride4Driver {
   w4Arrived: boolean,
   w4End: boolean,
   dRemark: string,
-  originSucceeded: boolean
+  originSucceeded: boolean,
+  fromIsBorder: boolean,
+  toIsBorder: boolean
 };
  
 export interface ride4Usher {

@@ -86,6 +86,7 @@ export class Ride extends IdEntity {
                         this.pickupTime.value = addHours(-2, this.visitTime.value);
                     }
                     else if (!border && immediate) {//hospital
+                        this.date.value = addDays();
                         this.visitTime.value = TimeColumn.Empty;
                         this.pickupTime.value = TimeColumn.Empty;
                     }
@@ -130,16 +131,7 @@ export class Ride extends IdEntity {
 
                     if (this.demo) {// this.isNew() <=> this.created && !this.modified
                         if (this.status.wasChanged()) {// after status changed
-
-                            
-
-                            let oo = '';
-                            let o = this.status.originalValue;
-                            if(o){
-                                oo = o.id;
-                            }
-                            console.log(`Ride(${this.line()}, isBack=${this.isBackRide.value}).status.changed: ${oo} => ${this.status.value.id}`);
-                            let backStatus = await this.status.value.args.setState(this, this.context);
+                            await this.status.value.args.setState(this, this.context);
                         }
                     }
 
@@ -156,7 +148,7 @@ export class Ride extends IdEntity {
             },
             deleted: async () => {//trigger from db on date OR status changed
                 if (context.onServer) {
-                    console.log(`ride.deleted.trigger`);
+                    // console.log(`ride.deleted.trigger`);
                     await this.recordActivity(this, true);
 
                     if (this.isBackRide.value) {
@@ -372,7 +364,7 @@ export class Ride extends IdEntity {
         } 
       }
       else{
-        backSucceeded = [RideStatus.Succeeded].includes(this.status.value);
+        // backSucceeded = [RideStatus.Succeeded].includes(this.status.value);
       }
       return backSucceeded;
     }
@@ -710,6 +702,13 @@ export class RideStatus {
     static isInDriving = [
         RideStatus.w4_Pickup,
         RideStatus.w4_Arrived
+    ];
+
+    static isRideReadOnly = [
+        // RideStatus.w4_Start,
+        // RideStatus.w4_Pickup,
+        RideStatus.w4_Arrived,
+        RideStatus.Succeeded
     ];
 
     static isNoUsherActionNeeded = [

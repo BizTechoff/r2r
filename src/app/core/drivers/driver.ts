@@ -150,7 +150,7 @@ export class DriverIdColumn extends StringColumn {
   constructor(options?: ColumnSettings<string>, private context?: Context) {
     super({
       valueChange: async () => {
-        console.log('DriverIdColumn.valueChange');
+        // console.log('DriverIdColumn.valueChange');
         if (this.value && this.value.length > 0) {
           this.selected = await this.context.for(Driver).findId(this.value);
         }
@@ -226,7 +226,7 @@ export async function openDriverRides(did: string, context: Context): Promise<nu
       title: `${d.name.value} Rides`,
       settings: context.for(Ride).gridSettings({
         where: cur => cur.did.isEqualTo(d.id),
-        orderBy: cur => [{ column: cur.date, descending: false }],
+        orderBy: cur => [{ column: cur.date, descending: true }],
         allowCRUD: false,// context.isAllowed([Roles.admin, Roles.usher, Roles.matcher]),
         allowDelete: false,
         // showPagination: false,

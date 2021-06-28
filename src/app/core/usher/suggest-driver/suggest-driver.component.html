@@ -72,18 +72,18 @@
                 <td>{{ d.mobile }}</td>
                 <td>{{ d.home }}</td>
                 <td>
-                    <button *ngIf="d.lastRideDays !== -999999" mat-flat-button (click)="showDriverRides(d)"
+                    <button style="cursor: pointer;" *ngIf="d.lastRideDays !== -999999" mat-flat-button (click)="showDriverRides(d)"
                         title="Show Driver Rides">
                         <mat-icon>directions_bus_filled</mat-icon>
-                        <label style="color: blue;"><u>{{ d.lastRideDays === -999999 ? '' : d.lastRideDays === 0?
-                                'Today' : d.lastRideDays }}</u></label>
+                        <label style="color: blue; cursor: pointer;"><u>{{ d.lastRideDays === -999999 ? '' : d.lastRideDays === 0?
+                                'Today' : d.lastRideDays > 0? '+' + d.lastRideDays: d.lastRideDays }}</u></label>
                     </button>
                 </td>
                 <td>
-                    <button *ngIf="d.lastCallDays !== -999999" mat-flat-button (click)="openCallDocumentationDialog(d)"
+                    <button style="cursor: pointer;" *ngIf="d.lastCallDays !== -999999" mat-flat-button (click)="openCallDocumentationDialog(d)"
                         title="Show Call Documentation">
                         <mat-icon>tty</mat-icon>
-                        <label style="color: blue;">
+                        <label style="color: blue; cursor: pointer;">
                             <u>
                                 {{ d.lastCallDays === -999999 ? '' : d.lastCallDays === 0
                                 ? 'Today'

@@ -87,7 +87,7 @@ export class LocationIdColumn extends StringColumn {
   constructor(private context?: Context, options?: ColumnSettings<string>) {
     super({
       valueChange: async () => {
-        console.log('LocationIdColumn.valueChange');
+        // console.log('LocationIdColumn.valueChange');
         this.selected = await context.for(Location).findId(this.value);
       },
       dataControlSettings: () => ({

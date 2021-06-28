@@ -27,7 +27,7 @@
             <button mat-raised-button color="primary" (click)="openPatientContacts()">Patient Contacts</button>
             <button *ngIf="r&&!r.isInDriving()" mat-raised-button color="primary" (click)="swapLocations()">Swap
                 Locations</button>
-            <button mat-raised-button color="accent" (click)="save()">Save</button>
+            <button mat-raised-button color="accent" [disabled]="disabledSave()" (click)="save()">Save</button>
         </div>
     </div>
 </div>
