@@ -82,6 +82,13 @@ export class Users extends IdEntity {
             allowApiRead: context.isSignedIn(),
             allowApiUpdate: context.isSignedIn(),
             allowApiInsert: Roles.admin,
+            defaultOrderBy: () => [
+                { column: this.isAdmin, descending: true },
+                { column: this.isUsher, descending: true },
+                { column: this.isMatcher, descending: true },
+                { column: this.isDriver, descending: true },
+                { column: this.name, descending: false }
+              ],
 
             saving: async () => {
                 if (context.onServer) {

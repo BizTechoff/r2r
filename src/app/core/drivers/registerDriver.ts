@@ -30,6 +30,7 @@ export class RegisterDriver extends IdEntity {
             name: "driversRegisters",
             allowApiCRUD: [Roles.usher, Roles.admin, Roles.driver],// todo: Manager only
             allowApiRead: c => c.isSignedIn(),
+            defaultOrderBy: () => [this.date, { column: this.created, descending: true }],
             saving: async () => {
                 if (context.onServer) {
                     if (this.isNew()) {

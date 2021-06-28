@@ -73,7 +73,7 @@ class usherSerDriver {
           freeSeats: seats,
           w4Accept: ride.status.value === RideStatus.w4_Accept,
           w4Arrived: ride.status.value === RideStatus.w4_Arrived,
-          notActiveYet: false,
+          notActiveYet: ride.status.value === RideStatus.NotActiveYet,
           w4Pickup: ride.status.value === RideStatus.w4_Pickup,
           w4Start: ride.status.value === RideStatus.w4_Start,
           dFeedback: feedback
@@ -200,16 +200,7 @@ export class SetDriverComponent implements OnInit {
   }
 
   async setDriver() {
-    let count = 0;
-    for (const r of this.rides) {
-      if (r.notActiveYet) {
-        ++count;
-      }
-    }
-    let setStatusToApproved = false;
-    if (count !== this.rides.length) {
-      setStatusToApproved = await this.dialog.yesNoQuestion("Set status To approved-by-driver");
-    }
+    let setStatusToApproved = await this.dialog.yesNoQuestion("Set status To approved-by-driver");
     for (const r of this.rides) {
       if (r.selected) {
         let ride = await this.context.for(Ride).findId(r.id);
@@ -223,25 +214,6 @@ export class SetDriverComponent implements OnInit {
         }
         await ride.save();
         this.args.changed = true;
-        // update register-drivers that ride was taken.
-        if (false) {
-          for await (const rd of this.context.for(RegisterDriver).iterate({
-            where: cur => cur.did.isEqualTo(this.did)
-          })) {
-            if (rd.hasRideId()) {
-              if (rd.rid.value === ride.id.value) {
-                rd.done.value = true;
-                await rd.save();
-              }
-            }
-            else if (rd.hasRideRegisterId()) {
-              // let rr = await this.context.for(RegisterRide).findFirst(
-              //   cur => cur.did.isEqualTo(this.did)
-              //     .and(cur.rid.isEqualTo(ride.id)));
-            }
-          }
-        }
-
         let d = await this.context.for(Driver).findId(this.did.value);
         r.driver = d.name.value;
         r.driverId = this.did.value;
@@ -404,7 +376,9 @@ export class SetDriverComponent implements OnInit {
     if (setStatusToApproved) {
       let ride = await this.context.for(Ride).findId(r.rid);
       ride.did.value = '';
-      ride.status.value = RideStatus.w4_Driver;
+      if (!(r.notActiveYet)) {
+        ride.status.value = RideStatus.w4_Driver;
+      }
       await ride.save();
       r.driver = '';
       r.driverId = '';

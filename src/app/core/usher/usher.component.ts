@@ -65,7 +65,7 @@ class usherParams {
           .or(cur.tid.isIn(...areaIds.find(a => a.area === this.area.value).areaIds)) : FILTER_IGNORE)
         .and(this.hasFid() ? cur.fid.isEqualTo(this.fid) : FILTER_IGNORE)
         .and(this.hasTid() ? cur.tid.isEqualTo(this.tid) : FILTER_IGNORE),
-      orderBy: cur => [{ column: cur.created, descending: false }, { column: cur.fid, descending: false }]
+      orderBy: cur => cur.created
     })) {
 
       // if (rideMaxChanged < r.changed.value) {
@@ -98,12 +98,13 @@ class usherParams {
           inHospital: 0,
           passengers: 0,
           ridesCount: 0,
+          created: r.created.value,
           ids: [],
         };
         result.rides.push(row);
         result.counter.lines += 1;
       }
-
+ 
       row.inProgress += ([RideStatus.w4_Pickup, RideStatus.w4_Arrived].includes(r.status.value) ? 1 : 0);
       row.w4Accept += (r.status.value == RideStatus.w4_Accept ? 1 : 0);
       row.w4Driver += (r.isHasDriver() ? 0 : r.isRideWaitForDriver() ? 1 : 0);
@@ -125,7 +126,8 @@ class usherParams {
 
     // this.historyChanged.value = rideMaxChanged > h.changed.value;
 
-    result.rides.sort((r1, r2) => (r1.from + '-' + r1.to).localeCompare(r2.from + '-' + r2.to));
+    // result.rides.sort((r1, r2) => (r1.from + '-' + r1.to).localeCompare(r2.from + '-' + r2.to));
+    result.rides.sort((r1, r2) => (+r1.created - +r2.created));
 
     return result;
   }
@@ -221,7 +223,7 @@ export class UsherComponent implements OnInit {
 
   async openShowRides(r: ride4Usher) {
   }
- 
+
   async openSetDriver(r: ride4Usher) {
     let changed = await this.context.openDialog(SetDriverComponent,
       sr => sr.args = { date: this.params.date.value, from: r.fromId, to: r.toId },

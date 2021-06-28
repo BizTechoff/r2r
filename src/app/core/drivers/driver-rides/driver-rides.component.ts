@@ -68,7 +68,7 @@ export class DriverRidesComponent implements OnInit {
           equipment.push('');
         }
       }
-      let backSucceeded = await ride.isBackSucceeded();
+      let originSucceeded = await ride.isOriginSucceeded();
 
       // console.log('---- ' + ride.passengers());
       let row = result.find(r => r.rId === ride.id.value);
@@ -100,9 +100,9 @@ export class DriverRidesComponent implements OnInit {
           w4Arrived: ride.isWaitingForArrived(),
           w4End: ride.isEnd(),
           dRemark: ride.dRemark.value,
-          backSucceeded: backSucceeded
+          originSucceeded: originSucceeded
           // status: ride.status.value,
-        };
+        };  
         result.push(row);
       }
     }
@@ -199,11 +199,11 @@ export class DriverRidesComponent implements OnInit {
       city = driver.city.value;
     }
     let openWaze = city && city.length > 0;
- 
-    let message = `THANK YOU! 
-      F.Y.I: This Ride has removed to your History. 
-      There you can set the time you got back home, 
-      and by that the system will calculate the TOTAL distances for your refund ! `;
+    let newRow = '\n';
+    let message = `THANK YOU!` + newRow +
+      `F.Y.I: This Ride has removed to your History.` +  newRow +
+      `There you can set the time you got back home,` + newRow +
+      `and by that the system will calculate the TOTAL distances for your refund ! `;
     if (openWaze) {
       message = message + `Now waze will navigate you to: '${city}'`;
     }

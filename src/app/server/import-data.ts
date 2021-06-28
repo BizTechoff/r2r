@@ -335,7 +335,7 @@ async function importRidesAndToFiles(rewrite: boolean = false) {
         }
 
         let fileName = `${ridersFolder}/${r.RideNum}.json`;
-        if (rewrite || (!(fs.existsSync(fileName)))) {
+        if (rewrite || !fs.existsSync(fileName)) {
             fs.writeFileSync(fileName, JSON.stringify(r, undefined, 2));
             ++rWriteCounter;
         }

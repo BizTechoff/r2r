@@ -58,7 +58,7 @@ if (process.env.IMPORT_DATA && process.env.IMPORT_DATA === "true") {
     // importDataNew(database).then(()=>console.timeEnd("noam"));
     // exit(1000);
 }
-
+ 
 let port = process.env.PORT || 3000;
 app.listen(port);
 // console.timeEnd("noam")

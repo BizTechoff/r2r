@@ -70,6 +70,7 @@ export class Ride extends IdEntity {
             name: "rides",
             allowApiCRUD: [Roles.admin, Roles.usher, Roles.matcher],
             allowApiUpdate: [Roles.admin, Roles.usher, Roles.matcher, Roles.driver],
+            defaultOrderBy: () => [this.date, this.pickupTime],
             allowApiRead: c => c.isSignedIn(),
             validation: () => {//on-saving
                 // console.log(`ride.validation.trigger`);
@@ -119,10 +120,10 @@ export class Ride extends IdEntity {
                     }
                     if (this.isNew()) {
                         this.created.value = addDays(TODAY, undefined, false);
-                        this.createdBy.value = this.context.user.id;
+                        this.createdBy.value = this.context.user?this.context.user.id:undefined;
                     } else {
                         this.modified.value = addDays(TODAY, undefined, false);
-                        this.modifiedBy.value = this.context.user.id;
+                        this.modifiedBy.value = this.context.user?this.context.user.id:undefined;
                     }
 
                     ///////
@@ -359,7 +360,7 @@ export class Ride extends IdEntity {
         return this.status.value === RideStatus.Succeeded;
     }
 
-    async isBackSucceeded() {
+    async isOriginSucceeded() {
         let backSucceeded = true;
       if(this.isBackRide.value)
       {
@@ -369,6 +370,9 @@ export class Ride extends IdEntity {
             backSucceeded = [RideStatus.Succeeded].includes(origin.status.value);
           }
         } 
+      }
+      else{
+        backSucceeded = [RideStatus.Succeeded].includes(this.status.value);
       }
       return backSucceeded;
     }
@@ -459,10 +463,11 @@ export class Ride extends IdEntity {
         target.immediate.value = this.immediate.value;
         target.escortsCount.value = this.escortsCount.value;
         target.pMobile.value = this.pMobile.value;
-        target.status = this.status;
+        target.status.value = this.status.value;
         target.statusDate.value = this.statusDate.value;
         target.backId.value = this.backId.value;
         target.isSplitted.value = this.isSplitted.value;
+        target.isBackRide.value = this.isBackRide.value;
         target.isBackRide.value = this.isBackRide.value;
         target.importRideNum.value = this.importRideNum.value;
         target.dRemark.value = this.dRemark.value;
@@ -510,17 +515,17 @@ export class RideStatus {
         getNext: () => [RideStatus.Succeeded],
         setState: async () => {}
     });
-    static counter = 0;
+    // static counter = 0;
     // static w4_End = new RideStatus();
     static Succeeded = new RideStatus({
         getNext: () => [RideStatus.w4_Driver],
         setState: async (r, c) => {
-            ++RideStatus.counter;
-            if(RideStatus.counter > 5){
-                console.log('RideStatus.counter > 5');
-                RideStatus.counter = 0;
-                return;
-            }
+            // ++RideStatus.counter;
+            // if(RideStatus.counter > 5){
+            //     console.log('RideStatus.counter > 5');
+            //     RideStatus.counter = 0;
+            //     return;
+            // }
             if (!r.isBackRide.value) {//=origin.back.status=InHospital
                 if (r.hasBackId()) {
                     let back = await c.for(Ride).findId(r.backId.value);
@@ -550,10 +555,18 @@ export class RideStatus {
                     await origin.save();
                     }
                 }
-                if(r.status.value !== RideStatus.w4_Driver){
+                if(!r.isHasDriver())
+                {if(r.status.value !== RideStatus.w4_Driver){
                     r.status.value = RideStatus.w4_Driver;
                     // await r.save();
                 }
+            }
+            else{
+                if(r.status.value !== RideStatus.w4_Start){
+                r.status.value = RideStatus.w4_Start;
+                // await r.save();
+            }
+            }
             }
             else {//origin
                 if(r.status.value !== RideStatus.Succeeded){
@@ -583,7 +596,7 @@ export class RideStatus {
         }
     });
     static StayInHospital = new RideStatus({
-        getNext: () => [RideStatus.w4_Driver],
+        getNext: () => [RideStatus.w4_Driver, RideStatus.w4_Start],
         setState: async (r, c) => {
             if (r.isBackRide.value) {
                 let origin = await c.for(Ride).findId(r.backId.value);
@@ -707,7 +720,8 @@ export class RideStatus {
     ];
 
     static isDriverNotStarted = [
-        // RideStatus.waitingForHospital,
+        RideStatus.NotActiveYet,
+        RideStatus.InHospital,
         RideStatus.w4_Driver,
         RideStatus.w4_Accept
     ];
@@ -739,6 +753,8 @@ export class RideStatus {
     ];
 
     static isDriverNeedToShowStatuses = [
+        RideStatus.InHospital,
+        RideStatus.NotActiveYet,
         RideStatus.w4_Accept,
         RideStatus.w4_Driver,
         RideStatus.w4_Start,

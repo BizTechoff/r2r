@@ -23,6 +23,7 @@ export class DriverCall extends IdEntity {
         super({
             name: "driversCalls",
             allowApiCRUD: [Roles.admin, Roles.usher],
+            defaultOrderBy: () => [{ column: this.created, descending: true }],
             saving: async () => {
                 if (context.onServer) {
                     if (this.isNew()) {
@@ -37,7 +38,7 @@ export class DriverCall extends IdEntity {
         });
     }
 
-    static async openCallDocumentationDialog(context: Context, did: string, dname?: string) : Promise<number> {
+    static async openCallDocumentationDialog(context: Context, did: string, dname?: string): Promise<number> {
         let result = NOT_FOUND_DAYS;
         if (!(dname)) {
             dname = (await context.for(Driver).findId(did)).name.value;
@@ -67,10 +68,10 @@ export class DriverCall extends IdEntity {
             }),
         });
         let last = await context.for(DriverCall).findFirst({
-            where: cur=>cur.did.isEqualTo(did),
-            orderBy: cur => [{column: cur.created, descending: true}]
+            where: cur => cur.did.isEqualTo(did),
+            orderBy: cur => [{ column: cur.created, descending: true }]
         });
-        if(last){
+        if (last) {
             result = daysDiff(addDays(), resetTime(last.created.value));
         }
         return result;

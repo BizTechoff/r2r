@@ -154,7 +154,7 @@ export interface ride4Driver {
   w4Arrived: boolean,
   w4End: boolean,
   dRemark: string,
-  backSucceeded: boolean
+  originSucceeded: boolean
 };
  
 export interface ride4Usher {
@@ -174,7 +174,8 @@ export interface ride4Usher {
   w4Driver: number,
   w4Accept: number,
   inHospital: number,
-  ids?: string[],
+  created: Date,
+  ids?: string[]
 };
 
 export interface driver4Usher {

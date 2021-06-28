@@ -7,7 +7,7 @@ import { DriverIdColumn } from "./driver";
 export class DriverPrefs extends IdEntity {
 
     did = new DriverIdColumn({}, this.context);
-    lid = new LocationIdColumn(this.context,{ allowNull: true });
+    lid = new LocationIdColumn(this.context, { allowNull: true });
 
     constructor(private context: Context) {
         super({
@@ -15,6 +15,7 @@ export class DriverPrefs extends IdEntity {
             allowApiInsert: [Roles.driver, Roles.usher, Roles.admin],
             allowApiUpdate: [Roles.driver, Roles.usher, Roles.admin],
             allowApiDelete: false,
+            defaultOrderBy: () => [this.did, this.lid],
             allowApiRead: c => c.isSignedIn()
         });
     }

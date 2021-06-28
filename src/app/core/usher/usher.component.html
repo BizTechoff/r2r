@@ -53,7 +53,7 @@
                 <th><u>Line</u></th>
                 <!-- <th><u>Pass</u></th> -->
                 <!-- <th><u>Rides</u></th> -->
-                <th><u>w4-Driver</u></th>
+                <th><u>Need-Driver</u></th>
                 <th><u>Problem</u></th>
                 <th><u>In-Hospital</u></th>
                 <th><u>Registered</u></th>
@@ -65,14 +65,14 @@
                     <button title="Show Rides Details" (click)="openSetDriver(r)"
                         style="color: blue; border: none; background-color: transparent; cursor: pointer;">
                         <div style="display:flex;flex-direction: column;flex-grow: 1;justify-content: space-between;">
-                            <div style="text-decoration-line: underline;">
+                            <div style="text-decoration-line: underline; font-size: 1.35em;">
                                 <strong *ngIf="r.fromIsBorder"> {{ r.from }} </strong>
                                 <span *ngIf="!r.fromIsBorder"> {{ r.from }} </span>
                                 <span>{{ '>' }}</span>
                                 <strong *ngIf="r.toIsBorder"> {{ r.to }} </strong>
                                 <span *ngIf="!r.toIsBorder"> {{ r.to }} </span>
                             </div>
-                            <div style="font-size: 0.85em; display:flex; align-content: flex-start; opacity: 0.5;">
+                            <div style="display:flex; align-content: flex-start; opacity: 0.5;margin-left: 10px;">
                                 <span> {{ r.ridesCount + ' rides' }}</span>
                                 <span>{{ ', ' }}</span>
                                 <span> {{ r.passengers + ' pass' }}</span>

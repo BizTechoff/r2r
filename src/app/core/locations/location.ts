@@ -21,6 +21,7 @@ export class Location extends IdEntity {
       allowApiInsert: [Roles.admin, Roles.usher, Roles.matcher],
       allowApiUpdate: [Roles.admin],
       allowApiDelete: false,
+      defaultOrderBy: () => [this.type, this.name],
       allowApiRead: c => c.isSignedIn(),
 
       saving: async () => {
@@ -73,7 +74,7 @@ export class LocationType {
   static hospital = new LocationType();
   static border = new LocationType();
   constructor() { }
-  // id;
+  id:string;
 }
 export class LocationTypeColumn extends ValueListColumn<LocationType>{
   constructor(options: ColumnOptions) {
@@ -83,25 +84,16 @@ export class LocationTypeColumn extends ValueListColumn<LocationType>{
 
 export class LocationIdColumn extends StringColumn {
   selected: Location = undefined;
-  private types: LocationType[] = [LocationType.border, LocationType.hospital];
   constructor(private context?: Context, options?: ColumnSettings<string>) {
     super({
       valueChange: async () => {
         console.log('LocationIdColumn.valueChange');
-        if (this.value && this.value.length > 0) {
-          this.selected = await this.context.for(Location).findId(this.value);
-        }
-        else {
-          this.selected = undefined;
-        }
+        this.selected = await context.for(Location).findId(this.value);
       },
       dataControlSettings: () => ({
         getValue: () => {
-          return this.selected
-            ? this.selected.name.value
-            : this.context.for(Location).lookup(this).name.value;
-          // this.selected = this.context.for(Location).lookup(this);
-          // return this.selected.name.value;
+          this.selected = this.context.for(Location).lookup(this);
+          return this.selected.name.value;
         },
         hideDataOnInput: true,
         clickIcon: 'search',
@@ -117,6 +109,14 @@ export class LocationIdColumn extends StringColumn {
       }),
     }, options);
   };
+  private async setSelected(force = false) {
+    if (!(this.selected)) {
+      this.selected = this.context.for(Location).lookup(this);
+    }
+    else if (force) {
+      this.selected = this.context.for(Location).lookup(this);
+    }
+  }
   async area(): Promise<string[]> {
     let result: string[] = [];
     let loc = await this.context.for(Location).findId(this.value);

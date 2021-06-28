@@ -60,7 +60,7 @@ export class DriverHistoryComponent implements OnInit {
           equipment.push('');
         }
       }
-      let backSucceeded = await ride.isBackSucceeded();
+      let originSucceeded = await ride.isOriginSucceeded();
 
       let row = result.find(r => r.rId === ride.id.value);
       if (!(row)) {
@@ -92,7 +92,7 @@ export class DriverHistoryComponent implements OnInit {
           w4Arrived: ride.isWaitingForArrived(),
           w4End: ride.isEnd(),
           dRemark: ride.dRemark.value,
-          backSucceeded: backSucceeded
+          originSucceeded: originSucceeded
         };
         result.push(row);
       }

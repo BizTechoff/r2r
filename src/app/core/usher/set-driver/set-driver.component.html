@@ -7,12 +7,19 @@
     <div class="header">
         <div style="display:flex;flex-direction: row;flex-grow: 1;justify-content: space-between;">
             <h2>Rides: {{ fromName }} to {{ toName }}</h2>
-            <button mat-icon-button mat-dialog-close title="Close" style="justify-content: flex-end" (click)="close()">
-                <mat-icon>close</mat-icon>
-            </button>
-        </div>
 
-        <data-control [column]="this.did"></data-control>
+            <div style="justify-content: flex-end;">
+                <button mat-icon-button mat-dialog-close title="Close" (click)="close()">
+                    <mat-icon>close</mat-icon>
+                </button>
+            </div>
+        </div>
+        <div style="display:flex;flex-direction: row;flex-grow: 1">
+        <data-control style="flex-grow: 1;" [column]="this.did"></data-control>
+        <button mat-mini-fab (click)="retrieve()" color="primary" style="margin-left: 10px;">
+            <mat-icon>refresh</mat-icon>
+        </button>
+        </div>
         <div *ngIf="this.did.value && this.did.value.length > 0">
             <span style="color: green;">Seats: <strong>{{ driverSeats }}</strong></span>
             <!-- <span> {{this.driverId && this.driverId.selected && this.driverId.selected.name && this.driverId.selected.name.value? this.driverId.selected.name.value:'Selected Driver'}} Seats: <strong>{{ driverSeats }}</strong></span> -->
@@ -68,7 +75,8 @@
                         <mat-icon>edit</mat-icon>
                         <label>Edit Ride</label>
                     </button>
-                    <button mat-menu-item *ngIf="(r.driverId && r.driverId.length > 0?false:true) && r.passengers > 1" (click)="splitRide(r)">
+                    <button mat-menu-item *ngIf="(r.driverId && r.driverId.length > 0?false:true) && r.passengers > 1"
+                        (click)="splitRide(r)">
                         <mat-icon>splitscreen</mat-icon>
                         <label>Split Ride</label>
                     </button>

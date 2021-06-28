@@ -29,12 +29,13 @@ export class RideActivity extends IdEntity {
       allowApiUpdate: false,
       allowApiDelete: false,
       allowApiRead: [Roles.matcher, Roles.usher, Roles.admin],
+      defaultOrderBy: () => [{ column: this.changed, descending: true }],
 
       saving: async () => {
         if (context.onServer) {
           if (this.isNew()) {
             this.changed.value = addDays(TODAY, undefined, false);
-            this.changedBy.value = this.context.user.id;
+            this.changedBy.value = this.context.user ? this.context.user.id : undefined;
           }
         }
       },

@@ -8,7 +8,7 @@ import { LocationIdColumn } from "../../locations/location";
 @EntityClass
 export class RegisterRide extends IdEntity {
 
-    fid = new LocationIdColumn(this.context,{
+    fid = new LocationIdColumn(this.context, {
         caption: 'From Location',
         validate: async () => {
             if (!(this.fid.value)) {
@@ -24,7 +24,7 @@ export class RegisterRide extends IdEntity {
         //     }
         // },
     });
-    tid = new LocationIdColumn(this.context,{
+    tid = new LocationIdColumn(this.context, {
         // allowNull: true,
         // defaultValue: '',
         caption: 'To Location',
@@ -89,6 +89,7 @@ export class RegisterRide extends IdEntity {
             allowApiCRUD: [Roles.admin],
             allowApiUpdate: Roles.driver,
             allowApiRead: c => c.isSignedIn(),
+            defaultOrderBy: () => [this.fdate, this.tdate, this.pickupTime],
 
             saving: () => {
                 if (this.did.wasChanged()) {

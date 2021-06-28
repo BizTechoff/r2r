@@ -232,6 +232,53 @@ class driverRegister {//dataControlSettings: () => ({width: '150px'}),
                 : new Filter(f => { return true; })
         )
     })) {
+
+      if (!(this.fh.isEmpty && this.th.isEmpty())) {
+        if (this.fh.value > this.th.value) {
+          this.th.value = this.fh.value;
+        }
+        /*
+let isBorder = this.locAreas.find(cur => cur.id === rr.fid.value).isBorder;
+    let immediate = isBorder && rr.visitTime.isEmpty() || !isBorder && rr.pickupTime.isEmpty();
+    if (isBorder && immediate) {//border
+      when = `Pickup: A.S.A.P`;
+    }
+    else if (isBorder && !immediate) {//border
+      when = `Max Pickup: ` + addHours(PickupTimePrevHours, rr.visitTime.value);
+    }
+    else if (!isBorder && immediate) {//hospital
+      when = `Pickup: A.S.A.P (max ${MaxPickupHospital})`;
+    }
+    else if (!isBorder && !immediate) {//hospital
+      when = `Pickup About: ${rr.pickupTime.value} (max ${MaxPickupHospital})`;
+    }
+
+
+          else if (isBorder && !immediate) {//border
+            when = `Max Pickup: ` + r.pickupTime.value;
+          }         fh<=11:00
+          else if (!isBorder && !immediate) {//hospital
+            when = `Pickup About: ${r.pickupTime.value} (max ${MaxPickupHospital})`;
+          }         fh-2<=11:00<=MaxPickupHospital
+          }
+        */
+        if (!r.pickupTime.isEmpty()) {//!immediate
+          let isBorder = this.locAreas.find(cur => cur.id === r.fid.value).isBorder;
+          if (isBorder) {
+            if (!(this.fh.value <= r.pickupTime.value)) {
+              //if (r.pickupTime.value < this.th.value) {
+              continue;
+            }
+          }
+          else{
+            if (!(this.fh.value <= r.pickupTime.value && r.pickupTime.value <= this.th.value)) {
+              //if (r.pickupTime.value < this.th.value) {
+              continue;
+            }
+          }
+        }
+      }
+
       let specified = (this.fid.value && this.fid.value.length > 0) || (this.tid.value && this.tid.value.length > 0);
 
       let match = false;
@@ -611,9 +658,13 @@ export class DriverRegisterComponent implements OnInit {
   }
 
   async register(r: ride4DriverRideRegister) {
-    if(this.params.fh.isEmpty() && this.params.th.isEmpty())
-    {
+    if (this.params.fh.isEmpty() || this.params.th.isEmpty()) {
       await this.dialog.error('Please enter the hours you can pickup, TX!');
+      this.params.fh.validationError = ' ';
+      return;
+    }
+    else if (this.params.fh.value > this.params.th.value) {
+      await this.dialog.error(`'From' can not be more then 'To', TX!`);
       this.params.fh.validationError = ' ';
       return;
     }

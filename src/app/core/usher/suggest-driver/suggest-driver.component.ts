@@ -61,7 +61,7 @@ class usherSuggestDrivers {
     this.locAreas = [];// {border->{border.area.lids}}, {hospital->hospital}
     for await (const loc of this.context.for(Location).iterate({
     })) {
-      let f = areasBorders.find(cur => cur.area === loc.area.value && loc.type === LocationType.border);
+      let f = areasBorders.find(cur => cur.area === loc.area.value && loc.type.value === LocationType.border);
       let row = {
         border: loc.id.value,
         name: loc.name.value,
@@ -183,7 +183,7 @@ class usherSuggestDrivers {
                 dRow = await this.createDriverRow(
                   priority,
                   rd.did.value,
-                  reason + `(anytime)`);
+                  reason + `(${rd.fh.value}-${rd.th.value})`);
                 drivers.push(dRow);
               }
               dRow.freeSeats -= r.passengers();
@@ -218,7 +218,7 @@ class usherSuggestDrivers {
                 dRow = await this.createDriverRow(
                   priority,
                   rd.did.value,
-                  reason + `(anytime)`);
+                  reason +`(${rd.fh.value}-${rd.th.value})`);// `(anytime)`);
                 drivers.push(dRow);
               }
               dRow.freeSeats -= rd.seats.value;
