@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Context, ServerFunction } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
 import { ride4Driver, TODAY } from '../../../shared/types';
-import { addDays } from '../../../shared/utils';
+import { addDays, fixDate, resetTime } from '../../../shared/utils';
 import { Roles } from '../../../users/roles';
 import { Location, LocationType } from '../../locations/location';
 import { Contact } from '../../patients/contact';
@@ -42,12 +42,11 @@ export class DriverRidesComponent implements OnInit {
     if (!(driver)) {
       throw 'Error - You are not register to use app';
     }
-
-    let today = addDays(TODAY);
+    let today = addDays();
     for await (const ride of context.for(Ride).iterate({
-      where: r => r.did.isEqualTo(driver.id)
-        .and(r.date.isGreaterOrEqualTo(today))
-        .and(r.status.isIn(...RideStatus.isDriverNeedToShowStatuses)),
+      where: cur => cur.did.isEqualTo(driver.id)
+        .and(cur.date.isGreaterOrEqualTo(today))
+        .and(cur.status.isIn(...RideStatus.isDriverNeedToShowStatuses)),
     })) {
       let f = (await context.for(Location).findId(ride.fid.value));
       let from = f.name.value;
@@ -75,8 +74,6 @@ export class DriverRidesComponent implements OnInit {
         }
       }
       let originSucceeded = await ride.isOriginSucceeded();
-
-      // console.log('---- ' + ride.passengers());
       let row = result.find(r => r.rId === ride.id.value);
       if (!(row)) {
         row = {
@@ -115,7 +112,6 @@ export class DriverRidesComponent implements OnInit {
       }
     }
 
-    // console.log(result)
     result.sort((r1, r2) => +r1.date - +r2.date);
 
     return result;

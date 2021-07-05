@@ -59,7 +59,7 @@ export class LocationArea {
       return LocationArea.Center_Mercaz;
     }
   }
-  id;//: string;
+  id: string;
 }
 export class LocationAreaColumn extends ValueListColumn<LocationArea>{
   constructor(options?: ColumnSettings<LocationArea>) {
@@ -74,11 +74,14 @@ export class LocationType {
   static hospital = new LocationType();
   static border = new LocationType();
   constructor() { }
-  id:string;
+  id: string;
 }
 export class LocationTypeColumn extends ValueListColumn<LocationType>{
   constructor(options: ColumnOptions) {
     super(LocationType, options);
+  }
+  isBorder() {
+    return this.value === LocationType.border;
   }
 }
 
@@ -87,7 +90,6 @@ export class LocationIdColumn extends StringColumn {
   constructor(private context?: Context, options?: ColumnSettings<string>) {
     super({
       valueChange: async () => {
-        // console.log('LocationIdColumn.valueChange');
         this.selected = await context.for(Location).findId(this.value);
       },
       dataControlSettings: () => ({
@@ -109,54 +111,4 @@ export class LocationIdColumn extends StringColumn {
       }),
     }, options);
   };
-  private async setSelected(force = false) {
-    if (!(this.selected)) {
-      this.selected = this.context.for(Location).lookup(this);
-    }
-    else if (force) {
-      this.selected = this.context.for(Location).lookup(this);
-    }
-  }
-  async area(): Promise<string[]> {
-    let result: string[] = [];
-    let loc = await this.context.for(Location).findId(this.value);
-    if (loc.type.value === LocationType.border) {
-      for await (const l of this.context.for(Location).iterate({
-        where: cur => cur.area.isEqualTo(loc.area)
-      })) {
-        result.push(l.id.value);
-      }
-    }
-    return result;
-  }
-  hasSelected() {
-    return this.selected && this.selected.id && this.selected.id.value && this.selected.id.value.length > 0;
-  }
-}
-export class BorderAreaIdColumn extends StringColumn {
-
-  constructor(options?: ColumnSettings<string>, private context?: Context) {
-    super({
-      validate: () => {
-        if (this.defs.allowNull) { }
-        else if (this.value && this.value.length > 0) { }
-        else {
-          this.validationError = " No Location Seleceted";
-        }
-      },
-      dataControlSettings: () => ({
-        getValue: () => this.context.for(Location).lookup(this).name.value,
-        hideDataOnInput: true,
-        clickIcon: 'search',
-        width: "150px",
-        click: () => {
-          this.context.openDialog(DynamicServerSideSearchDialogComponent,
-            x => x.args(Location, {
-              onSelect: l => this.value = l.id.value,
-              searchColumn: l => l.name,
-            }));
-        }
-      }),
-    }, options);
-  }
 }

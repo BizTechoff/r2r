@@ -46,7 +46,8 @@ export class PatientCrudComponent implements OnInit {
         [this.p.name],// this.patient.hebName],
         [this.p.mobile, this.p.idNumber],
         [{ column: this.p.birthDate }, { column: this.p.age, readOnly: true, width: '25' }],
-        [this.p.defaultBorder, this.p.defaultHospital],
+        this.p.defaultBorder, 
+        this.p.defaultHospital,
         [this.p.isHasBabyChair, this.p.isHasWheelchair],
         this.p.remark
       ],

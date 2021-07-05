@@ -34,17 +34,39 @@ export class PromiseThrottle {
     }
 }
 
-export function addDays(days: number = TODAY, date?: Date, setTimeToZero: boolean = true) {
-    var result = date ? date : new Date();
-    if (setTimeToZero) {
-        result = new Date(result.getFullYear(), result.getMonth(), result.getDate());
+export function fixDate(d:Date) {
+    let cur = new Date();
+    let of = cur.getTimezoneOffset();
+    d.setTime(d.getTime() - of * 60 * 1000);
+}
+ 
+export function addDays(days: number = 0, date: Date = undefined, setTimeToZero: boolean = true) {
+    var result = date;
+    if (!(result)) {
+        // console.log('!(result)');
+        let d = new Date();
+        let of = d.getTimezoneOffset();
+        let nd = new Date(d.getTime() - of * 60 * 1000);
+        result = nd; 
+        // console.log(result);
     }
-    result.setDate(result.getDate() + days);
+    if (setTimeToZero) {
+        // console.log('setTimeToZero');
+        result = resetTime(result);
+        // console.log(result);
+    }
+    if (days !== 0) {
+        // console.log('days = ' + days);
+        result.setDate(result.getDate() + days);
+        // console.log(result);
+    }
+    // console.log(result);
     return result;
 }
 
-export function resetTime(d: Date) {
-    let result = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+export function resetTime(date: Date) {
+    let time = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0);
+    let result = new Date(time);
     return result;
 }
 
@@ -82,12 +104,12 @@ export function timeDiff(big?: string, small?: string, asDays = true) {
     // sml:11:09
     let t1parts = big.split(':');//[11,33]
     let t2parts = small.split(':');//[11,09]
-    
+
     let t1 = parseInt(t1parts[0]) * 60 + parseInt(t1parts[1]);//11*60+33 (min)
     let t2 = parseInt(t2parts[0]) * 60 + parseInt(t2parts[1]);//11*60+09 (min)
     let diff = t1 - t2;//24 (min)
-    let h = Math.floor(diff/60)//0
-    let m =Math.abs( diff%60);//24
+    let h = Math.floor(diff / 60)//0
+    let m = Math.abs(diff % 60);//24
     // console.log(diff);
     return ('' + h).padStart(2, '0') + ':' + ('' + m).padStart(2, '0');//00:24
 }

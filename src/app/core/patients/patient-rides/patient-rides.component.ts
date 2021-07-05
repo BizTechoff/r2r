@@ -9,6 +9,7 @@ import { Roles } from '../../../users/roles';
 import { Ride, RideStatus, RideStatusColumn } from '../../rides/ride';
 import { RideCrudComponent } from '../../rides/ride-crud/ride-crud.component';
 import { SendSmsComponent } from '../../services/send-sms/send-sms.component';
+import { SendWappComponent } from '../../services/send-wapp/send-wapp.component';
 import { Patient } from '../patient';
 import { PatientContactsComponent } from '../patient-contacts/patient-contacts.component';
 import { PatientCrudComponent } from '../patient-crud/patient-crud.component';
@@ -60,7 +61,7 @@ export class PatientRidesComponent implements OnInit {
         icon: 'comment',
         click: async (cur) => { await this.driverFeedback(cur); },
         visible: (cur) => { return RideStatus.isDriverFeedback.includes(cur.status.value); }
-      }, 
+      },
       {
         textInMenu: 'Approve',
         icon: 'how_to_reg',
@@ -112,14 +113,34 @@ export class PatientRidesComponent implements OnInit {
 
 
   async sendMessage(r: Ride) {
-    let message = 'תואמה לך נסיעה מחר ממחסום, בית חולים שעה וכו...';
+    let message = `תואמה לך נסיעה בתאריך`;
+    message += '\n';
+    message += ` ${r.date.value.toLocaleDateString("he-il")} `;
+    message += '\n';
+    message += r.fid.selected.type.isBorder() ? `ממחסום` : `מבית חולים`;
+    message += ` ${r.fid.selected.name.value} `;
+    message += '\n';
+    message += r.fid.selected.type.isBorder() ? `לבית חולים` : `למחסום`;
+    message += ` ${r.tid.selected.name.value} `;
+    message += '\n';
+    message += `איסוף מ ${r.tid.selected.name.value} בשעה`;
+    message += '\n';
+    message += ` ${r.pickupTime.value} `;
+    message += '\n';
+    message += `פרטים נוספים`;
+    message += '\n';
+    message += ` ${`https://bit.ly/r2r-my-rides`} `;
+    //message += ` ${`https://roadtorecovery-app.herokuapp.com/d/rides`} `;
     //message = 'Hi ..'
     console.log(`Send message to patient: ${message}`);
-
-    await this.context.openDialog(SendSmsComponent, sms => sms.args = {
-      mobile: '0526526063',
+    await this.context.openDialog(SendWappComponent, sms => sms.args = {
+      mobile: r.pMobile.value,
       message: message
     });
+    // await this.context.openDialog(SendSmsComponent, sms => sms.args = {
+    //   mobile: '0526526063',
+    //   message: message
+    // });
   }
 
   async deleteRide(r: Ride) {
@@ -167,14 +188,14 @@ export class PatientRidesComponent implements OnInit {
       ok: async () => {
         if (options.value && options.value.id) {
           let message = ``;
-          if(options.value === RideStatus.FinishedHospital){
-            message += `Whould the Patient need back-ride?`;
+          if (options.value === RideStatus.FinishedHospital) {
+            message += `This will activate the Patient-back-ride, Ok?`;
           }
-          else if(options.value === RideStatus.StayInHospital){
-            message += `Whould You like to move the ride for tommorrow?`;
+          else if (options.value === RideStatus.StayInHospital) {
+            message += `This will move the ride for tommorrow, Ok?`;
           }
-          else if(options.value === RideStatus.GoneByHimself){
-            message += `Whould You like to delete the back-ride?`;
+          else if (options.value === RideStatus.GoneByHimself) {
+            message += `This will delete the back-ride, Ok?`;
           }
           let yes = await this.dialog.yesNoQuestion(`${message}`);
           if (yes) {

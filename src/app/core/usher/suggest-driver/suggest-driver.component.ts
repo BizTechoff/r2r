@@ -35,6 +35,9 @@ class usherSuggestDrivers {
     let bAreaAll: { lid: string }[] = [];
     // prepare area & locIds
     let areasBorders: { area: LocationArea, lids: string[] }[] = [];
+    
+    console.time('0');
+
     for await (const loc of this.context.for(Location).iterate({})) {
       if (loc.id.value === this.fid.value) {
         this.from.value = loc.name.value;
@@ -80,19 +83,19 @@ class usherSuggestDrivers {
         }
       }
     }
-
+    
     this.distinct(drivers,
       (await this.driversWithSameLineToday(++priority, 'has same ride - at current date')));
-
+    
     this.distinct(drivers,
       (await this.driversRegisteredSameLineToday(++priority, 'register to line - at current date')));
-
+    
     this.distinct(drivers,
       (await this.driversRegisteredSameAreaToday(++priority, 'register to area - at current date')));
-
+    
     this.distinct(drivers,
       (await this.driversMadeRideWithSameLineButNoRideForLast5days(++priority, 'done same line - no ride last 5 days')));
-
+    
     this.distinct(drivers,
       (await this.driversMadeRideWithSameAreaButNoRideForLast5days(++priority, 'done same area - no ride last 5 days')));
 
@@ -314,10 +317,6 @@ class usherSuggestDrivers {
         .and(cur.date.isLessThan(this.date))//date checked before (more importent priority), no need to get again.
         .and(cur.date.isGreaterOrEqualTo(fiveDaysAgo))
     })) {
-      // if (r.did.value === '28664d64-eea2-4a91-8765-599d80be7660') {
-      //   console.log('YYYYYYYYYYYYYYYYYYYYYYYYYYYYYY');
-      //   continue;
-      // }
       if (!(lastFiveDaysDIds.includes(r.did.value))) {
         lastFiveDaysDIds.push(r.did.value);
       }
@@ -338,11 +337,7 @@ class usherSuggestDrivers {
         }
       }
     }
-
-    // if(!(dIds.includes('28664d64-eea2-4a91-8765-599d80be7660'))){
-    //   dIds.push('28664d64-eea2-4a91-8765-599d80be7660');
-    // }
-
+    
     for (const id of dIds) {
       let dRow: driver4UsherSuggest = await this.createDriverRow(
         priority,
@@ -373,7 +368,8 @@ class usherSuggestDrivers {
     for await (const r of this.context.for(Ride).iterate({
       where: cur => cur.did.isDifferentFrom('')
         .and((cur.fid.isIn(...(this.locAreas.find(ar => ar.border === this.fid.value).areaBorders)))
-          .or(cur.tid.isIn(...(this.locAreas.find(ar => ar.border === this.tid.value).areaBorders))))// from OR to
+          .or(cur.tid.isIn(...(this.locAreas.find(ar => ar.border === this.tid.value).areaBorders))))
+        .and(cur.did.isNotIn(...lastFiveDaysDIds))
     })) {
       if (!(lastFiveDaysDIds.includes(r.did.value))) {//not in last 5 days.
         if (!(dIds.includes(r.did.value))) {// keep distinct
@@ -414,6 +410,7 @@ class usherSuggestDrivers {
       where: cur => cur.did.isDifferentFrom('')
         .and(cur.date.isLessThan(this.date))//without current date
         .and(cur.date.isGreaterOrEqualTo(sixteenDaysAgo))
+        .and(cur.did.isNotIn(...lastFiveDaysDIds))
         .and((cur.fid.isIn(...this.locAreas.find(ar => ar.border === this.fid.value).areaBorders))
           .or(cur.tid.isIn(...this.locAreas.find(ar => ar.border === this.tid.value).areaBorders)))// from OR to
     })) {
@@ -439,11 +436,11 @@ class usherSuggestDrivers {
     let result: driver4UsherSuggest[] = [];
 
     let lastFiveDaysDIds: string[] = [];
-    let fiveDaysAgo = addDays(-7, this.date.value);
+    let sevenDaysAgo = addDays(-7, this.date.value);
     for await (const r of this.context.for(Ride).iterate({
       where: cur => cur.did.isDifferentFrom('')
         .and(cur.date.isLessThan(this.date))
-        .and(cur.date.isGreaterOrEqualTo(fiveDaysAgo))
+        .and(cur.date.isGreaterOrEqualTo(sevenDaysAgo))
     })) {
       if (!(lastFiveDaysDIds.includes(r.did.value))) {
         lastFiveDaysDIds.push(r.did.value);
@@ -634,7 +631,6 @@ export class SuggestDriverComponent implements OnInit {
     this.params.date.value = this.args.date;
     this.params.fid.value = this.args.fid;
     this.params.tid.value = this.args.tid;
-
     await this.refresh();
     this.origin = this.drivers;
   }

@@ -79,7 +79,7 @@
                             <button style="margin-top: 7px;"
                                 *ngIf="r.w4Start&&((r.date|date:'dd.MM.yyyy')===(this.today|date:'dd.MM.yyyy')&&r.originSucceeded)"
                                 mat-raised-button color="primary" (click)="drive(r)">
-                                I'm Start driving pickup Patient
+                                I'm Start driving to pickup Patient
                             </button>
                             <button style="margin-top: 7px;" *ngIf="r.w4Pickup" mat-raised-button color="primary"
                                 (click)="pickup(r)">

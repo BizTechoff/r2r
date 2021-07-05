@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { BoolColumn, Context, DateColumn, Filter, ServerController, ServerMethod } from '@remult/core';
+import { BoolColumn, Context, DateColumn, ServerController, ServerMethod } from '@remult/core';
 import { FILTER_IGNORE, ride4Usher, TODAY } from '../../shared/types';
 import { addDays } from '../../shared/utils';
 import { Users } from '../../users/users';
@@ -47,16 +47,6 @@ class usherParams {
       f.areaIds.push(loc.id.value);
     }
 
-    // var fidAreaIds: { fid: string, areaIds: string[] }[] = [];
-    // for await (const loc of this.context.for(Location).iterate()) {
-    //   fidAreaIds.push({
-    //     fid: loc.id.value,
-    //     areaIds: areaIds.find(cur => cur.area === loc.area.value).areaIds
-    //   });
-    // }
-
-    // let rideMaxChanged = new Date(2000, 1, 1);
-    // console.log(id);
     for await (const r of this.context.for(Ride).iterate({
       where: cur => cur.status.isNotIn(...RideStatus.isNoUsherActionNeeded)
         .and(this.hasTid() ? cur.tid.isEqualTo(this.tid) : FILTER_IGNORE)
@@ -67,10 +57,6 @@ class usherParams {
         .and(this.hasTid() ? cur.tid.isEqualTo(this.tid) : FILTER_IGNORE),
       orderBy: cur => cur.created
     })) {
-
-      // if (rideMaxChanged < r.changed.value) {
-      //   rideMaxChanged = r.changed.value;
-      // }
 
       let from = (await this.context.for(Location).findId(r.fid.value));
       let fromName = from.name.value;
@@ -104,7 +90,7 @@ class usherParams {
         result.rides.push(row);
         result.counter.lines += 1;
       }
- 
+
       row.inProgress += ([RideStatus.w4_Pickup, RideStatus.w4_Arrived].includes(r.status.value) ? 1 : 0);
       row.w4Accept += (r.status.value == RideStatus.w4_Accept ? 1 : 0);
       row.w4Driver += (r.isHasDriver() ? 0 : r.isRideWaitForDriver() ? 1 : 0);
@@ -119,14 +105,6 @@ class usherParams {
       result.counter.b2h += row.fromIsBorder ? 1 : 0;
       result.counter.h2b += row.fromIsBorder ? 0 : 1;
     }
-
-    // let h = await this.context.for(RideActivity).findFirst({//max(changed)
-    //   orderBy: cur => [{ column: cur.changed, descending: true }]
-    // });
-
-    // this.historyChanged.value = rideMaxChanged > h.changed.value;
-
-    // result.rides.sort((r1, r2) => (r1.from + '-' + r1.to).localeCompare(r2.from + '-' + r2.to));
     result.rides.sort((r1, r2) => (+r1.created - +r2.created));
 
     return result;
@@ -156,14 +134,22 @@ export class UsherComponent implements OnInit {
     this.params.onChanged = async () => { await this.refresh(); };
   }
 
+  retrieving = false;
   async refresh() {
-    await this.saveUserDefaults();
-    this.clientLastRefreshDate = addDays(TODAY, undefined, false);
-    this.params.onChanged = async () => { };
-    let res = await this.params.retrieve();
-    this.rides = res.rides;
-    this.counter = res.counter;
-    this.params.onChanged = async () => { await this.refresh(); };
+    if (!(this.retrieving)) {
+      this.retrieving = true;
+      try {
+        await this.saveUserDefaults();
+        this.clientLastRefreshDate = addDays(TODAY, undefined, false);
+        this.params.onChanged = async () => { };
+        let res = await this.params.retrieve();
+        this.rides = res.rides;
+        this.counter = res.counter;
+        this.params.onChanged = async () => { await this.refresh(); };
+      } finally {
+        this.retrieving = false;
+      }
+    }
   }
 
   async clearFilters() {

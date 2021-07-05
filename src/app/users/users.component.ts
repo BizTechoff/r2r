@@ -20,13 +20,13 @@ export class UsersComponent implements OnInit {
   }
 
   users = this.context.for(Users).gridSettings({
-    // orderBy: (cur) => [
-    //   { column: cur.isAdmin, descending: true },
-    //   { column: cur.isUsher, descending: true },
-    //   { column: cur.isMatcher, descending: true },
-    //   { column: cur.isDriver, descending: true },
-    //   { column: cur.name, descending: false }
-    // ],
+    orderBy: (cur) => [
+      { column: cur.isAdmin, descending: true },
+      { column: cur.isUsher, descending: true },
+      { column: cur.isMatcher, descending: true },
+      { column: cur.isDriver, descending: true },
+      { column: cur.name, descending: false }
+    ],
     allowCRUD: this.context.isAllowed(Roles.admin),
     // allowDelete: false,
     // allowInsert: false,

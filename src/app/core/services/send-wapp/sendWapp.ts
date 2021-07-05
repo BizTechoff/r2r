@@ -20,7 +20,7 @@ export class SendWapp {
         await SendWapp.SendWapp(this.args.mobile, this.args.message);
     }
 
-    @ServerFunction({ allowed: c => c.isSignedIn() })
+    // @ServerFunction({ allowed: c => c.isSignedIn() })
     static async SendWapp(mobile: string, message: string): Promise<void> {
         window.open('https://wa.me/' + mobile + '?text=' + encodeURI(message), '_blank');
     }

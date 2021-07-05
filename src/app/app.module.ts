@@ -48,6 +48,7 @@ import { PatientsListComponent } from './core/patients/patients-list/patients-li
 import { PatientRidesComponent } from './core/patients/patient-rides/patient-rides.component';
 import { DriverCrudComponent } from './core/drivers/driver-crud/driver-crud.component';
 import { DriverRideProblemComponent } from './core/drivers/driver-ride-problem/driver-ride-problem.component';
+import { SendWappComponent } from './core/services/send-wapp/send-wapp.component';
 
  
 @NgModule({
@@ -73,6 +74,7 @@ import { DriverRideProblemComponent } from './core/drivers/driver-ride-problem/d
     SuggestDriverComponent,
     GeneralReportComponent,
     SendSmsComponent,
+    SendWappComponent,
     RideCrudComponent,
     LocationsListComponent,
     DriversListComponent,
@@ -117,16 +119,16 @@ import { DriverRideProblemComponent } from './core/drivers/driver-ride-problem/d
 
     // },
     // SettingsService,
-  ],  
+  ],
   bootstrap: [AppComponent],
   // DIALOGS - POPUPS
   entryComponents: [YesNoQuestionComponent, InputAreaComponent, GridDialogComponent, 
     DynamicServerSideSearchDialogComponent, DriverRideProblemComponent,
-    SetDriverComponent, SendSmsComponent, RideCrudComponent, DriverCrudComponent,
+    SetDriverComponent, SendSmsComponent, SendWappComponent, RideCrudComponent, DriverCrudComponent,
     PatientContactsComponent, LocationAreaComponent, PatientCrudComponent, SuggestDriverComponent]
 }) 
 export class AppModule { }
-
+  
 // export function initApp(session: JwtSessionManager, settings: SettingsService,context:Context) {
 //   return async () => {
 

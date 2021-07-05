@@ -1,1 +1,21 @@
-<p>send-wapp works!</p>
+<div class="full-page">
+
+    <div class="header">
+        <mat-card-title>
+            Send Wapp To {{ args.mobile }}
+        </mat-card-title>
+    </div>
+
+    <div class="grow-item">
+        <mat-dialog-content>
+            <textarea class="form-control" rows="5" [(ngModel)]="args.message" style="box-sizing: border-box; min-width: 240px;text-align: start;"></textarea>
+        </mat-dialog-content>
+    </div>
+
+    <div class="footer">
+        <mat-dialog-actions>
+            <button mat-raised-button color="primary" (click)="send()">Send</button>
+        </mat-dialog-actions>
+    </div>
+
+</div>
