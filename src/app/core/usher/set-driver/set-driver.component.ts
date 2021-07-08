@@ -35,7 +35,7 @@ class usherSerDriver {
         .and(this.fid.value ? cur.fid.isEqualTo(this.fid) : alwaysTrue)
         .and(this.tid.value ? cur.tid.isEqualTo(this.tid) : alwaysTrue)
         .and(cur.status.isNotIn(...[RideStatus.Succeeded])),//...RideStatus.isNoUsherActionNeeded
-      orderBy: cur => [{ column: cur.visitTime, descending: false }]
+      orderBy: cur => [{ column: cur.visitTime, descending: false }]//todo: sort: should be always with data
     })) {
       let from = (await this.context.for(Location).findId(ride.fid.value)).name.value;
       let to = (await this.context.for(Location).findId(ride.tid.value)).name.value;

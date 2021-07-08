@@ -51,7 +51,7 @@ export class Driver extends IdEntity {
       allowApiDelete: false,
       allowApiInsert: false,
       allowApiUpdate: [Roles.admin, Roles.usher, Roles.driver],
-      defaultOrderBy: () => this.name,
+      defaultOrderBy: () => this.id,//this.name
       allowApiRead: c => c.isSignedIn(),
       // apiDataFilter: () => { return this.uid.isDifferentFrom(''); },
       saving: async () => {

@@ -37,7 +37,7 @@ export class Patient extends IdEntity {
       name: "patients",
       allowApiCRUD: c => c.isSignedIn(), //[Roles.matcher],
       allowApiRead: c => c.isSignedIn(),
-      defaultOrderBy: () => this.name,
+      defaultOrderBy: () => this.id,// this.name,
       saving: async () => {
         if (context.onServer) {
           await checkForDuplicateValue(this, this.idNumber, this.context.for(Patient));

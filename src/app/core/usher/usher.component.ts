@@ -55,7 +55,7 @@ class usherParams {
           .or(cur.tid.isIn(...areaIds.find(a => a.area === this.area.value).areaIds)) : FILTER_IGNORE)
         .and(this.hasFid() ? cur.fid.isEqualTo(this.fid) : FILTER_IGNORE)
         .and(this.hasTid() ? cur.tid.isEqualTo(this.tid) : FILTER_IGNORE),
-      orderBy: cur => cur.created
+      orderBy: cur => cur.created//todo: sort: should be always with data
     })) {
 
       let from = (await this.context.for(Location).findId(r.fid.value));

@@ -25,7 +25,7 @@ const pool = new Pool({
     ssl: process.env.DB_DEV_MODE ? false : { rejectUnauthorized: false }// use ssl in production but not in development. the `rejectUnauthorized: false`  is required for deployment to heroku etc...
 });
 let database = new SqlDatabase(new PostgresDataProvider(pool));
-//verifyStructureOfAllEntities(database); //This method can be run in the install phase on the server.
+verifyStructureOfAllEntities(database); //This method can be run in the install phase on the server.
 
 PasswordColumn.passwordHelper = {
     generateHash: p => passwordHash.generate(p),
@@ -60,7 +60,7 @@ if (process.env.IMPORT_DATA && process.env.IMPORT_DATA === "true") {
     // importDataNew(database).then(()=>console.timeEnd("noam"));
     // exit(1000);
 }
- testIt(database);
+ //testIt(database);
  
 let port = process.env.PORT || 3000;
 app.listen(port);
