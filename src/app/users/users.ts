@@ -78,7 +78,7 @@ export class Users extends IdEntity {
 
         super({
             name: "Users",
-            allowApiDelete: context.isAllowed(Roles.admin),
+            allowApiDelete: false,// context.isAllowed(Roles.admin),
             allowApiRead: context.isSignedIn(),
             allowApiUpdate: context.isSignedIn(),
             allowApiInsert: Roles.admin,

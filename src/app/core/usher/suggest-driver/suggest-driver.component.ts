@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
 import { Context, DateColumn, ServerController, ServerMethod, StringColumn } from '@remult/core';
+import { currentId } from 'async_hooks';
 import { DialogService } from '../../../common/dialog';
 import { GridDialogComponent } from '../../../common/grid-dialog/grid-dialog.component';
 import { driver4UsherSuggest, NOT_FOUND_DAYS, PickupTimePrevHours, TimeColumn, TODAY } from '../../../shared/types';
@@ -35,7 +36,7 @@ class usherSuggestDrivers {
     let bAreaAll: { lid: string }[] = [];
     // prepare area & locIds
     let areasBorders: { area: LocationArea, lids: string[] }[] = [];
-    
+
     console.time('0');
 
     for await (const loc of this.context.for(Location).iterate({})) {
@@ -83,19 +84,19 @@ class usherSuggestDrivers {
         }
       }
     }
-    
+
     this.distinct(drivers,
       (await this.driversWithSameLineToday(++priority, 'has same ride - at current date')));
-    
+
     this.distinct(drivers,
       (await this.driversRegisteredSameLineToday(++priority, 'register to line - at current date')));
-    
+
     this.distinct(drivers,
       (await this.driversRegisteredSameAreaToday(++priority, 'register to area - at current date')));
-    
+
     this.distinct(drivers,
       (await this.driversMadeRideWithSameLineButNoRideForLast5days(++priority, 'done same line - no ride last 5 days')));
-    
+
     this.distinct(drivers,
       (await this.driversMadeRideWithSameAreaButNoRideForLast5days(++priority, 'done same area - no ride last 5 days')));
 
@@ -337,7 +338,7 @@ class usherSuggestDrivers {
         }
       }
     }
-    
+
     for (const id of dIds) {
       let dRow: driver4UsherSuggest = await this.createDriverRow(
         priority,
@@ -435,6 +436,7 @@ class usherSuggestDrivers {
   private async driversNoRideForLast7days(priority: number, reason: string): Promise<driver4UsherSuggest[]> {
     let result: driver4UsherSuggest[] = [];
 
+    console.log('driversNoRideForLast7days called');
     let lastFiveDaysDIds: string[] = [];
     let sevenDaysAgo = addDays(-7, this.date.value);
     for await (const r of this.context.for(Ride).iterate({
@@ -447,14 +449,40 @@ class usherSuggestDrivers {
       }
     }
 
+    // let t = '2c984378-89eb-42f6-98a2-1eb25a798b5d';
+    
+    // if(lastFiveDaysDIds.includes(t)){
+    //   console.log('lastFiveDaysDIds includes driver test');
+    // }
+    // else{
+    //   console.log('lastFiveDaysDIds NOT includes driver test');
+    // }
+
+    // let c = await this.context.for(Driver).count();
+    // console.log('count: ' + c);
+    // c= 0;
+    // for await (const d of this.context.for(Driver).iterate()){
+    //   ++c;
+    // } 
+    // console.log('count: ' + c);
+
     let dIds: string[] = [];
-    for await (const r of this.context.for(Driver).iterate({
+    for await (const d of this.context.for(Driver).iterate({
       where: cur => cur.id.isNotIn(...lastFiveDaysDIds)
     })) {
-      if (!(dIds.includes(r.id.value))) {
-        dIds.push(r.id.value);
+      // ++c;
+      // console.log('name: ' + d.name.value + ', id: ' + d.id.value);
+      // if (d.name.value === 'test' || d.id.value === t) {
+      //   console.log('Found driver test');
+      // }
+      if (!(dIds.includes(d.id.value))) {
+        // if (d.name.value === 'test' || d.id.value === t) {
+        //   console.log('Push driver test');
+        // }
+        dIds.push(d.id.value);
       }
     }
+    // console.log('count: ' + c);
 
     for (const id of dIds) {
       let dRow: driver4UsherSuggest = await this.createDriverRow(

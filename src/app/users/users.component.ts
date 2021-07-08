@@ -28,7 +28,7 @@ export class UsersComponent implements OnInit {
       { column: cur.name, descending: false }
     ],
     allowCRUD: this.context.isAllowed(Roles.admin),
-    // allowDelete: false,
+    allowDelete: false,
     // allowInsert: false,
     // allowUpdate: false,
     // allowApiDelete: false,

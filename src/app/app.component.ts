@@ -73,7 +73,7 @@ export class AppComponent {
       else if (u.isMatcher.value) {
         result.push(Roles.matcher);
       }
-      if (u.isDriver.value) {
+      if (u.isDriver.value) {/* no-else */ 
         result.push(Roles.driver);
       }
     }
