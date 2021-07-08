@@ -17,6 +17,7 @@ import { PasswordColumn } from '../users/users';
 import { importDataNew } from './import-data';
 import { ServerEvents } from './server-events';
 
+// SqlDatabase.LogToConsole = true;
 config(); //loads the configuration from the .env file
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,

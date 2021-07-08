@@ -52,7 +52,7 @@ export class Ride extends IdEntity {
     dEnd = new TimeColumn();
     pMobile = new StringColumn({ caption: 'Patient Mobile' });
     isSplitted = new BoolColumn({ defaultValue: false });
-    needBackRide = new BoolColumn({ defaultValue: false });
+    needBackRide = new BoolColumn({ caption: 'Need Back Ride?', defaultValue: false });
     isBackRide = new BoolColumn({ defaultValue: false });
     backId = new StringColumn({});
     importRideNum = new StringColumn();
@@ -153,13 +153,17 @@ export class Ride extends IdEntity {
 
                     if (this.isBackRide.value) {
                         let origin = await context.for(Ride).findId(this.backId.value);
-                        origin.backId.value = '';
-                        await origin.save();
+                        if(origin){
+                            origin.backId.value = '';
+                            await origin.save();
+                        }
                     }
                     else {//origon
                         if (this.hadBackRide()) {
                             let back = await context.for(Ride).findId(this.backId.value);
+                            if(back){
                             await back.delete();
+                            }
                         }
                     }
                 }
@@ -706,7 +710,7 @@ export class RideStatus {
 
     static isRideReadOnly = [
         // RideStatus.w4_Start,
-        // RideStatus.w4_Pickup,
+        RideStatus.w4_Pickup,
         RideStatus.w4_Arrived,
         RideStatus.Succeeded
     ];

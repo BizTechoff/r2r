@@ -34,39 +34,42 @@ export class PromiseThrottle {
     }
 }
 
-export function fixDate(d:Date) {
+export function fixDate(d: Date) {
     let cur = new Date();
     let of = cur.getTimezoneOffset();
     d.setTime(d.getTime() - of * 60 * 1000);
 }
- 
+
 export function addDays(days: number = 0, date: Date = undefined, setTimeToZero: boolean = true) {
     var result = date;
     if (!(result)) {
-        // console.log('!(result)');
-        let d = new Date();
-        let of = d.getTimezoneOffset();
-        let nd = new Date(d.getTime() - of * 60 * 1000);
-        result = nd; 
-        // console.log(result);
+        result = new Date();
     }
     if (setTimeToZero) {
-        // console.log('setTimeToZero');
-        result = resetTime(result);
-        // console.log(result);
+        result = new Date(result.getFullYear(), result.getMonth(), result.getDate());
     }
     if (days !== 0) {
-        // console.log('days = ' + days);
-        result.setDate(result.getDate() + days);
-        // console.log(result);
+        result.setTime(result.getTime() + days * 24 * 60 * 60 * 1000);
     }
-    // console.log(result);
+    console.log('result=' + result);
     return result;
 }
 
+export function getDateWithNoTimezoneOffset(d?: Date) {
+    if (!d) {
+        d = new Date();
+    }
+    let of = d.getTimezoneOffset();
+    if (of !== 0) {
+        console.log('of=' + of);
+        d.setTime(d.getTime() - of * 60 * 1000);
+    }
+    return d;
+}
+
 export function resetTime(date: Date) {
-    let time = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0);
-    let result = new Date(time);
+    
+    let result = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0);
     return result;
 }
 

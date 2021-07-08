@@ -4,7 +4,7 @@ import { MatDialogRef } from '@angular/material/dialog';
 import { BoolColumn, Context, DataAreaSettings } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
 import { TimeColumn, TODAY } from '../../../shared/types';
-import { addDays } from '../../../shared/utils';
+import { addDays, getDateWithNoTimezoneOffset } from '../../../shared/utils';
 import { Roles } from '../../../users/roles';
 import { LocationType } from '../../locations/location';
 import { Contact } from '../../patients/contact';
@@ -72,28 +72,28 @@ export class RideCrudComponent implements OnInit {
 
       columnSettings: () => [
         {
-          column: this.r.fid, readonly: rOnly || hasBackRide,
+          column: this.r.fid, readonly: () => { return rOnly; },
           caption: 'From ' + (this.r.fid && this.r.fid.selected ? this.r.fid.selected.type.value === LocationType.border ? 'Border' : 'Hospital' : 'Location')
         },
         {
-          column: this.r.tid, readonly: rOnly || hasBackRide,
+          column: this.r.tid, readonly: () => { return rOnly; },
           caption: 'To ' + (this.r.tid && this.r.tid.selected ? this.r.tid.selected.type.value === LocationType.border ? 'Border' : 'Hospital' : 'Location')
         },
         [
           {
             column: this.r.immediate,
             visible: () => this.setImmediateVisible(),
-            readOnly: rOnly
+            readOnly: () => { return rOnly; }
           },
           {
             column: this.createBackRide,
             visible: () => this.setBackRideVisible(),
-            readOnly: rOnly,
+            readOnly: () => { return rOnly; },
             cssClass: 'boldFont'
           }
         ],
         [
-          { column: this.r.date, readOnly: rOnly, visible: () => { return !this.r.immediate.value; } },
+          { column: this.r.date, readOnly: () => { return rOnly; }, visible: () => { return !this.r.immediate.value; } },
           // { column: this.r.visitTime, visible: () => { return !this.r.immediate.value; } }
 
 
@@ -120,7 +120,7 @@ export class RideCrudComponent implements OnInit {
         ],
         [
           this.p.birthDate,
-          { column: this.p.age, readOnly: true }
+          { column: this.p.age, readOnly: () => { return true; } }
         ],
         // [
         //   this.r.isHasBabyChair,
@@ -189,9 +189,9 @@ export class RideCrudComponent implements OnInit {
   }
 
   disabledSave() {
-    if (this.r && this.r.status) {
-      return RideStatus.isRideReadOnly.includes(this.r.status.value);
-    }
+    // if (this.r && this.r.status) {
+    //   return RideStatus.isRideReadOnly.includes(this.r.status.value);
+    // }
     return false;
   }
 
@@ -217,18 +217,11 @@ export class RideCrudComponent implements OnInit {
         }
         if (this.r) {
           if (this.r.isNew()) {
-            this.r.needBackRide.value = this.createBackRide.value;
+            this.r.needBackRide.value = this.createBackRide.value;//'Need Back Ride?'
           }
           await this.r.save();
           result = true;
           this.args.rid = this.r.id.value;
-          // if (this.createBackRide.value) {
-          //   if (!this.r.hadBackRide()) {
-          //     let back = await this.r.createBackRide();
-          //     this.r.backId.value = back.id.value;
-          //     await this.r.save();
-          //   }
-          // }
         }
         if (close) {
           this.select();
@@ -261,12 +254,13 @@ export class RideCrudComponent implements OnInit {
       return false;
     }
     if (this.r.date.value.getFullYear() < 2000 || this.r.date.value.getFullYear() > 3000) {
-      this.r.date.validationError = ' Invalid Format';
+      this.r.date.validationError = ' Invalid Date';
       await this.dialog.error(this.r.date.defs.caption + ' ' + this.r.date.validationError);
       return false;
     }
 
     let date = addDays();
+    console.log('datedate=' + date);
     let time = formatDate(addDays(TODAY, undefined, false), 'HH:mm', 'en-US');
     let isBorder = this.r.fid.selected && this.r.fid.selected.type.value === LocationType.border ? true : false;
     let isHospital = this.r.fid.selected && this.r.fid.selected.type.value === LocationType.hospital ? true : false;
