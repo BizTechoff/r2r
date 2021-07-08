@@ -458,13 +458,13 @@ class usherSuggestDrivers {
     //   console.log('lastFiveDaysDIds NOT includes driver test');
     // }
 
-    // let c = await this.context.for(Driver).count();
-    // console.log('count: ' + c);
-    // c= 0;
-    // for await (const d of this.context.for(Driver).iterate()){
-    //   ++c;
-    // } 
-    // console.log('count: ' + c);
+    let c = await this.context.for(Driver).count();
+    console.log('count: ' + c);
+    c= 0;
+    for await (const d of this.context.for(Driver).iterate()){
+      ++c;
+    } 
+    console.log('count: ' + c);
 
     let dIds: string[] = [];
     for await (const d of this.context.for(Driver).iterate({
