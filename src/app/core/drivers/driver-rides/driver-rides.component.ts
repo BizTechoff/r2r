@@ -188,6 +188,10 @@ export class DriverRidesComponent implements OnInit {
     let ride = await this.context.for(Ride).findId(r.rId);
     ride.status.value = RideStatus.Succeeded;
     await ride.save();
+    await this.refresh();
+    let message = `THANK YOU!`;
+    await this.dialog.info(message);
+    
     // if (ride.isBackRide.value) {
 
     // }
@@ -204,29 +208,26 @@ export class DriverRidesComponent implements OnInit {
     //   back.status.value = RideStatus.InHospital;
     //   await back.save();
     // }
-    await this.refresh();
-    let driver = await this.context.for(Driver).findFirst({
-      where: d => d.uid.isEqualTo(this.context.user.id),
-    });
-    let city = '';
-    if (driver) {
-      city = driver.city.value;
-    }
-    let openWaze = city && city.length > 0;
-    let newRow = '\n';
-    let message = `THANK YOU!` + newRow +
-      `F.Y.I: This Ride has removed to your History.` + newRow +
-      `There you can set the time you got back home,` + newRow +
-      `and by that the system will calculate the TOTAL distances for your refund ! `;
-    if (openWaze) {
-      message = message + `Now waze will navigate you to: '${city}'`;
-    }
+    // let driver = await this.context.for(Driver).findFirst({
+    //   where: d => d.uid.isEqualTo(this.context.user.id),
+    // });
+    // let city = '';
+    // if (driver) {
+    //   city = driver.city.value;
+    // }
+    // let openWaze = city && city.length > 0;
+    // let newRow = '\n';
+    // let message = `THANK YOU!` + newRow +
+    //   `F.Y.I: This Ride has removed to your History.` + newRow +
+    //   `There you can set the time you got back home,` + newRow +
+    //   `and by that the system will calculate the TOTAL distances for your refund ! `;
+    // if (openWaze) {
+    //   message = message + `Now waze will navigate you to: '${city}'`;
+    // }
 
-    await this.dialog.error(message);
-
-    if (openWaze) {
-      await this.openWaze(city);
-    }
+    // if (openWaze) {
+    //   await this.openWaze(city);
+    // }
   }
 
 }

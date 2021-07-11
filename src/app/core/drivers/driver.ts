@@ -45,7 +45,7 @@ export class Driver extends IdEntity {
   defaultFromTime = new TimeColumn();
   defaultToTime = new TimeColumn();
   freezeTillDate = new DateColumn({ caption: 'Driver Freezed Last Date' });
-
+ 
   constructor(private context: Context, private dialog: DialogService) {
     super({
       name: "drivers",
