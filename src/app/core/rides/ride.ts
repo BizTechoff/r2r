@@ -141,9 +141,6 @@ export class Ride extends IdEntity {
                 if (context.onServer) {
                     // console.log(`ride.saved.trigger`);
                     await this.recordActivity(this);
-
-
-
                 }
             },
             deleted: async () => {//trigger from db on date OR status changed

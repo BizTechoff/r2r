@@ -61,7 +61,7 @@ export function getDateWithNoTimezoneOffset(d?: Date) {
     }
     let of = d.getTimezoneOffset();
     if (of !== 0) {
-        console.log('of=' + of);
+        // console.log('of=' + of);
         d.setTime(d.getTime() - of * 60 * 1000);
     }
     return d;

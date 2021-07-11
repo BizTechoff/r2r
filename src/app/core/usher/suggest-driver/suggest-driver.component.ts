@@ -436,7 +436,7 @@ class usherSuggestDrivers {
   private async driversNoRideForLast7days(priority: number, reason: string): Promise<driver4UsherSuggest[]> {
     let result: driver4UsherSuggest[] = [];
 
-    console.log('driversNoRideForLast7days called');
+    // console.log('driversNoRideForLast7days called');
     let lastFiveDaysDIds: string[] = [];
     let sevenDaysAgo = addDays(-7, this.date.value);
     for await (const r of this.context.for(Ride).iterate({
@@ -458,13 +458,13 @@ class usherSuggestDrivers {
     //   console.log('lastFiveDaysDIds NOT includes driver test');
     // }
 
-    let c = await this.context.for(Driver).count();
-    console.log('count: ' + c);
-    c= 0;
-    for await (const d of this.context.for(Driver).iterate()){
-      ++c;
-    } 
-    console.log('count: ' + c);
+    // let c = await this.context.for(Driver).count();
+    // console.log('count: ' + c);
+    // c= 0;
+    // for await (const d of this.context.for(Driver).iterate()){
+    //   ++c;
+    // } 
+    // console.log('count: ' + c);
 
     let dIds: string[] = [];
     for await (const d of this.context.for(Driver).iterate({

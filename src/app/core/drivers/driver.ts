@@ -53,7 +53,7 @@ export class Driver extends IdEntity {
       allowApiUpdate: [Roles.admin, Roles.usher, Roles.driver],
       defaultOrderBy: () => this.id,//this.name
       allowApiRead: c => c.isSignedIn(),
-      // apiDataFilter: () => { return this.uid.isDifferentFrom(''); },
+      apiDataFilter: () => { return this.uid.isDifferentFrom(''); },
       saving: async () => {
         if (context.onServer) {
           await checkForDuplicateValue(this, this.mobile, this.context.for(Driver));
