@@ -15,20 +15,21 @@ export class Driver extends IdEntity {
 
   uid = new UserId(this.context);// The user-table will be the driver.
   name = new StringColumn({
+    allowApiUpdate: false,
     validate: () => {
       if (!this.name.value)
         this.name.validationError = " Is Too Short";
     },
   });
   hebName = new StringColumn({});
-  mobile = new StringColumn({});
+  mobile = new StringColumn({ allowApiUpdate: false });
   home?= new StringColumn({});
   email = new StringColumn({});
   seats = new NumberColumn({
     defaultValue: 4,
     validate: () => {
       if (this.seats.value <= 0) {
-        this.seats.value = 1;
+        this.seats.value = 4;
       }
     },
   });
@@ -51,32 +52,32 @@ export class Driver extends IdEntity {
       allowApiDelete: false,
       allowApiInsert: false,
       allowApiUpdate: [Roles.admin, Roles.usher, Roles.driver],
-      defaultOrderBy: () => this.id,//this.name
+      defaultOrderBy: () => this.name,
       allowApiRead: c => c.isSignedIn(),
-      apiDataFilter: () => { return this.uid.isDifferentFrom(''); },
-      saving: async () => {
-        if (context.onServer) {
-          await checkForDuplicateValue(this, this.mobile, this.context.for(Driver));
-        }
-      },
-      saved: async () => {
-        if (context.onServer) {
-          if (this.mobile.wasChanged() || this.name.wasChanged()) {
-            let u = await context.for(Users).findId(this.uid);
-            if (!(u)) {
-              throw new Error("You are not register to system");
-            }
-            let changed = false;
-            changed = changed || (this.name.value !== u.name.value);
-            changed = changed || (this.mobile.value !== u.mobile.value);
-            if (changed) {
-              u.name.value = this.name.value;
-              u.mobile.value = this.mobile.value;
-              await u.save();
-            }
-          }
-        }
-      }
+      apiDataFilter: () => { return this.uid.isDifferentFrom(''); }//,
+      // saving: async () => {
+      //   if (context.onServer) {
+      //     await checkForDuplicateValue(this, this.mobile, this.context.for(Driver));
+      //   }
+      // }//,
+      // saved: async () => {
+      //   if (context.onServer) {
+      //     if (this.mobile.wasChanged() || this.name.wasChanged()) {
+      //       let u = await context.for(Users).findId(this.uid);
+      //       if (!(u)) {
+      //         throw new Error("You are not register to system");
+      //       }
+      //       let changed = false;
+      //       changed = changed || (this.name.value !== u.name.value);
+      //       changed = changed || (this.mobile.value !== u.mobile.value);
+      //       if (changed) {
+      //         u.name.value = this.name.value;
+      //         u.mobile.value = this.mobile.value;
+      //         await u.save();
+      //       }
+      //     }
+      //   }
+      // }
     })
   }
 

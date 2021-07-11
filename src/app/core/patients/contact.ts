@@ -18,7 +18,7 @@ export class Contact extends IdEntity {
             allowApiCRUD: [Roles.admin, Roles.usher, Roles.matcher],
             allowApiInsert: c=> c.isSignedIn(),
             allowApiRead: c => c.isSignedIn(),
-            defaultOrderBy: () => this.id// this.name
+            defaultOrderBy: () => this.name
         });
     }
 

@@ -26,7 +26,7 @@
     "@angular/router": "~8.2.14",
     "@auth0/angular-jwt": "3.0.0",
     "@remult/angular": "^2.2.12",
-    "@remult/core": "^2.2.5",
+    "@remult/core": "^2.2.14",
     "@remult/server": "^2.2.5",
     "@remult/server-postgres": "^2.2.5",
     "@types/node-fetch": "^2.5.10",

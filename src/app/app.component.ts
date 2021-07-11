@@ -146,7 +146,7 @@ export class AppComponent {
       title: "Update Info",
       columnSettings: () => [
         user.name,
-        // user.mobile,//visible=Roles.driver | Roles.matcher
+        user.mobile//visible=Roles.driver | Roles.matcher
       ],
       ok: async () => {
         await user.save();

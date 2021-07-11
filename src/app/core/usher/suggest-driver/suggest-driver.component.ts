@@ -450,7 +450,7 @@ class usherSuggestDrivers {
     }
 
     // let t = '2c984378-89eb-42f6-98a2-1eb25a798b5d';
-    
+
     // if(lastFiveDaysDIds.includes(t)){
     //   console.log('lastFiveDaysDIds includes driver test');
     // }
@@ -469,6 +469,7 @@ class usherSuggestDrivers {
     let dIds: string[] = [];
     for await (const d of this.context.for(Driver).iterate({
       where: cur => cur.id.isNotIn(...lastFiveDaysDIds)
+        .and(cur.uid.isDifferentFrom(''))//driver with no user
     })) {
       // ++c;
       // console.log('name: ' + d.name.value + ', id: ' + d.id.value);

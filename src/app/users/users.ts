@@ -27,10 +27,8 @@ export class Users extends IdEntity {
     isAdmin = new BoolColumn({
         defaultValue: false, allowApiUpdate: Roles.admin,
         valueChange: () => {
-            if (!(this.pauseValueChange))
-            {
-                if(this.isAdmin.value)
-                {
+            if (!(this.pauseValueChange)) {
+                if (this.isAdmin.value) {
                     this.SetOnlyOneWorkerPermission(Roles.admin);
                 }
             }
@@ -39,10 +37,8 @@ export class Users extends IdEntity {
     isUsher = new BoolColumn({
         defaultValue: false, allowApiUpdate: Roles.admin,
         valueChange: () => {
-            if (!(this.pauseValueChange))
-            {
-                if(this.isUsher.value)
-                {
+            if (!(this.pauseValueChange)) {
+                if (this.isUsher.value) {
                     this.SetOnlyOneWorkerPermission(Roles.usher);
                 }
             }
@@ -51,10 +47,8 @@ export class Users extends IdEntity {
     isMatcher = new BoolColumn({
         defaultValue: false, allowApiUpdate: Roles.admin,
         valueChange: () => {
-            if (!(this.pauseValueChange))
-            {
-                if(this.isMatcher.value)
-                {
+            if (!(this.pauseValueChange)) {
+                if (this.isMatcher.value) {
                     this.SetOnlyOneWorkerPermission(Roles.matcher);
                 }
             }
@@ -75,7 +69,7 @@ export class Users extends IdEntity {
     lastDate = new DateColumn();
 
     constructor(private context: Context) {
- 
+
         super({
             name: "Users",
             allowApiDelete: false,// context.isAllowed(Roles.admin),
@@ -88,7 +82,7 @@ export class Users extends IdEntity {
                 { column: this.isMatcher, descending: true },
                 { column: this.isDriver, descending: true },
                 { column: this.name, descending: false }
-              ],
+            ],
 
             saving: async () => {
                 if (context.onServer) {
@@ -174,7 +168,7 @@ export class Users extends IdEntity {
     hasLastArea() {
         return this.lastArea.value && this.lastArea.value !== LocationArea.all;
     }
- 
+
     private async updateEntityForUserByRole(role: Allowed, user: Users, createIfNotExists = false) {
         if (user && user.id.value.length > 0) {
 
@@ -182,16 +176,23 @@ export class Users extends IdEntity {
 
                 case Roles.driver: {
 
-                    let d = await this.context.for(Driver).findOrCreate({
+                    let d = await this.context.for(Driver).findFirst({
                         where: d => d.uid.isEqualTo(user.id)
                     });
+                    if (!(d)) {
+                        d = await this.context.for(Driver).findOrCreate({
+                            where: d => d.mobile.isEqualTo(user.mobile)
+                        });
+                    }
 
                     if (user.isDriver.value) {//only if user is driver
-                        if (d.isNew() || (!(d.uid.value === user.id.value) || user.name.wasChanged())) {
+                        if (d.isNew() || (!(d.uid.value === user.id.value) || user.name.wasChanged() || user.mobile.wasChanged())) {
                             d.name.value = user.name.value;
                             d.mobile.value = user.mobile.value;
                             d.uid.value = user.id.value;
-                            d.seats.value = 4;
+                            if (d.seats.value <= 0) {
+                                d.seats.value = 4;
+                            }
                             await d.save();
                         }
                     }
