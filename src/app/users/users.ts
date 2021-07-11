@@ -75,7 +75,7 @@ export class Users extends IdEntity {
     lastDate = new DateColumn();
 
     constructor(private context: Context) {
-
+ 
         super({
             name: "Users",
             allowApiDelete: false,// context.isAllowed(Roles.admin),
@@ -174,7 +174,7 @@ export class Users extends IdEntity {
     hasLastArea() {
         return this.lastArea.value && this.lastArea.value !== LocationArea.all;
     }
-
+ 
     private async updateEntityForUserByRole(role: Allowed, user: Users, createIfNotExists = false) {
         if (user && user.id.value.length > 0) {
 

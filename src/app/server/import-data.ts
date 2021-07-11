@@ -19,11 +19,15 @@ var counter = 0;
 export async function importDataNew(db: SqlDatabase, fresh = false) {
 
     if (fresh) {
-        console.log("starting import fresh");
-        console.time("starting import fresh");
-        await importRidesAndToFiles();
-        console.timeEnd("finished import fresh");
-        console.log("finished import fresh");
+        try {
+            console.log("starting import fresh");
+            console.time("starting import fresh");
+            await importRidesAndToFiles();
+            console.timeEnd("finished import fresh");
+            console.log("finished import fresh");
+        } catch (error) {
+            console.log(error);
+        }
     }
     // return;
 
@@ -90,7 +94,7 @@ async function seed(context?: Context) {
         console.log("created admin");
     }
 }
- 
+
 async function createFromRideRecordNew(record: any, context?: Context) {
     let clean = process.env.IMPORT_DATA_BASE && process.env.IMPORT_DATA_BASE === 'true';
 
@@ -150,27 +154,31 @@ async function findOrCreateUserNew(driverRecord: any, context: Context) {
         driverRecord.DisplayName
     );
 
-    let driverName = driverEntityRecord.EnglishName;
-    if (!(driverName && driverName.length > 0)) {
-        driverName = driverEntityRecord.DisplayName;
-    }
-    if (!(driverName && driverName.length > 0)) {
-        driverName = "No_Driver_Name_" + counter;
-    }
-    let user = await context.for(Users).findOrCreate({
-        where: u => u.name.isEqualTo(driverName),
-    });
-    if (user.isNew()) {// first driver-row is taken.
-        let mobile = driverEntityRecord.CellPhone;
-        user.mobile.value = mobile;
-        user.name.value = driverName;
-        user.isDriver.value = true;
-        user.createDate.value = addDays(TODAY,undefined,false);
-        await user.create(/*password:*/ mobile);
-    }
+    if (driverEntityRecord) {
+        let driverName = '';
+        if (driverEntityRecord.EnglishName) {
+            driverName = driverEntityRecord.EnglishName;
+        }
+        if (!(driverName && driverName.length > 0)) {
+            driverName = driverEntityRecord.DisplayName;
+        }
+        if (!(driverName && driverName.length > 0)) {
+            driverName = "No_Driver_Name_" + counter;
+        }
+        let user = await context.for(Users).findOrCreate({
+            where: u => u.name.isEqualTo(driverName),
+        });
+        if (user.isNew()) {// first driver-row is taken.
+            let mobile = driverEntityRecord.CellPhone;
+            user.mobile.value = mobile;
+            user.name.value = driverName;
+            user.isDriver.value = true;
+            user.createDate.value = addDays(TODAY, undefined, false);
+            await user.create(/*password:*/ mobile);
+        }
 
-    result = user.id.value;
-
+        result = user.id.value;
+    }
     return result;
 }
 
@@ -192,7 +200,7 @@ async function findOrCreateDriverNew(driverRecord: any, userId: string, context:
         let driver = await context.for(Driver).findOrCreate({
             // where: l => l.userId.isEqualTo(userId),
             where: d => d.name.isEqualTo(driverName),
-        }); 
+        });
         driver.uid.value = userId;
         driver.name.value = driverName;
         driver.hebName.value = driverEntityRecord.DisplayName;
@@ -292,8 +300,8 @@ async function findOrCreateRideNew(rideRecord: any, driverId: string, patientId:
 
     // console.log(rideRecord.RideNum);
     // console.log(ride);
-    await ride.save(); 
-    return ride.id.value;
+    await ride.save();
+    // return ride.id.value;
     // }catch(error){
     //     console.log("error on RideNum: " + rideRecord.RideNum);
     // }
@@ -317,14 +325,31 @@ async function getDriverEntityRecord(fileDriverHebName: string) {
 
 async function importRidesAndToFiles(rewrite: boolean = false) {
 
-    let rides = await get('GetRidePatViewByTimeFilter', { from: daysToRetrieve, until: 1 });
+    let rides;
+    let fileName = `${ridersFolder}/GetRidePatViewByTimeFilter.json`;
+    if (rewrite || !fs.existsSync(fileName)) {
+        rides = await get('GetRidePatViewByTimeFilter', { from: daysToRetrieve, until: 1 });
+        fs.writeFileSync(fileName, JSON.stringify(rides, undefined, 2));
+    }
+    else {
+        rides = JSON.parse(fs.readFileSync(fileName).toString());
+    }
+
     console.log(`found ${rides.length} rides`);
+
+
+    // fileName = `${ridersFolder}/GetRidePatViewByTimeFilter.json`;
+    // if (rewrite || !fs.existsSync(fileName)) {
+    //     fs.writeFileSync(fileName, JSON.stringify(rides, undefined, 2));
+    // }
+    // return;
+
     // let rides = await get('GetRidePatViewByTimeFilter', { from: 0, until: 1 });
     let rCounter = 0; let rWriteCounter = 0;
     let vCounter = 0; let vWriteCounter = 0;
     for (const r of rides) {
 
-        if (r.RideNum == '-1') {
+        if (r.RideNum === '-1') {
             // deleted-ride
             continue;
         }
@@ -344,16 +369,32 @@ async function importRidesAndToFiles(rewrite: boolean = false) {
             let vName = r.Drivers[0].DisplayName;
             if (vName && vName.length > 0) {
                 ++vCounter;
-                let one = await get('getVolunteer', { displayName: vName });
 
                 fileName = `${volunteersFolder}/${vName}.json`;
                 if (rewrite || (!(fs.existsSync(fileName)))) {
-                    fs.writeFileSync(fileName, JSON.stringify(one, undefined, 2));
-                    ++vWriteCounter;
+                    let one;
+                    let cc = 0;
+                    while (++cc <= 5) {
+                        try {
+                            one = await get('getVolunteer', { displayName: vName });
+                            break;//success
+                        }
+                        catch (error) {
+                            one = null;
+                            console.log(`getVolunteer(${vName}).error: ${error}`);
+                            setTimeout(() => {
+                                console.log('wait 1000 ms (try ' + cc + '/5');
+                            }, 1000);
+                        }
+                    }
+                    if (one) {
+                        fs.writeFileSync(fileName, JSON.stringify(one, undefined, 2));
+                        ++vWriteCounter;
+                    }
                 }
             }
             else {
-                console.log(`ride ${r.RideNum} has bo driver.DisplayName`);
+                console.log(`ride ${r.RideNum} has no driver.DisplayName`);
             }
         }
     }
@@ -361,7 +402,7 @@ async function importRidesAndToFiles(rewrite: boolean = false) {
     console.log(`wrote ${vWriteCounter} from ${vCounter} drivers`);
 }
 
-async function get(url: string, body: any) {
+async function get(url: string, body: any, tout: number = 500) {
 
     let r = await fetch.default("http://40.117.122.242/Prod/Road%20to%20Recovery/pages/WebService.asmx/" + url, {
         "headers": {
@@ -375,6 +416,7 @@ async function get(url: string, body: any) {
         //   "referrerPolicy": "strict-origin-when-cross-origin",
         "body": JSON.stringify(body),
         "method": "POST",
+        "timeout": tout
         //      "mode": "cors"
     });
     return JSON.parse((await r.json()).d);
