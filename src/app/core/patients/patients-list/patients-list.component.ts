@@ -17,8 +17,9 @@ import { PatientCrudComponent } from './../patient-crud/patient-crud.component';
 export class PatientsListComponent implements OnInit {
 
   search = new StringColumn({
-    caption: 'search patient name',
-    valueChange: () => this.busy.donotWait(async () => this.retrievePatients())
+    dataControlSettings: () => ({ clickIcon: 'search', click: async () => await this.retrievePatients() }),
+    caption: 'Search here for patient name',
+    valueChange: () => this.busy.donotWait(async () => await this.retrievePatients())
   });
   // patients: Patient[];
   patientsSettings = this.context.for(Patient).gridSettings({
@@ -29,8 +30,8 @@ export class PatientsListComponent implements OnInit {
     numOfColumnsInGrid: 10,
     columnSettings: p => [
       p.name,
-      p.mobile,
-      p.age,
+      {column: p.mobile, width: '110'},
+      {column: p.age, width: '65'}
     ],
     gridButtons: [{
       name: 'Add New Patient',

@@ -43,8 +43,7 @@ export class DynamicServerSideSearchDialogComponent implements OnInit {
   async loadProducts() {
     this.items = await this.entityContext.find({
       where: [p =>
-        // if there is a search value, search by it
-
+        // if there is a search value, search by it 
         this.searchString.value ? this._args.searchColumn(p).isContains(this.searchString)
           : undefined
       ],

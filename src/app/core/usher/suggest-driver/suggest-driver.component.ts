@@ -637,6 +637,7 @@ export class SuggestDriverComponent implements OnInit {
   selected: { did: string, status: string } = { did: '', status: '' };
 
   search = new StringColumn({
+    dataControlSettings: () => ({ clickIcon: 'search', click: async () => await this.filter() }),
     caption: 'Search here for driver name',
     valueChange: async () => await this.filter()
   });

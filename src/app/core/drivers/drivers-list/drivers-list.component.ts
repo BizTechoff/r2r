@@ -20,6 +20,7 @@ import { DriverPrefs } from './../driverPrefs';
 export class DriversListComponent implements OnInit {
 
   search = new StringColumn({
+    dataControlSettings: () => ({ clickIcon: 'search', click: async () => await this.retrieveDrivers() }),
     caption: 'Search here for driver name',
     valueChange: () => this.busy.donotWait(async () => this.retrieveDrivers())
 

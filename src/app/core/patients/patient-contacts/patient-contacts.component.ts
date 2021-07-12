@@ -4,6 +4,7 @@ import { Context } from '@remult/core';
 import { DialogService } from '../../../common/dialog';
 import { Roles } from '../../../users/roles';
 import { Contact } from '../contact';
+import { Patient } from '../patient';
 
 @Component({
   selector: 'app-patient-contacts',
@@ -15,7 +16,8 @@ export class PatientContactsComponent implements OnInit {
   args: {
     pid: string,//Input the patient-id
     mobile?: string, //Output the return contact-mobile as selected row
-    changed?: boolean
+    changed?: boolean,
+    title?: string
   };
 
   contactsSettings = this.context.for(Contact).gridSettings({
@@ -53,7 +55,16 @@ export class PatientContactsComponent implements OnInit {
 
   constructor(private context: Context, private dialog: DialogService, private dialogRef: MatDialogRef<any>) { }
 
-  ngOnInit() {
+  async ngOnInit() {
+    if (!this.args) {
+      this.args = { pid: '' };
+    }
+    if (this.args.pid && this.args.pid.length > 0) {
+      if (!this.args.title) {
+        let name = (await this.context.for(Patient).findId(this.args.pid)).name.value;
+        this.args.title = `Contacts of ${name}`;
+      }
+    }
   }
 
   async retrieve() {
@@ -64,6 +75,23 @@ export class PatientContactsComponent implements OnInit {
     this.args.mobile = c.mobile.value;
     this.args.changed = true;
     this.dialogRef.close();
+  }
+
+  async close() {
+    for (const contact of this.contactsSettings.items) {
+      if (contact.mobile.value && contact.mobile.value.length > 0) {
+        await contact.save();
+      }
+    }
+    this.dialogRef.close();
+    // if (this.contactsSettings.items.find(cur => cur.wasChanged())) {
+    //   if (await this.dialog.yesNoQuestion('Save Before Exit?')) {
+    //     for (const contact of this.contactsSettings.items) {
+    //       await contact.save();
+    //     }
+    //     this.dialogRef.close();
+    //   }
+    // }
   }
 
 }

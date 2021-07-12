@@ -1,7 +1,15 @@
 <div class="full-page">
-    <h3>Select Prefered Borders</h3>
     <div class="header">
-        <data-area [settings]="areaSettings"></data-area>
+        <div style="display:flex;flex-direction: row;flex-grow: 1;justify-content: space-between;">
+            <div style="display:flex;flex-direction: column;flex-grow: 1;justify-content: space-between;">
+                <h3>Select Prefered Borders</h3>
+                <!-- <h3>{{ context.driver? 'Yours' : `${d.name.value}` }} Select Prefered Borders</h3> -->
+                <data-area [settings]="areaSettings"></data-area>
+            </div>
+            <button mat-icon-button mat-dialog-close title="Close" style="justify-content: flex-end" (click)="close()">
+                <mat-icon>close</mat-icon>
+            </button>
+        </div>
     </div>
     <div class="grow-item">
         <table style="width: 100%;">
@@ -15,7 +23,10 @@
         </table>
     </div>
     <div class="footer">
-        <mat-label style="padding: 5px; color:blue">selected: {{ selectedCount }}</mat-label>
-        <button mat-raised-button color="accent" (click)="saveSelected()">Save</button>
+        <hr>
+        <div style="display:flex;flex-direction: row;flex-grow: 1;justify-content: space-between;">
+            <mat-label style="padding: 5px; color:blue">selected: {{ selectedCount }}</mat-label>
+            <button mat-raised-button color="accent" (click)="saveSelected()">Save</button>
+        </div>
     </div>
 </div>

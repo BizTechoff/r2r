@@ -8,6 +8,7 @@
 </mat-dialog-content>
 <mat-dialog-actions>
 
+  <div style="display:flex;flex-direction: row;flex-grow: 1;justify-content: space-between;">
   <button mat-raised-button *ngFor="let b of args.buttons" (click)="buttonClick(b,$event)">
     {{b.text}}
   </button>
@@ -18,5 +19,5 @@
   <button mat-raised-button color="accent" (click)="confirm()">
     Ok
   </button>
-
+</div>
 </mat-dialog-actions>

@@ -20,7 +20,7 @@
 <div class="full-page">
     <div class="header">
 
-        <div style="display:flex;flex-direction: row;flex-grow: 1;align-content: space-between;">
+        <div style="display:flex;flex-direction: row;flex-grow: 1;align-content: space-between;flex-wrap: wrap;">
             <button title="Show Prev Day" style="height: 40px;" mat-raised-button color="primary"
                 (click)="prevDay()">-</button>
             <div>
@@ -33,6 +33,10 @@
                 title="Last Refresh Done At: {{ clientLastRefreshDate | date: 'HH:mm' }}">
                 <mat-icon>refresh</mat-icon>
             </button>
+            <button mat-mini-fab title="Show Rides Activities For Selected Date" (click)="history()"
+                color="{{ params.historyChanged.value ? 'accent':'primary' }}" style="align-content: flex-end;">
+                <mat-icon>history</mat-icon>
+            </button>
             <data-control [column]="params.area" title="Filter By Area" style="min-width: 170px; padding-left: 20px;">
             </data-control>
             <data-control [column]="params.fid" title="Filter By From Location"
@@ -40,10 +44,6 @@
             <span style="padding-top: 13px;"> > </span>
             <data-control [column]="params.tid" title="Filter By To Location"
                 style="min-width: 170px;padding-right: 20px;"></data-control>
-            <button mat-mini-fab title="Show Rides Activities For Selected Date" (click)="history()"
-                color="{{ params.historyChanged.value ? 'accent':'primary' }}" style="align-content: flex-end;">
-                <mat-icon>history</mat-icon>
-            </button>
         </div>
     </div>
 

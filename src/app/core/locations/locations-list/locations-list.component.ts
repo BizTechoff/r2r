@@ -12,8 +12,9 @@ import { Location, LocationArea, LocationType } from './../location';
 export class LocationsListComponent implements OnInit {
 
   search = new StringColumn({
-    caption: 'search location name',
-    valueChange: () => this.busy.donotWait(async () => this.retrieveLocations())
+    dataControlSettings: () => ({ clickIcon: 'search', click: async () => await this.retrieveLocations() }),
+    caption: 'Search here for location name',
+    valueChange: () => this.busy.donotWait(async () => await this.retrieveLocations())
 
   });
 
@@ -21,9 +22,10 @@ export class LocationsListComponent implements OnInit {
     where: l => this.search.value ? l.name.isContains(this.search) : undefined,
     orderBy: l => [{ column: l.type, descending: false }, { column: l.name, descending: false }],
     //allowCRUD: this.context.isAllowed(Roles.admin),
-    allowInsert: true,// this.context.isAllowed([Roles.admin, Roles.usher, Roles.matcher]),
+    allowInsert: this.context.isAllowed([Roles.admin]),//, Roles.usher, Roles.matcher
     allowUpdate: this.context.isAllowed([Roles.admin]),
     allowDelete: false,
+    allowCRUD: true,
     numOfColumnsInGrid: 10,
     columnSettings: (d) => [
       d.name,
@@ -42,11 +44,11 @@ export class LocationsListComponent implements OnInit {
 
   constructor(private context: Context, private busy: BusyService) { }
 
-  ngOnInit() {
-    this.retrieveLocations();
+  async ngOnInit() {
+    await this.retrieveLocations();
   }
   async retrieveLocations() {
-    this.locationsSettings.reloadData();
+    await this.locationsSettings.reloadData();
   }
   async addLocation() { }
 

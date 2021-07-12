@@ -18,7 +18,7 @@ export class Location extends IdEntity {
   constructor(private context: Context) {
     super({
       name: "locations",
-      allowApiInsert: [Roles.admin, Roles.usher, Roles.matcher],
+      allowApiInsert: [Roles.usher, Roles.admin, Roles.matcher],
       allowApiUpdate: [Roles.admin],
       allowApiDelete: false,
       defaultOrderBy: () => [this.type, this.name],

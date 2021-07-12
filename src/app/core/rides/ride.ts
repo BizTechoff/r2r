@@ -549,8 +549,9 @@ export class RideStatus {
                     }
                 }
                 if(!r.isHasDriver())
-                {if(r.status.value !== RideStatus.w4_Driver){
-                    r.status.value = RideStatus.w4_Driver;
+                {
+                    if(r.status.value !== RideStatus.w4_Driver){
+                        r.status.value = RideStatus.w4_Driver;
                     // await r.save();
                 }
             }

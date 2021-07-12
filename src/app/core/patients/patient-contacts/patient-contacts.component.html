@@ -1,4 +1,12 @@
 <div class="full-page">
+    <div class="header">
+        <div style="display:flex;flex-direction: row;flex-grow: 1;justify-content: space-between;">
+            <h3 matDialogHeader>{{ args.title }}</h3>
+            <button mat-icon-button mat-dialog-close title="Close" style="justify-content: flex-end" (click)="close()">
+                <mat-icon>close</mat-icon>
+            </button>
+        </div>
+    </div>
     <div class="grow-item">
         <data-grid [settings]="contactsSettings"></data-grid>
     </div>

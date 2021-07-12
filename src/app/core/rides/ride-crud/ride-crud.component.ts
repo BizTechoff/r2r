@@ -68,7 +68,7 @@ export class RideCrudComponent implements OnInit {
 
     let rOnly = RideStatus.isRideReadOnly.includes(this.r.status.value);
     let hasBackRide = this.r.hadBackRide();
-    this.dataArea = new DataAreaSettings({
+    this.dataArea = new DataAreaSettings<Ride>({
 
       columnSettings: () => [
         {
