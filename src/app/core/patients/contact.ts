@@ -8,7 +8,7 @@ export class Contact extends IdEntity {
  
     pid = new PatientIdColumn(this.context);
     name = new StringColumn({});
-    mobile = new MobileColumn({});
+    mobile = new MobileColumn(this.context);
     idNumber = new StringColumn({});
     relation = new StringColumn({});
 

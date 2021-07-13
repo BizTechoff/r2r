@@ -3,7 +3,7 @@ import { DialogService } from "../../common/dialog";
 import { DynamicServerSideSearchDialogComponent } from "../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component";
 import { GridDialogComponent } from "../../common/grid-dialog/grid-dialog.component";
 import { InputAreaComponent } from "../../common/input-area/input-area.component";
-import { NOT_FOUND_DAYS, TimeColumn } from "../../shared/types";
+import { MobileColumn, NOT_FOUND_DAYS, TimeColumn } from "../../shared/types";
 import { addDays, daysDiff } from "../../shared/utils";
 import { Roles } from "../../users/roles";
 import { UserId, Users } from "../../users/users";
@@ -22,10 +22,11 @@ export class Driver extends IdEntity {
     },
   });
   hebName = new StringColumn({});
-  mobile = new StringColumn({ allowApiUpdate: false });
+  mobile = new MobileColumn(this.context, { allowApiUpdate: false });
   home?= new StringColumn({});
   email = new StringColumn({});
   seats = new NumberColumn({
+    dataControlSettings: () => ({ width: '80' }),
     defaultValue: 4,
     validate: () => {
       if (this.seats.value <= 0) {
@@ -33,9 +34,9 @@ export class Driver extends IdEntity {
       }
     },
   });
-  idNumber = new StringColumn({});
-  birthDate = new DateColumn({});
-  city = new StringColumn({});
+  idNumber = new StringColumn({ dataControlSettings: () => ({ width: '120' }) });
+  birthDate = new DateColumn({ dataControlSettings: () => ({ width: '110' }) });
+  city = new StringColumn({ dataControlSettings: () => ({ width: '140' }) });
   address = new StringColumn({});
 
   lastStatus = new RideStatusColumn({});
@@ -45,7 +46,7 @@ export class Driver extends IdEntity {
   defaultFromTime = new TimeColumn();
   defaultToTime = new TimeColumn();
   freezeTillDate = new DateColumn({ caption: 'Driver Freezed Last Date' });
- 
+
   constructor(private context: Context, private dialog: DialogService) {
     super({
       name: "drivers",

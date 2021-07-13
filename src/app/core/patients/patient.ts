@@ -1,14 +1,14 @@
 import { BoolColumn, checkForDuplicateValue, ColumnSettings, Context, DateColumn, EntityClass, IdEntity, NumberColumn, StringColumn } from "@remult/core";
 import { DynamicServerSideSearchDialogComponent } from "../../common/dynamic-server-side-search-dialog/dynamic-server-side-search-dialog.component";
-import { TODAY } from "../../shared/types";
+import { MobileColumn, TODAY } from "../../shared/types";
 import { addDays } from "../../shared/utils";
 import { LocationIdColumn } from "../locations/location";
 
 @EntityClass
 export class Patient extends IdEntity {
 
-  name = new StringColumn({});
-  mobile = new StringColumn({});
+  name = new StringColumn({dataControlSettings:()=>({width: '200'})});
+  mobile = new MobileColumn(this.context);
   idNumber = new StringColumn({});
   birthDate?= new DateColumn({
     allowNull: true,

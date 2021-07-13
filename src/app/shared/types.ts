@@ -1,4 +1,4 @@
-import { ColumnSettings, DateTimeColumn, Filter, StringColumn } from "@remult/core";
+import { ColumnSettings, Context, DateTimeColumn, Filter, StringColumn } from "@remult/core";
 import { RideStatus } from "../core/rides/ride";
 
 
@@ -18,13 +18,61 @@ export class changeDate extends DateTimeColumn {
 };
 
 export class MobileColumn extends StringColumn {
-  constructor(options?: ColumnSettings<string>) {
+  constructor(context?: Context, options?: ColumnSettings<string>) {
     super({
+      validate: () => {
+        if (context && !context.onServer) {
+          let valid = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+          let message = '';
+          let v = this.value;
+          if (!v) {
+            message = `Required`;
+          }
+          else { /*&& this.wasChanged()*/
+            let fixed = '';
+            for (const chr of v) {
+              if (valid.includes(chr)) {
+                fixed += chr;
+              }
+            }
+            v = fixed;
+            if (![10].includes(v.length)) {
+              message = `Should be 10 digits`;
+            }
+            else if (!v.startsWith('05')) {
+              message = `Not start with: '${'05'}'`;
+            }
+            else {
+              for (const chr of v) {
+                if (!valid.includes(chr)) {
+                  message = `Not valid char: '${chr}'`;
+                  break;
+                }
+              }
+            }
+          }
+          if (message.length > 0) {
+            this.validationError = message;
+            throw `${this.defs.caption}: ${this.validationError}`;
+          }
+          else {
+            if (this.value !== v) {
+              // this.value.slice(0,3)+'-'+this.value.slice(3);
+              this.value = v;
+            }
+          }
+        }
+      },
       dataControlSettings: () => ({
+        // getValue: () => {if(this.value) {
+        //   this.value.slice(0,3)+'-'+this.value.slice(3);
+        // }},
         click: () => window.open('tel:' + this.value),
-        // allowClick: () => !!this.value,
+        allowClick: (cur) => cur && !cur.isNew(),
         clickIcon: 'phone',
-        inputType: 'tel'
+        inputType: 'tel',
+        width: '120',
+        cssClass: 'r2r-column'
       }),
       ...options
     });
@@ -57,21 +105,21 @@ export class TimeColumn extends StringColumn {
   isEmpty() {
     return !this.value || this.value.length === 0 || this.value === TimeColumn.Empty;
   }
-}import { Directive, Input } from "@angular/core";
+} import { Directive, Input } from "@angular/core";
 @Directive({
-    selector:"[localVariables]",
-    exportAs:"localVariables"
+  selector: "[localVariables]",
+  exportAs: "localVariables"
 })
 export class LocalVariables {
-    @Input("localVariables") set localVariables( struct: any ) {
-        if ( typeof struct === "object" ) {
-            for( var variableName in struct ) {
-                this[variableName] = struct[variableName];
-            }
-        }
+  @Input("localVariables") set localVariables(struct: any) {
+    if (typeof struct === "object") {
+      for (var variableName in struct) {
+        this[variableName] = struct[variableName];
+      }
     }
-    constructor( ) {
-    }
+  }
+  constructor() {
+  }
 }
 
 export interface driver4UsherSuggest {
@@ -158,7 +206,7 @@ export interface ride4Driver {
   fromIsBorder: boolean,
   toIsBorder: boolean
 };
- 
+
 export interface ride4Usher {
 
   key: string,

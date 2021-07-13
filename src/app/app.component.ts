@@ -17,7 +17,7 @@ import { PasswordColumn, Users } from './users/users';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  
+
   constructor(
     public router: Router,
     public activeRoute: ActivatedRoute,
@@ -73,7 +73,7 @@ export class AppComponent {
       else if (u.isMatcher.value) {
         result.push(Roles.matcher);
       }
-      if (u.isDriver.value) {/* no-else */ 
+      if (u.isDriver.value) {/* no-else */
         result.push(Roles.driver);
       }
     }
@@ -97,7 +97,7 @@ export class AppComponent {
         }
         else if (u.isUsher.value) {
           result.roles.push(Roles.usher);
-        } 
+        }
         else if (u.isMatcher.value) {
           result.roles.push(Roles.matcher);
         }
@@ -146,7 +146,7 @@ export class AppComponent {
       title: "Update Info",
       columnSettings: () => [
         user.name,
-        user.mobile//visible=Roles.driver | Roles.matcher
+        user.mobile
       ],
       ok: async () => {
         await user.save();

@@ -13,6 +13,13 @@ import { Patient } from '../patient';
 })
 export class PatientContactsComponent implements OnInit {
 
+  _args: {
+    in: { pid: string },
+    out?: { mobile: string, changed?: boolean }
+  } = {
+      in: { pid: '' },
+      out: { mobile: '', changed: false }
+    };
   args: {
     pid: string,//Input the patient-id
     mobile?: string, //Output the return contact-mobile as selected row
@@ -27,7 +34,7 @@ export class PatientContactsComponent implements OnInit {
     allowCRUD: this.context.isAllowed([Roles.admin, Roles.usher, Roles.matcher]),
     showPagination: false,
     columnSettings: (c) => [
-      { column: c.mobile, click: (cur) => { window.open('tel:' + cur.mobile.value); }, visible: (cur) => { return cur.mobile.value && cur.mobile.value.length > 0 } },
+      c.mobile,//, visible: (cur) => { return cur.mobile.value && cur.mobile.value.length > 0 }
       c.name,
       c.relation
     ],

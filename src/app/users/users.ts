@@ -2,7 +2,7 @@
 import { Allowed, BoolColumn, checkForDuplicateValue, ColumnOptions, ColumnSettings, Context, DateColumn, EntityClass, IdColumn, IdEntity, ServerMethod, StringColumn } from "@remult/core";
 import { Driver } from "../core/drivers/driver";
 import { LocationArea, LocationAreaColumn, LocationIdColumn } from "../core/locations/location";
-import { changeDate, TODAY } from '../shared/types';
+import { changeDate, MobileColumn, TODAY } from '../shared/types';
 import { addDays } from "../shared/utils";
 import { Roles } from './roles';
 
@@ -55,13 +55,8 @@ export class Users extends IdEntity {
         }
     });
     isDriver = new BoolColumn({ defaultValue: false, allowApiUpdate: Roles.admin });
-
-    mobile = new StringColumn({
-        validate: () => {
-            if (!this.mobile.value || this.mobile.value.length < 2)
-                this.mobile.validationError = ' Mobile is too short';
-        }
-    });
+ 
+    mobile = new MobileColumn(this.context);
 
     lastArea = new LocationAreaColumn();
     lastFid = new LocationIdColumn(this.context);
